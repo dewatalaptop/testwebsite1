@@ -3,136 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proposal Paket Outbound & Kuliner - Dolan Sawah</title>
+    <title>Marketing Presentation - Bright & Modern Theme</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* === TEMA TERANG & VISUAL BARU === */
+        :root {
+            --primary-bg: #f8f9fa;       /* Putih keabuan yang lembut */
+            --card-bg: #ffffff;          /* Putih murni untuk kartu */
+            --text-primary: #343a40;     /* Abu-abu gelap untuk teks utama */
+            --text-secondary: #6c757d;   /* Abu-abu untuk teks sekunder */
+            --accent-color: #1ABC9C;     /* Teal yang segar */
+            --accent-hover: #16A085;     /* Teal yang lebih gelap */
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --font-heading: 'Oswald', sans-serif;
+            --font-body: 'Poppins', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            -webkit-font-smoothing: antialiased; /* Teks lebih halus di MacOS/iOS */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* === PRESENTATION CONTAINER === */
+        .presentation-container { position: relative; width: 100%; height: 100%; }
+
+        /* === PROGRESS BAR === */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
+            width: 0%;
+            z-index: 100;
+            transition: width 0.4s ease-out;
+            border-radius: 0 5px 5px 0;
+        }
+
+        /* === SLIDE STYLING === */
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem 5%;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+            visibility: hidden;
+        }
+
+        .slide.active { opacity: 1; transform: scale(1); visibility: visible; z-index: 10; }
+        .slide.exiting { opacity: 0; transform: scale(1.05); z-index: 5; }
+
+        /* === KONTEN SLIDE VISUAL BARU === */
+        .slide-title {
+            font-family: var(--font-heading);
+            font-size: 3.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            /* Efek gradasi pada teks */
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        .slide-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin-bottom: 2.5rem;
+        }
+        
+        .slide-content { width: 100%; max-width: 900px; }
+
+        .content-list { list-style: none; padding: 0; text-align: left; display: inline-block; }
+        
+        /* Gaya "Kartu Mengambang" */
+        .content-list li {
+            background-color: var(--card-bg);
+            padding: 20px 25px;
+            margin-bottom: 18px;
+            border-radius: 12px;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        /* Animasi interaktif saat hover */
+        .content-list li:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-list li strong { color: var(--accent-hover); margin-right: 12px; font-weight: 600; }
+        .content-list li .icon { font-size: 1.5rem; margin-right: 18px; color: var(--accent-color); }
+        
+        /* Animasi Konten */
+        .slide.active .slide-title, .slide.active .slide-subtitle, .slide.active .content-list li { animation: fadeInTop 0.6s backwards; }
+        .slide.active .slide-subtitle { animation-delay: 0.2s; }
+        .slide.active .content-list li:nth-child(1) { animation-delay: 0.4s; }
+        .slide.active .content-list li:nth-child(2) { animation-delay: 0.5s; }
+        .slide.active .content-list li:nth-child(3) { animation-delay: 0.6s; }
+        .slide.active .content-list li:nth-child(4) { animation-delay: 0.7s; }
+
+        @keyframes fadeInTop { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* === TOMBOL NAVIGASI BARU === */
+        .nav-buttons { position: fixed; bottom: 30px; right: 30px; z-index: 50; display: flex; gap: 15px; }
+
+        .nav-button {
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        #nextBtn {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+        #nextBtn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(22, 160, 133, 0.3);
+        }
+        
+        #prevBtn {
+            background-color: transparent;
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        #prevBtn:hover {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+        
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            background-color: #ced4da;
+            border-color: #ced4da;
+            color: #6c757d;
+        }
+        
+        /* === RESPONSIVE DESIGN === */
+        @media (max-width: 768px) {
+            .slide-title { font-size: 2.5rem; }
+            .slide-subtitle { font-size: 1.2rem; }
+            .content-list li { font-size: 1rem; padding: 15px 20px; }
+            .nav-buttons { bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; justify-content: space-between; }
+        }
+    </style>
 </head>
 <body>
 
-    <header>
-        <h1>Proposal Pengembangan Bisnis: Paket Outbound & Kuliner</h1>
-        <p><strong>Diajukan kepada:</strong> Mitra Travel Agent, Sekolah, dan Perusahaan</p>
-        <p><strong>Tanggal:</strong> 25 Agustus 2025</p>
-    </header>
+    <div class="progress-bar" id="progressBar"></div>
 
-    <section id="latar-belakang">
-        <h2>1. Latar Belakang & Konsep Paket</h2>
-        <p>Resto Dolan Sawah, dengan suasana pedesaan yang otentik, kini menghadirkan sebuah solusi satu atap <em>(one-stop solution)</em> untuk kegiatan grup Anda. Kami menggabungkan kekuatan kuliner khas Dolan Sawah dengan aktivitas outbound yang seru dan membangun kebersamaan.</p>
-        <p>Paket ini dirancang khusus untuk acara <strong>gathering perusahaan, kegiatan sekolah, arisan, reuni,</strong> dan berbagai acara komunitas lainnya, memberikan pengalaman tak terlupakan di tengah asrinya pemandangan sawah.</p>
-    </section>
+    <main class="presentation-container">
 
-    <section id="materi-outbound">
-        <h2>2. Ragam Materi Outbound Unggulan</h2>
-        <p>Dipandu oleh fasilitator profesional, kami menyediakan pilihan aktivitas yang dapat disesuaikan dengan tujuan acara Anda:</p>
-        <ul>
-            <li><strong>&#x1F91D; Pencair Suasana (Ice Breaking):</strong> Sesi pembuka yang seru untuk membangun energi positif dan membuat peserta lebih akrab.</li>
-            <li><strong>&#x1F3C3; Permainan Penuh Energi (Fun Games):</strong> Aktivitas yang mengutamakan kegembiraan dan kompetisi ringan untuk meningkatkan semangat. <em>Contoh: Balap Bakiak, Estafet Air.</em></li>
-            <li><strong>&#x1F525; Permainan Kerjasama Tim (Team Building):</strong> Materi yang didesain untuk melatih komunikasi, strategi, dan kepercayaan dalam tim. <em>Contoh: Spider Web, Blind Walk.</em></li>
-            <li><strong>&#x1F33E; Aktivitas Tematik "Dolan Sawah":</strong> Pengalaman otentik yang terinspirasi dari suasana pedesaan. <em>Contoh: Lomba Tangkap Belut, Menghias Caping Pak Tani.</em></li>
-        </ul>
-    </section>
+        <section class="slide active">
+            <h1 class="slide-title">📊 Marketing Presentation</h1>
+            <p class="slide-subtitle">Strategi Maksimalkan Tim Konten untuk Kejar Target Penjualan</p>
+        </section>
 
-    <section id="detail-paket">
-        <h2>3. Detail Paket Outbound & Kuliner</h2>
-        <p>Pilih paket menu favorit Anda. Harga di bawah ini adalah harga per orang dan sudah termasuk kegiatan outbound, makan, penggunaan fasilitas, dan suvenir.</p>
+        <section class="slide">
+            <h2 class="slide-title">🎯 Tujuan Utama (WHY)</h2>
+            <div class="slide-content">
+                <ul class="content-list">
+                    <li><span class="icon">💰</span>Mengejar target penjualan <strong>Rp650 juta</strong> di akhir bulan.</li>
+                    <li><span class="icon">🚀</span>Mengoptimalkan tim konten menjadi mesin marketing digital.</li>
+                    <li><span class="icon">🔄</span>Mengubah konten menjadi reservasi & penjualan langsung.</li>
+                </ul>
+            </div>
+        </section>
         
-        <table>
-            <thead>
-                <tr>
-                    <th>Nama Paket</th>
-                    <th>Detail Menu Prasmanan</th>
-                    <th>Harga Dewasa</th>
-                    <th>Harga Anak</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>Paket A</strong></td>
-                    <td>Nasi Putih, Ayam Kremes, Sambel, Lalapan, Mendoan, Teh</td>
-                    <td><strong>Rp 88.000</strong></td>
-                    <td><strong>Rp 99.000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Paket B</strong></td>
-                    <td>Nasi Putih, Daging Kelem, Bakmi, Sambel, Teh</td>
-                    <td><strong>Rp 88.000</strong></td>
-                    <td><strong>Rp 99.000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Paket C</strong></td>
-                    <td>Nasi Putih, Ayam Geprek, Sop Sosis, Jamur, Semangka, Air mineral, Teh</td>
-                    <td><strong>Rp 99.000</strong></td>
-                    <td><strong>Rp 110.000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Paket D</strong></td>
-                    <td>Nasi Putih, Nila Bakar, Sayur Asem, Sambal, Pisang Goreng, Air mineral, Teh</td>
-                    <td><strong>Rp 105.000</strong></td>
-                    <td><strong>Rp 116.000</strong></td>
-                </tr>
-                 <tr>
-                    <td><strong>Paket E</strong></td>
-                    <td>Nasi Putih, Ayam Lada Hitam, Capcay, Soun, Jamur, Bakso Kuah, Kerupuk, Bolu Gulung, Teh</td>
-                    <td><strong>Rp 110.000</strong></td>
-                    <td><strong>Rp 121.000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Paket F (Kids)</strong></td>
-                    <td>Steak Ayam, Kentang Goreng, Wortel + Buncis, Puding Fla, Soft Drink, Air Mineral</td>
-                    <td><strong>Rp 110.000</strong></td>
-                    <td><strong>Rp 121.000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Paket G</strong></td>
-                    <td>Nasi Putih, Kakap Asam Manis, Ayam Goreng Mentega, Tumis Buncis, Daging sapi, Sambal, Teh</td>
-                    <td><strong>Rp 110.000</strong></td>
-                    <td><strong>Rp 121.000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Paket H</strong></td>
-                    <td>Nasi Putih, Sup Iga Sapi, Kerupuk Udang, Sambel Kecap, Tahu+Tempe Goreng, Tahu bakso, Sosis Solo, Bolu Gulung, Teh, Air Mineral</td>
-                    <td><strong>Rp 138.000</strong></td>
-                    <td><strong>Rp 149.000</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Paket I</strong></td>
-                    <td>Nasi, Iga Bakar, Sop, Sambal, Krupuk, Lalapan, Sosis Solo, Pie buah, Semangka, Teh, Air Mineral</td>
-                    <td><strong>Rp 143.000</strong></td>
-                    <td><strong>Rp 154.000</strong></td>
-                </tr>
-                 <tr>
-                    <td><strong>Paket J (Javanase)</strong></td>
-                    <td>Nasi Putih, Sambel Goreng Ati / Sambel Goreng Kentang krecek, Bihun Goreng, Daging Kelem, Acar Kuning, Kerupuk Udang, Sate ayam, SOP Sosis, Jamur, Sosis Solo, Pie Buah, Teh + Soft Drink + Air Mineral</td>
-                    <td><strong>Rp 132.000</strong></td>
-                    <td><strong>Rp 143.000</strong></td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
+        <section class="slide">
+            <h2 class="slide-title">🔑 Mindset Baru</h2>
+             <div class="slide-content">
+                <ul class="content-list">
+                    <li><span class="icon">💡</span><strong>Konten = Alat Jualan,</strong> bukan sekadar estetika.</li>
+                    <li><span class="icon">📣</span>Setiap konten wajib punya <strong>Call to Action (CTA)</strong> yang kuat dan jelas.</li>
+                    <li><span class="icon">💬</span>Contoh CTA: "Booking via WhatsApp sekarang!" atau "Promo hanya hari ini!"</li>
+                </ul>
+            </div>
+        </section>
 
-    <section id="skema-kerjasama">
-        <h2>4. Skema Kerjasama Mitra</h2>
-        <div>
-            <h3>&#x1F4B0; Komisi Mitra 10%</h3>
-            <p>Kami menawarkan <strong>komisi sebesar 10%</strong> dari total nilai paket untuk setiap travel agent, sekolah, atau pihak ketiga yang berhasil menyelenggarakan acara di Resto Dolan Sawah. Mari tumbuh bersama!</p>
-        </div>
-    </section>
+        <section class="slide">
+            <h2 class="slide-title">💡 Pilar Strategi Utama (WHAT)</h2>
+            <p class="slide-subtitle">Tiga pilar utama untuk mendorong konversi secara agresif.</p>
+            <div class="slide-content">
+                <ul class="content-list">
+                    <li><span class="icon">🗣️</span><strong>KONTEN BERBASIS CTA:</strong> Setiap post harus memiliki tujuan penjualan yang jelas.</li>
+                    <li><span class="icon">⏰</span><strong>CIPTAKAN URGENCY:</strong> Gunakan promosi terbatas untuk mendorong keputusan cepat.</li>
+                    <li><span class="icon">🤝</span><strong>AKTIVASI PELANGGAN (UGC):</strong> Ubah pelanggan menjadi mesin marketing gratis.</li>
+                </ul>
+            </div>
+        </section>
 
-    <section id="ketentuan">
-        <h2>5. Informasi & Ketentuan</h2>
-        <ul>
-            [span_0](start_span)<li><strong>&#x2714;</strong> Harga belum termasuk PPN 10%.[span_0](end_span)</li>
-            <li><strong>&#x2714;</strong> Minimum pemesanan untuk paket outbound adalah <strong>30 orang</strong>.</li>
-            <li><strong>&#x2714;</strong> Reservasi dikonfirmasi dengan DP 50% selambat-lambatnya H-14.</li>
-            <li><strong>&#x2714;</strong> Pelunasan dilakukan selambat-lambatnya H-3 sebelum acara.</li>
-            <li><strong>&#x2714;</strong> Durasi penggunaan tempat adalah 120 menit. [span_1](start_span)Kelebihan waktu akan dikenakan biaya tambahan.[span_1](end_span)</li>
-            [span_2](start_span)<li><strong>&#x2714;</strong> Gratis penggunaan sound system/proyektor untuk paket D, E, F, G, H, dan I.[span_2](end_span)</li>
-        </ul>
-    </section>
+        <section class="slide">
+            <h2 class="slide-title">📌 Jenis Konten Prioritas</h2>
+            <div class="slide-content">
+                <ul class="content-list">
+                    <li><span class="icon">📈</span><strong>Reels (Viral):</strong> Jangkauan luas untuk awareness & suasana.</li>
+                    <li><span class="icon">⚡️</span><strong>Story (Konversi Cepat):</strong> Ideal untuk promo harian & CTA langsung.</li>
+                    <li><span class="icon">📚</span><strong>Carousel (Edukasi):</strong> Detail paket, harga, dan informasi penting.</li>
+                    <li><span class="icon">🔴</span><strong>Live IG (Kepercayaan):</strong> Membangun trust dengan menunjukkan suasana resto.</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section class="slide">
+            <h2 class="slide-title">🗓️ Rencana Aksi 6 Hari (HOW)</h2>
+            <div class="slide-content">
+                <ul class="content-list">
+                    <li><strong>Hari 1-2:</strong> Fokus pada <strong>produk & testimoni</strong> (Reels best seller, Carousel paket).</li>
+                    <li><strong>Hari 3-4:</strong> Bangun <strong>engagement & trust</strong> (Live IG suasana ramai, Reel relatable).</li>
+                    <li><strong>Hari 5:</strong> Ciptakan <strong>urgensi</strong> (Story countdown promo terbatas).</li>
+                    <li><strong>Hari 6:</strong> Dorong <strong>konversi akhir</strong> (Reel testimoni + Flash sale penutup).</li>
+                </ul>
+            </div>
+        </section>
 
-    <footer>
-        <h2>Hubungi Kami Untuk Reservasi!</h2>
-        <p>Siap merencanakan acara seru Anda berikutnya di Dolan Sawah? Hubungi tim kami sekarang juga!</p>
-        <a href="https://wa.me/6285601393640"><strong>&#x1F4DE; Hubungi via WhatsApp: 0856 0139 3640</strong></a>
-    </footer>
+        <section class="slide">
+            <h2 class="slide-title">⚡ Optimalisasi Konversi</h2>
+            <div class="slide-content">
+                <ul class="content-list">
+                    <li><span class="icon">🎯</span><strong>Targetkan Local Ads:</strong> Boost konten terbaik ke audiens terdekat (radius 5-10km).</li>
+                    <li><span class="icon">🔗</span><strong>Perpendek Jalur Konversi:</strong> Arahkan semua CTA langsung ke WhatsApp reservasi.</li>
+                    <li><span class="icon">❌</span><strong>Hapus Hambatan:</strong> Jangan buat audiens bingung dengan link "lihat menu" atau "kunjungi website".</li>
+                </ul>
+            </div>
+        </section>
 
+        <section class="slide">
+            <h2 class="slide-title">👥 Pembagian Peran Tim (WHO)</h2>
+            <div class="slide-content">
+                <ul class="content-list">
+                    <li><span class="icon">📸</span><strong>Content Creator:</strong> Eksekusi visual (foto & video).</li>
+                    <li><span class="icon">✍️</span><strong>Copywriter:</strong> Narasi penjualan (caption, CTA, promo).</li>
+                    <li><span class="icon">📲</span><strong>Community Manager:</strong> Interaksi & konversi (respon DM/komen).</li>
+                    <li><span class="icon">📊</span><strong>Data Tracker:</strong> Mengukur & melaporkan hasil.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="slide">
+            <h2 class="slide-title">🔄 Siklus Evaluasi & Motivasi</h2>
+            <div class="slide-content">
+                <ul class="content-list">
+                    <li><span class="icon">📈</span><strong>Evaluasi Harian:</strong> Lacak DM/WA masuk dari setiap jenis konten.</li>
+                    <li><span class="icon">💡</span><strong>Fokus pada Pemenang:</strong> Gandakan jenis konten yang terbukti menghasilkan penjualan.</li>
+                    <li><span class="icon">🏆</span><strong>Beri Reward:</strong> Insentif untuk tim berdasarkan performa konversi, bukan hanya 'likes'.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="slide">
+            <h2 class="slide-title">✅ Kesimpulan</h2>
+            <p class="slide-subtitle" style="font-size: 2rem; color: var(--text-primary);">Dari Tim Konten menjadi <strong>Tim Penjualan.</strong></p>
+            <div class="slide-content">
+                <ul class="content-list">
+                    <li><span class="icon">💡</span>Tim Konten adalah <strong>Tim Marketing Digital.</strong></li>
+                    <li><span class="icon">💰</span>Konten adalah <strong>Alat Konversi Penjualan Langsung.</strong></li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+    
+    <div class="nav-buttons">
+        <button class="nav-button" id="prevBtn" disabled>Prev</button>
+        <button class="nav-button" id="nextBtn">Next</button>
+    </div>
+
+    <script>
+        // JavaScript (Sama seperti sebelumnya, tidak ada perubahan)
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const progressBar = document.getElementById('progressBar');
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+
+            function updatePresentation() {
+                slides.forEach((slide, index) => {
+                    slide.classList.remove('active', 'exiting');
+                    if (index === currentSlide) {
+                        slide.classList.add('active');
+                    } else if (index === currentSlide - 1) {
+                        // Untuk transisi fade-out, kita tidak perlu kelas exiting khusus dengan transform
+                    }
+                });
+                progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+                prevBtn.disabled = currentSlide === 0;
+                nextBtn.disabled = currentSlide === totalSlides - 1;
+            }
+
+            nextBtn.addEventListener('click', () => {
+                if (currentSlide < totalSlides - 1) {
+                    slides[currentSlide].classList.add('exiting');
+                    currentSlide++;
+                    updatePresentation();
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentSlide > 0) {
+                    slides[currentSlide].classList.add('exiting');
+                    currentSlide--;
+                    updatePresentation();
+                }
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') nextBtn.click();
+                if (e.key === 'ArrowLeft') prevBtn.click();
+            });
+
+            updatePresentation();
+        });
+    </script>
 </body>
 </html>

@@ -3,78 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project September: The Experience Revolution</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>The Next Chapter: Resto Dolan Sawah</title>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* [FILOSOFI DESAIN BARU]
-           Terinspirasi dari keynote Steve Jobs: Gelap, Fokus, Dramatis, dan Premium.
-           Setiap elemen dirancang untuk membangun cerita dan menyorot satu ide besar per slide.
-        */
         :root {
-            /* Palette Warna Sinematik */
-            --primary-bg: #111827; /* Deep Navy Blue */
-            --card-bg: rgba(255, 255, 255, 0.05); /* Frosted Glass Effect */
-            --text-primary: #f9fafb; /* Off-white */
-            --text-secondary: #9ca3af; /* Soft Grey */
-            --accent-color: #34D399; /* Emerald Green */
-            --accent-hover: #10B981; /* Brighter Emerald */
-            --border-color: rgba(255, 255, 255, 0.1);
-            --shadow-color: rgba(0, 0, 0, 0.2);
-            --font-heading: 'Oswald', sans-serif;
-            --font-body: 'Poppins', sans-serif;
+            --primary-font: 'Poppins', sans-serif;
+            --text-light: #F5F5F5;
+            --text-dark: #2c3e50;
+            --accent-color: #e67e22;
+            --bg-dark-overlay: rgba(0, 0, 0, 0.6);
         }
 
-        * {
+        body, html {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-body);
-            background-color: var(--primary-bg);
-            color: var(--text-primary);
+            font-family: var(--primary-font);
+            background-color: #111;
+            color: var(--text-light);
             overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* [EFEK BARU] Background dengan gradasi halus untuk kedalaman */
-        .presentation-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at top center, rgba(55, 65, 81, 0.5), transparent 70%);
-            pointer-events: none;
+            height: 100%;
+            width: 100%;
         }
 
         .presentation-container {
             position: relative;
-            width: 100%;
-            height: 100%;
-            perspective: 1500px; /* [EFEK BARU] Mengaktifkan ruang 3D untuk transisi */
+            width: 100vw;
+            height: 100vh;
         }
 
-        .progress-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 6px;
-            background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
-            width: 0%;
-            z-index: 100;
-            transition: width 0.4s ease-out;
-            box-shadow: 0 0 15px var(--accent-color);
-        }
-
-        /* [TRANSLASI SLIDE BARU] Efek 3D "Flip" yang sinematik */
         .slide {
             position: absolute;
             width: 100%;
@@ -84,392 +42,363 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 2rem 5%;
+            padding: 5vw;
+            box-sizing: border-box;
             opacity: 0;
-            transform-style: preserve-3d;
-            transition: all 0.8s cubic-bezier(0.45, 0, 0.55, 1);
             visibility: hidden;
-            transform: translateX(100%) rotateY(-30deg) scale(0.9);
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+            background-size: cover;
+            background-position: center center;
         }
 
         .slide.active {
             opacity: 1;
             visibility: visible;
-            transform: translateX(0) rotateY(0) scale(1);
-            z-index: 10;
         }
         
-        .slide.exiting {
-            opacity: 0;
-            z-index: 5;
-            transform: translateX(-100%) rotateY(30deg) scale(0.9);
-        }
-
-        /* Tipografi ala "Keynote" */
-        .slide-title {
-            font-family: var(--font-heading);
-            font-size: 5rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-        
-        .slide-title span {
-            /* [EFEK BARU] Gradient Text untuk penekanan */
-            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        /* Slide khusus dengan gaya berbeda */
-        .question-slide .slide-title {
-            font-size: 6rem;
-            color: var(--text-secondary);
-        }
-
-        .final-slide .slide-title {
-            font-size: 4rem;
-        }
-
-
-        .slide-subtitle {
-            font-size: 1.8rem;
-            font-weight: 300;
-            color: var(--text-secondary);
-            max-width: 800px;
-            margin-bottom: 3rem;
-            line-height: 1.6;
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-dark-overlay);
+            z-index: 1;
         }
 
         .slide-content {
-            width: 100%;
-            max-width: 1000px;
-        }
-
-        /* [DESAIN KARTU BARU] Efek Glassmorphism (Kaca Buram) */
-        .content-list {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            gap: 25px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .content-list li {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px); /* Efek Kaca Buram */
-            -webkit-backdrop-filter: blur(10px);
-            padding: 25px 30px;
-            border-radius: 16px;
-            font-size: 1.1rem;
-            display: flex;
-            flex-direction: column; /* Ubah orientasi untuk ikon di atas */
-            align-items: center;
-            text-align: center;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 8px 32px 0 var(--shadow-color);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            width: 280px;
-            min-height: 150px;
-        }
-
-        .content-list li:hover {
-            transform: translateY(-10px) scale(1.03);
-            box-shadow: 0 0 25px rgba(52, 211, 153, 0.2);
-            border-color: var(--accent-color);
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
         }
         
-        .content-list li .icon {
-            font-size: 3rem;
+        .slide.title-slide {
+            background-color: #ffffff;
+            color: var(--text-dark);
+        }
+        .slide.title-slide::before {
+            background: none;
+        }
+        
+        .slide.dark-bg {
+            background-color: #000;
+        }
+        .slide.dark-bg::before {
+            background: none;
+        }
+
+        h1 {
+            font-size: 4.5vw;
+            margin: 0;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2.5vw;
+            margin: 10px 0;
+            font-weight: 300;
+            color: #bdc3c7;
+        }
+
+        p {
+            font-size: 1.5vw;
+            font-weight: 300;
+        }
+        
+        .accent-text {
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+        
+        .icon-grid {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 40px;
+            width: 100%;
+        }
+        
+        .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 1.2vw;
+        }
+        
+        .icon-item i {
+            font-size: 4vw;
             margin-bottom: 15px;
             color: var(--accent-color);
         }
         
-        .content-list li strong {
-            color: var(--text-primary);
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        /* [ANIMASI ELEMEN BARU] Lebih halus dan bertahap */
-        .slide.active .slide-title, .slide.active .slide-subtitle, .slide.active .content-list li {
-            animation: fadeInBlurUp 0.7s backwards;
-        }
-        .slide.active .slide-subtitle { animation-delay: 0.2s; }
-        .slide.active .content-list li:nth-child(1) { animation-delay: 0.4s; }
-        .slide.active .content-list li:nth-child(2) { animation-delay: 0.55s; }
-        .slide.active .content-list li:nth-child(3) { animation-delay: 0.7s; }
-
-        @keyframes fadeInBlurUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.98);
-                filter: blur(5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-                filter: blur(0);
-            }
-        }
-
-        .nav-buttons {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 50;
+        .timeline {
             display: flex;
-            gap: 15px;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 50px;
         }
 
-        .nav-button {
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-family: var(--font-body);
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+        .timeline-item {
+            width: 22%;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-top: 3px solid var(--accent-color);
         }
 
-        #nextBtn {
-            background-color: var(--accent-color);
-            color: var(--primary-bg);
-            box-shadow: 0 0 15px rgba(52, 211, 153, 0.3);
-        }
-        #nextBtn:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(52, 211, 153, 0.5);
-        }
-
-        #prevBtn {
-            background-color: transparent;
-            color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-        #prevBtn:hover {
-            background-color: var(--accent-color);
-            color: var(--primary-bg);
-        }
-
-        .nav-button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            background-color: #374151;
-            border-color: #374151;
-            color: var(--text-secondary);
+        .timeline-item h3 {
+            font-size: 1.5vw;
+            margin-top: 0;
         }
         
-        .back-link {
-            position: fixed;
-            top: 25px;
-            left: 30px;
-            z-index: 200;
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: 1px solid var(--border-color);
-        }
-        .back-link:hover {
-            color: var(--text-primary);
-            border-color: var(--accent-color);
+        .timeline-item p {
+            font-size: 1vw;
+            margin-bottom: 0;
         }
 
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .slide-title { font-size: 2.8rem; }
-            .question-slide .slide-title { font-size: 3.5rem; }
-            .slide-subtitle { font-size: 1.3rem; }
-            .content-list { flex-direction: column; align-items: center; }
-            .content-list li { width: 90%; }
+            h1 { font-size: 8vw; }
+            h2 { font-size: 5vw; }
+            p { font-size: 3.5vw; }
+            .icon-item i { font-size: 8vw; }
+            .icon-item { font-size: 3vw; }
+            .timeline { flex-direction: column; gap: 20px; }
+            .timeline-item { width: 100%; }
+            .timeline-item h3 { font-size: 5vw; }
+            .timeline-item p { font-size: 3vw; }
         }
+
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">&larr; Kembali ke Menu</a>
-    
-    <div class="progress-bar" id="progressBar"></div>
 
-    <main class="presentation-container">
+    <div class="presentation-container">
 
-        <section class="slide active">
-            <h1 class="slide-title">SEPTEMBER</h1>
-            <p class="slide-subtitle">Bukan Sekadar Bulan Baru. Ini Adalah Awal yang Baru.</p>
-        </section>
+        <div class="slide title-slide active">
+            <div class="slide-content">
+                <img src="https://assets-global.website-files.com/62164f9e622b2940d592a344/6216503c834a9b66d735071a_dolan%20sawah%20logo.png" alt="Resto Dolan Sawah Logo" class="logo">
+                <h1>The Next Chapter</h1>
+                <h2>Merevolusi Pengalaman, Bukan Sekadar Makanan.</h2>
+                <p>Strategi Marketing 1 Bulan ke Depan</p>
+            </div>
+        </div>
 
-        <section class="slide question-slide">
-            <h2 class="slide-title">Kita Menjual Apa?</h2>
-            <p class="slide-subtitle" style="font-size: 2rem; color: var(--text-primary);">Kita menjual makanan. <br>Sama seperti ratusan tempat lainnya.</p>
-        </section>
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1506352961152-ded2b15a99ce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+            <div class="slide-content">
+                <h1>Kita punya ini.</h1>
+                <h2>Tempat yang indah. Makanan yang lezat. Parkiran yang luas.</h2>
+            </div>
+        </div>
 
-        <section class="slide">
-            <h2 class="slide-title">Ini Harus <span>Berubah.</span></h2>
-            <p class="slide-subtitle">Orang tidak lagi membeli produk. Mereka membeli **pengalaman**. Mereka membeli **cerita** yang bisa mereka bagikan.</p>
-        </section>
+        <div class="slide dark-bg">
+            <div class="slide-content">
+                <h1 style="font-size: 6vw;">Tapi...</h1>
+                <h2>Apakah kita hanya sebuah <span class="accent-text">restoran</span>?</h2>
+            </div>
+        </div>
+
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1519680387994-4d8e5f25e792?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+            <div class="slide-content">
+                <h1>Tamu datang untuk <span class="accent-text">makan</span>.</h1>
+                <h2>Mereka pulang dengan perut kenyang.<br>Bagaimana jika mereka bisa pulang dengan <span class="accent-text">kenangan tak terlupakan</span>?</h2>
+            </div>
+        </div>
+
+        <div class="slide dark-bg">
+            <div class="slide-content">
+                <h1 style="font-size: 8vw; color: var(--accent-color);">78%</h1>
+                <h2>Milenial lebih memilih menghabiskan uang untuk <span class="accent-text">pengalaman</span> daripada barang.</h2>
+                <p>(Sumber: Eventbrite)</p>
+            </div>
+        </div>
+
+        <div class="slide dark-bg">
+            <div class="slide-content">
+                <h1>Saatnya Berubah.</h1>
+                <h2>Dari <span style="text-decoration: line-through;">Tempat Makan</span> menjadi <span class="accent-text">Tujuan Petualangan</span>.</h2>
+            </div>
+        </div>
+
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+            <div class="slide-content">
+                <h1>Kekuatan terbesar kita?</h1>
+                <h2>Bukan di dapur. <span class="accent-text">Tapi mereka</span>.</h2>
+                <p>Tim Konten Kreator kita.</p>
+            </div>
+        </div>
+
+        <div class="slide dark-bg">
+            <div class="slide-content">
+                <h1>Revolusi Dimulai.</h1>
+                <div class="icon-grid" style="align-items: center; gap: 30px;">
+                    <div class="icon-item">
+                        <h2 style="font-size: 2vw;">Dari:</h2>
+                        <p>Tukang Posting</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-arrow-right" style="font-size: 5vw;"></i>
+                    </div>
+                    <div class="icon-item">
+                        <h2 style="font-size: 2vw; color: var(--accent-color);">Menjadi:</h2>
+                        <p style="font-size: 1.5vw; color: var(--accent-color); font-weight: 700;">Arsitek Pengalaman Digital</p>
+                    </div>
+                </div>
+                <h2>Misi mereka bukan lagi mengisi feed, tapi <span class="accent-text">menciptakan keinginan</span>.</h2>
+            </div>
+        </div>
+
+        <div class="slide dark-bg">
+            <div class="slide-content">
+                <h1>Dan untuk itu...<br>Kita punya dua hal baru.</h1>
+            </div>
+        </div>
+
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1616373886567-331c5f357563?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+            <div class="slide-content">
+                <h1 style="font-size: 6vw;">Jeep Adventure</h1>
+                <div class="icon-grid">
+                    <div class="icon-item">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Adrenalin</span>
+                    </div>
+                    <div class="icon-item">
+                        <i class="fas fa-mountain"></i>
+                        <span>Pemandangan</span>
+                    </div>
+                    <div class="icon-item">
+                        <i class="fas fa-camera-retro"></i>
+                        <span>Instagrammable</span>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        <section class="slide">
-            <h2 class="slide-title">Dari Restoran menjadi <span>Destinasi.</span></h2>
-            <p class="slide-subtitle">Di bulan September, kita berhenti menjual makanan. Kita mulai menjual **kenangan tak terlupakan**.</p>
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1932&q=80');">
             <div class="slide-content">
-                <ul class="content-list">
-                    <li><span class="icon">⛰️</span><strong>Jeep Adventure</strong>Paket petualangan yang memacu adrenalin.</li>
-                    <li><span class="icon">🤝</span><strong>Team Outbound</strong>Paket kebersamaan untuk korporat & komunitas.</li>
-                    <li><span class="icon">🍽️</span><strong>Culinary Celebration</strong>Pengalaman kuliner sebagai puncak dari petualangan.</li>
-                </ul>
+                <h1 style="font-size: 6vw;">Outbound Experience</h1>
+                <div class="icon-grid">
+                    <div class="icon-item">
+                        <i class="fas fa-users"></i>
+                        <span>Kolaborasi</span>
+                    </div>
+                    <div class="icon-item">
+                        <i class="fas fa-puzzle-piece"></i>
+                        <span>Problem Solving</span>
+                    </div>
+                    <div class="icon-item">
+                        <i class="fas fa-laugh-beam"></i>
+                        <span>Keseruan</span>
+                    </div>
+                </div>
             </div>
-        </section>
+        </div>
 
-        <section class="slide">
-            <h2 class="slide-title">Misi September</h2>
-            <p class="slide-subtitle" style="font-size: 2.5rem; color: var(--text-primary); margin-bottom: 1rem;">Target: Rp 1 Miliar</p>
-            <p class="slide-subtitle">Dengan mengubah strategi konten dari "promosi" menjadi "storytelling".</p>
-        </section>
-
-        <section class="slide">
-            <h2 class="slide-title">Rencana <span>4 Minggu</span></h2>
-            <p class="slide-subtitle">Setiap minggu memiliki misi dan fokus yang berbeda untuk membangun momentum.</p>
+        <div class="slide dark-bg">
             <div class="slide-content">
-                <ul class="content-list">
-                    <li><span class="icon">🤫</span><strong>Minggu 1: FASE TEASER</strong>Ciptakan rasa penasaran. "Sesuatu yang besar akan datang."</li>
-                    <li><span class="icon">🚀</span><strong>Minggu 2: PELUNCURAN AKBAR</strong>Ungkap paket Jeep & Outbound dengan promo peluncuran eksklusif.</li>
-                </ul>
+                <h1>Misi 1 Bulan:</h1>
+                <h2>Operasi <span class="accent-text">"Go Beyond The Plate"</span></h2>
+                <p>Bagaimana tim konten kita akan meluncurkan ini?</p>
             </div>
-        </section>
-
-        <section class="slide">
-            <h2 class="slide-title">Rencana <span>4 Minggu</span></h2>
-            <p class="slide-subtitle">Melanjutkan momentum dari peluncuran menuju konversi maksimal.</p>
-            <div class="slide-content">
-                <ul class="content-list">
-                     <li><span class="icon">📸</span><strong>Minggu 3: BANJIR TESTIMONI</strong>Fokus pada konten User-Generated (UGC). Tunjukkan orang lain bersenang-senang.</li>
-                    <li><span class="icon">💥</span><strong>Minggu 4: THE FINAL PUSH</strong>Ciptakan urgensi dengan penawaran "Last Chance" untuk booking di bulan September.</li>
-                </ul>
-            </div>
-        </section>
+        </div>
         
-        <section class="slide">
-            <h2 class="slide-title">Pilar <span>Cerita</span> Kita</h2>
-            <p class="slide-subtitle">Setiap konten yang kita buat harus masuk dalam salah satu dari tiga pilar cerita ini.</p>
-            <div class="slide-content">
-                <ul class="content-list">
-                    <li><span class="icon">🌪️</span><strong>The Thrill (Petualangan)</strong>Konten Reels & Video sinematik yang menunjukkan keseruan Jeep Adventure.</li>
-                    <li><span class="icon">🔗</span><strong>The Bond (Kebersamaan)</strong>Carousel & Story tentang momen keakraban saat outbound.</li>
-                    <li><span class="icon">🏆</span><strong>The Reward (Kenikmatan)</strong>Foto & Live IG yang menampilkan hidangan lezat sebagai hadiah setelah berpetualang.</li>
-                </ul>
+        <div class="slide dark-bg">
+            <div class="slide-content" style="max-width: 1200px;">
+                <h1>The Launch Roadmap</h1>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <h3>MINGGU 1: TEASE</h3>
+                        <p><i class="fas fa-eye-slash"></i> Ciptakan Misteri. Rilis video sinematik 15 detik: deru mesin jeep, tawa orang outbound, tanpa menunjukkan produknya. Gunakan caption bertanya: "Ada apa di balik sawah?"</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h3>MINGGU 2: REVEAL</h3>
+                        <p><i class="fas fa-bullhorn"></i> Pengumuman Besar. Rilis video utama yang spektakuler. Ajak 1-2 influencer lokal untuk merasakan pengalaman pertama dan mendokumentasikannya. Sesi Live Instagram perkenalan paket.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h3>MINGGU 3: ENGAGE</h3>
+                        <p><i class="fas fa-users-cog"></i> Ajak Berinteraksi. Buat kontes foto/video "Your Adventure Story". Tawarkan hadiah paket gratis. Buat filter Instagram Story khusus Dolan Sawah Adventure.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h3>MINGGU 4: CONVERT</h3>
+                        <p><i class="fas fa-ticket-alt"></i> Dorong Pemesanan. Tawarkan "Early Bird Promo" diskon 20% untuk 100 pemesan pertama. Tampilkan testimoni video dari influencer. Buat Call-to-Action yang jelas di setiap postingan.</p>
+                    </div>
+                </div>
             </div>
-        </section>
-
-        <section class="slide">
-            <h2 class="slide-title">Dari 'Wow' ke <span>'Booked'</span></h2>
-            <p class="slide-subtitle">Satu tujuan. Satu jalur. Tanpa hambatan.</p>
-            <div class="slide-content">
-                <ul class="content-list">
-                    <li><span class="icon">🎯</span><strong>Laser-Focused Ads</strong>Iklankan video terbaik ke audiens yang mencari "team building" & "wisata petualangan".</li>
-                    <li><span class="icon">📲</span><strong>Direct to WhatsApp</strong>Semua tombol, semua link, semua ajakan, langsung mengarah ke WhatsApp Admin untuk reservasi. Titik.</li>
-                </ul>
-            </div>
-        </section>
+        </div>
         
-        <section class="slide">
-            <h2 class="slide-title">Bukan Tim Konten. <br>Kita adalah <span>Tim Cerita.</span></h2>
-            <p class="slide-subtitle">Peran kita berevolusi untuk mendukung misi baru ini.</p>
+        <div class="slide dark-bg">
             <div class="slide-content">
-                <ul class="content-list">
-                    <li><span class="icon">🎬</span><strong>Experience Director</strong>(Creator) Merancang & menangkap visual dari setiap pengalaman.</li>
-                    <li><span class="icon">🎤</span><strong>Storyteller</strong>(Copywriter) Menulis narasi yang menjual mimpi, bukan cuma promo.</li>
-                    <li><span class="icon">❤️</span><strong>Community Champion</strong>(Manager) Membangun hubungan & mengubah audiens menjadi fans.</li>
-                </ul>
+                <h1>Bagaimana Kita Tahu Kita Menang?</h1>
+                <h2>Ini bukan lagi soal <span style="text-decoration: line-through;">Likes & Followers</span>.</h2>
+                <div class="icon-grid">
+                    <div class="icon-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Booking Rate</span>
+                    </div>
+                    <div class="icon-item">
+                        <i class="fas fa-share-alt"></i>
+                        <span>User Generated Content (UGC)</span>
+                    </div>
+                    <div class="icon-item">
+                        <i class="fas fa-star"></i>
+                        <span>Testimoni & Review</span>
+                    </div>
+                </div>
+                 <h2>Tujuan kita adalah <span class="accent-text">pemesanan</span> dan <span class="accent-text">cerita pelanggan</span>.</h2>
             </div>
-        </section>
+        </div>
+        
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1534447677768-64483a0a61d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+             <div class="slide-content">
+                <h1>Kita bukan lagi hanya Resto Dolan Sawah.</h1>
+                <h2>Kita adalah awal dari setiap <span class="accent-text">petualangan hebat</span>.</h2>
+            </div>
+        </div>
+        
+        <div class="slide title-slide">
+            <div class="slide-content">
+                 <img src="https://assets-global.website-files.com/62164f9e622b2940d592a344/6216503c834a9b66d735071a_dolan%20sawah%20logo.png" alt="Resto Dolan Sawah Logo" class="logo">
+                <h1>Terima Kasih</h1>
+                <h2>Ada Pertanyaan?</h2>
+            </div>
+        </div>
 
-        <section class="slide final-slide">
-            <h2 class="slide-title">September ini,<br>Kita tidak hanya akan mencapai target.<br><br>Kita akan <span>menciptakan sebuah legenda.</span></h2>
-        </section>
+    </div>
 
-    </main>
-    <div class="nav-buttons"><button class="nav-button" id="prevBtn" disabled>Prev</button><button class="nav-button" id="nextBtn">Next</button></div>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const slides = document.querySelectorAll('.slide');
-            const nextBtn = document.getElementById('nextBtn');
-            const prevBtn = document.getElementById('prevBtn');
-            const progressBar = document.getElementById('progressBar');
-            let currentSlide = 0;
-            const totalSlides = slides.length;
+        const slides = document.querySelectorAll('.slide');
+        let currentSlide = 0;
 
-            function updatePresentation() {
-                const prevSlide = document.querySelector('.slide.active');
-                if (prevSlide) {
-                    prevSlide.classList.remove('active');
-                    prevSlide.classList.add('exiting');
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === index) {
+                    slide.classList.add('active');
                 }
-                
-                // Hapus class exiting setelah transisi selesai
-                document.querySelectorAll('.slide.exiting').forEach(exitingSlide => {
-                    exitingSlide.addEventListener('transitionend', () => {
-                        exitingSlide.classList.remove('exiting');
-                    }, { once: true });
-                });
-                
-                slides[currentSlide].classList.add('active');
+            });
+        }
 
-                progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
-                prevBtn.disabled = currentSlide === 0;
-                nextBtn.disabled = currentSlide === totalSlides - 1;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            } else if (e.key === 'ArrowLeft') {
+                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                showSlide(currentSlide);
             }
-
-            nextBtn.addEventListener('click', () => {
-                if (currentSlide < totalSlides - 1) {
-                    currentSlide++;
-                    updatePresentation();
-                }
-            });
-
-            prevBtn.addEventListener('click', () => {
-                if (currentSlide > 0) {
-                    // Logika untuk transisi mundur yang berbeda jika diinginkan
-                    const currentActive = slides[currentSlide];
-                    currentActive.classList.remove('active');
-                    currentActive.classList.add('exiting-reverse'); // Anda bisa membuat class transisi mundur
-
-                    currentSlide--;
-                    updatePresentationForPrev();
-                }
-            });
-
-            // Fungsi khusus untuk handle navigasi mundur agar animasi tidak aneh
-            function updatePresentationForPrev() {
-                slides.forEach((slide, index) => {
-                    slide.classList.remove('active', 'exiting');
-                    if (index === currentSlide) {
-                        slide.classList.add('active');
-                    }
-                });
-                progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
-                prevBtn.disabled = currentSlide === 0;
-                nextBtn.disabled = currentSlide === totalSlides - 1;
-            }
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowRight' && !nextBtn.disabled) nextBtn.click();
-                if (e.key === 'ArrowLeft' && !prevBtn.disabled) prevBtn.click();
-            });
-
-            // Inisialisasi slide pertama
-            updatePresentation(); 
         });
+
+        // Initialize first slide
+        showSlide(currentSlide);
     </script>
+    <script src="https://kit.fontawesome.com/9e3a39e943.js" crossorigin="anonymous"></script>
+
 </body>
 </html>
 

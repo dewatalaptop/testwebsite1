@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Next Chapter: Resto Dolan Sawah</title>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/9e3a39e943.js" crossorigin="anonymous"></script>
+    
     <style>
         :root {
             --primary-font: 'Poppins', sans-serif;
             --text-light: #F5F5F5;
             --text-dark: #2c3e50;
             --accent-color: #e67e22;
-            --bg-dark-overlay: rgba(0, 0, 0, 0.6);
         }
 
         body, html {
@@ -47,8 +48,6 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.8s ease-in-out, visibility 0.8s;
-            background-size: cover;
-            background-position: center center;
         }
 
         .slide.active {
@@ -56,17 +55,6 @@
             visibility: visible;
         }
         
-        .slide::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-dark-overlay);
-            z-index: 1;
-        }
-
         .slide-content {
             position: relative;
             z-index: 2;
@@ -77,15 +65,23 @@
             background-color: #ffffff;
             color: var(--text-dark);
         }
-        .slide.title-slide::before {
-            background: none;
-        }
         
         .slide.dark-bg {
             background-color: #000;
         }
-        .slide.dark-bg::before {
-            background: none;
+
+        .hero-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 25vw;
+            color: rgba(255, 255, 255, 0.05);
+            z-index: 1;
+        }
+
+        .slide.title-slide .hero-icon {
+             color: rgba(0, 0, 0, 0.05);
         }
 
         h1 {
@@ -115,6 +111,10 @@
         .logo {
             width: 150px;
             margin-bottom: 20px;
+            filter: invert(1); /* Untuk logo placeholder di slide gelap */
+        }
+        .slide.title-slide .logo {
+            filter: none;
         }
         
         .icon-grid {
@@ -122,6 +122,7 @@
             justify-content: space-around;
             margin-top: 40px;
             width: 100%;
+            gap: 20px;
         }
         
         .icon-item {
@@ -142,6 +143,7 @@
             justify-content: space-between;
             width: 100%;
             margin-top: 50px;
+            gap: 20px;
         }
 
         .timeline-item {
@@ -152,45 +154,76 @@
             border-top: 3px solid var(--accent-color);
         }
 
-        .timeline-item h3 {
-            font-size: 1.5vw;
-            margin-top: 0;
-        }
-        
-        .timeline-item p {
-            font-size: 1vw;
-            margin-bottom: 0;
+        .timeline-item h3 { font-size: 1.5vw; margin-top: 0; }
+        .timeline-item p { font-size: 1vw; margin-bottom: 0; }
+
+        /* Navigation Buttons */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 25px;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s ease;
         }
 
-        /* Responsive adjustments */
+        .nav-btn:hover {
+            background-color: var(--accent-color);
+        }
+
+        #prev-btn { left: 20px; }
+        #next-btn { right: 20px; }
+
+
         @media (max-width: 768px) {
             h1 { font-size: 8vw; }
             h2 { font-size: 5vw; }
             p { font-size: 3.5vw; }
             .icon-item i { font-size: 8vw; }
             .icon-item { font-size: 3vw; }
-            .timeline { flex-direction: column; gap: 20px; }
-            .timeline-item { width: 100%; }
+            .timeline { flex-direction: column; }
+            .timeline-item { width: 90%; }
             .timeline-item h3 { font-size: 5vw; }
             .timeline-item p { font-size: 3vw; }
+            .nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            #prev-btn { left: 10px; }
+            #next-btn { right: 10px; }
         }
-
     </style>
 </head>
 <body>
 
     <div class="presentation-container">
+        
+        <button id="prev-btn" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+        <button id="next-btn" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
 
         <div class="slide title-slide active">
             <div class="slide-content">
-                <img src="https://assets-global.website-files.com/62164f9e622b2940d592a344/6216503c834a9b66d735071a_dolan%20sawah%20logo.png" alt="Resto Dolan Sawah Logo" class="logo">
+                <img src="https://via.placeholder.com/150x80/2c3e50/ffffff?text=Dolan+Sawah" alt="Resto Dolan Sawah Logo" class="logo">
                 <h1>The Next Chapter</h1>
                 <h2>Merevolusi Pengalaman, Bukan Sekadar Makanan.</h2>
                 <p>Strategi Marketing 1 Bulan ke Depan</p>
             </div>
         </div>
 
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1506352961152-ded2b15a99ce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+        <div class="slide dark-bg">
+            <div class="hero-icon"><i class="fas fa-utensils"></i></div>
             <div class="slide-content">
                 <h1>Kita punya ini.</h1>
                 <h2>Tempat yang indah. Makanan yang lezat. Parkiran yang luas.</h2>
@@ -204,7 +237,8 @@
             </div>
         </div>
 
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1519680387994-4d8e5f25e792?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+        <div class="slide dark-bg">
+            <div class="hero-icon"><i class="fas fa-camera"></i></div>
             <div class="slide-content">
                 <h1>Tamu datang untuk <span class="accent-text">makan</span>.</h1>
                 <h2>Mereka pulang dengan perut kenyang.<br>Bagaimana jika mereka bisa pulang dengan <span class="accent-text">kenangan tak terlupakan</span>?</h2>
@@ -226,7 +260,8 @@
             </div>
         </div>
 
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+        <div class="slide dark-bg">
+            <div class="hero-icon"><i class="fas fa-users-cog"></i></div>
             <div class="slide-content">
                 <h1>Kekuatan terbesar kita?</h1>
                 <h2>Bukan di dapur. <span class="accent-text">Tapi mereka</span>.</h2>
@@ -239,15 +274,13 @@
                 <h1>Revolusi Dimulai.</h1>
                 <div class="icon-grid" style="align-items: center; gap: 30px;">
                     <div class="icon-item">
-                        <h2 style="font-size: 2vw;">Dari:</h2>
-                        <p>Tukang Posting</p>
+                        <h2 style="font-size: 2vw; margin-bottom: 0;">Dari:</h2>
+                        <p style="margin-top: 5px;">Tukang Posting</p>
                     </div>
-                    <div>
-                        <i class="fas fa-arrow-right" style="font-size: 5vw;"></i>
-                    </div>
+                    <div><i class="fas fa-arrow-right" style="font-size: 5vw;"></i></div>
                     <div class="icon-item">
-                        <h2 style="font-size: 2vw; color: var(--accent-color);">Menjadi:</h2>
-                        <p style="font-size: 1.5vw; color: var(--accent-color); font-weight: 700;">Arsitek Pengalaman Digital</p>
+                        <h2 style="font-size: 2vw; color: var(--accent-color); margin-bottom: 0;">Menjadi:</h2>
+                        <p style="font-size: 1.5vw; color: var(--accent-color); font-weight: 700; margin-top: 5px;">Arsitek Pengalaman Digital</p>
                     </div>
                 </div>
                 <h2>Misi mereka bukan lagi mengisi feed, tapi <span class="accent-text">menciptakan keinginan</span>.</h2>
@@ -260,41 +293,37 @@
             </div>
         </div>
 
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1616373886567-331c5f357563?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+        <div class="slide dark-bg">
+            <div class="hero-icon"><i class="fas fa-jeep"></i></div>
             <div class="slide-content">
                 <h1 style="font-size: 6vw;">Jeep Adventure</h1>
                 <div class="icon-grid">
                     <div class="icon-item">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Adrenalin</span>
+                        <i class="fas fa-tachometer-alt"></i><span>Adrenalin</span>
                     </div>
                     <div class="icon-item">
-                        <i class="fas fa-mountain"></i>
-                        <span>Pemandangan</span>
+                        <i class="fas fa-mountain"></i><span>Pemandangan</span>
                     </div>
                     <div class="icon-item">
-                        <i class="fas fa-camera-retro"></i>
-                        <span>Instagrammable</span>
+                        <i class="fas fa-camera-retro"></i><span>Instagrammable</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1932&q=80');">
+        <div class="slide dark-bg">
+             <div class="hero-icon"><i class="fas fa-users"></i></div>
             <div class="slide-content">
                 <h1 style="font-size: 6vw;">Outbound Experience</h1>
                 <div class="icon-grid">
                     <div class="icon-item">
-                        <i class="fas fa-users"></i>
-                        <span>Kolaborasi</span>
+                        <i class="fas fa-sitemap"></i><span>Kolaborasi</span>
                     </div>
                     <div class="icon-item">
-                        <i class="fas fa-puzzle-piece"></i>
-                        <span>Problem Solving</span>
+                        <i class="fas fa-puzzle-piece"></i><span>Problem Solving</span>
                     </div>
                     <div class="icon-item">
-                        <i class="fas fa-laugh-beam"></i>
-                        <span>Keseruan</span>
+                        <i class="fas fa-laugh-beam"></i><span>Keseruan</span>
                     </div>
                 </div>
             </div>
@@ -314,19 +343,19 @@
                 <div class="timeline">
                     <div class="timeline-item">
                         <h3>MINGGU 1: TEASE</h3>
-                        <p><i class="fas fa-eye-slash"></i> Ciptakan Misteri. Rilis video sinematik 15 detik: deru mesin jeep, tawa orang outbound, tanpa menunjukkan produknya. Gunakan caption bertanya: "Ada apa di balik sawah?"</p>
+                        <p><i class="fas fa-eye-slash"></i> Ciptakan Misteri. Rilis video sinematik 15 detik. Fokus pada suara dan emosi. Gunakan caption bertanya.</p>
                     </div>
                     <div class="timeline-item">
                         <h3>MINGGU 2: REVEAL</h3>
-                        <p><i class="fas fa-bullhorn"></i> Pengumuman Besar. Rilis video utama yang spektakuler. Ajak 1-2 influencer lokal untuk merasakan pengalaman pertama dan mendokumentasikannya. Sesi Live Instagram perkenalan paket.</p>
+                        <p><i class="fas fa-bullhorn"></i> Pengumuman Besar. Rilis video utama. Ajak 1-2 influencer lokal. Sesi Live Instagram perkenalan paket.</p>
                     </div>
                     <div class="timeline-item">
                         <h3>MINGGU 3: ENGAGE</h3>
-                        <p><i class="fas fa-users-cog"></i> Ajak Berinteraksi. Buat kontes foto/video "Your Adventure Story". Tawarkan hadiah paket gratis. Buat filter Instagram Story khusus Dolan Sawah Adventure.</p>
+                        <p><i class="fas fa-users-cog"></i> Ajak Berinteraksi. Buat kontes UGC. Buat filter Instagram Story khusus Dolan Sawah Adventure.</p>
                     </div>
                     <div class="timeline-item">
                         <h3>MINGGU 4: CONVERT</h3>
-                        <p><i class="fas fa-ticket-alt"></i> Dorong Pemesanan. Tawarkan "Early Bird Promo" diskon 20% untuk 100 pemesan pertama. Tampilkan testimoni video dari influencer. Buat Call-to-Action yang jelas di setiap postingan.</p>
+                        <p><i class="fas fa-ticket-alt"></i> Dorong Pemesanan. Tawarkan "Early Bird Promo". Tampilkan testimoni video. Jelas Call-to-Action.</p>
                     </div>
                 </div>
             </div>
@@ -338,23 +367,21 @@
                 <h2>Ini bukan lagi soal <span style="text-decoration: line-through;">Likes & Followers</span>.</h2>
                 <div class="icon-grid">
                     <div class="icon-item">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Booking Rate</span>
+                        <i class="fas fa-chart-line"></i><span>Booking Rate</span>
                     </div>
                     <div class="icon-item">
-                        <i class="fas fa-share-alt"></i>
-                        <span>User Generated Content (UGC)</span>
+                        <i class="fas fa-share-alt"></i><span>User Generated Content (UGC)</span>
                     </div>
                     <div class="icon-item">
-                        <i class="fas fa-star"></i>
-                        <span>Testimoni & Review</span>
+                        <i class="fas fa-star"></i><span>Testimoni & Review</span>
                     </div>
                 </div>
                  <h2>Tujuan kita adalah <span class="accent-text">pemesanan</span> dan <span class="accent-text">cerita pelanggan</span>.</h2>
             </div>
         </div>
         
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1534447677768-64483a0a61d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');">
+        <div class="slide dark-bg">
+            <div class="hero-icon"><i class="fas fa-rocket"></i></div>
              <div class="slide-content">
                 <h1>Kita bukan lagi hanya Resto Dolan Sawah.</h1>
                 <h2>Kita adalah awal dari setiap <span class="accent-text">petualangan hebat</span>.</h2>
@@ -363,7 +390,7 @@
         
         <div class="slide title-slide">
             <div class="slide-content">
-                 <img src="https://assets-global.website-files.com/62164f9e622b2940d592a344/6216503c834a9b66d735071a_dolan%20sawah%20logo.png" alt="Resto Dolan Sawah Logo" class="logo">
+                 <img src="https://via.placeholder.com/150x80/2c3e50/ffffff?text=Dolan+Sawah" alt="Resto Dolan Sawah Logo" class="logo">
                 <h1>Terima Kasih</h1>
                 <h2>Ada Pertanyaan?</h2>
             </div>
@@ -373,32 +400,40 @@
 
     <script>
         const slides = document.querySelectorAll('.slide');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
         let currentSlide = 0;
 
         function showSlide(index) {
             slides.forEach((slide, i) => {
-                slide.classList.remove('active');
-                if (i === index) {
-                    slide.classList.add('active');
-                }
+                slide.classList.toggle('active', i === index);
             });
         }
 
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        }
+        
+        // Event Listeners
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowRight' || e.key === ' ') {
-                currentSlide = (currentSlide + 1) % slides.length;
-                showSlide(currentSlide);
+                nextSlide();
             } else if (e.key === 'ArrowLeft') {
-                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-                showSlide(currentSlide);
+                prevSlide();
             }
         });
 
         // Initialize first slide
         showSlide(currentSlide);
     </script>
-    <script src="https://kit.fontawesome.com/9e3a39e943.js" crossorigin="anonymous"></script>
-
 </body>
 </html>
-

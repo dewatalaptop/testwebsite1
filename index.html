@@ -27,9 +27,8 @@
             color: var(--text-color);
             display: flex;
             justify-content: center;
-            align-items: center;
+            /* Baris 'align-items: center;' telah dihapus dari sini untuk mengaktifkan scrolling */
             min-height: 100vh;
-            /* PERBAIKAN: Menggunakan padding yang lebih fleksibel untuk layar kecil */
             padding: 2rem 1.5rem; 
         }
         .main-container {
@@ -48,19 +47,17 @@
         p.subtitle {
             font-size: clamp(1rem, 2.5vw, 1.25rem);
             color: #aaa;
-            margin-bottom: 3rem; /* Sedikit disesuaikan untuk spacing yang lebih baik */
+            margin-bottom: 3rem;
         }
         .presentation-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            /* PERBAIKAN: Mengurangi jarak antar kartu agar lebih pas di layar kecil */
             gap: 1.5rem; 
         }
         .presentation-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            /* PERBAIKAN: Mengurangi padding di dalam kartu untuk memberi lebih banyak ruang bagi konten */
             padding: 1.5rem; 
             text-decoration: none;
             color: var(--text-color);

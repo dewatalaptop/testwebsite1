@@ -21,20 +21,22 @@
             margin: 0;
             padding: 0;
         }
+        /* PERBAIKAN FINAL PADA BODY */
         body {
             font-family: var(--font-family);
             background-color: var(--bg-color);
             color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            /* Baris 'align-items: center;' telah dihapus dari sini untuk mengaktifkan scrolling */
+            /* display: flex; dan justify-content: center; telah dihapus */
             min-height: 100vh;
             padding: 2rem 1.5rem; 
         }
+        /* PERBAIKAN FINAL PADA MAIN-CONTAINER */
         .main-container {
             width: 100%;
             max-width: 1200px;
             text-align: center;
+            margin-left: auto;   /* Properti baru untuk centering horizontal */
+            margin-right: auto;  /* Properti baru untuk centering horizontal */
         }
         h1 {
             font-size: clamp(2.5rem, 6vw, 4rem);

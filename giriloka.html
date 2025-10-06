@@ -6,94 +6,84 @@
 <title>Dolan Sawah — Giri Loka & Golden Hours Ingkung 99K</title>
 <style>
   :root{
-    --bg:#0b0b0c;
-    --fg:#f7f7f7;
-    --muted:#bdbdbd;
-    --accent:#ffd166;
-    --card:#121214;
-    --edge:#1e1e22;
-    --ok:#8bd17c;
-    --warn:#ffb703;
-    --bad:#ef476f;
-    --maxw:1200px;
+    --bg:#0b0b0c; --fg:#f7f7f7; --muted:#bdbdbd; --accent:#ffd166;
+    --card:#121214; --edge:#1e1e22; --ok:#8bd17c; --warn:#ffb703; --bad:#ef476f;
+    --contentMax:1100px;
   }
-  html,body{height:100%;background:var(--bg);color:var(--fg);margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
   .app{min-height:100%;display:flex;flex-direction:column}
-  header.topbar{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:10px 16px;border-bottom:1px solid var(--edge);background:#0e0e10;position:sticky;top:0;z-index:50
-  }
-  .brand{display:flex;gap:10px;align-items:center;font-weight:700;letter-spacing:.2px}
-  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 16px var(--accent)}
-  .progress{display:flex;gap:6px;align-items:center}
-  .progress .bar{width:120px;height:4px;background:#1a1a1f;border-radius:999px;overflow:hidden}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:50;display:flex;gap:12px;
+    align-items:center;justify-content:space-between;padding:10px 16px;
+    border-bottom:1px solid var(--edge);background:#0e0e10}
+  .brand{display:flex;gap:10px;align-items:center;font-weight:700}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 16px var(--accent)}
+  .progress{display:flex;gap:8px;align-items:center}
+  .progress .bar{width:140px;height:4px;background:#1a1a1f;border-radius:999px;overflow:hidden}
   .progress .bar div{height:100%;width:0;background:var(--accent);transition:width .35s ease}
   .progress small{color:var(--muted);min-width:90px;text-align:right;font-variant-numeric:tabular-nums}
-  main.viewport{
-    flex:1;position:relative;overflow:hidden;
-  }
+
+  /* VIEWPORT & SLIDES (carousel mode) */
+  .viewport{flex:1;position:relative;overflow:hidden}
   .slides{
-    height:100%;display:flex;align-items:stretch;transition:transform .45s cubic-bezier(.2,.8,.2,1);
-    will-change:transform;touch-action:pan-y; /* we'll detect x-swipe manually */
+    height:100%;
+    display:grid;               /* each slide is 100% of viewport width */
+    grid-auto-flow:column;
+    grid-auto-columns:100%;
+    align-items:stretch;
+    transition:transform .45s cubic-bezier(.2,.8,.2,1);
+    will-change:transform;
+    touch-action:pan-y;
   }
   .slide{
-    width:100vw;height:calc(100vh - 56px - 70px); /* minus topbar & controls */
-    max-width:var(--maxw);margin:0 auto;padding:48px 56px;box-sizing:border-box;
-    display:flex;flex-direction:column;justify-content:center;gap:18px;
+    height:calc(100vh - 56px - 74px); /* minus topbar + controls */
+    padding:5vw; box-sizing:border-box; display:flex; align-items:center; justify-content:center;
   }
-  .wrap{width:100%;max-width:var(--maxw);margin:0 auto;}
+  .content{width:100%;max-width:var(--contentMax);margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
   h1,h2{margin:0 0 8px;line-height:1.1}
   h1{font-size:clamp(28px,5vw,56px);font-weight:800}
   h2{font-size:clamp(22px,3.5vw,34px);font-weight:750;color:#fff}
   p.lead{font-size:clamp(16px,2.2vw,22px);color:#e8e8e8;max-width:75ch}
-  .bullets{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
-  .card{
-    background:var(--card);border:1px solid var(--edge);border-radius:14px;padding:18px 18px;
-  }
+  .big{font-size:clamp(18px,2.5vw,24px)}
   .pill{display:inline-block;background:#1b1b1f;border:1px solid var(--edge);padding:6px 10px;border-radius:999px;color:#dcdcdc;font-size:13px;margin-right:6px}
-  ul{margin:10px 0 0 18px}
-  li{margin:6px 0}
-  .kpi{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
-  .kpi .num{font-size:clamp(22px,3.8vw,36px);font-weight:800}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:14px;padding:18px}
   .grid2{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
   .grid3{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kpi{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
+  ul{margin:10px 0 0 18px} li{margin:6px 0}
   .note{color:var(--muted);font-size:14px}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  .controls{
-    position:sticky;bottom:0;background:linear-gradient(180deg,rgba(11,11,12,0),#0b0b0c 40%);
-    padding:18px 16px;border-top:1px solid var(--edge);display:flex;justify-content:space-between;align-items:center;gap:12px
-  }
-  .btn{
-    display:inline-flex;align-items:center;gap:10px;border:1px solid var(--edge);background:#121216;color:#fff;
-    padding:12px 18px;border-radius:12px;cursor:pointer;font-weight:700;letter-spacing:.2px
-  }
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+  .checklist li::marker{content:"✔ ";color:var(--ok)}
+
+  /* CONTROLS */
+  .controls{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(11,11,12,0),#0b0b0c 40%);
+    padding:18px 16px;border-top:1px solid var(--edge);display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .btn{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--edge);background:#121216;color:#fff;
+    padding:12px 18px;border-radius:12px;cursor:pointer;font-weight:700;letter-spacing:.2px}
   .btn[disabled]{opacity:.45;cursor:not-allowed}
-  .btn:active{transform:translateY(1px)}
   .btn.accent{border-color:#5a4a1a;background:#161208}
   .footerhint{color:var(--muted);font-size:13px}
-  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
-  .big{font-size:clamp(18px,2.5vw,24px)}
-  .checklist li::marker{content:"✔ ";color:var(--ok)}
-  .danger li::marker{content:"⛔ ";color:var(--bad)}
-  /* Small screens: switch to vertical scroll mode */
-  @media (max-width: 720px){
-    .slides{display:block;transform:none !important}
-    .slide{width:100%;height:auto;min-height:60vh;padding:28px 20px}
-    main.viewport{overflow-y:auto}
-    .bullets,.grid2,.grid3,.kpi{grid-template-columns:1fr}
-    .controls{position:static}
-  }
-  /* Respect reduced motion */
-  @media (prefers-reduced-motion: reduce){
-    .slides{transition:none}
-  }
+
+  /* SCROLL FALLBACK (very small screens) */
+  body.scroll .viewport{overflow-y:auto}
+  body.scroll .slides{display:block;transform:none !important}
+  body.scroll .slide{height:auto;min-height:60vh}
+  body.scroll .controls{position:static}
+  body.scroll .grid2, body.scroll .grid3, body.scroll .kpi{grid-template-columns:1fr}
+
+  /* Accessibility: reduced motion */
+  @media (prefers-reduced-motion: reduce){ .slides{transition:none} }
 </style>
 </head>
 <body>
 <div class="app" role="application" aria-label="Presentasi Dolan Sawah">
   <header class="topbar" aria-live="polite">
     <div class="brand"><span class="dot" aria-hidden="true"></span> DOLAN SAWAH — GIRI LOKA</div>
-    <div class="progress" aria-hidden="false">
+    <div class="progress">
       <div class="bar"><div id="progbar"></div></div>
       <small id="progressTxt">01/15</small>
     </div>
@@ -101,321 +91,299 @@
 
   <main class="viewport">
     <div class="slides" id="slides" aria-roledescription="carousel">
-      <!-- 1. Cover -->
-      <section class="slide" data-title="Cover">
+      <!-- 1 -->
+      <section class="slide" data-title="Cover"><div class="content">
         <h1>🌾 Senja di Giri Loka</h1>
         <p class="lead">Strategi peluncuran <strong>area hijau baru</strong> & program <strong>Golden Hours Ingkung 99K</strong> — fokus, sederhana, memukau. <span class="pill">Jumat 15:00–18:00</span><span class="pill">10 porsi/minggu</span></p>
-        <p class="note">Filosofi gaya: “Steve Jobs style” — satu ide besar per layar, detail yang relevan, ajakan bertindak jelas.</p>
-      </section>
+        <p class="note">Gaya “Steve Jobs”: satu ide besar per slide, detail penting, CTA jelas.</p>
+      </div></section>
 
-      <!-- 2. Ringkas Eksekutif -->
-      <section class="slide" data-title="Ringkas Eksekutif">
+      <!-- 2 -->
+      <section class="slide" data-title="Ringkas Eksekutif"><div class="content">
         <h2>🎯 Tiga Target 90 Hari</h2>
         <div class="kpi">
-          <div class="card"><div class="num">Launch</div><div>Giri Loka dikenal & terpakai untuk event komunitas/keluarga.</div></div>
-          <div class="card"><div class="num">Sold-Out ≥90%</div><div>Golden Hours Ingkung 99K tiap Jumat.</div></div>
-          <div class="card"><div class="num">+40%</div><div>Traffic Jumat 15–18 vs baseline.</div></div>
+          <div class="card"><div class="big"><strong>Launch</strong></div><div>Giri Loka dikenal & dipakai komunitas/keluarga.</div></div>
+          <div class="card"><div class="big"><strong>Sold-Out ≥90%</strong></div><div>Golden Hours Ingkung 99K tiap Jumat.</div></div>
+          <div class="card"><div class="big"><strong>+40%</strong></div><div>Traffic Jumat 15–18 vs baseline.</div></div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 3. Positioning -->
-      <section class="slide" data-title="Positioning">
+      <!-- 3 -->
+      <section class="slide" data-title="Positioning"><div class="content">
         <h2>🧭 Positioning</h2>
-        <p class="big">“Wisata kuliner keluarga & komunitas dengan <strong>ruang hijau luas</strong> dan <strong>panorama gunung-sawah</strong>.”</p>
-        <p class="lead">Narasi payung: <strong>Senja di Giri Loka</strong> • Sub-kampanye: <strong>Golden Hours Friday — Ingkung 99K</strong></p>
+        <p class="big">“Wisata kuliner keluarga & komunitas dengan <strong>ruang hijau luas</strong> dan <strong>panorama sawah-gunung</strong>.”</p>
+        <p class="lead">Payung: <strong>Senja di Giri Loka</strong> • Sub-kampanye: <strong>Golden Hours Friday — Ingkung 99K</strong></p>
         <p>#SenjaDiGiriLoka #GoldenHoursDolanSawah #JumatIngkung99K #DolanSawahSalatiga</p>
-      </section>
+      </div></section>
 
-      <!-- 4. Segmentasi -->
-      <section class="slide" data-title="Segmentasi">
+      <!-- 4 -->
+      <section class="slide" data-title="Segmentasi"><div class="content">
         <h2>👥 Siapa Target Kita?</h2>
-        <div class="bullets">
-          <div class="card">
-            <h3>👨‍👩‍👧 Family</h3>
-            <ul><li>Butuh tempat aman & luas; senja santai.</li><li>Konten: piknik, playground, sunset.</li></ul>
-          </div>
-          <div class="card">
-            <h3>🤝 Komunitas</h3>
-            <ul><li>Gowes, lari, yoga, arisan/pengajian.</li><li>Butuh lapangan & paket terjadwal.</li></ul>
-          </div>
-          <div class="card">
-            <h3>💛 Anak Muda</h3>
-            <ul><li>Spot estetik, date, Reels/TikTok.</li></ul>
-          </div>
-          <div class="card">
-            <h3>🏢 Korporat</h3>
-            <ul><li>Gathering/outbound ringan menjelang senja.</li></ul>
-          </div>
+        <div class="grid3">
+          <div class="card"><strong>Family</strong><ul><li>Butuh tempat aman & luas; senja santai.</li><li>Konten: piknik, playground, sunset.</li></ul></div>
+          <div class="card"><strong>Komunitas</strong><ul><li>Gowes, lari, yoga, arisan/pengajian.</li><li>Perlu lapangan & paket terjadwal.</li></ul></div>
+          <div class="card"><strong>Anak Muda & Korporat</strong><ul><li>Spot estetik, date, Reels/TikTok.</li><li>Gathering/outbound ringan.</li></ul></div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 5. Proposisi Nilai -->
-      <section class="slide" data-title="Proposisi Nilai">
+      <!-- 5 -->
+      <section class="slide" data-title="Proposisi Nilai"><div class="content">
         <h2>💡 Proposisi Nilai</h2>
         <div class="grid2">
           <div class="card">
             <h3>🏞️ Giri Loka</h3>
-            <ul><li>Lapangan rumput luas + view Merbabu–Telomoyo & sawah.</li>
+            <ul><li>Lapangan rumput + view Merbabu–Telomoyo & sawah.</li>
                 <li>Paket: Piknik • Komunitas • Gathering.</li>
-                <li>Live akustik ringan Jumat 16:30–18:00.</li></ul>
+                <li><strong>Akustik</strong> (lihat aturan launching).</li></ul>
           </div>
           <div class="card">
-            <h3>🍗 Golden Hours 99K</h3>
+            <h3>🍗 Golden Hours Ingkung 99K</h3>
             <ul><li>Jumat 15:00–18:00, <strong>10 porsi/minggu</strong>.</li>
-                <li>Eksklusif, FOMO, dorong kunjungan sore.</li>
+                <li><strong>Wajib reservasi maksimal H-1</strong> (detail di Mekanisme).</li>
                 <li>Upsell: pitcher teh 1L 25K; lalap+sambal 9K.</li></ul>
           </div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 6. Mekanisme Promo -->
-      <section class="slide" data-title="Mekanisme Promo">
+      <!-- 6 -->
+      <section class="slide" data-title="Mekanisme Promo"><div class="content">
         <h2>⚙️ Mekanisme Golden Hours</h2>
         <ul class="checklist">
           <li>☀️ Waktu: Jumat 15:00–18:00 (golden hour).</li>
-          <li>🔟 Kuota: 10 porsi/minggu (opsi 5 pre-book DP 25K + 5 walk-in).</li>
-          <li>🎟️ Redeem: on-site; 1 porsi/orang; dine-in di Giri Loka; tidak gabung promo lain.</li>
+          <li>🔟 Kuota: 10 porsi/minggu.</li>
+          <li>📅 <strong>Reservasi wajib maksimal H-1 (Kamis 21:00 cut-off)</strong> via WA; DP 25K/porsi, hangus bila no-show.</li>
+          <li>🪪 1 porsi/orang; dine-in di Giri Loka; tidak digabung promo lain.</li>
+          <li>🕞 Jika ada sisa, <em>walk-in</em> dibuka pukul 15:30 (harga promo tetap) sampai habis.</li>
           <li>📈 Counter stok realtime di kasir & IG Stories.</li>
-          <li>➕ Upsell bundling: minuman & side.</li>
         </ul>
-      </section>
+      </div></section>
 
-      <!-- 7. Aktivasi Area -->
-      <section class="slide" data-title="Aktivasi Giri Loka">
+      <!-- 7 -->
+      <section class="slide" data-title="Aktivasi Giri Loka"><div class="content">
         <h2>🎪 Aktivasi Giri Loka</h2>
         <div class="grid3">
-          <div class="card"><strong>Jumat</strong><br>Live akustik 16:30–18:00 + Golden Hours.</div>
-          <div class="card"><strong>Sabtu</strong><br>Paket Piknik (tikar & keranjang sewa), photo spot sunset.</div>
-          <div class="card"><strong>Minggu pagi</strong><br>Komunitas (yoga/gowes/lari) + paket sarapan/teh hangat.</div>
+          <div class="card"><strong>Jumat (2 Minggu Pertama Launch)</strong><br>🎸 <strong>Live akustik start 15:00</strong> + Golden Hours.</div>
+          <div class="card"><strong>Jumat (Minggu ke-3 dst.)</strong><br>Live akustik 16:30–18:00 (opsional, sesuai performa).</div>
+          <div class="card"><strong>Sabtu & Minggu</strong><br>Paket Piknik; Minggu pagi komunitas (yoga/gowes/lari).</div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 8. Channel & Taktik -->
-      <section class="slide" data-title="Channel & Taktik">
+      <!-- 8 -->
+      <section class="slide" data-title="Channel & Taktik"><div class="content">
         <h2>📣 Channel & Taktik</h2>
         <div class="grid3">
-          <div class="card">
-            <h3>📱 IG & TikTok</h3>
-            <ul><li>Reels 15–30 dtk: POV menuju Giri Loka, plating Ingkung, langit senja.</li>
-                <li>Story countdown stok: 10→0.</li></ul>
-          </div>
-          <div class="card">
-            <h3>💬 WhatsApp Business</h3>
-            <ul><li>Keyword: <span class="mono">INGKUNG</span> (auto-reply + pre-book).</li>
-                <li>Broadcast Kamis 16:00 (reminder).</li></ul>
-          </div>
-          <div class="card">
-            <h3>🤝 Komunitas & Micro-KOL</h3>
-            <ul><li>5–15k followers; barter venue + voucher.</li>
-                <li>UGC ber-tag lokasi tiap pekan.</li></ul>
-          </div>
+          <div class="card"><h3>📱 IG & TikTok</h3><ul><li>Reels: POV ke Giri Loka, plating Ingkung, langit senja.</li><li>Story countdown stok: 10→0.</li></ul></div>
+          <div class="card"><h3>💬 WhatsApp Business</h3><ul><li>Keyword: <span class="mono">INGKUNG</span> (auto-reply + form reservasi).</li><li>Broadcast Kamis 16:00 (ingatkan H-1).</li></ul></div>
+          <div class="card"><h3>🤝 Komunitas & Micro-KOL</h3><ul><li>5–15k followers; barter venue + voucher.</li><li>UGC ber-tag lokasi mingguan.</li></ul></div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 9. Kalender Konten -->
-      <section class="slide" data-title="Kalender Konten">
+      <!-- 9 -->
+      <section class="slide" data-title="Kalender Konten"><div class="content">
         <h2>🗓️ Kalender Konten (4 Minggu)</h2>
         <div class="grid2">
-          <div class="card">
-            <h3>Polanya</h3>
-            <ul>
-              <li>Senin: wide Giri Loka + “jadwal pekan ini”.</li>
-              <li>Rabu: BTS bumbu & pemanggangan Ingkung.</li>
-              <li>Kamis: Story countdown (besok 15–18).</li>
-              <li>Jumat: Reels cuaca 11:00, update stok 14:55–18:15, recap sold-out.</li>
-              <li>Sabtu: Carousel Paket Piknik.</li>
-              <li>Minggu: UGC of the week.</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>Format Inti</h3>
-            <ul>
-              <li>Hook 2-baris, CTA jelas, hashtag konsisten.</li>
-              <li>Caption singkat; fokus manfaat & momen.</li>
-              <li>Lokasi ditag + ajak save & share.</li>
-            </ul>
-          </div>
+          <div class="card"><h3>Polanya</h3><ul>
+            <li>Senin: wide Giri Loka + “jadwal pekan ini”.</li>
+            <li>Rabu: BTS bumbu & pemanggangan Ingkung.</li>
+            <li>Kamis: Story <strong>ingatkan reservasi H-1</strong>.</li>
+            <li>Jumat: Reels cuaca 11:00; update stok 14:55–18:15; recap sold-out.</li>
+            <li>Sabtu: Carousel Paket Piknik.</li>
+            <li>Minggu: UGC of the week.</li>
+          </ul></div>
+          <div class="card"><h3>Format Inti</h3><ul>
+            <li>Hook 2 baris, CTA jelas, hashtag konsisten.</li>
+            <li>Caption singkat; fokus manfaat & momen.</li>
+            <li>Lokasi ditag + ajak save & share.</li>
+          </ul></div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 10. Copy Template -->
-      <section class="slide" data-title="Copy Siap Pakai">
+      <!-- 10 -->
+      <section class="slide" data-title="Copy Siap Pakai"><div class="content">
         <h2>🧾 Copy Siap Pakai</h2>
         <div class="grid2">
-          <div class="card">
-            <h3>IG Teaser (Kamis)</h3>
-            <p>“Golden Hours Friday 💛 15:00–18:00 di Giri Loka. <strong>Ingkung 99K</strong>, cuma 10 porsi. Tag partner nge-sunsetmu!”</p>
+          <div class="card"><h3>IG Teaser (Kamis)</h3>
+            <p>“Golden Hours Friday 💛 15:00–18:00 di Giri Loka. <strong>Ingkung 99K</strong>, 10 porsi. <strong>Reservasi H-1 via WA</strong>. Tag partner nge-sunsetmu!”</p>
           </div>
-          <div class="card">
-            <h3>WA Blast (Kamis 16:00)</h3>
-            <p>“Besok Golden Hours 15–18. Ingkung 99K (10 porsi). Balas <em>INGKUNG</em> untuk pre-book (5 porsi, DP 25K).”</p>
+          <div class="card"><h3>WA Blast (Kamis 16:00)</h3>
+            <p>“Besok Golden Hours 15–18. Ingkung 99K (10 porsi). <strong>Reservasi wajib maksimal H-1</strong>. Balas <em>INGKUNG</em> untuk booking (DP 25K).”</p>
           </div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 11. Paket Penjualan -->
-      <section class="slide" data-title="Paket Giri Loka">
+      <!-- 11 -->
+      <section class="slide" data-title="Paket Giri Loka"><div class="content">
         <h2>🎁 Paket Giri Loka</h2>
         <div class="grid3">
           <div class="card"><strong>Piknik 2–4 org</strong><br>Sewa tikar + 2 minuman + snack lokal.</div>
           <div class="card"><strong>Komunitas 10–30</strong><br>Area non-eksklusif 2 jam + signage + dispenser air.</div>
           <div class="card"><strong>Gathering 30–80</strong><br>Eksklusif 3 jam + mic/PA + backdrop sederhana + prasmanan.</div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 12. KPI -->
-      <section class="slide" data-title="KPI">
+      <!-- 12 -->
+      <section class="slide" data-title="KPI"><div class="content">
         <h2>📊 KPI Utama</h2>
         <div class="kpi">
-          <div class="card"><div class="num">+3.000</div><div>Follower bersih/90 hari</div></div>
-          <div class="card"><div class="num">≥90%</div><div>Sold-out rate/minggu</div></div>
-          <div class="card"><div class="num">+40%</div><div>Traffic Jumat 15–18</div></div>
-          <div class="card"><div class="num">20</div><div>Leads event/bulan</div></div>
-          <div class="card"><div class="num">6</div><div>Booking event/bulan</div></div>
-          <div class="card"><div class="num">50+</div><div>UGC tag/minggu</div></div>
+          <div class="card"><div class="big"><strong>+3.000</strong></div><div>Follower bersih/90 hari</div></div>
+          <div class="card"><div class="big"><strong>≥90%</strong></div><div>Sold-out rate/minggu</div></div>
+          <div class="card"><div class="big"><strong>+40%</strong></div><div>Traffic Jumat 15–18</div></div>
+          <div class="card"><div class="big"><strong>20</strong></div><div>Leads event/bulan</div></div>
+          <div class="card"><div class="big"><strong>6</strong></div><div>Booking event/bulan</div></div>
+          <div class="card"><div class="big"><strong>50+</strong></div><div>UGC tag/minggu</div></div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 13. Operasional -->
-      <section class="slide" data-title="Operasional">
+      <!-- 13 -->
+      <section class="slide" data-title="Operasional"><div class="content">
         <h2>🛠️ Operasional</h2>
         <div class="grid2">
-          <div class="card">
-            <h3>Kitchen & Service</h3>
-            <ul><li>Batch 12–14 ekor/jumat (2–4 safety).</li>
-                <li>Pick-up point Giri Loka + signage arah.</li></ul>
-          </div>
-          <div class="card">
-            <h3>Cuaca & Crowd</h3>
-            <ul><li>Plan B semi-indoor + payung piknik.</li>
-                <li>Slot foto 10 menit/kelompok; petugas jaga.</li></ul>
-          </div>
+          <div class="card"><h3>Kitchen & Service</h3>
+            <ul><li>Batch 12–14 ekor/jumat (2–4 safety).</li><li>Pick-up point Giri Loka + signage arah.</li></ul></div>
+          <div class="card"><h3>Cuaca & Crowd</h3>
+            <ul><li>Plan B semi-indoor + payung piknik.</li><li>Slot foto 10 menit/kelompok; petugas jaga.</li></ul></div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 14. Risiko -->
-      <section class="slide" data-title="Risiko & Mitigasi">
+      <!-- 14 -->
+      <section class="slide" data-title="Risiko & Mitigasi"><div class="content">
         <h2>🧯 Risiko & Mitigasi</h2>
         <div class="grid2">
-          <div class="card">
-            <h3>Jika tidak sold-out</h3>
-            <ul class="checklist">
-              <li>Story edukasi stok realtime + bukti sosial.</li>
-              <li>Pre-book 5 porsi + DP 25K.</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>Jika hujan</h3>
-            <ul class="checklist">
-              <li>Konten “cozy rain vibes” + teh poci refill kecil bagi 10 pembeli pertama.</li>
-              <li>Pindah ke area semi-indoor.</li>
-            </ul>
-          </div>
+          <div class="card"><h3>Jika tidak sold-out</h3>
+            <ul class="checklist"><li>Story stok realtime + bukti sosial.</li><li>Cut-off H-1 + daftar tunggu.</li></ul></div>
+          <div class="card"><h3>Jika hujan</h3>
+            <ul class="checklist"><li>Konten “cozy rain vibes” + teh poci refill kecil bagi 10 pembeli pertama.</li><li>Pindah semi-indoor.</li></ul></div>
         </div>
-      </section>
+      </div></section>
 
-      <!-- 15. Anggaran & Langkah Lanjut -->
-      <section class="slide" data-title="Anggaran & Next Steps">
+      <!-- 15 -->
+      <section class="slide" data-title="Anggaran & Next Steps"><div class="content">
         <h2>💰 Anggaran & ➡️ Next Steps</h2>
         <div class="grid2">
-          <div class="card">
-            <h3>Anggaran/Bl</h3>
-            <ul>
-              <li>Konten: Rp2,5 jt • Micro-KOL: Rp1,6 jt • Live akustik: Rp1,2 jt</li>
-              <li>Iklan IG geo-target: Rp1,5 jt • Properti awal: Rp0,8 jt</li>
-              <li><strong>Total:</strong> ± Rp6,8 jt/bln (+ capex awal)</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>7 Langkah Lanjut</h3>
+          <div class="card"><h3>Anggaran/Bulan</h3>
+            <ul><li>Konten: Rp2,5 jt • Micro-KOL: Rp1,6 jt • Live akustik: Rp1,2 jt</li>
+                <li>Ads IG geo-target: Rp1,5 jt • Properti awal: Rp0,8 jt</li>
+                <li><strong>Total:</strong> ± Rp6,8 jt/bln (+ capex awal)</li></ul></div>
+          <div class="card"><h3>7 Langkah Lanjut</h3>
             <ol>
               <li>Final nama & logo “Giri Loka”.</li>
               <li>Foto spot & signage sementara.</li>
-              <li>Template Story countdown + counter kasir.</li>
-              <li>SOP pre-book WA + DP.</li>
-              <li>Roster live akustik 4 pekan.</li>
+              <li>Template Story “Reservasi H-1”.</li>
+              <li>SOP reservasi WA + DP 25K (cut-off Kamis 21:00).</li>
+              <li>Roster akustik 2 minggu pertama (mulai 15:00).</li>
               <li>Bundle upsell & harga.</li>
-              <li>Kick-off Jumat pertama (soft launch).</li>
-            </ol>
-          </div>
+              <li>Soft-launch Jumat pertama.</li>
+            </ol></div>
         </div>
-        <p class="note">Semua angka dapat disesuaikan setelah uji coba 2–3 pekan pertama.</p>
-      </section>
+        <p class="note">Angka dapat disesuaikan setelah uji coba 2–3 pekan.</p>
+      </div></section>
     </div>
   </main>
 
   <div class="controls" aria-label="Kontrol presentasi">
     <button id="prevBtn" class="btn" aria-label="Sebelumnya">← Prev</button>
-    <div class="footerhint">Gunakan tombol ← →, klik, atau geser untuk navigasi • Layar kecil: mode scroll aktif</div>
+    <div class="footerhint">Gunakan ← →, klik, atau geser untuk navigasi • Layar sangat kecil: otomatis scroll</div>
     <button id="nextBtn" class="btn accent" aria-label="Berikutnya">Next →</button>
   </div>
 </div>
 
 <script>
-  (function(){
-    const slidesEl = document.getElementById('slides');
-    const slideNodes = [...slidesEl.children];
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const progbar = document.getElementById('progbar');
-    const progressTxt = document.getElementById('progressTxt');
+(function(){
+  const slidesEl = document.getElementById('slides');
+  const slideNodes = [...slidesEl.children];
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progbar = document.getElementById('progbar');
+  const progressTxt = document.getElementById('progressTxt');
+  const body = document.body;
 
-    let index = 0;
-    const isScrollMode = () => window.matchMedia('(max-width: 720px)').matches;
+  let index = 0;
 
-    function clamp(i){ return Math.max(0, Math.min(i, slideNodes.length-1)); }
-    function update(){
-      if(!isScrollMode()){
-        slidesEl.style.transform = `translateX(${-index*100}vw)`;
-      }
-      prevBtn.disabled = index===0;
-      nextBtn.disabled = index===slideNodes.length-1;
-      const pct = ((index+1)/slideNodes.length)*100;
-      progbar.style.width = pct + '%';
-      progressTxt.textContent = String(index+1).padStart(2,'0') + '/' + String(slideNodes.length).padStart(2,'0');
-      document.title = (slideNodes[index].dataset.title || 'Slide') + ' — Dolan Sawah';
-      slideNodes[index].setAttribute('tabindex','-1'); slideNodes[index].focus({preventScroll:true});
+  function isScrollMode(){
+    // aktifkan scroll hanya untuk layar SANGAT kecil
+    return window.innerWidth < 520 || window.innerHeight < 520;
+  }
+  function setMode(){
+    if(isScrollMode()){
+      body.classList.add('scroll');
+    }else{
+      body.classList.remove('scroll');
+      slidesEl.style.transform = `translateX(${-index*100}%)`;
     }
+    updateUI();
+  }
+  function clamp(i){ return Math.max(0, Math.min(i, slideNodes.length-1)); }
 
-    function go(i){ index = clamp(i); update(); }
+  function updateUI(){
+    prevBtn.disabled = index===0;
+    nextBtn.disabled = index===slideNodes.length-1;
+    const pct = ((index+1)/slideNodes.length)*100;
+    progbar.style.width = pct + '%';
+    progressTxt.textContent = String(index+1).padStart(2,'0') + '/' + String(slideNodes.length).padStart(2,'0');
+    document.title = (slideNodes[index].dataset.title || 'Slide') + ' — Dolan Sawah';
+  }
 
-    // Buttons
-    prevBtn.addEventListener('click', ()=>go(index-1));
-    nextBtn.addEventListener('click', ()=>go(index+1));
+  function go(i){
+    index = clamp(i);
+    if(isScrollMode()){
+      slideNodes[index].scrollIntoView({behavior:'smooth',block:'start'});
+    }else{
+      slidesEl.style.transform = `translateX(${-index*100}%)`;
+    }
+    updateUI();
+  }
 
-    // Keyboard
-    window.addEventListener('keydown', (e)=>{
-      if(e.key==='ArrowRight'){ go(index+1); }
-      else if(e.key==='ArrowLeft'){ go(index-1); }
-    });
+  // Buttons
+  prevBtn.addEventListener('click', ()=>go(index-1));
+  nextBtn.addEventListener('click', ()=>go(index+1));
 
-    // Resize: keep visual position
-    window.addEventListener('resize', ()=>{ update(); });
+  // Keyboard
+  window.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowRight'){ go(index+1); }
+    else if(e.key==='ArrowLeft'){ go(index-1); }
+  });
 
-    // Touch swipe (horizontal)
-    let startX=null,startY=null,swiping=false;
-    slidesEl.addEventListener('touchstart', (e)=>{
-      const t = e.changedTouches[0]; startX=t.clientX; startY=t.clientY; swiping=false;
-    },{passive:true});
-    slidesEl.addEventListener('touchmove', (e)=>{
-      if(isScrollMode()) return; // let vertical scroll happen
-      const t = e.changedTouches[0];
-      const dx = t.clientX-startX, dy = t.clientY-startY;
-      if(Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>10){ swiping=true; e.preventDefault(); }
-    },{passive:false});
-    slidesEl.addEventListener('touchend', (e)=>{
-      if(isScrollMode()) return;
-      if(!swiping) return;
-      const t = e.changedTouches[0];
-      const dx = t.clientX-startX;
-      if(dx<-40) go(index+1);
-      else if(dx>40) go(index-1);
-      swiping=false;
-    });
+  // Swipe
+  let startX=null,startY=null,swiping=false;
+  slidesEl.addEventListener('touchstart', (e)=>{
+    const t = e.changedTouches[0]; startX=t.clientX; startY=t.clientY; swiping=false;
+  },{passive:true});
+  slidesEl.addEventListener('touchmove', (e)=>{
+    if(isScrollMode()) return; // biarkan scroll vertikal
+    const t = e.changedTouches[0];
+    const dx = t.clientX-startX, dy = t.clientY-startY;
+    if(Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>10){ swiping=true; e.preventDefault(); }
+  },{passive:false});
+  slidesEl.addEventListener('touchend', (e)=>{
+    if(isScrollMode()) return;
+    if(!swiping) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX-startX;
+    if(dx<-40) go(index+1);
+    else if(dx>40) go(index-1);
+    swiping=false;
+  });
 
-    // Initialize
-    update();
-  })();
+  // Scroll mode: update index menurut slide yang terlihat
+  let io;
+  function setupObserver(){
+    if(io) io.disconnect();
+    if(!isScrollMode()) return;
+    io = new IntersectionObserver((entries)=>{
+      entries.forEach(ent=>{
+        if(ent.isIntersecting){
+          const i = slideNodes.indexOf(ent.target);
+          if(i!==-1){ index=i; updateUI(); }
+        }
+      });
+    },{root:null,threshold:0.6});
+    slideNodes.forEach(sl=>io.observe(sl));
+  }
+
+  window.addEventListener('resize', ()=>{ setMode(); setupObserver(); });
+  // Init
+  setMode(); setupObserver();
+})();
 </script>
 </body>
 </html>

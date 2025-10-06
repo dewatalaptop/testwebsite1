@@ -2,13 +2,13 @@
 <html lang="id">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Dolan Sawah — Giri Loka & Golden Hours Ingkung 99K</title>
 <style>
   :root{
     --bg:#0b0b0c; --fg:#f7f7f7; --muted:#bdbdbd; --accent:#ffd166;
     --card:#121214; --edge:#1e1e22; --ok:#8bd17c; --warn:#ffb703; --bad:#ef476f;
-    --contentMax:1100px;
+    --contentMax:1100px; --vh:1vh; /* akan di-set oleh JS */
   }
   html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
@@ -16,38 +16,36 @@
 
   /* TOP BAR */
   .topbar{position:sticky;top:0;z-index:50;display:flex;gap:12px;
-    align-items:center;justify-content:space-between;padding:10px 16px;
+    align-items:center;justify-content:space-between;padding:10px 12px env(safe-area-inset-right) 10px env(safe-area-inset-left);
     border-bottom:1px solid var(--edge);background:#0e0e10}
   .brand{display:flex;gap:10px;align-items:center;font-weight:700}
   .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 16px var(--accent)}
   .progress{display:flex;gap:8px;align-items:center}
-  .progress .bar{width:140px;height:4px;background:#1a1a1f;border-radius:999px;overflow:hidden}
+  .progress .bar{width:120px;height:4px;background:#1a1a1f;border-radius:999px;overflow:hidden}
   .progress .bar div{height:100%;width:0;background:var(--accent);transition:width .35s ease}
   .progress small{color:var(--muted);min-width:90px;text-align:right;font-variant-numeric:tabular-nums}
+  .modebtn{margin-left:8px;border:1px solid var(--edge);background:#121216;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:700}
 
   /* VIEWPORT & SLIDES (carousel mode) */
   .viewport{flex:1;position:relative;overflow:hidden}
   .slides{
     height:100%;
-    display:grid;               /* each slide is 100% of viewport width */
-    grid-auto-flow:column;
-    grid-auto-columns:100%;
+    display:grid; grid-auto-flow:column; grid-auto-columns:100%;
     align-items:stretch;
     transition:transform .45s cubic-bezier(.2,.8,.2,1);
-    will-change:transform;
-    touch-action:pan-y;
+    will-change:transform; touch-action:pan-y;
   }
   .slide{
-    height:calc(100vh - 56px - 74px); /* minus topbar + controls */
+    height:calc(var(--vh) * 100 - 56px - 74px); /* 56 topbar + 74 controls */
     padding:5vw; box-sizing:border-box; display:flex; align-items:center; justify-content:center;
   }
   .content{width:100%;max-width:var(--contentMax);margin:0 auto;display:flex;flex-direction:column;gap:18px}
 
   h1,h2{margin:0 0 8px;line-height:1.1}
-  h1{font-size:clamp(28px,5vw,56px);font-weight:800}
-  h2{font-size:clamp(22px,3.5vw,34px);font-weight:750;color:#fff}
-  p.lead{font-size:clamp(16px,2.2vw,22px);color:#e8e8e8;max-width:75ch}
-  .big{font-size:clamp(18px,2.5vw,24px)}
+  h1{font-size:clamp(26px,5vw,56px);font-weight:800}
+  h2{font-size:clamp(20px,3.5vw,34px);font-weight:750;color:#fff}
+  p.lead{font-size:clamp(15px,2.2vw,22px);color:#e8e8e8;max-width:75ch}
+  .big{font-size:clamp(17px,2.5vw,24px)}
   .pill{display:inline-block;background:#1b1b1f;border:1px solid var(--edge);padding:6px 10px;border-radius:999px;color:#dcdcdc;font-size:13px;margin-right:6px}
   .card{background:var(--card);border:1px solid var(--edge);border-radius:14px;padding:18px}
   .grid2{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -61,31 +59,32 @@
 
   /* CONTROLS */
   .controls{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(11,11,12,0),#0b0b0c 40%);
-    padding:18px 16px;border-top:1px solid var(--edge);display:flex;justify-content:space-between;align-items:center;gap:12px}
+    padding:14px 12px env(safe-area-inset-right) 14px env(safe-area-inset-left);
+    border-top:1px solid var(--edge);display:flex;justify-content:space-between;align-items:center;gap:8px}
   .btn{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--edge);background:#121216;color:#fff;
-    padding:12px 18px;border-radius:12px;cursor:pointer;font-weight:700;letter-spacing:.2px}
+    padding:12px 16px;border-radius:12px;cursor:pointer;font-weight:700;letter-spacing:.2px}
   .btn[disabled]{opacity:.45;cursor:not-allowed}
   .btn.accent{border-color:#5a4a1a;background:#161208}
-  .footerhint{color:var(--muted);font-size:13px}
+  .footerhint{color:var(--muted);font-size:12px}
 
-  /* SCROLL FALLBACK (very small screens) */
+  /* SCROLL MODE (manual/auto for ultra-small only) */
   body.scroll .viewport{overflow-y:auto}
   body.scroll .slides{display:block;transform:none !important}
   body.scroll .slide{height:auto;min-height:60vh}
   body.scroll .controls{position:static}
   body.scroll .grid2, body.scroll .grid3, body.scroll .kpi{grid-template-columns:1fr}
-
-  /* Accessibility: reduced motion */
-  @media (prefers-reduced-motion: reduce){ .slides{transition:none} }
 </style>
 </head>
 <body>
 <div class="app" role="application" aria-label="Presentasi Dolan Sawah">
   <header class="topbar" aria-live="polite">
     <div class="brand"><span class="dot" aria-hidden="true"></span> DOLAN SAWAH — GIRI LOKA</div>
-    <div class="progress">
-      <div class="bar"><div id="progbar"></div></div>
-      <small id="progressTxt">01/15</small>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="modeBtn" class="modebtn" aria-label="Toggle mode">Mode: Slide</button>
+      <div class="progress">
+        <div class="bar"><div id="progbar"></div></div>
+        <small id="progressTxt">01/15</small>
+      </div>
     </div>
   </header>
 
@@ -139,7 +138,7 @@
           <div class="card">
             <h3>🍗 Golden Hours Ingkung 99K</h3>
             <ul><li>Jumat 15:00–18:00, <strong>10 porsi/minggu</strong>.</li>
-                <li><strong>Wajib reservasi maksimal H-1</strong> (detail di Mekanisme).</li>
+                <li><strong>Wajib reservasi maksimal H-1</strong>.</li>
                 <li>Upsell: pitcher teh 1L 25K; lalap+sambal 9K.</li></ul>
           </div>
         </div>
@@ -151,9 +150,9 @@
         <ul class="checklist">
           <li>☀️ Waktu: Jumat 15:00–18:00 (golden hour).</li>
           <li>🔟 Kuota: 10 porsi/minggu.</li>
-          <li>📅 <strong>Reservasi wajib maksimal H-1 (Kamis 21:00 cut-off)</strong> via WA; DP 25K/porsi, hangus bila no-show.</li>
-          <li>🪪 1 porsi/orang; dine-in di Giri Loka; tidak digabung promo lain.</li>
-          <li>🕞 Jika ada sisa, <em>walk-in</em> dibuka pukul 15:30 (harga promo tetap) sampai habis.</li>
+          <li>📅 <strong>Reservasi wajib maksimal H-1 (Kamis 21:00 cut-off)</strong> via WA; DP 25K/porsi; hangus bila no-show.</li>
+          <li>🪪 1 porsi/orang; dine-in di Giri Loka; tidak gabung promo lain.</li>
+          <li>🕞 Sisa kuota → walk-in 15:30 (harga promo tetap) sampai habis.</li>
           <li>📈 Counter stok realtime di kasir & IG Stories.</li>
         </ul>
       </div></section>
@@ -282,32 +281,40 @@
 
   <div class="controls" aria-label="Kontrol presentasi">
     <button id="prevBtn" class="btn" aria-label="Sebelumnya">← Prev</button>
-    <div class="footerhint">Gunakan ← →, klik, atau geser untuk navigasi • Layar sangat kecil: otomatis scroll</div>
+    <div class="footerhint">Navigasi: tombol ← →, geser, klik • Tekan <strong>S</strong> untuk toggle Slide/Scroll</div>
     <button id="nextBtn" class="btn accent" aria-label="Berikutnya">Next →</button>
   </div>
 </div>
 
 <script>
 (function(){
+  // Fix 100vh on mobile (address bar)
+  function setVH(){
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+  }
+  setVH(); window.addEventListener('resize', setVH);
+
   const slidesEl = document.getElementById('slides');
   const slideNodes = [...slidesEl.children];
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
   const progbar = document.getElementById('progbar');
   const progressTxt = document.getElementById('progressTxt');
+  const modeBtn = document.getElementById('modeBtn');
   const body = document.body;
 
   let index = 0;
+  let manualScroll = localStorage.getItem('mode') === 'scroll';
 
-  function isScrollMode(){
-    // aktifkan scroll hanya untuk layar SANGAT kecil
-    return window.innerWidth < 520 || window.innerHeight < 520;
+  function ultraSmall(){ // hanya benar-benar kecil sekali
+    return window.innerWidth < 360 || window.innerHeight < 380;
   }
-  function setMode(){
-    if(isScrollMode()){
-      body.classList.add('scroll');
-    }else{
-      body.classList.remove('scroll');
+  function applyMode(){
+    const autoScroll = ultraSmall();
+    const useScroll = manualScroll || autoScroll;
+    body.classList.toggle('scroll', useScroll);
+    modeBtn.textContent = 'Mode: ' + (useScroll ? 'Scroll' : 'Slide');
+    if(!useScroll){
       slidesEl.style.transform = `translateX(${-index*100}%)`;
     }
     updateUI();
@@ -325,7 +332,7 @@
 
   function go(i){
     index = clamp(i);
-    if(isScrollMode()){
+    if(body.classList.contains('scroll')){
       slideNodes[index].scrollIntoView({behavior:'smooth',block:'start'});
     }else{
       slidesEl.style.transform = `translateX(${-index*100}%)`;
@@ -341,6 +348,14 @@
   window.addEventListener('keydown', (e)=>{
     if(e.key==='ArrowRight'){ go(index+1); }
     else if(e.key==='ArrowLeft'){ go(index-1); }
+    else if(e.key.toLowerCase()==='s'){ manualScroll = !manualScroll; localStorage.setItem('mode', manualScroll?'scroll':'slide'); applyMode(); }
+  });
+
+  // Toggle button
+  modeBtn.addEventListener('click', ()=>{
+    manualScroll = !manualScroll;
+    localStorage.setItem('mode', manualScroll?'scroll':'slide');
+    applyMode();
   });
 
   // Swipe
@@ -349,13 +364,13 @@
     const t = e.changedTouches[0]; startX=t.clientX; startY=t.clientY; swiping=false;
   },{passive:true});
   slidesEl.addEventListener('touchmove', (e)=>{
-    if(isScrollMode()) return; // biarkan scroll vertikal
+    if(body.classList.contains('scroll')) return; // biarkan scroll vertikal
     const t = e.changedTouches[0];
     const dx = t.clientX-startX, dy = t.clientY-startY;
     if(Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>10){ swiping=true; e.preventDefault(); }
   },{passive:false});
   slidesEl.addEventListener('touchend', (e)=>{
-    if(isScrollMode()) return;
+    if(body.classList.contains('scroll')) return;
     if(!swiping) return;
     const t = e.changedTouches[0];
     const dx = t.clientX-startX;
@@ -364,11 +379,11 @@
     swiping=false;
   });
 
-  // Scroll mode: update index menurut slide yang terlihat
+  // Keep index in sync when scroll-mode
   let io;
   function setupObserver(){
     if(io) io.disconnect();
-    if(!isScrollMode()) return;
+    if(!body.classList.contains('scroll')) return;
     io = new IntersectionObserver((entries)=>{
       entries.forEach(ent=>{
         if(ent.isIntersecting){
@@ -380,9 +395,9 @@
     slideNodes.forEach(sl=>io.observe(sl));
   }
 
-  window.addEventListener('resize', ()=>{ setMode(); setupObserver(); });
+  window.addEventListener('resize', ()=>{ applyMode(); setupObserver(); });
   // Init
-  setMode(); setupObserver();
+  applyMode(); setupObserver();
 })();
 </script>
 </body>

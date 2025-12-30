@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dolan Payroll - Fixed Logic</title>
+    <title>Dolan Payroll - Smart AI Logic</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -18,178 +18,153 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
     <script>
-        tailwind.config = {
-            theme: { extend: { colors: { primary: '#1e3a8a', secondary: '#3b82f6' }, fontFamily: { sans: ['Inter', 'sans-serif'] } } }
-        }
+        tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a' }, fontFamily: { sans: ['Inter'] } } } }
     </script>
-
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Payslip CSS - Pixel Perfect untuk Image Generation */
-        #render-area { position: absolute; left: -9999px; top: 0; }
-        .payslip-container { width: 800px; background: white; padding: 40px; border: 1px solid #e2e8f0; color: #1f2937; }
-        .payslip-header { display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 25px; }
-        .payslip-logo { width: 140px; height: 80px; object-fit: contain; margin-right: 25px; }
-        .payslip-company-info h1 { font-size: 24px; font-weight: 800; text-transform: uppercase; margin: 0; }
-        .payslip-title { text-align: center; font-weight: 700; font-size: 18px; margin: 10px 0 25px 0; text-transform: uppercase; }
-        .payslip-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 14px; }
-        .payslip-table td { padding: 4px 8px; vertical-align: top; }
-        .label-col { width: 200px; font-weight: 600; color: #374151; }
-        .colon-col { width: 10px; }
-        .val-col { text-align: right; font-weight: 500; }
-        .total-row { background-color: #fef9c3; font-weight: 800; border-top: 2px solid #000; border-bottom: 2px solid #000; }
-        .total-row td { padding: 12px 8px; font-size: 16px; color: #000; }
-        .footer-sign { margin-top: 50px; display: flex; flex-direction: column; align-items: flex-end; padding-right: 20px; }
+        body { background: #f1f5f9; }
+        .payslip-container { width: 800px; background: white; padding: 40px; border: 1px solid #cbd5e1; color: #334155; }
+        .payslip-header { display: flex; align-items: center; border-bottom: 3px solid #0f172a; padding-bottom: 20px; margin-bottom: 25px; }
+        .payslip-logo { width: 120px; height: 80px; object-fit: contain; margin-right: 25px; }
+        .payslip-title { text-align: center; font-weight: 800; font-size: 20px; margin: 10px 0 25px 0; text-transform: uppercase; letter-spacing: 1px; }
+        .payslip-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .payslip-table td { padding: 5px 8px; vertical-align: top; }
+        .label-col { width: 200px; font-weight: 600; }
+        .val-col { text-align: right; font-family: 'Courier New', monospace; font-weight: 600; }
+        .total-row { background-color: #fef08a; font-weight: 800; border-top: 2px solid #000; }
     </style>
 </head>
 <body>
-
-    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
-    <div id="global-loader" class="fixed inset-0 bg-white bg-opacity-90 z-50 flex flex-col items-center justify-center hidden">
-        <div class="loader w-12 h-12 border-4 border-blue-600 border-t-transparent"></div>
-        <p class="mt-4 text-gray-500 font-medium" id="loader-text">Memproses Data...</p>
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+    <div id="global-loader" class="fixed inset-0 bg-white/90 z-50 hidden flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
+        <p class="mt-4 font-semibold text-gray-600" id="loader-text">Memproses...</p>
     </div>
 
-    <div id="login-section" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-slate-800">
-        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
-            <div class="text-center mb-8">
-                <i class="fas fa-file-invoice-dollar text-blue-600 text-4xl mb-4"></i>
-                <h2 class="text-3xl font-bold text-gray-800">Dolan Payroll</h2>
-            </div>
+    <div id="login-section" class="min-h-screen flex items-center justify-center bg-slate-800">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-96">
+            <h2 class="text-2xl font-bold text-center mb-6">Dolan Admin</h2>
             <form onsubmit="handleLogin(event)">
-                <input type="email" id="email" class="w-full px-4 py-3 rounded-lg border mb-4" placeholder="Email Admin" required>
-                <input type="password" id="password" class="w-full px-4 py-3 rounded-lg border mb-6" placeholder="Password" required>
-                <button type="submit" id="btn-login" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">Masuk Aplikasi</button>
+                <input type="email" id="email" class="w-full p-3 border rounded mb-4" placeholder="Email" required>
+                <input type="password" id="password" class="w-full p-3 border rounded mb-6" placeholder="Password" required>
+                <button class="w-full bg-blue-600 text-white p-3 rounded font-bold">LOGIN</button>
             </form>
         </div>
     </div>
 
     <div id="app-section" class="hidden min-h-screen flex flex-col">
-        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-                <div class="flex items-center text-xl font-bold text-gray-800">
-                    <i class="fas fa-money-check-alt text-blue-600 mr-2"></i> Dolan<span class="text-blue-600">Payroll</span>
-                </div>
-                <div class="flex space-x-2">
-                    <button onclick="switchTab('payroll')" id="nav-payroll" class="nav-btn bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow-md">Proses Gaji</button>
-                    <button onclick="switchTab('karyawan')" id="nav-karyawan" class="nav-btn text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg">Data Karyawan</button>
-                    <button onclick="switchTab('outlet')" id="nav-outlet" class="nav-btn text-gray-600 hover:text-blue-600 px-3 py-2 rounded-lg">Data Outlet</button>
-                    <button onclick="auth.signOut()" class="text-gray-400 hover:text-red-500 px-3"><i class="fas fa-sign-out-alt"></i></button>
-                </div>
+        <nav class="bg-white border-b sticky top-0 z-40 px-6 h-16 flex justify-between items-center shadow-sm">
+            <div class="font-bold text-xl text-slate-800"><i class="fas fa-bolt text-blue-600"></i> Dolan<span class="text-blue-600">Payroll</span> AI</div>
+            <div class="flex gap-2">
+                <button onclick="switchTab('payroll')" id="nav-payroll" class="px-4 py-2 rounded text-sm font-medium bg-blue-600 text-white">Proses Gaji</button>
+                <button onclick="switchTab('karyawan')" id="nav-karyawan" class="px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100">Database Karyawan</button>
+                <button onclick="switchTab('outlet')" id="nav-outlet" class="px-4 py-2 rounded text-sm font-medium text-slate-600 hover:bg-slate-100">Outlet</button>
+                <button onclick="auth.signOut()" class="text-red-500 px-3"><i class="fas fa-power-off"></i></button>
             </div>
         </nav>
 
-        <main class="flex-grow bg-gray-50 py-8 px-4">
-            <div class="max-w-7xl mx-auto">
-                
-                <div id="tab-karyawan" class="tab-content hidden animate-fade-in">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                            <div>
-                                <h2 class="text-2xl font-bold text-gray-800">Master Data Karyawan</h2>
-                                <p class="text-gray-500 text-sm">Upload Excel "Nama & No Telepon" di sini.</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <label class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg shadow cursor-pointer transition flex items-center">
-                                    <i class="fas fa-file-excel mr-2"></i> Upload Master HP
-                                    <input type="file" id="master-excel-upload" accept=".xlsx, .xls" class="hidden">
-                                </label>
-                                <button onclick="openModal('modal-karyawan')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition">
-                                    <i class="fas fa-plus mr-2"></i> Manual
-                                </button>
-                            </div>
+        <main class="p-6 max-w-7xl mx-auto w-full">
+            
+            <div id="tab-karyawan" class="tab-content hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm border mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-xl font-bold">Master Data & Smart Sync</h2>
+                            <p class="text-xs text-gray-500">Upload Excel berisi "Nama & No HP". Sistem akan mencocokkan otomatis.</p>
                         </div>
-                        <div id="sync-status" class="hidden mb-4 p-4 bg-blue-50 text-blue-800 rounded-lg border border-blue-100 text-sm"></div>
-                        <div class="overflow-x-auto rounded-lg border border-gray-200">
-                            <table class="w-full text-left">
-                                <thead class="bg-gray-50 text-gray-600 text-sm uppercase font-semibold">
-                                    <tr><th class="p-4">NIK</th><th class="p-4">Nama Lengkap</th><th class="p-4">WhatsApp</th><th class="p-4 text-center">Aksi</th></tr>
-                                </thead>
-                                <tbody id="table-karyawan-body" class="divide-y divide-gray-100 bg-white">
-                                    <tr><td colspan="4" class="p-8 text-center text-gray-400">Memuat data...</td></tr>
-                                </tbody>
-                            </table>
+                        <div class="flex gap-2">
+                            <label class="bg-emerald-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-emerald-700 flex items-center text-sm">
+                                <i class="fas fa-file-excel mr-2"></i> Upload Update HP
+                                <input type="file" id="master-excel-upload" accept=".xlsx" class="hidden">
+                            </label>
+                            <button onclick="openModal('modal-karyawan')" class="bg-blue-600 text-white px-4 py-2 rounded text-sm"><i class="fas fa-plus"></i> Manual</button>
                         </div>
+                    </div>
+                    
+                    <div id="ai-progress" class="hidden mb-4">
+                        <div class="flex justify-between text-xs mb-1 font-bold"><span>Mencocokkan Data...</span><span id="ai-percent">0%</span></div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5"><div id="ai-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div></div>
+                        <div id="ai-log" class="text-xs text-gray-500 mt-1 h-20 overflow-y-auto border p-2 bg-gray-50 font-mono"></div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded border">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-bold text-xs">
+                                <tr><th class="p-3">NIK</th><th class="p-3">Nama</th><th class="p-3">WhatsApp</th><th class="p-3 text-center">Aksi</th></tr>
+                            </thead>
+                            <tbody id="table-karyawan-body" class="divide-y bg-white"></tbody>
+                        </table>
                     </div>
                 </div>
+            </div>
 
-                <div id="tab-outlet" class="tab-content hidden animate-fade-in">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">Daftar Outlet</h2>
-                        <button onclick="openModal('modal-outlet')" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"><i class="fas fa-plus mr-2"></i> Tambah Outlet</button>
-                    </div>
-                    <div id="outlet-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="tab-outlet" class="tab-content hidden">
+                <div class="flex justify-between mb-4">
+                    <h2 class="text-xl font-bold">Data Outlet</h2>
+                    <button onclick="openModal('modal-outlet')" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Tambah Outlet</button>
+                </div>
+                <div id="outlet-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+            </div>
+
+            <div id="tab-payroll" class="tab-content">
+                <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-8 rounded-xl shadow-lg mb-6 text-center">
+                    <h2 class="text-2xl font-bold mb-2">Proses Gaji (Robust Mode)</h2>
+                    <p class="text-slate-300 mb-6 text-sm">Mode ini tahan terhadap data Excel yang 'kotor' (titik koma salah, spasi, dll).</p>
+                    <label class="bg-white/10 hover:bg-white/20 border border-white/30 px-6 py-4 rounded-lg cursor-pointer inline-flex flex-col items-center transition">
+                        <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
+                        <span class="font-bold text-sm">Upload File Gaji (.xlsx)</span>
+                        <input type="file" id="payroll-file" accept=".xlsx" class="hidden">
+                    </label>
                 </div>
 
-                <div id="tab-payroll" class="tab-content animate-fade-in">
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg mb-8 text-center">
-                        <h2 class="text-3xl font-bold mb-2">Proses Gaji Bulanan</h2>
-                        <p class="text-blue-100 mb-6">Upload File "CONTOH GAJI" Anda di sini.</p>
-                        <div class="bg-white bg-opacity-20 backdrop-blur-md rounded-xl p-6 border-2 border-dashed border-blue-300 w-full max-w-lg mx-auto hover:bg-opacity-30 transition cursor-pointer relative">
-                            <input type="file" id="payroll-file" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                            <i class="fas fa-cloud-upload-alt text-4xl mb-3"></i>
-                            <p class="font-bold">Upload Excel Gaji</p>
-                        </div>
+                <div id="payroll-result" class="hidden bg-white rounded-xl shadow border overflow-hidden">
+                    <div class="p-4 bg-gray-50 border-b font-bold flex justify-between">
+                        <span>Preview & Eksekusi</span>
+                        <span class="text-xs font-normal text-gray-500">Pastikan NIK/Nama cocok agar tombol WA muncul</span>
                     </div>
-
-                    <div id="payroll-result" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4 bg-gray-50 border-b border-gray-100 font-bold text-gray-700">Preview Data Gaji</div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead class="bg-gray-100 text-gray-600">
-                                    <tr>
-                                        <th class="p-3">Status</th>
-                                        <th class="p-3">NIK</th>
-                                        <th class="p-3">Nama</th>
-                                        <th class="p-3">Outlet</th>
-                                        <th class="p-3 text-right">THP</th>
-                                        <th class="p-3">No. WA</th>
-                                        <th class="p-3 text-center">Kirim</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="payroll-table-body" class="divide-y divide-gray-100"></tbody>
-                            </table>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-100 text-slate-600">
+                                <tr>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">NIK</th>
+                                    <th class="p-3">Nama (Excel)</th>
+                                    <th class="p-3">Outlet</th>
+                                    <th class="p-3 text-right">THP</th>
+                                    <th class="p-3">No. WA (DB)</th>
+                                    <th class="p-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payroll-table-body" class="divide-y"></tbody>
+                        </table>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
 
-    <div id="modal-karyawan" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="font-bold text-lg mb-4">Input Karyawan Manual</h3>
-            <input type="text" id="input-nik" placeholder="NIK" class="w-full p-3 border rounded mb-3">
-            <input type="text" id="input-nama" placeholder="Nama Lengkap" class="w-full p-3 border rounded mb-3">
-            <input type="text" id="input-wa" placeholder="No WhatsApp" class="w-full p-3 border rounded mb-6">
-            <div class="flex gap-2">
-                <button onclick="closeModal('modal-karyawan')" class="flex-1 bg-gray-200 py-2 rounded">Batal</button>
-                <button onclick="saveKaryawanManual()" class="flex-1 bg-blue-600 text-white py-2 rounded">Simpan</button>
-            </div>
+    <div id="modal-karyawan" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h3 class="font-bold mb-4">Input Manual</h3>
+            <input id="input-nik" placeholder="NIK" class="w-full border p-2 mb-2 rounded">
+            <input id="input-nama" placeholder="Nama" class="w-full border p-2 mb-2 rounded">
+            <input id="input-wa" placeholder="No WA" class="w-full border p-2 mb-4 rounded">
+            <div class="flex gap-2"><button onclick="closeModal('modal-karyawan')" class="flex-1 bg-gray-200 p-2 rounded">Batal</button><button onclick="saveKaryawanManual()" class="flex-1 bg-blue-600 text-white p-2 rounded">Simpan</button></div>
+        </div>
+    </div>
+    <div id="modal-outlet" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h3 class="font-bold mb-4">Tambah Outlet</h3>
+            <input id="input-outlet-name" placeholder="Nama Outlet" class="w-full border p-2 mb-2 rounded">
+            <textarea id="input-outlet-addr" placeholder="Alamat" class="w-full border p-2 mb-2 rounded"></textarea>
+            <input type="file" id="input-outlet-logo" class="w-full text-sm mb-4">
+            <div class="flex gap-2"><button onclick="closeModal('modal-outlet')" class="flex-1 bg-gray-200 p-2 rounded">Batal</button><button onclick="saveOutlet()" class="flex-1 bg-blue-600 text-white p-2 rounded">Simpan</button></div>
         </div>
     </div>
 
-    <div id="modal-outlet" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-            <h3 class="font-bold text-lg mb-4">Tambah Outlet</h3>
-            <input type="text" id="input-outlet-name" placeholder="Nama Outlet" class="w-full p-3 border rounded mb-3">
-            <textarea id="input-outlet-addr" placeholder="Alamat" class="w-full p-3 border rounded mb-3"></textarea>
-            <input type="file" id="input-outlet-logo" class="w-full mb-6 text-sm">
-            <div class="flex gap-2">
-                <button onclick="closeModal('modal-outlet')" class="flex-1 bg-gray-200 py-2 rounded">Batal</button>
-                <button onclick="saveOutlet()" class="flex-1 bg-blue-600 text-white py-2 rounded">Simpan</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="render-area"></div>
+    <div id="render-area" class="absolute left-[-9999px]"></div>
 
     <script>
-        // --- FIREBASE CONFIG ---
+        // --- 1. CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyAecwXgmT8rMGw1LpXKTS3xX-2YPcDlZZw",
             authDomain: "naruna-payroll.firebaseapp.com",
@@ -203,259 +178,321 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // --- GLOBAL VARIABLES ---
-        let masterKaryawan = {}; 
+        let masterKaryawan = {};
         let masterOutlet = {};
 
-        // --- UTILITIES ---
-        function normalizeString(str) { return str ? String(str).toLowerCase().replace(/[^a-z0-9]/g, "") : ""; }
-        function sanitizePhone(phone) { 
-            if(!phone) return ""; 
-            let p = String(phone).replace(/[^0-9]/g, ""); 
-            if(p.startsWith("08")) p = "62"+p.slice(1); 
-            if(p.startsWith("8")) p = "62"+p; 
-            return p; 
+        // --- 2. INTELLIGENT HELPER FUNCTIONS (THE BRAIN) ---
+
+        // Fungsi membersihkan angka Gaji (Mengatasi Rp, titik, koma, spasi, undefined)
+        function cleanNumber(val) {
+            if (val === undefined || val === null || val === '') return 0;
+            if (typeof val === 'number') return val;
+            
+            // Ubah ke string, hapus 'Rp', hapus spasi
+            let s = String(val).replace(/Rp\.?/gi, '').trim();
+            
+            // Cek jika format Indonesia (1.000.000) vs format Excel raw (1000000)
+            // Jika ada titik tapi tidak ada koma, buang titik (itu ribuan)
+            if (s.includes('.') && !s.includes(',')) {
+                s = s.replace(/\./g, '');
+            }
+            // Jika ada koma, ganti jadi titik (untuk desimal javascript) tapi biasanya gaji bulat
+            // Kita asumsikan gaji bulat, ambil angka saja
+            s = s.replace(/[^0-9\-]/g, ''); 
+            
+            return parseInt(s, 10) || 0;
         }
 
-        // --- AUTH ---
-        auth.onAuthStateChanged(user => {
-            if (user) {
+        // Fungsi normalisasi string untuk pencocokan nama
+        function tokenize(str) {
+            if (!str) return [];
+            return String(str).toLowerCase()
+                .replace(/[^a-z0-9\s]/g, '') // Hapus tanda baca
+                .split(/\s+/) // Pecah spasi
+                .filter(w => w.length > 2); // Abaikan kata terlalu pendek (di, ke, m, s)
+        }
+
+        // Skor Kecocokan: Seberapa banyak kata di Excel ada di Database
+        function calculateMatchScore(excelName, dbName) {
+            const tokensA = tokenize(excelName);
+            const tokensB = tokenize(dbName);
+            
+            if (tokensA.length === 0 || tokensB.length === 0) return 0;
+
+            let matches = 0;
+            tokensA.forEach(token => {
+                if (tokensB.includes(token)) matches++;
+            });
+
+            // Skor = (Jumlah kata cocok / Jumlah kata di input Excel)
+            return matches / tokensA.length;
+        }
+
+        function sanitizePhone(p) {
+            if(!p) return "";
+            p = String(p).replace(/[^0-9]/g, "");
+            if(p.startsWith("08")) return "62" + p.slice(1);
+            if(p.startsWith("8")) return "62" + p;
+            return p;
+        }
+
+        // --- 3. AUTH & LOAD ---
+        auth.onAuthStateChanged(u => {
+            if(u) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('app-section').classList.remove('hidden');
-                loadRealtimeData();
+                loadData();
             } else {
                 document.getElementById('login-section').classList.remove('hidden');
                 document.getElementById('app-section').classList.add('hidden');
             }
         });
-        async function handleLogin(e) { e.preventDefault(); try { await auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value); } catch(err){ alert(err.message); } }
 
-        // --- LOAD DATA ---
-        function loadRealtimeData() {
-            db.collection('karyawan').onSnapshot(snap => {
-                const tbody = document.getElementById('table-karyawan-body'); tbody.innerHTML = ''; masterKaryawan = {};
-                if(snap.empty) tbody.innerHTML = `<tr><td colspan="4" class="text-center p-4">Belum ada data.</td></tr>`;
-                snap.forEach(doc => {
-                    const d = doc.data(); 
-                    const cleanNik = String(d.nik).trim();
-                    masterKaryawan[cleanNik] = d; 
-                    tbody.innerHTML += `<tr class="border-b"><td class="p-4">${cleanNik}</td><td class="p-4 font-bold">${d.nama}</td><td class="p-4 text-blue-600">${d.wa||'-'}</td><td class="p-4 text-center"><button onclick="db.collection('karyawan').doc('${doc.id}').delete()" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`;
+        function handleLogin(e) { e.preventDefault(); auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(e=>alert(e.message)); }
+
+        function loadData() {
+            db.collection('karyawan').onSnapshot(s => {
+                const b = document.getElementById('table-karyawan-body'); b.innerHTML=''; masterKaryawan={};
+                s.forEach(d => {
+                    const val = d.data();
+                    const cleanNik = String(val.nik).trim();
+                    masterKaryawan[cleanNik] = { ...val, id: d.id }; // Simpan ID dokumen juga
+                    b.innerHTML += `<tr class="border-b hover:bg-slate-50"><td class="p-3 text-xs font-mono">${cleanNik}</td><td class="p-3 font-bold">${val.nama}</td><td class="p-3 text-blue-600">${val.wa||'-'}</td><td class="p-3 text-center"><button onclick="deleteKaryawan('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
                 });
             });
-            db.collection('outlets').onSnapshot(snap => {
-                const grid = document.getElementById('outlet-grid'); grid.innerHTML = ''; masterOutlet = {};
-                snap.forEach(doc => {
-                    const d = doc.data(); masterOutlet[d.nama.toLowerCase()] = d;
-                    grid.innerHTML += `<div class="bg-white p-4 border rounded shadow relative"><img src="${d.logoUrl}" class="h-12 mx-auto mb-2"><h3 class="font-bold text-center">${d.nama}</h3><button onclick="db.collection('outlets').doc('${doc.id}').delete()" class="absolute top-2 right-2 text-red-500"><i class="fas fa-trash"></i></button></div>`;
+            db.collection('outlets').onSnapshot(s => {
+                const g = document.getElementById('outlet-grid'); g.innerHTML=''; masterOutlet={};
+                s.forEach(d => {
+                    const val = d.data();
+                    masterOutlet[val.nama.toLowerCase()] = val;
+                    g.innerHTML += `<div class="bg-white p-4 rounded shadow border relative"><img src="${val.logoUrl}" class="h-10 mb-2 block mx-auto"><div class="font-bold text-center text-sm">${val.nama}</div><button onclick="db.collection('outlets').doc('${d.id}').delete()" class="absolute top-2 right-2 text-red-300"><i class="fas fa-trash"></i></button></div>`
                 });
             });
         }
 
-        // --- SMART SYNC HP ---
+        // --- 4. SMART SYNC (THE FIX) ---
         document.getElementById('master-excel-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
-            document.getElementById('global-loader').classList.remove('hidden');
+            
+            // UI Feedback
+            const progressArea = document.getElementById('ai-progress');
+            const logArea = document.getElementById('ai-log');
+            const bar = document.getElementById('ai-bar');
+            const pct = document.getElementById('ai-percent');
+            progressArea.classList.remove('hidden');
+            logArea.innerHTML = '';
+            
             const reader = new FileReader();
             reader.onload = async (evt) => {
-                try {
-                    const wb = XLSX.read(evt.target.result, {type:'binary'});
-                    const excelData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    
-                    const snap = await db.collection('karyawan').get();
-                    let dbLookup = {};
-                    snap.forEach(doc => { dbLookup[normalizeString(doc.data().nama)] = doc.id; });
+                const wb = XLSX.read(evt.target.result, {type:'binary'});
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(ws);
+                
+                const allDbEmployees = Object.values(masterKaryawan); // Array semua karyawan di DB
+                let batch = db.batch();
+                let opsCount = 0;
+                let matchedCount = 0;
 
-                    let batch = db.batch(); let count = 0;
-                    for (let row of excelData) {
-                        const nameKey = Object.keys(row).find(k => k.toUpperCase().includes('NAMA'));
-                        const phoneKey = Object.keys(row).find(k => k.toUpperCase().includes('TELEPON') || k.toUpperCase().includes('HP'));
-                        if (nameKey && phoneKey && row[nameKey]) {
-                            const matchId = dbLookup[normalizeString(row[nameKey])];
-                            if(matchId) {
-                                batch.update(db.collection('karyawan').doc(matchId), { wa: sanitizePhone(row[phoneKey]) });
-                                count++;
-                            }
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    
+                    // Progress UI
+                    const percentage = Math.round(((i + 1) / rows.length) * 100);
+                    bar.style.width = percentage + '%';
+                    pct.innerText = percentage + '%';
+
+                    // Cari kolom
+                    const nameKey = Object.keys(row).find(k => k.toUpperCase().includes('NAMA'));
+                    const phoneKey = Object.keys(row).find(k => k.toUpperCase().includes('HP') || k.toUpperCase().includes('TELEPON') || k.toUpperCase().includes('WA'));
+                    const nikKey = Object.keys(row).find(k => k.toUpperCase().includes('NIK')); // Opsional
+
+                    if (!nameKey || !phoneKey || !row[phoneKey]) continue;
+
+                    const excelName = String(row[nameKey]);
+                    const excelPhone = sanitizePhone(row[phoneKey]);
+                    let matchId = null;
+
+                    // STRATEGI 1: Cek NIK (Paling Akurat)
+                    if (nikKey && row[nikKey]) {
+                        const nikTarget = String(row[nikKey]).trim();
+                        if (masterKaryawan[nikTarget]) {
+                            matchId = masterKaryawan[nikTarget].id;
+                            logArea.innerHTML += `<div class="text-green-600">[NIK MATCH] ${excelName} -> ${masterKaryawan[nikTarget].nama}</div>`;
                         }
                     }
-                    if(count > 0) await batch.commit();
-                    showToast(`${count} Nomor HP Updated!`, 'success');
-                } catch(err) { showToast(err.message, 'error'); } 
-                document.getElementById('global-loader').classList.add('hidden');
+
+                    // STRATEGI 2: Fuzzy Name Match (Jika NIK gagal)
+                    if (!matchId) {
+                        let bestScore = 0;
+                        let bestCandidate = null;
+
+                        allDbEmployees.forEach(emp => {
+                            const score = calculateMatchScore(excelName, emp.nama);
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestCandidate = emp;
+                            }
+                        });
+
+                        // Threshold 0.7 artinya minimal 70% kata cocok
+                        if (bestScore >= 0.7 && bestCandidate) {
+                            matchId = bestCandidate.id;
+                            logArea.innerHTML += `<div class="text-blue-600">[AI MATCH ${(bestScore*100).toFixed(0)}%] ${excelName} -> ${bestCandidate.nama}</div>`;
+                        } else {
+                            logArea.innerHTML += `<div class="text-red-400">[FAIL] ${excelName} (No match found)</div>`;
+                        }
+                    }
+
+                    // Eksekusi Update
+                    if (matchId) {
+                        const ref = db.collection('karyawan').doc(matchId);
+                        batch.update(ref, { wa: excelPhone });
+                        opsCount++;
+                        matchedCount++;
+                    }
+
+                    // Commit per 400 (limit firestore)
+                    if (opsCount >= 400) { await batch.commit(); batch = db.batch(); opsCount = 0; }
+                }
+
+                if (opsCount > 0) await batch.commit();
+                
+                showToast(`Selesai! ${matchedCount} Data Berhasil Disinkronkan.`, 'success');
+                e.target.value = ''; // Reset input
             };
             reader.readAsBinaryString(file);
         });
 
-        // --- PAYROLL PROCESSING (FIXED FOR DUPLICATE HEADERS) ---
+        // --- 5. PAYROLL LOGIC (ROBUST CLEANING) ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             const reader = new FileReader();
             reader.onload = (evt) => {
                 const wb = XLSX.read(evt.target.result, {type:'binary'});
                 const ws = wb.Sheets[wb.SheetNames[0]];
-                
-                // PENTING: Gunakan header:1 untuk mendapatkan array baris (A, B, C...) 
-                // ini menghindari error "Duplicate Header"
-                const rows = XLSX.utils.sheet_to_json(ws, {header: 1});
-                
-                // Kita asumsi data mulai dari baris ke-2 (index 1), baris 0 adalah Header
-                const dataRows = rows.slice(1); 
-                
-                renderPayrollPreview(dataRows);
+                // Ambil raw array untuk indexing manual
+                const rows = XLSX.utils.sheet_to_json(ws, {header: 1}); 
+                const dataRows = rows.slice(1); // Skip header row 1
+
+                const tbody = document.getElementById('payroll-table-body');
+                tbody.innerHTML = '';
+                document.getElementById('payroll-result').classList.remove('hidden');
+
+                dataRows.forEach((row, idx) => {
+                    // MAPPING INDEX SESUAI FILE ANDA (FIXED)
+                    // Menggunakan cleanNumber untuk semua data keuangan
+                    const nik = row[1] ? String(row[1]).trim() : ''; 
+                    if(!nik) return;
+
+                    const data = {
+                        NIK: nik,
+                        NAMA: row[2],
+                        OUTLET: row[3],
+                        JABATAN: row[4],
+                        GP: cleanNumber(row[5]),
+                        // Lembur = Harian (7) + Malam (9)
+                        LEMBUR: cleanNumber(row[7]) + cleanNumber(row[9]),
+                        // Bonus
+                        BONUS: cleanNumber(row[10]) + cleanNumber(row[11]) + cleanNumber(row[12]),
+                        // Potongan
+                        POT_ABSEN: cleanNumber(row[15]),
+                        BPJS: cleanNumber(row[16]) + cleanNumber(row[17]),
+                        CASBON: cleanNumber(row[18]),
+                        TOTAL: cleanNumber(row[20])
+                    };
+
+                    const emp = masterKaryawan[nik];
+                    const wa = emp ? emp.wa : null;
+
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b hover:bg-slate-50";
+                    tr.innerHTML = `
+                        <td class="p-3">${wa ? '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Ready</span>' : '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">No WA</span>'}</td>
+                        <td class="p-3 font-mono text-xs">${nik}</td>
+                        <td class="p-3 font-bold text-gray-700">${data.NAMA}</td>
+                        <td class="p-3 text-xs">${data.OUTLET}</td>
+                        <td class="p-3 text-right font-mono font-bold">Rp ${data.TOTAL.toLocaleString('id-ID')}</td>
+                        <td class="p-3 text-xs text-gray-500">${wa || '-'}</td>
+                        <td class="p-3 text-center">
+                            ${wa ? `<button onclick="generate(this, ${idx})" class="bg-green-600 text-white px-3 py-1 rounded shadow hover:bg-green-700 text-xs"><i class="fab fa-whatsapp"></i> Kirim</button>` : ''}
+                        </td>
+                    `;
+                    tr.dataset.row = JSON.stringify(data);
+                    tbody.appendChild(tr);
+                });
             };
             reader.readAsBinaryString(file);
         });
 
-        function renderPayrollPreview(rows) {
-            const tbody = document.getElementById('payroll-table-body');
-            tbody.innerHTML = '';
-            document.getElementById('payroll-result').classList.remove('hidden');
-
-            rows.forEach((row, idx) => {
-                // MAPPING BERDASARKAN POSISI KOLOM EXCEL "CONTOH GAJI"
-                // A=0, B=1, C=2, D=3, E=4, F=5 ...
-                const nik = row[1] ? String(row[1]).trim() : ''; 
-                if(!nik) return; // Skip baris kosong
-
-                const nama = row[2];
-                const outlet = row[3];
-                const jabatan = row[4];
-                const gp = row[5];
-                
-                // Lembur: Harian (H=7) + Malam (J=9)
-                const lembur = (Number(row[7]) || 0) + (Number(row[9]) || 0);
-                
-                // Bonus: Omset (K=10) + Kinerja (L=11) + Like (M=12)
-                const bonusOmset = row[10] || 0;
-                const bonusKinerja = row[11] || 0;
-                const bonusLain = row[12] || 0;
-
-                // Potongan
-                const potAbsen = row[15] || 0; // P=15 (Nominal Absen)
-                const bpjsKes = row[16] || 0;
-                const bpjsTk = row[17] || 0;
-                const casbon = row[18] || 0;
-                
-                // THP (U=20)
-                const thp = row[20];
-
-                // Data Object untuk rendering
-                const dataObj = {
-                    NIK: nik, NAMA: nama, OUTLET: outlet, JABATAN: jabatan,
-                    GP: gp, LEMBUR: lembur,
-                    BONUS_OMSET: bonusOmset, BONUS_KINERJA: bonusKinerja, BONUS_LAIN: bonusLain,
-                    POT_ABSEN: potAbsen, BPJS_KES: bpjsKes, BPJS_TK: bpjsTk, CASBON: casbon,
-                    TOTAL: thp
-                };
-
-                const emp = masterKaryawan[nik];
-                const wa = emp ? emp.wa : null;
-
-                const tr = document.createElement('tr');
-                tr.className = "border-b hover:bg-gray-50";
-                tr.innerHTML = `
-                    <td class="p-3">${wa ? '<span class="text-green-600 bg-green-100 px-2 py-1 rounded text-xs">Ready</span>' : '<span class="text-red-600 bg-red-100 px-2 py-1 rounded text-xs">No WA</span>'}</td>
-                    <td class="p-3 font-mono text-xs">${nik}</td>
-                    <td class="p-3 font-bold">${nama}</td>
-                    <td class="p-3 text-xs">${outlet}</td>
-                    <td class="p-3 text-right font-mono">Rp ${Number(thp).toLocaleString('id-ID')}</td>
-                    <td class="p-3 text-xs">${wa || '-'}</td>
-                    <td class="p-3 text-center">
-                        ${wa ? `<button onclick="generateAndBlast(this, ${idx})" class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 shadow"><i class="fab fa-whatsapp"></i> Kirim</button>` : '-'}
-                    </td>
-                `;
-                tr.dataset.rowData = JSON.stringify(dataObj);
-                tbody.appendChild(tr);
-            });
-        }
-
-        // --- GENERATE IMAGE ---
-        async function generateAndBlast(btn, idx) {
+        // --- 6. GENERATE & BLAST ---
+        async function generate(btn, idx) {
             const tr = document.getElementById('payroll-table-body').children[idx];
-            const data = JSON.parse(tr.dataset.rowData);
+            const data = JSON.parse(tr.dataset.row);
             const emp = masterKaryawan[data.NIK];
-            
+            const outletKey = (data.OUTLET || '').toLowerCase();
+            const outlet = masterOutlet[outletKey] || { nama: data.OUTLET, logoUrl: '', alamat: '' };
+
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             
-            const outletKey = (data.OUTLET || '').toLowerCase();
-            const outlet = masterOutlet[outletKey] || { logoUrl: '', nama: data.OUTLET || 'Dolan Sawah', alamat: '' };
+            // Render HTML Slip
+            const area = document.getElementById('render-area');
+            const fmt = n => 'Rp ' + Number(n).toLocaleString('id-ID');
             
-            const renderArea = document.getElementById('render-area');
-            renderArea.innerHTML = createPayslipHTML(data, outlet, emp);
-            
-            const img = renderArea.querySelector('img');
+            area.innerHTML = `
+            <div class="payslip-container">
+                <div class="payslip-header">
+                    ${outlet.logoUrl ? `<img src="${outlet.logoUrl}" class="payslip-logo" crossorigin="anonymous">` : ''}
+                    <div><h1 style="font-weight:800; font-size:24px; text-transform:uppercase; margin:0">${outlet.nama}</h1><p style="margin:0">${outlet.alamat||''}</p></div>
+                </div>
+                <div class="payslip-title">SLIP GAJI</div>
+                <table class="payslip-table">
+                    <tr><td class="label-col">NIK</td><td>: ${data.NIK}</td></tr>
+                    <tr><td class="label-col">NAMA</td><td>: ${emp.nama.toUpperCase()}</td></tr>
+                    <tr><td class="label-col">JABATAN</td><td>: ${data.JABATAN}</td></tr>
+                </table>
+                <hr style="margin: 15px 0; border:0; border-top:1px solid #ddd">
+                <table class="payslip-table">
+                    <tr><td class="label-col">GAJI POKOK</td><td>:</td><td class="val-col">${fmt(data.GP)}</td></tr>
+                    <tr><td class="label-col">LEMBUR</td><td>:</td><td class="val-col">${fmt(data.LEMBUR)}</td></tr>
+                    <tr><td class="label-col">TOTAL BONUS</td><td>:</td><td class="val-col">${fmt(data.BONUS)}</td></tr>
+                    <tr><td colspan="3" style="height:10px"></td></tr>
+                    <tr><td class="label-col">POT. ABSEN</td><td>:</td><td class="val-col text-red-600">${fmt(data.POT_ABSEN)}</td></tr>
+                    <tr><td class="label-col">BPJS</td><td>:</td><td class="val-col text-red-600">${fmt(data.BPJS)}</td></tr>
+                    <tr><td class="label-col">CASBON</td><td>:</td><td class="val-col text-red-600">${fmt(data.CASBON)}</td></tr>
+                    <tr class="total-row"><td class="label-col" style="padding:10px">DITERIMA</td><td style="padding:10px">:</td><td class="val-col" style="padding:10px">${fmt(data.TOTAL)}</td></tr>
+                </table>
+                <div style="margin-top:40px; text-align:right; margin-right:30px">
+                    <div style="margin-bottom:60px">Salatiga, ${new Date().toLocaleDateString('id-ID')}</div>
+                    <div style="font-weight:bold; text-decoration:underline">${emp.nama}</div>
+                </div>
+            </div>`;
+
+            // Tunggu Logo
+            const img = area.querySelector('img');
             if(img && img.src) await new Promise(r => { if(img.complete) r(); else img.onload = r; setTimeout(r, 2000); });
 
-            const canvas = await html2canvas(document.querySelector('.payslip-container'), { scale: 2, useCORS: true });
-            const imgData = canvas.toDataURL("image/jpeg", 0.9);
-
+            // Capture
+            const canvas = await html2canvas(area.querySelector('.payslip-container'), { scale: 2, useCORS: true });
+            
+            // Download & WA
             const link = document.createElement('a');
-            link.download = `Slip_${String(data.NAMA).replace(/\s/g,'_')}.jpg`;
-            link.href = imgData;
+            link.download = `Slip_${data.NAMA}.jpg`;
+            link.href = canvas.toDataURL("image/jpeg", 0.9);
             link.click();
-
-            const msg = `Halo *${emp.nama}*, berikut Slip Gaji periode ini. Terima kasih.`;
-            window.open(`https://wa.me/${emp.wa}?text=${encodeURIComponent(msg)}`, '_blank');
+            
+            window.open(`https://wa.me/${emp.wa}?text=${encodeURIComponent(`Halo ${emp.nama}, berikut slip gaji periode ini.`)}`, '_blank');
             
             btn.innerHTML = '<i class="fas fa-check"></i>';
             btn.className = "bg-gray-400 text-white px-3 py-1 rounded text-xs";
         }
 
-        function createPayslipHTML(data, outlet, emp) {
-            const fmt = n => n ? 'Rp ' + Number(n).toLocaleString('id-ID') : '-';
-            const totalBonus = Number(data.BONUS_OMSET) + Number(data.BONUS_KINERJA) + Number(data.BONUS_LAIN);
-
-            return `
-            <div class="payslip-container">
-                <div class="payslip-header">
-                    ${outlet.logoUrl ? `<img src="${outlet.logoUrl}" class="payslip-logo" crossorigin="anonymous">` : ''}
-                    <div class="payslip-company-info">
-                        <h1>${outlet.nama}</h1>
-                        <p>${outlet.alamat || ''}</p>
-                    </div>
-                </div>
-                <div class="payslip-title">SLIP GAJI</div>
-                <table class="payslip-table">
-                    <tr><td class="label-col">NIK</td><td class="colon-col">:</td><td>${data.NIK}</td></tr>
-                    <tr><td class="label-col">NAMA</td><td class="colon-col">:</td><td>${emp.nama.toUpperCase()}</td></tr>
-                    <tr><td class="label-col">JABATAN</td><td class="colon-col">:</td><td>${data.JABATAN}</td></tr>
-                </table>
-                <hr style="margin:10px 0">
-                <table class="payslip-table">
-                    <tr><td class="label-col">GAJI POKOK</td><td class="colon-col">:</td><td class="val-col">${fmt(data.GP)}</td></tr>
-                    <tr><td class="label-col">LEMBUR</td><td class="colon-col">:</td><td class="val-col">${fmt(data.LEMBUR)}</td></tr>
-                    <tr><td class="label-col">BONUS OMSET</td><td class="colon-col">:</td><td class="val-col">${fmt(data.BONUS_OMSET)}</td></tr>
-                    <tr><td class="label-col">BONUS KINERJA</td><td class="colon-col">:</td><td class="val-col">${fmt(data.BONUS_KINERJA)}</td></tr>
-                    <tr><td class="label-col">BONUS LAIN</td><td class="colon-col">:</td><td class="val-col">${fmt(data.BONUS_LAIN)}</td></tr>
-                    
-                    <tr><td colspan="3"><div style="height:10px"></div></td></tr>
-                    
-                    <tr><td class="label-col">POTONGAN ABSEN</td><td class="colon-col">:</td><td class="val-col text-red-600">${fmt(data.POT_ABSEN)}</td></tr>
-                    <tr><td class="label-col">BPJS KES</td><td class="colon-col">:</td><td class="val-col text-red-600">${fmt(data.BPJS_KES)}</td></tr>
-                    <tr><td class="label-col">BPJS TK</td><td class="colon-col">:</td><td class="val-col text-red-600">${fmt(data.BPJS_TK)}</td></tr>
-                    <tr><td class="label-col">CASBON</td><td class="colon-col">:</td><td class="val-col text-red-600">${fmt(data.CASBON)}</td></tr>
-                    
-                    <tr class="total-row"><td>DITERIMA</td><td>:</td><td class="val-col">${fmt(data.TOTAL)}</td></tr>
-                </table>
-                <div class="footer-sign">
-                    <div style="margin-bottom:60px">Salatiga, ${new Date().toLocaleDateString('id-ID')}</div>
-                    <div style="font-weight:bold; text-decoration:underline">${emp.nama}</div>
-                </div>
-            </div>`;
-        }
-
-        // --- UI HELPERS ---
-        function switchTab(id) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden')); document.getElementById('tab-'+id).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('bg-blue-600','text-white','shadow-md')); document.getElementById('nav-'+id).classList.add('bg-blue-600','text-white','shadow-md'); }
+        // --- UTILS ---
+        function switchTab(id) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden')); document.getElementById('tab-'+id).classList.remove('hidden'); }
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        async function saveKaryawanManual() { 
-            const nik = document.getElementById('input-nik').value.trim(); const nama = document.getElementById('input-nama').value.trim(); let wa = document.getElementById('input-wa').value.trim();
-            if(nik && nama) { await db.collection('karyawan').doc(nik).set({nik, nama, wa: sanitizePhone(wa)}); closeModal('modal-karyawan'); showToast('Tersimpan', 'success'); }
-        }
-        async function saveOutlet() {
-            const nama = document.getElementById('input-outlet-name').value; const file = document.getElementById('input-outlet-logo').files[0];
-            if(nama && file) { const s = await storage.ref('logos/'+Date.now()).put(file); const u = await s.ref.getDownloadURL(); await db.collection('outlets').add({nama, alamat: document.getElementById('input-outlet-addr').value, logoUrl: u}); closeModal('modal-outlet'); showToast('Tersimpan', 'success'); }
-        }
-        function showToast(m, t) { const d=document.createElement('div'); d.className=`p-4 text-white rounded shadow-lg ${t=='success'?'bg-green-600':'bg-red-600'}`; d.innerText=m; document.getElementById('toast-container').appendChild(d); setTimeout(()=>d.remove(),3000); }
+        function showToast(m, t) { const d=document.createElement('div'); d.className=`p-3 text-white rounded shadow text-sm ${t=='success'?'bg-green-600':'bg-red-600'}`; d.innerText=m; document.getElementById('toast-container').appendChild(d); setTimeout(()=>d.remove(),3000); }
+        function saveKaryawanManual(){ const n=document.getElementById('input-nik').value, nm=document.getElementById('input-nama').value, w=document.getElementById('input-wa').value; if(n&&nm) db.collection('karyawan').doc(n).set({nik:n, nama:nm, wa:sanitizePhone(w)}).then(()=>{closeModal('modal-karyawan');showToast('Saved','success')}); }
+        function deleteKaryawan(id){ if(confirm('Hapus?')) db.collection('karyawan').doc(id).delete(); }
     </script>
 </body>
 </html>

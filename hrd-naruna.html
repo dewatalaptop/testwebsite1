@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dolan Payroll - Mobile Optimized</title>
+    <title>Dolan Payroll - Mobile Audit V2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -36,7 +36,7 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        /* Area Slip Gaji (Hidden tapi ter-render) */
+        /* Area Slip Gaji (Hidden tapi ter-render untuk screenshot) */
         .payslip-container { width: 800px; background: white; padding: 40px; border: 1px solid #cbd5e1; font-family: 'Inter', sans-serif; }
         
         /* Loading Overlay */
@@ -60,9 +60,9 @@
     <div id="login-section" class="min-h-screen flex items-center justify-center p-4 bg-slate-900">
         <div class="bg-white p-8 rounded-2xl w-full max-w-md shadow-2xl border-t-4 border-blue-600">
             <div class="text-center mb-8">
-                <i class="fas fa-money-check-dollar text-4xl text-blue-600 mb-2"></i>
-                <h2 class="text-2xl font-bold text-slate-800">Dolan Payroll V17</h2>
-                <p class="text-slate-500 text-sm">Sistem Penggajian & Slip WA</p>
+                <i class="fas fa-file-invoice-dollar text-4xl text-blue-600 mb-2"></i>
+                <h2 class="text-2xl font-bold text-slate-800">Dolan Payroll</h2>
+                <p class="text-slate-500 text-sm">V2.1 - Audit Logic Fix</p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <div class="mb-4">
@@ -87,7 +87,7 @@
             </div>
             <div class="flex gap-3">
                 <button onclick="toggleConsole()" class="text-slate-500 hover:text-blue-600 p-2"><i class="fas fa-bug"></i></button>
-                <button onclick="auth.signOut()" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-100 transition"><i class="fas fa-power-off mr-1"></i> Logout</button>
+                <button onclick="auth.signOut()" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-100 transition"><i class="fas fa-power-off mr-1"></i> Keluar</button>
             </div>
         </nav>
 
@@ -108,22 +108,22 @@
                 <div id="master-content" class="p-4">
                     <div class="flex flex-col md:flex-row gap-4 mb-4">
                         <label class="flex-1 cursor-pointer group">
-                            <span class="block text-sm font-medium text-slate-700 mb-1">Upload File Master (.xlsx)</span>
+                            <span class="block text-sm font-medium text-slate-700 mb-1">Update Master File (.xlsx)</span>
                             <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center group-hover:border-blue-500 transition bg-slate-50">
                                 <i class="fas fa-cloud-upload-alt text-slate-400 mb-2 text-xl"></i>
-                                <p class="text-xs text-slate-500">Klik pilih file Excel</p>
+                                <p class="text-xs text-slate-500">Klik untuk upload data baru</p>
                                 <input type="file" id="master-excel-upload" accept=".xlsx,.xls" class="hidden"/>
                             </div>
                         </label>
                         <div class="flex-1 bg-blue-50 rounded-lg p-4 flex flex-col justify-center items-center text-center">
-                            <span class="text-xs text-blue-600 uppercase font-bold tracking-wider">Total Data</span>
+                            <span class="text-xs text-blue-600 uppercase font-bold tracking-wider">Total Terdaftar</span>
                             <span id="master-count" class="text-2xl font-bold text-blue-900">0</span>
-                            <span class="text-xs text-blue-500">Karyawan Terdaftar</span>
+                            <span class="text-xs text-blue-500">Karyawan</span>
                         </div>
                     </div>
 
                     <button onclick="document.getElementById('master-preview').classList.toggle('hidden')" class="text-xs text-blue-600 font-medium hover:underline mb-2">
-                        <i class="fas fa-list"></i> Lihat/Sembunyikan Daftar Data
+                        <i class="fas fa-list"></i> Lihat/Sembunyikan Data
                     </button>
                     
                     <div id="master-preview" class="hidden border rounded-lg overflow-hidden max-h-40 overflow-y-auto custom-scroll bg-white">
@@ -142,7 +142,7 @@
                         <div class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-blue-200">2</div>
                         <div>
                             <h2 class="font-bold text-slate-800 text-lg">Upload File Gaji</h2>
-                            <p class="text-xs text-slate-500">Proses Hitung & Kirim Slip</p>
+                            <p class="text-xs text-slate-500">Perhitungan Otomatis & Kirim Slip</p>
                         </div>
                     </div>
                 </div>
@@ -150,17 +150,17 @@
                 <div class="p-5">
                     <label class="block mb-4 cursor-pointer">
                         <div class="bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 border-dashed rounded-xl p-6 text-center transition">
-                            <i class="fas fa-file-invoice-dollar text-3xl text-blue-500 mb-2"></i>
-                            <h3 class="font-bold text-blue-900">Pilih File Laporan Gaji</h3>
-                            <p class="text-xs text-blue-600 mt-1">Format Excel (.xlsx)</p>
+                            <i class="fas fa-file-excel text-3xl text-green-600 mb-2"></i>
+                            <h3 class="font-bold text-blue-900">Pilih File Excel Gaji</h3>
+                            <p class="text-xs text-blue-600 mt-1">Sistem akan melakukan validasi angka</p>
                             <input type="file" id="payroll-file" accept=".xlsx,.xls" class="hidden"/>
                         </div>
                     </label>
 
                     <div id="payroll-result" class="hidden mt-6">
                         <div class="flex justify-between items-end mb-3">
-                            <h3 class="font-bold text-slate-700">Hasil Analisa</h3>
-                            <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-bold" id="process-count-badge">0 Data</span>
+                            <h3 class="font-bold text-slate-700">Hasil Perhitungan</h3>
+                            <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded font-bold" id="process-count-badge">0 Data</span>
                         </div>
                         
                         <div class="overflow-x-auto custom-scroll border rounded-lg shadow-sm">
@@ -168,16 +168,17 @@
                                 <thead class="bg-slate-800 text-slate-200 uppercase text-xs">
                                     <tr>
                                         <th class="p-3">Status</th>
-                                        <th class="p-3">Nama Karyawan</th>
+                                        <th class="p-3">Karyawan</th>
                                         <th class="p-3 text-right">Income</th>
                                         <th class="p-3 text-right">Potongan</th>
-                                        <th class="p-3 text-right font-bold bg-slate-700">THP (Cair)</th>
-                                        <th class="p-3 text-center sticky right-0 bg-slate-800 z-10">Aksi</th>
+                                        <th class="p-3 text-right font-bold bg-slate-700">THP (System)</th>
+                                        <th class="p-3 text-center sticky right-0 bg-slate-800 z-10">Kirim WA</th>
                                     </tr>
                                 </thead>
                                 <tbody id="payroll-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
                             </table>
                         </div>
+                        <div class="mt-2 text-xs text-slate-400 italic">*Jika baris merah, berarti ada selisih perhitungan dengan Excel asli.</div>
                     </div>
                 </div>
             </div>
@@ -233,20 +234,32 @@
             }
         }
 
-        function cleanNum(raw, fieldName) { 
-            if(raw === null || raw === undefined) return 0;
-            if (typeof raw === 'number') return raw;
-            let s = String(raw).trim();
-            if (s === '-' || s.toUpperCase().includes('RP -') || s === '') return 0;
-            s = s.replace(/Rp/gi, '').replace(/\./g, '').replace(/\s/g, '').replace(/,/g, '.');
-            let val = parseFloat(s);
-            return isNaN(val) ? 0 : val;
-        }
-
         function showLoading(show, text="Processing...") {
             const el = document.getElementById('loading-overlay');
             document.getElementById('loading-text').innerText = text;
             el.style.display = show ? 'flex' : 'none';
+        }
+
+        // --- LOGIC BARU: CLEAN NUM STRICT ---
+        function cleanNum(raw) { 
+            if(raw === null || raw === undefined || raw === '') return 0;
+            
+            // Jika Excel sudah number, ambil langsung
+            if (typeof raw === 'number') return raw;
+
+            let s = String(raw).trim();
+            // Cek format negatif (50.000) atau -50.000
+            let isNegative = s.startsWith('-') || (s.startsWith('(') && s.endsWith(')'));
+            
+            // Hapus semua kecuali angka dan koma (karena koma adalah desimal di Indo)
+            s = s.replace(/[^0-9,]/g, ''); 
+            // Ganti koma jadi titik
+            s = s.replace(',', '.');
+            
+            let val = parseFloat(s);
+            if (isNaN(val)) return 0;
+            
+            return isNegative ? -val : val;
         }
 
         // --- 3. AUTH LOGIC ---
@@ -303,7 +316,6 @@
                     }
                     if(count>0) await batch.commit();
                     log(`Master Updated: ${rows.length} rows processed.`, 'success');
-                    // Auto close section 1 after success
                     toggleSection('master-content');
                 } catch(e) { log(e.message, 'error'); alert("Gagal update master data"); }
                 showLoading(false);
@@ -311,12 +323,11 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- 5. STEP 2: PAYROLL PROCESS ---
+        // --- 5. STEP 2: PAYROLL PROCESS (UPDATED LOGIC) ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if(!file) return;
-            showLoading(true, "Analysing Payroll...");
-            log(`Menganalisa File: ${file.name}...`);
+            showLoading(true, "Menganalisa & Validasi Angka...");
             
             const reader = new FileReader();
             reader.onload = (evt) => {
@@ -325,24 +336,38 @@
                     const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
 
                     let hIdx = -1;
-                    // Mencari header "GAJI POKOK"
+                    // Cari baris header
                     for(let i=0; i<30; i++) { 
                         const rowStr = JSON.stringify(rawData[i]||[]).toUpperCase();
                         if(rowStr.includes("GAJI POKOK") && rowStr.includes("NAMA")) { hIdx = i; break; } 
                     }
-                    if(hIdx === -1) throw new Error("Header 'GAJI POKOK' tidak ditemukan di 30 baris pertama.");
+                    if(hIdx === -1) throw new Error("Header tidak ditemukan. Pastikan ada kolom 'NAMA' dan 'GAJI POKOK'.");
 
                     const header = rawData[hIdx].map(x => String(x).toUpperCase().trim());
-                    const getCol = (keywords) => header.findIndex(h => keywords.some(k => h.includes(k)));
+                    const getCol = (keywords) => header.findIndex(h => keywords.some(k => h === k || h.includes(k)));
 
+                    // MAPPING KOLOM
                     const col = {
-                        nama: getCol(["NAMA"]), nik: getCol(["NIK"]), outlet: getCol(["DIVISI", "OUTLET"]),
-                        gp: getCol(["GAJI POKOK"]), tunj: getCol(["TUNJANGAN JABATAN"]),
-                        omset: getCol(["BONUS OMSET"]), kinerja: getCol(["BONUS KINERJA"]),
-                        like: getCol(["LIKE KOMEN", "BONUS LIKE"]), lembur: getCol(["LEMBUR HARIAN"]),
-                        ot: getCol(["OVERTIME"]), kebijakan: getCol(["KEBIJAKAN"]),
-                        absen: getCol(["POTONGAN ATAS ABSEN", "POTONGAN ABSEN"]),
-                        bpjs: getCol(["BPJS KETENAGAKERJAAN"]), weekend: getCol(["WEEKEND"]), jam: getCol(["POTONGAN JAM"])
+                        nama: getCol(["NAMA"]), 
+                        nik: getCol(["NIK"]), 
+                        outlet: getCol(["DIVISI", "OUTLET"]),
+                        // INCOME
+                        gp: getCol(["GAJI POKOK"]), 
+                        tunj: getCol(["TUNJANGAN", "JABATAN"]),
+                        omset: getCol(["OMSET"]), 
+                        kinerja: getCol(["KINERJA", "KPI"]),
+                        like: getCol(["LIKE", "KOMEN"]), 
+                        lembur: getCol(["LEMBUR"]),
+                        ot: getCol(["OVERTIME"]), 
+                        kebijakan: getCol(["KEBIJAKAN", "ADJUSTMENT"]),
+                        // DEDUCTION
+                        absen: getCol(["POTONGAN ABSEN", "ALPHA"]),
+                        bpjs: getCol(["BPJS"]), 
+                        weekend: getCol(["WEEKEND"]), 
+                        jam: getCol(["POTONGAN JAM", "TERLAMBAT"]),
+                        kasbon: getCol(["KASBON", "HUTANG"]),
+                        // VALIDATOR
+                        thp_excel: getCol(["THP", "DITERIMA", "TOTAL GAJI", "TAKE HOME PAY"]) 
                     };
 
                     const tbody = document.getElementById('payroll-table-body');
@@ -353,56 +378,87 @@
                     const dataRows = rawData.slice(hIdx+1);
 
                     dataRows.forEach((row) => {
+                        // Validasi baris dasar
                         if(!row[col.nama]) return; 
                         const rawNama = String(row[col.nama]).trim();
-                        if(rawNama.toUpperCase().includes("NAMA") || rawNama.toUpperCase() === "PANARAMA") return;
+                        if(rawNama.length < 2 || rawNama.toUpperCase().includes("NAMA") || rawNama.toUpperCase().includes("TOTAL")) return;
 
-                        const v = (idx, fname) => (idx > -1) ? cleanNum(row[idx], fname) : 0;
+                        const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0;
 
                         const inc = {
-                            gp: v(col.gp, 'GP'), tunj: v(col.tunj, 'Tunj'), 
-                            omset: v(col.omset, 'Omset'), kinerja: v(col.kinerja, 'Kinerja'),
-                            like: v(col.like, 'Like'), lembur: v(col.lembur, 'Lembur'),
-                            ot: v(col.ot, 'Overtime'), kebijakan: v(col.kebijakan, 'Kebijakan')
+                            gp: v(col.gp), tunj: v(col.tunj), 
+                            omset: v(col.omset), kinerja: v(col.kinerja),
+                            like: v(col.like), lembur: v(col.lembur),
+                            ot: v(col.ot), kebijakan: v(col.kebijakan)
                         };
+                        
                         const ded = {
-                            absen: v(col.absen, 'Absen'), bpjs: v(col.bpjs, 'BPJS'),
-                            weekend: v(col.weekend, 'Weekend'), jam: v(col.jam, 'Jam')
+                            absen: v(col.absen), bpjs: v(col.bpjs),
+                            weekend: v(col.weekend), jam: v(col.jam),
+                            kasbon: v(col.kasbon)
                         };
 
-                        const total_in = Math.round(Object.values(inc).reduce((a,b)=>a+b,0));
-                        const total_out = Math.round(Object.values(ded).reduce((a,b)=>a+b,0));
-                        const thp = total_in - total_out;
+                        const total_in = Math.round(Object.values(inc).reduce((a,b)=>a+b, 0));
+                        const total_out = Math.round(Object.values(ded).reduce((a,b)=>a+b, 0));
+                        const thp_system = total_in - total_out;
 
+                        // --- FITUR AUDIT ---
+                        let alertHtml = '';
+                        let rowClass = 'hover:bg-slate-50';
+                        let excelTHP = 0;
+                        
+                        if(col.thp_excel > -1) {
+                            excelTHP = cleanNum(row[col.thp_excel]);
+                            // Toleransi selisih 100 perak
+                            if(Math.abs(thp_system - excelTHP) > 100) {
+                                const selisih = thp_system - excelTHP;
+                                rowClass = 'bg-red-50 hover:bg-red-100 border-l-4 border-red-500';
+                                alertHtml = `<div class="text-[10px] text-red-600 font-bold mt-1">⚠️ BEDA: ${selisih>0?'+':''}${Number(selisih).toLocaleString('id-ID')}<br>(Excel: ${Number(excelTHP).toLocaleString('id-ID')})</div>`;
+                            }
+                        }
+
+                        // Matching WA
                         const cleanN = rawNama.toLowerCase().replace(/[^a-z0-9]/g, '');
                         const matched = masterKaryawanList.find(m => m.cleanNama === cleanN || m.cleanNama.includes(cleanN));
                         const wa = matched ? matched.wa : null;
 
-                        const d = { NIK: row[col.nik]||'-', NAMA: rawNama, OUTLET: row[col.outlet]||'Main', INCOME: inc, DEDUCT: ded, TOTAL_IN: total_in, TOTAL_OUT: total_out, THP: thp };
+                        const d = { 
+                            NIK: row[col.nik]||'-', NAMA: rawNama, OUTLET: row[col.outlet]||'Main', 
+                            INCOME: inc, DEDUCT: ded, 
+                            TOTAL_IN: total_in, TOTAL_OUT: total_out, THP: thp_system 
+                        };
+                        
                         const fmt = n => Number(n).toLocaleString('id-ID');
                         
-                        tbody.innerHTML += `<tr class="border-b hover:bg-slate-50 transition">
+                        tbody.innerHTML += `<tr class="border-b transition ${rowClass}">
                             <td class="p-3">${wa?'<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">MATCH</span>':'<span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">NO HP</span>'}</td>
-                            <td class="p-3 font-bold text-slate-700">${d.NAMA}</td>
-                            <td class="p-3 text-right text-green-700 text-xs">${fmt(d.TOTAL_IN)}</td>
-                            <td class="p-3 text-right text-red-600 text-xs">(${fmt(d.TOTAL_OUT)})</td>
-                            <td class="p-3 text-right font-bold text-blue-800 text-sm">${fmt(d.THP)}</td>
+                            <td class="p-3">
+                                <div class="font-bold text-slate-700 text-sm">${d.NAMA}</div>
+                                <div class="text-[10px] text-slate-400">${d.NIK}</div>
+                            </td>
+                            <td class="p-3 text-right text-green-700 text-xs font-mono">${fmt(d.TOTAL_IN)}</td>
+                            <td class="p-3 text-right text-red-600 text-xs font-mono">(${fmt(d.TOTAL_OUT)})</td>
+                            <td class="p-3 text-right">
+                                <div class="font-bold text-blue-800 text-sm">${fmt(d.THP)}</div>
+                                ${alertHtml}
+                            </td>
                             <td class="p-3 text-center sticky right-0 bg-white z-10 shadow-l">
-                                ${wa?`<button onclick='uploadAndSend(${JSON.stringify(d)},"${wa}")' class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'<span class="text-slate-300">-</span>'}
+                                ${wa?`<button onclick='uploadAndSend(${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'<span class="text-slate-300">-</span>'}
                             </td>
                         </tr>`;
                         processedCount++;
                     });
+                    
                     document.getElementById('process-count-badge').innerText = processedCount + " Karyawan";
-                    log(`Selesai. ${processedCount} data payroll diproses.`, 'success');
+                    log(`Selesai. ${processedCount} data diproses.`, 'success');
 
-                } catch(err) { log("Error Parse: "+err.message, 'error'); alert("Gagal baca file: " + err.message); }
+                } catch(err) { log("Error: "+err.message, 'error'); alert("Error: " + err.message); }
                 showLoading(false);
             };
             reader.readAsBinaryString(file);
         });
 
-        // --- 6. SEND WA LOGIC (FIXED) ---
+        // --- 6. SEND WA LOGIC (FIX FORMAT WA) ---
         async function uploadAndSend(data, waNumber) {
             showLoading(true, `Menyiapkan slip untuk ${data.NAMA}...`);
             
@@ -453,6 +509,7 @@
                                 <tr><td class="py-1">BPJS Ketenagakerjaan</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.bpjs)})</td></tr>
                                 <tr><td class="py-1">Pot. Weekend</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.weekend)})</td></tr>
                                 <tr><td class="py-1">Pot. Jam</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.jam)})</td></tr>
+                                ${data.DEDUCT.kasbon ? `<tr><td class="py-1">Kasbon/Hutang</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.kasbon)})</td></tr>` : ''}
                                 <tr class="font-bold border-t"><td class="pt-2">Total Potongan</td><td class="pt-2 text-right text-red-600">(${fmt(data.TOTAL_OUT)})</td></tr>
                             </table>
                         </div>

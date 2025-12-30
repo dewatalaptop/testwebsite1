@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dolan Payroll - V3 (Specific Rules)</title>
+    <title>Dolan Payroll - V4 (Fix 5000/Jam)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,14 +18,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
     <script>
-        tailwind.config = { 
-            theme: { 
-                extend: { 
-                    colors: { primary: '#0f172a', secondary: '#3b82f6', accent: '#22c55e' }, 
-                    fontFamily: { sans: ['Inter', 'sans-serif'] } 
-                } 
-            } 
-        }
+        tailwind.config = { theme: { extend: { colors: { primary: '#0f172a', secondary: '#3b82f6' }, fontFamily: { sans: ['Inter'] } } } }
     </script>
 
     <style>
@@ -52,9 +45,9 @@
     <div id="login-section" class="min-h-screen flex items-center justify-center p-4 bg-slate-900">
         <div class="bg-white p-8 rounded-2xl w-full max-w-md shadow-2xl border-t-4 border-blue-600">
             <div class="text-center mb-8">
-                <i class="fas fa-calculator text-4xl text-blue-600 mb-2"></i>
-                <h2 class="text-2xl font-bold text-slate-800">Dolan Payroll V3</h2>
-                <p class="text-slate-500 text-sm">Update: BPJS Split & Detail Rules</p>
+                <i class="fas fa-coins text-4xl text-blue-600 mb-2"></i>
+                <h2 class="text-2xl font-bold text-slate-800">Dolan Payroll V4</h2>
+                <p class="text-slate-500 text-sm">Fix: Potongan Jam & Overtime (x5000)</p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <input id="email" type="email" class="w-full border border-slate-300 p-3 rounded-lg mb-4" placeholder="admin@dolan.com" required>
@@ -120,7 +113,7 @@
                         <div class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-blue-200">2</div>
                         <div>
                             <h2 class="font-bold text-slate-800 text-lg">Upload File Gaji</h2>
-                            <p class="text-xs text-slate-500">Hitung Otomatis: Gaji, BPJS, Overtime, dll</p>
+                            <p class="text-xs text-slate-500">Hitung Otomatis (Rate 5000/Jam)</p>
                         </div>
                     </div>
                 </div>
@@ -130,7 +123,7 @@
                         <div class="bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 border-dashed rounded-xl p-6 text-center transition">
                             <i class="fas fa-file-excel text-3xl text-green-600 mb-2"></i>
                             <h3 class="font-bold text-blue-900">Pilih File Excel Gaji</h3>
-                            <p class="text-xs text-blue-600 mt-1">Format: .xlsx / .xls</p>
+                            <p class="text-xs text-blue-600 mt-1">Sistem otomatis mendeteksi Overtime/Potongan Jam</p>
                             <input type="file" id="payroll-file" accept=".xlsx,.xls" class="hidden"/>
                         </div>
                     </label>
@@ -198,7 +191,6 @@
             document.getElementById('loading-text').innerText = text;
         }
 
-        // STRICT NUMBER CLEANER
         function cleanNum(raw) { 
             if(raw === null || raw === undefined || raw === '') return 0;
             if (typeof raw === 'number') return raw;
@@ -266,7 +258,7 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- NEW CALCULATION LOGIC (V3) ---
+        // --- NEW CALCULATION LOGIC (V4: SMART MULTIPLIER) ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
             showLoading(true, "Validasi & Hitung...");
@@ -286,26 +278,25 @@
                     const header = rawData[hIdx].map(x => String(x).toUpperCase().trim());
                     const getCol = (keywords) => header.findIndex(h => keywords.some(k => h === k || h.includes(k)));
 
-                    // MAPPING KOLOM SESUAI PERMINTAAN USER
                     const col = {
                         nama: getCol(["NAMA"]), 
                         nik: getCol(["NIK"]), 
                         outlet: getCol(["DIVISI", "OUTLET"]),
-                        // PLUS (INCOME)
+                        // INCOME
                         gp: getCol(["GAJI POKOK"]), 
                         tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]),
                         omset: getCol(["BONUS OMSET", "OMSET"]), 
                         kinerja: getCol(["BONUS KINERJA", "KINERJA"]),
                         like: getCol(["LIKE KOMEN", "BONUS LIKE"]), 
-                        lembur: getCol(["LEMBUR HARIAN"]), // Ambil kolom value (Ribuan)
-                        ot: getCol(["OVERTIME"]), // Ambil kolom value (Ribuan)
+                        lembur: getCol(["LEMBUR HARIAN"]), 
+                        ot: getCol(["OVERTIME"]), 
                         kebijakan: getCol(["KEBIJAKAN"]),
-                        // MINUS (DEDUCT)
+                        // MINUS
                         absen: getCol(["POTONGAN ATAS ABSEN", "POTONGAN ABSEN"]),
                         bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]),
                         bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]),
                         weekend: getCol(["WEEKEND"]), 
-                        pot_jam: getCol(["POTONGAN JAM"]), // Ambil kolom value (Ribuan)
+                        pot_jam: getCol(["POTONGAN JAM"]), 
                         // VALIDATOR
                         thp_excel: getCol(["THP", "DITERIMA", "TOTAL GAJI", "TAKE HOME PAY"]) 
                     };
@@ -324,25 +315,27 @@
 
                         const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0;
 
-                        // RUMUS INCOME
+                        // --- SMART MULTIPLIER LOGIC ---
+                        // Jika nilai Overtime/Potongan Jam < 500, dianggap Jam (dikali 5000)
+                        // Jika nilai > 500, dianggap Rupiah (ambil apa adanya)
+                        let valOT = v(col.ot);
+                        if(valOT > 0 && valOT < 500) valOT = valOT * 5000;
+
+                        let valPotJam = v(col.pot_jam);
+                        if(valPotJam > 0 && valPotJam < 500) valPotJam = valPotJam * 5000;
+                        // -------------------------------
+
                         const inc = {
-                            gp: v(col.gp), 
-                            tunj: v(col.tunj), 
-                            omset: v(col.omset), 
-                            kinerja: v(col.kinerja),
-                            like: v(col.like), 
-                            lembur: v(col.lembur), // Asumsi Excel sudah angka rupiah
-                            ot: v(col.ot),         // Asumsi Excel sudah angka rupiah (5000/jam sdh dikali)
+                            gp: v(col.gp), tunj: v(col.tunj), omset: v(col.omset), kinerja: v(col.kinerja),
+                            like: v(col.like), lembur: v(col.lembur), 
+                            ot: valOT, // Pakai nilai yg sudah dikali
                             kebijakan: v(col.kebijakan)
                         };
                         
-                        // RUMUS DEDUCT
                         const ded = {
-                            absen: v(col.absen), 
-                            bpjs_kes: v(col.bpjs_kes),
-                            bpjs_tk: v(col.bpjs_tk),
+                            absen: v(col.absen), bpjs_kes: v(col.bpjs_kes), bpjs_tk: v(col.bpjs_tk),
                             weekend: v(col.weekend), 
-                            pot_jam: v(col.pot_jam) // Asumsi Excel sudah angka rupiah
+                            pot_jam: valPotJam // Pakai nilai yg sudah dikali
                         };
 
                         const total_in = Math.round(Object.values(inc).reduce((a,b)=>a+b, 0));
@@ -360,7 +353,7 @@
                             }
                         }
 
-                        // WA CHECK
+                        // WA MATCH
                         const cleanN = rawNama.toLowerCase().replace(/[^a-z0-9]/g, '');
                         const matched = masterKaryawanList.find(m => m.cleanNama === cleanN || m.cleanNama.includes(cleanN));
                         const wa = matched ? matched.wa : null;
@@ -414,7 +407,7 @@
                                 ${data.INCOME.kinerja ? `<tr><td class="py-1">Bonus Kinerja</td><td class="text-right">${fmt(data.INCOME.kinerja)}</td></tr>`:''}
                                 ${data.INCOME.like ? `<tr><td class="py-1">Bonus Like/Komen</td><td class="text-right">${fmt(data.INCOME.like)}</td></tr>`:''}
                                 ${data.INCOME.lembur ? `<tr><td class="py-1">Lembur Harian</td><td class="text-right">${fmt(data.INCOME.lembur)}</td></tr>`:''}
-                                ${data.INCOME.ot ? `<tr><td class="py-1">Overtime</td><td class="text-right">${fmt(data.INCOME.ot)}</td></tr>`:''}
+                                ${data.INCOME.ot ? `<tr><td class="py-1">Overtime (${data.INCOME.ot/5000} Jam)</td><td class="text-right">${fmt(data.INCOME.ot)}</td></tr>`:''}
                                 ${data.INCOME.kebijakan ? `<tr><td class="py-1">Kebijakan</td><td class="text-right">${fmt(data.INCOME.kebijakan)}</td></tr>`:''}
                                 <tr class="font-bold border-t"><td class="pt-2">Total Pendapatan</td><td class="pt-2 text-right">${fmt(data.TOTAL_IN)}</td></tr>
                             </table>
@@ -426,7 +419,7 @@
                                 ${data.DEDUCT.bpjs_kes ? `<tr><td class="py-1">BPJS Kesehatan</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.bpjs_kes)})</td></tr>`:''}
                                 ${data.DEDUCT.bpjs_tk ? `<tr><td class="py-1">BPJS Ketenagakerjaan</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.bpjs_tk)})</td></tr>`:''}
                                 ${data.DEDUCT.weekend ? `<tr><td class="py-1">Potongan Weekend</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.weekend)})</td></tr>`:''}
-                                ${data.DEDUCT.pot_jam ? `<tr><td class="py-1">Potongan Jam</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.pot_jam)})</td></tr>`:''}
+                                ${data.DEDUCT.pot_jam ? `<tr><td class="py-1">Potongan Jam (${data.DEDUCT.pot_jam/5000} Jam)</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.pot_jam)})</td></tr>`:''}
                                 <tr class="font-bold border-t"><td class="pt-2">Total Potongan</td><td class="pt-2 text-right text-red-600">(${fmt(data.TOTAL_OUT)})</td></tr>
                             </table>
                         </div>

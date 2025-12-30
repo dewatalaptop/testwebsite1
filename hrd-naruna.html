@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dolan Payroll - V16 (Diagnostic Mode)</title>
+    <title>Dolan Payroll - V17 (Decimal Fix)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,28 +19,18 @@
 
     <script>tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a' }, fontFamily: { sans: ['Inter'] } } } }</script>
     <style>
-        body { background: #f1f5f9; font-family: 'Inter', sans-serif; padding-bottom: 350px; }
+        body { background: #f1f5f9; font-family: 'Inter', sans-serif; padding-bottom: 250px; }
         .payslip-container { width: 800px; background: white; padding: 40px; border: 1px solid #cbd5e1; }
         .payslip-table { width: 100%; border-collapse: collapse; font-size: 14px; }
         .payslip-table td { padding: 4px 8px; vertical-align: top; }
         .val-col { text-align: right; font-weight: bold; }
         
-        /* DIAGNOSTIC CONSOLE STYLE */
-        #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; height: 300px; background: #0f172a; color: #38bdf8; font-family: 'Consolas', monospace; border-top: 4px solid #334155; z-index: 9999; display: flex; flex-direction: column; }
-        #console-header { padding: 10px 16px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-        #console-body { flex: 1; overflow-y: auto; padding: 15px; font-size: 12px; background: #020617; color: #e2e8f0; line-height: 1.5; }
-        .log-row { border-bottom: 1px solid #1e293b; padding: 4px 0; }
-        .log-err { color: #ef4444; font-weight: bold; background: rgba(239, 68, 68, 0.1); padding: 2px; }
-        .log-warn { color: #facc15; }
-        .log-info { color: #60a5fa; }
-        .log-val { color: #4ade80; font-weight: bold; }
-
-        /* MODAL DIAGNOSA */
-        #diag-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
-        .diag-content { background: white; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 20px; rounded-lg; }
-        .diag-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .diag-table th { background: #f1f5f9; text-align: left; padding: 8px; border: 1px solid #ddd; }
-        .diag-table td { padding: 8px; border: 1px solid #ddd; }
+        #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; color: #38bdf8; font-family: monospace; border-top: 2px solid #334155; z-index: 9999; display: flex; flex-direction: column; transition: height 0.3s; height: 40px; }
+        #console-header { padding: 8px 16px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        #console-body { flex: 1; overflow-y: auto; padding: 10px; font-size: 11px; background: #020617; color: #e2e8f0; display: none; }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #1e293b; padding-bottom: 2px; display: block; word-wrap: break-word;}
+        .log-err { color: #ef4444; font-weight: bold; }
+        .log-success { color: #4ade80; }
         
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; color: white; flex-direction: column; }
     </style>
@@ -51,32 +41,9 @@
         <h2 class="text-xl font-bold">Processing...</h2>
     </div>
 
-    <div id="diag-modal">
-        <div class="diag-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-red-600"><i class="fas fa-stethoscope"></i> Diagnosa Data Baris Pertama</h2>
-                <button onclick="document.getElementById('diag-modal').style.display='none'" class="text-gray-500 hover:text-black text-2xl">&times;</button>
-            </div>
-            <p class="text-sm text-gray-600 mb-4">Periksa tabel ini. Apakah kolom "Raw Value" (Nilai Mentah) mengambil data yang benar? Jika Anda melihat No Rekening di kolom Gaji/Bonus, berarti mapping salah.</p>
-            <table class="diag-table">
-                <thead>
-                    <tr>
-                        <th>Komponen Sistem</th>
-                        <th>Index Kolom</th>
-                        <th>Header Excel Terdeteksi</th>
-                        <th>Nilai Mentah (Excel)</th>
-                        <th>Hasil Konversi (Sistem)</th>
-                    </tr>
-                </thead>
-                <tbody id="diag-table-body"></tbody>
-            </table>
-            <div class="mt-4 bg-gray-100 p-4 rounded text-xs font-mono" id="diag-math-log"></div>
-        </div>
-    </div>
-
     <div id="login-section" class="min-h-screen flex items-center justify-center bg-slate-800">
         <div class="bg-white p-8 rounded-xl w-96 shadow-2xl">
-            <h2 class="text-2xl font-bold mb-6 text-center text-slate-700">Dolan Admin V16</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center text-slate-700">Dolan Admin V17</h2>
             <form onsubmit="handleLogin(event)">
                 <input id="email" class="w-full border p-3 rounded mb-3" placeholder="Email" required>
                 <input type="password" id="password" class="w-full border p-3 rounded mb-6" placeholder="Password" required>
@@ -87,7 +54,7 @@
 
     <div id="app-section" class="hidden min-h-screen flex flex-col">
         <nav class="bg-white border-b h-16 px-6 flex justify-between items-center shadow-sm sticky top-0 z-40">
-            <div class="font-bold text-lg text-slate-700">Dolan<span class="text-blue-600">Payroll</span> Diagnostic</div>
+            <div class="font-bold text-lg text-slate-700">Dolan<span class="text-blue-600">Payroll</span> Decimal Fix</div>
             <div class="flex gap-2 text-sm">
                 <button onclick="switchTab('payroll')" class="px-3 py-2 bg-blue-600 text-white rounded shadow">Gaji</button>
                 <button onclick="switchTab('karyawan')" class="px-3 py-2 bg-white border hover:bg-gray-50 rounded">Master Data</button>
@@ -108,14 +75,8 @@
 
             <div id="tab-payroll" class="tab-content">
                 <div class="bg-white p-6 rounded-lg shadow border mb-6">
-                    <h2 class="font-bold text-lg mb-2">2. Upload Gaji (Diagnostic Mode)</h2>
-                    <div class="flex gap-4 items-center mb-4">
-                        <input type="file" id="payroll-file" accept=".xlsx,.xls" class="block w-full text-sm text-slate-500"/>
-                        <button id="btn-diag" onclick="document.getElementById('diag-modal').style.display='flex'" class="hidden bg-red-100 text-red-700 px-4 py-2 rounded border border-red-300 hover:bg-red-200 font-bold">
-                            <i class="fas fa-bug"></i> LIHAT DIAGNOSA DETAIL
-                        </button>
-                    </div>
-                    
+                    <h2 class="font-bold text-lg mb-2">2. Upload Gaji (Fix Angka Desimal)</h2>
+                    <input type="file" id="payroll-file" accept=".xlsx,.xls" class="block w-full text-sm text-slate-500 mb-6"/>
                     <div id="payroll-result" class="hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
@@ -136,66 +97,69 @@
     </div>
 
     <div id="debug-console">
-        <div id="console-header">
-            <div class="flex items-center gap-2"><i class="fas fa-terminal"></i> <span class="font-bold">SYSTEM LOG (Kirim screenshot/copy log ini jika error)</span></div>
-            <button onclick="copyLog()" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">COPY LOG TEXT</button>
+        <div id="console-header" onclick="toggleConsoleHeight()">
+            <div class="flex items-center gap-2"><i class="fas fa-bug"></i> <span class="font-bold">System Log (Klik untuk Buka/Tutup)</span></div>
         </div>
-        <div id="console-body"><div class="log-row">Waiting for file upload...</div></div>
+        <div id="console-body"></div>
     </div>
     <div id="render-area" class="absolute left-[-9999px] top-0"></div>
 
     <script>
-        // FIREBASE CONFIG
+        // FIREBASE
         const firebaseConfig = { apiKey: "AIzaSyAecwXgmT8rMGw1LpXKTS3xX-2YPcDlZZw", authDomain: "naruna-payroll.firebaseapp.com", projectId: "naruna-payroll", storageBucket: "naruna-payroll.firebasestorage.app", messagingSenderId: "209087490496", appId: "1:209087490496:web:f632b7a1cc3fa9166f4025" };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(); const db = firebase.firestore(); const storage = firebase.storage();
         
         let masterKaryawanList = [];
-        // Simpan data diagnosa global
-        let diagData = null;
+        let isConsoleOpen = false;
 
-        // LOGGER SYSTEM
         function log(msg, type='info') {
             const box = document.getElementById('console-body');
-            let cl = type=='error'?'log-err':(type=='warn'?'log-warn':(type=='val'?'log-val':''));
+            const cl = type=='error'?'log-err':(type=='success'?'log-success':'');
             if(typeof msg === 'object') msg = JSON.stringify(msg,null,2);
-            box.innerHTML += `<div class="log-row ${cl}">[${new Date().toLocaleTimeString('id-ID',{hour12:false})}] ${msg}</div>`;
+            box.innerHTML += `<div class="log-entry ${cl}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
             box.scrollTop = box.scrollHeight;
+            if(type=='error' && !isConsoleOpen) toggleConsoleHeight();
         }
-        function copyLog() { navigator.clipboard.writeText(document.getElementById('console-body').innerText).then(()=>alert("Log Copied!")); }
+        function toggleConsoleHeight() {
+            const c = document.getElementById('debug-console');
+            const b = document.getElementById('console-body');
+            if(isConsoleOpen) { c.style.height='40px'; b.style.display='none'; }
+            else { c.style.height='300px'; b.style.display='block'; }
+            isConsoleOpen = !isConsoleOpen;
+        }
 
-        // CLEANER FUNCTION V16 (Super Strict)
+        // --- SOLUSI UTAMA (V17): CLEAN NUM LEBIH PINTAR ---
         function cleanNum(raw, fieldName) { 
-            if(!raw) return 0;
-            let s = String(raw).trim();
+            if(raw === null || raw === undefined) return 0;
             
-            // Log raw value for specific potentially dangerous fields
-            if(fieldName && (fieldName.includes('Overtime') || fieldName.includes('Bonus'))) {
-                console.log(`Cleaning ${fieldName}: "${s}"`);
+            // 1. JIKA SUDAH ANGKA (NUMBER), JANGAN DIUBAH!
+            // Excel: 114285.71428 -> JS: 114285.71428 (Number)
+            // Kode lama mengubah ini jadi String lalu hapus titik -> 114285714 (SALAH)
+            // Kode baru langsung return -> 114285.71428 (BENAR)
+            if (typeof raw === 'number') {
+                return raw;
             }
 
-            if (s === '-' || s.toUpperCase() === 'RP -' || s === '') return 0;
+            // 2. JIKA TEKS, BARU DIBERSIHKAN
+            let s = String(raw).trim();
+            if (s === '-' || s.toUpperCase().includes('RP -') || s === '') return 0;
             
-            // Remove Rp, dots, spaces
+            // Hapus Rp, titik ribuan, spasi
             s = s.replace(/Rp/gi, '').replace(/\./g, '').replace(/\s/g, '');
-            // Replace decimal comma with dot
+            // Ganti koma desimal jadi titik
             s = s.replace(/,/g, '.');
             
-            // Parse
             let val = parseFloat(s);
-            if (isNaN(val)) {
-                // log(`Gagal parse angka di kolom ${fieldName}: "${raw}"`, 'warn');
-                return 0;
-            }
-            return val;
+            return isNaN(val) ? 0 : val;
         }
 
-        // AUTH & LOAD
+        // AUTH
         auth.onAuthStateChanged(u => {
             if(u) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('app-section').classList.remove('hidden');
-                log(`Login: ${u.email}`, 'info');
+                log(`Login: ${u.email}`, 'success');
                 loadData();
             } else {
                 document.getElementById('login-section').classList.remove('hidden');
@@ -212,85 +176,83 @@
                     masterKaryawanList.push({ ...dt, cleanNama: String(dt.nama).toLowerCase().replace(/[^a-z0-9]/g, '') });
                     b.innerHTML+=`<tr class="border-b"><td class="p-2 font-bold">${dt.nama}</td><td class="p-2 text-blue-500">${dt.wa||'-'}</td></tr>`;
                 });
-                log(`Master Data: ${masterKaryawanList.length} karyawan loaded.`, 'info');
+                log(`Master Data: ${masterKaryawanList.length} karyawan.`, 'success');
             });
         }
 
         document.getElementById('master-excel-upload').addEventListener('change', async (e) => {
-            // Upload logic standard (omitted for brevity, assume works)
-            log("Master upload logic executed.", 'info');
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                try {
+                    const wb = XLSX.read(evt.target.result, {type:'binary'});
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                    let batch = db.batch(); let count=0;
+                    for(let row of rows) {
+                        const k = Object.keys(row);
+                        const nm = k.find(x=>x.toUpperCase().includes('NAMA'));
+                        const hp = k.find(x=>x.toUpperCase().includes('PHONE')||x.toUpperCase().includes('HP')||x.toUpperCase().includes('WA'));
+                        const nip = k.find(x=>x.toUpperCase().includes('NIP')||x.toUpperCase().includes('NIK'));
+                        if(nm && hp) {
+                            const rawName = String(row[nm]).trim();
+                            if(rawName.length < 3 || rawName.toUpperCase().includes('NAMA')) continue; 
+                            const rawNip = nip ? String(row[nip]).trim() : rawName.replace(/\s/g,'_');
+                            const ref = db.collection('karyawan').doc(rawNip.replace(/[^a-zA-Z0-9]/g,''));
+                            batch.set(ref, { nik: rawNip, nama: rawName, wa: String(row[hp]).replace(/[^0-9]/g,'') }, {merge: true});
+                            count++; if(count>=400){ await batch.commit(); batch=db.batch(); count=0;}
+                        }
+                    }
+                    if(count>0) await batch.commit();
+                    log(`Master Updated: ${rows.length} data.`, 'success');
+                } catch(e) { log(e.message, 'error'); }
+            };
+            reader.readAsBinaryString(file);
         });
 
-        // --- CORE DIAGNOSTIC LOGIC V16 ---
+        // --- CORE PROCESS ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
-            log(`Menganalisa File: ${file.name}...`, 'info');
+            log(`Menganalisa File: ${file.name}...`);
             const reader = new FileReader();
             reader.onload = (evt) => {
                 try {
                     const wb = XLSX.read(evt.target.result, {type:'binary'});
                     const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
 
-                    // 1. HEADER FINDER
                     let hIdx = -1;
                     for(let i=0; i<30; i++) { 
                         const rowStr = JSON.stringify(rawData[i]||[]).toUpperCase();
-                        if(rowStr.includes("GAJI POKOK") && rowStr.includes("NAMA")) { 
-                            hIdx = i; break; 
-                        } 
+                        if(rowStr.includes("GAJI POKOK") && rowStr.includes("NAMA")) { hIdx = i; break; } 
                     }
-                    if(hIdx === -1) throw new Error("Header 'GAJI POKOK' tidak ditemukan di 30 baris pertama.");
+                    if(hIdx === -1) throw new Error("Header 'GAJI POKOK' tidak ditemukan.");
 
                     const header = rawData[hIdx].map(x => String(x).toUpperCase().trim());
-                    log(`Header ditemukan di Baris ${hIdx+1}. Panjang Kolom: ${header.length}`, 'val');
-                    log(`Header Raw: [${header.join(' | ')}]`, 'info');
+                    log(`Header ditemukan di baris ${hIdx+1}`, 'success');
 
-                    // 2. MAPPING (Flexible & Logged)
-                    const getCol = (keywords, name) => {
-                        const idx = header.findIndex(h => keywords.some(k => h.includes(k)));
-                        if (idx === -1) log(`WARNING: Kolom untuk "${name}" TIDAK DITEMUKAN!`, 'warn');
-                        else log(`MAPPED: "${name}" -> Index ${idx} (Header: ${header[idx]})`, 'info');
-                        return idx;
-                    };
+                    const getCol = (keywords) => header.findIndex(h => keywords.some(k => h.includes(k)));
 
                     const col = {
-                        nama: getCol(["NAMA"], "NAMA"),
-                        nik: getCol(["NIK"], "NIK"),
-                        outlet: getCol(["DIVISI", "OUTLET"], "OUTLET"),
-                        gp: getCol(["GAJI POKOK"], "GAJI POKOK"),
-                        tunj: getCol(["TUNJANGAN JABATAN"], "TUNJANGAN"),
-                        omset: getCol(["BONUS OMSET"], "BONUS OMSET"),
-                        kinerja: getCol(["BONUS KINERJA"], "BONUS KINERJA"),
-                        like: getCol(["LIKE KOMEN", "BONUS LIKE"], "BONUS LIKE"),
-                        lembur: getCol(["LEMBUR HARIAN"], "LEMBUR HARIAN"),
-                        // FIX: Pastikan tidak mengambil No Rekening
-                        ot: getCol(["OVERTIME"], "OVERTIME"), 
-                        kebijakan: getCol(["KEBIJAKAN"], "KEBIJAKAN"),
-                        absen: getCol(["POTONGAN ATAS ABSEN", "POTONGAN ABSEN"], "POT ABSEN"),
-                        bpjs: getCol(["BPJS KETENAGAKERJAAN"], "BPJS KT"),
-                        weekend: getCol(["WEEKEND"], "POT WEEKEND"),
-                        jam: getCol(["POTONGAN JAM"], "POT JAM")
+                        nama: getCol(["NAMA"]), nik: getCol(["NIK"]), outlet: getCol(["DIVISI", "OUTLET"]),
+                        gp: getCol(["GAJI POKOK"]), tunj: getCol(["TUNJANGAN JABATAN"]),
+                        omset: getCol(["BONUS OMSET"]), kinerja: getCol(["BONUS KINERJA"]),
+                        like: getCol(["LIKE KOMEN", "BONUS LIKE"]), lembur: getCol(["LEMBUR HARIAN"]),
+                        ot: getCol(["OVERTIME"]), kebijakan: getCol(["KEBIJAKAN"]),
+                        absen: getCol(["POTONGAN ATAS ABSEN", "POTONGAN ABSEN"]),
+                        bpjs: getCol(["BPJS KETENAGAKERJAAN"]), weekend: getCol(["WEEKEND"]), jam: getCol(["POTONGAN JAM"])
                     };
 
                     const tbody = document.getElementById('payroll-table-body');
                     tbody.innerHTML = '';
                     document.getElementById('payroll-result').classList.remove('hidden');
-                    document.getElementById('btn-diag').classList.remove('hidden');
 
                     let processedCount = 0;
                     const dataRows = rawData.slice(hIdx+1);
 
-                    // --- DIAGNOSTIC FIRST ROW ---
-                    // Cari baris data valid pertama untuk diagnosa
-                    const firstDataRow = dataRows.find(r => r[col.nama] && !String(r[col.nama]).includes("NAMA"));
-                    if(firstDataRow) runDiagnosis(firstDataRow, header, col);
-
-                    dataRows.forEach((row, idx) => {
+                    dataRows.forEach((row) => {
                         if(!row[col.nama]) return; 
                         const rawNama = String(row[col.nama]).trim();
                         if(rawNama.toUpperCase().includes("NAMA") || rawNama.toUpperCase() === "PANARAMA") return;
 
-                        // Calculation Helper
                         const v = (idx, fname) => (idx > -1) ? cleanNum(row[idx], fname) : 0;
 
                         const inc = {
@@ -304,92 +266,98 @@
                             weekend: v(col.weekend, 'Weekend'), jam: v(col.jam, 'Jam')
                         };
 
-                        const total_in = Object.values(inc).reduce((a,b)=>a+b,0);
-                        const total_out = Object.values(ded).reduce((a,b)=>a+b,0);
+                        // Math.round untuk menghindari koma panjang (misal 114285.714 -> 114286)
+                        const total_in = Math.round(Object.values(inc).reduce((a,b)=>a+b,0));
+                        const total_out = Math.round(Object.values(ded).reduce((a,b)=>a+b,0));
                         const thp = total_in - total_out;
-
-                        // Extreme Log jika THP > 100 Juta
-                        if(thp > 100000000) {
-                            log(`ALARM: THP Raksasa untuk ${rawNama}: ${thp}`, 'error');
-                            log(`Rincian ${rawNama}: GP=${inc.gp}, OT=${inc.ot}, OMSET=${inc.omset}`, 'error');
-                            log(`Cek kolom Overtime Raw: "${row[col.ot]}"`, 'error');
-                        }
 
                         const cleanN = rawNama.toLowerCase().replace(/[^a-z0-9]/g, '');
                         const matched = masterKaryawanList.find(m => m.cleanNama === cleanN || m.cleanNama.includes(cleanN));
                         const wa = matched ? matched.wa : null;
 
-                        // Render Logic (Shortened)
                         const d = { NIK: row[col.nik]||'-', NAMA: rawNama, OUTLET: row[col.outlet]||'Main', INCOME: inc, DEDUCT: ded, TOTAL_IN: total_in, TOTAL_OUT: total_out, THP: thp };
                         const fmt = n => Number(n).toLocaleString('id-ID');
                         
                         tbody.innerHTML += `<tr class="border-b hover:bg-gray-50">
-                            <td class="p-2">${wa?'Match':'No HP'}</td><td class="p-2 font-bold">${d.NAMA}</td>
+                            <td class="p-2">${wa?'<span class="text-green-600 font-bold text-xs">MATCH</span>':'<span class="text-red-400 text-xs">No HP</span>'}</td>
+                            <td class="p-2 font-bold text-slate-700">${d.NAMA}</td>
                             <td class="p-2 text-right text-green-700 font-mono text-xs">${fmt(d.TOTAL_IN)}</td>
                             <td class="p-2 text-right text-red-600 font-mono text-xs">(${fmt(d.TOTAL_OUT)})</td>
                             <td class="p-2 text-right font-bold text-blue-800">${fmt(d.THP)}</td>
-                            <td class="p-2 text-center">${wa?`<button onclick='uploadAndSend(${JSON.stringify(d)},"${wa}")' class="bg-blue-600 text-white px-2 py-1 rounded">WA</button>`:''}</td>
+                            <td class="p-2 text-center">${wa?`<button onclick='uploadAndSend(${JSON.stringify(d)},"${wa}")' class="bg-blue-600 text-white px-2 py-1 rounded shadow text-xs">WA</button>`:''}</td>
                         </tr>`;
                         processedCount++;
                     });
-                    log(`Selesai. ${processedCount} baris diproses.`, 'info');
+                    log(`Selesai. ${processedCount} data diproses.`, 'success');
 
                 } catch(err) { log("Error: "+err.message, 'error'); }
             };
             reader.readAsBinaryString(file);
         });
 
-        // --- DIAGNOSIS MODAL FILLER ---
-        function runDiagnosis(row, header, colMap) {
-            const tbody = document.getElementById('diag-table-body');
-            tbody.innerHTML = '';
-            let mathLog = "PERHITUNGAN BARIS PERTAMA:\n";
-            let totalIn = 0;
-
-            const addRow = (comp, idx, raw, val) => {
-                const isErr = val > 100000000; // Flag jika nilai > 100 Juta
-                const style = isErr ? 'background:#fee2e2; color:red; font-weight:bold' : '';
-                tbody.innerHTML += `
-                    <tr style="${style}">
-                        <td>${comp}</td>
-                        <td>${idx}</td>
-                        <td>${idx > -1 ? header[idx] : 'TIDAK DITEMUKAN'}</td>
-                        <td class="font-mono">${raw}</td>
-                        <td class="font-mono">${val.toLocaleString('id-ID')}</td>
-                    </tr>
-                `;
-                return val;
-            };
-
-            // Diagnosa Income
-            mathLog += "INCOME:\n";
-            totalIn += addRow("Gaji Pokok", colMap.gp, row[colMap.gp], cleanNum(row[colMap.gp]));
-            totalIn += addRow("Tunjangan", colMap.tunj, row[colMap.tunj], cleanNum(row[colMap.tunj]));
-            totalIn += addRow("Bonus Omset", colMap.omset, row[colMap.omset], cleanNum(row[colMap.omset]));
-            totalIn += addRow("Bonus Kinerja", colMap.kinerja, row[colMap.kinerja], cleanNum(row[colMap.kinerja]));
-            totalIn += addRow("Bonus Like", colMap.like, row[colMap.like], cleanNum(row[colMap.like]));
-            totalIn += addRow("Lembur Harian", colMap.lembur, row[colMap.lembur], cleanNum(row[colMap.lembur]));
-            
-            // CRITICAL CHECK
-            mathLog += "--- CEK OVERTIME (Biasanya Error Disini) ---\n";
-            totalIn += addRow("Overtime", colMap.ot, row[colMap.ot], cleanNum(row[colMap.ot]));
-            
-            totalIn += addRow("Kebijakan", colMap.kebijakan, row[colMap.kebijakan], cleanNum(row[colMap.kebijakan]));
-
-            mathLog += `TOTAL INCOME = ${totalIn.toLocaleString('id-ID')}\n`;
-            document.getElementById('diag-math-log').innerText = mathLog;
-
-            // Auto open modal if error detected
-            if (totalIn > 50000000) {
-                document.getElementById('diag-modal').style.display='flex';
-                log("DIAGNOSA: Nilai tidak wajar terdeteksi. Membuka tabel detail.", 'error');
-            }
-        }
-
-        // Upload & Send (Same as before)
         async function uploadAndSend(data, waNumber) {
-            // (Kode sama dengan V15, tidak diubah agar fokus ke debugging)
-             alert("Fitur kirim dinonaktifkan sementara di mode Diagnosa agar anda fokus memperbaiki data.");
+            document.getElementById('loading-overlay').style.display='flex';
+            try {
+                const area = document.getElementById('render-area');
+                const fmt = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+                
+                // RENDER SLIP
+                area.innerHTML = `
+                <div class="payslip-container">
+                    <div style="border-bottom:3px solid #1e3a8a; padding-bottom:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:end;">
+                        <div>
+                            <h1 class="text-2xl font-bold uppercase text-blue-900 tracking-wider">${data.OUTLET || 'DOLAN SAWAH'}</h1>
+                            <p class="text-sm text-gray-500">Periode: ${new Date().toLocaleDateString('id-ID',{month:'long',year:'numeric'})}</p>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="text-xl font-bold text-gray-700">SLIP GAJI</h2>
+                            <p class="text-sm font-mono">${data.NIK}</p>
+                        </div>
+                    </div>
+                    <div class="mb-6"><p class="text-sm text-gray-500">Nama Karyawan</p><p class="text-lg font-bold">${data.NAMA}</p></div>
+                    <div class="grid grid-cols-2 gap-8 mb-6">
+                        <div>
+                            <h3 class="font-bold text-green-700 border-b mb-2 pb-1">PENDAPATAN</h3>
+                            <table class="w-full text-sm">
+                                <tr><td class="py-1">Gaji Pokok</td><td class="text-right">${fmt(data.INCOME.gp)}</td></tr>
+                                <tr><td class="py-1">Tunjangan</td><td class="text-right">${fmt(data.INCOME.tunj)}</td></tr>
+                                <tr><td class="py-1">Bonus Omset</td><td class="text-right">${fmt(data.INCOME.omset)}</td></tr>
+                                <tr><td class="py-1">Bonus Kinerja</td><td class="text-right">${fmt(data.INCOME.kinerja)}</td></tr>
+                                <tr><td class="py-1">Bonus Like/Komen</td><td class="text-right">${fmt(data.INCOME.like)}</td></tr>
+                                <tr><td class="py-1">Lembur Harian</td><td class="text-right">${fmt(data.INCOME.lembur)}</td></tr>
+                                <tr><td class="py-1">Overtime</td><td class="text-right">${fmt(data.INCOME.ot)}</td></tr>
+                                <tr><td class="py-1">Kebijakan</td><td class="text-right">${fmt(data.INCOME.kebijakan)}</td></tr>
+                                <tr class="font-bold border-t"><td class="pt-2">Total Pendapatan</td><td class="pt-2 text-right">${fmt(data.TOTAL_IN)}</td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-red-600 border-b mb-2 pb-1">POTONGAN</h3>
+                            <table class="w-full text-sm">
+                                <tr><td class="py-1">Absen / Alpha</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.absen)})</td></tr>
+                                <tr><td class="py-1">BPJS Ketenagakerjaan</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.bpjs)})</td></tr>
+                                <tr><td class="py-1">Pot. Weekend</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.weekend)})</td></tr>
+                                <tr><td class="py-1">Pot. Jam</td><td class="text-right text-red-600">(${fmt(data.DEDUCT.jam)})</td></tr>
+                                <tr class="font-bold border-t"><td class="pt-2">Total Potongan</td><td class="pt-2 text-right text-red-600">(${fmt(data.TOTAL_OUT)})</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg flex justify-between items-center">
+                        <span class="font-bold text-lg text-blue-900">TAKE HOME PAY</span>
+                        <span class="font-bold text-2xl text-blue-900">${fmt(data.THP)}</span>
+                    </div>
+                    <div class="mt-8 text-center text-xs text-gray-400">Generated by DolanPayroll System</div>
+                </div>`;
+
+                const canvas = await html2canvas(area.querySelector('.payslip-container'), {scale: 1.5});
+                canvas.toBlob(async (blob) => {
+                    const fname = `slip_${Date.now()}_${data.NAMA.replace(/\s/g,'')}.jpg`;
+                    const snap = await storage.ref().child('slips/'+fname).put(blob);
+                    const url = await snap.ref.getDownloadURL();
+                    const msg = `Halo ${data.NAMA},\nBerikut slip gaji Anda.\nTotal: ${fmt(data.THP)}\nLink: ${url}`;
+                    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+                    document.getElementById('loading-overlay').style.display='none';
+                }, 'image/jpeg', 0.8);
+            } catch(e) { alert("Gagal: "+e.message); document.getElementById('loading-overlay').style.display='none'; }
         }
         function switchTab(id) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden')); document.getElementById('tab-'+id).classList.remove('hidden'); }
     </script>

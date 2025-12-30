@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dolan Payroll - V5 (Stable & Patched)</title>
+    <title>Dolan Payroll - V6 (Custom Header)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,15 +27,15 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
+        /* Render Container diperbaiki agar sesuai ukuran kertas A4/Struk dan Font Arial */
         .payslip-container { 
-            width: 800px; 
+            width: 800px; /* Resolusi tinggi untuk html2canvas */
             background: white; 
-            padding: 40px; 
-            border: 1px solid #cbd5e1; 
-            font-family: 'Courier New', Courier, monospace; 
+            padding: 0; /* Padding diatur di dalam elemen */
+            font-family: Arial, Helvetica, sans-serif; /* Sesuai gambar referensi */
+            color: #000;
         }
         
-        /* Fix Render Area visibility bug (Bug #10) */
         #render-area {
             position: fixed;
             top: 0;
@@ -47,13 +47,15 @@
 
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 100; justify-content: center; align-items: center; color: white; flex-direction: column; backdrop-filter: blur(4px); }
         
-        /* Debug Console with overflow protection */
         #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; color: #cbd5e1; font-family: monospace; z-index: 50; transition: transform 0.3s ease; transform: translateY(100%); max-height: 40vh; display: flex; flex-direction: column; border-top-left-radius: 12px; border-top-right-radius: 12px; shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1); }
         #debug-console.open { transform: translateY(0); }
         .log-entry { padding: 4px 8px; border-bottom: 1px solid #334155; font-size: 11px; }
         .log-err { color: #f87171; background: rgba(254,226,226,0.1); }
         .log-success { color: #4ade80; }
-        .log-warn { color: #fbbf24; }
+        
+        /* Style untuk pilihan Kop */
+        .kop-item { border: 2px solid transparent; transition: all 0.2s; }
+        .kop-item.active { border-color: #3b82f6; background-color: #eff6ff; }
     </style>
 </head>
 <body class="text-slate-800">
@@ -67,8 +69,8 @@
         <div class="bg-white p-8 rounded-2xl w-full max-w-md shadow-2xl border-t-4 border-blue-600">
             <div class="text-center mb-8">
                 <i class="fas fa-shield-alt text-4xl text-blue-600 mb-2"></i>
-                <h2 class="text-2xl font-bold text-slate-800">Payroll V5 (Patched)</h2>
-                <p class="text-slate-500 text-sm">Safe Parse & Anti-Crash</p>
+                <h2 class="text-2xl font-bold text-slate-800">Payroll V6</h2>
+                <p class="text-slate-500 text-sm">Custom Header & Layout</p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <input id="email" type="email" class="w-full border border-slate-300 p-3 rounded-lg mb-4" placeholder="Email Admin" required>
@@ -81,7 +83,7 @@
     <div id="app-section" class="hidden min-h-screen flex flex-col pb-20">
         <nav class="bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex justify-between items-center shadow-sm sticky top-0 z-40">
             <div class="flex items-center gap-2">
-                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V5</div>
+                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V6</div>
                 <span class="font-bold text-slate-800 text-lg">Dolan Payroll</span>
             </div>
             <div class="flex gap-3">
@@ -98,9 +100,48 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center cursor-pointer" onclick="toggleSection('header-content')">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-purple-100 text-purple-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</div>
+                        <div>
+                            <h2 class="font-bold text-slate-700">Pengaturan Kop Surat</h2>
+                            <p class="text-xs text-slate-500">Upload dan pilih kop yang akan digunakan</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-slate-400 transition-transform" id="icon-header-content"></i>
+                </div>
+                
+                <div id="header-content" class="p-4 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <label class="cursor-pointer group h-32">
+                            <div class="border-2 border-dashed border-slate-300 rounded-lg h-full flex flex-col justify-center items-center text-center group-hover:border-purple-500 transition bg-slate-50 hover:bg-purple-50">
+                                <i class="fas fa-image text-slate-400 mb-2 text-xl group-hover:text-purple-500"></i>
+                                <span class="text-sm font-medium text-slate-600">Tambah Gambar Kop Baru</span>
+                                <input type="file" id="header-upload" accept="image/*" class="hidden" onchange="handleHeaderUpload(this)"/>
+                            </div>
+                        </label>
+                        
+                        <div class="border border-slate-200 rounded-lg p-2 bg-slate-50 flex flex-col">
+                            <span class="text-xs font-bold text-slate-500 mb-2 uppercase">Kop Aktif Saat Ini:</span>
+                            <div id="active-header-preview" class="flex-1 bg-white border border-slate-300 rounded flex items-center justify-center overflow-hidden relative">
+                                <span class="text-xs text-slate-400 italic">Belum ada kop dipilih</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h3 class="text-sm font-bold text-slate-700 mb-2">Galeri Kop Tersimpan</h3>
+                        <div id="header-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            </div>
+                        <button onclick="clearHeaderGallery()" class="mt-4 text-xs text-red-500 hover:text-red-700 underline">Hapus Semua Kop</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center cursor-pointer" onclick="toggleSection('master-content')">
                     <div class="flex items-center gap-3">
-                        <div class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</div>
+                        <div class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</div>
                         <div>
                             <h2 class="font-bold text-slate-700">Master Data Karyawan</h2>
                         </div>
@@ -129,10 +170,9 @@
                 <div class="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
                 <div class="bg-white p-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
-                        <div class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-blue-200">2</div>
+                        <div class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-blue-200">3</div>
                         <div>
                             <h2 class="font-bold text-slate-800 text-lg">Upload File Gaji</h2>
-                            <p class="text-xs text-slate-500">Auto-Detect Rate & Fuzzy Match Name</p>
                         </div>
                     </div>
                 </div>
@@ -187,35 +227,105 @@
         // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = { apiKey: "AIzaSyAecwXgmT8rMGw1LpXKTS3xX-2YPcDlZZw", authDomain: "naruna-payroll.firebaseapp.com", projectId: "naruna-payroll", storageBucket: "naruna-payroll.firebasestorage.app", messagingSenderId: "209087490496", appId: "1:209087490496:web:f632b7a1cc3fa9166f4025" };
         
-        // --- FIX BUG #1: Double Init Guard ---
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const auth = firebase.auth(); 
         const db = firebase.firestore(); 
         const storage = firebase.storage();
+        
         let masterKaryawanList = [];
+        let selectedHeaderImg = null; // Menyimpan Base64 kop yang aktif
+
+        // --- MANAJEMEN KOP SURAT ---
+        
+        function initHeaderSystem() {
+            const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
+            const activeIndex = localStorage.getItem('activeHeaderIndex');
+            renderHeaderGallery(savedHeaders, activeIndex);
+            
+            // Set active if exists
+            if (activeIndex !== null && savedHeaders[activeIndex]) {
+                selectedHeaderImg = savedHeaders[activeIndex];
+                updateActivePreview(selectedHeaderImg);
+            }
+        }
+
+        function handleHeaderUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
+                savedHeaders.push(base64);
+                localStorage.setItem('savedHeaders', JSON.stringify(savedHeaders));
+                
+                // Auto select new
+                const newIndex = savedHeaders.length - 1;
+                localStorage.setItem('activeHeaderIndex', newIndex);
+                selectedHeaderImg = base64;
+                
+                renderHeaderGallery(savedHeaders, newIndex);
+                updateActivePreview(base64);
+                alert("Kop surat berhasil ditambahkan!");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderHeaderGallery(headers, activeIndex) {
+            const gallery = document.getElementById('header-gallery');
+            gallery.innerHTML = '';
+            
+            headers.forEach((imgSrc, idx) => {
+                const isActive = idx == activeIndex;
+                const div = document.createElement('div');
+                div.className = `kop-item relative h-20 bg-slate-100 rounded cursor-pointer overflow-hidden ${isActive ? 'active' : ''}`;
+                div.onclick = () => selectHeader(idx);
+                div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover" />
+                                 ${isActive ? '<div class="absolute bottom-0 right-0 bg-blue-600 text-white text-[10px] px-1 font-bold">AKTIF</div>' : ''}`;
+                gallery.appendChild(div);
+            });
+        }
+
+        function selectHeader(index) {
+            const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
+            if (savedHeaders[index]) {
+                localStorage.setItem('activeHeaderIndex', index);
+                selectedHeaderImg = savedHeaders[index];
+                renderHeaderGallery(savedHeaders, index);
+                updateActivePreview(selectedHeaderImg);
+            }
+        }
+
+        function updateActivePreview(src) {
+            const preview = document.getElementById('active-header-preview');
+            preview.innerHTML = `<img src="${src}" class="w-full h-auto" />`;
+        }
+
+        function clearHeaderGallery() {
+            if(confirm("Hapus semua kop tersimpan?")) {
+                localStorage.removeItem('savedHeaders');
+                localStorage.removeItem('activeHeaderIndex');
+                selectedHeaderImg = null;
+                document.getElementById('header-gallery').innerHTML = '';
+                document.getElementById('active-header-preview').innerHTML = '<span class="text-xs text-slate-400 italic">Belum ada kop dipilih</span>';
+            }
+        }
 
         // --- UTILITIES ---
-        
-        // --- FIX BUG #8: Debug Console Overflow ---
         function log(msg, type='info') {
             const box = document.getElementById('console-body');
             const cl = type=='error'?'log-err':(type=='success'?'log-success':'');
-            // Batasi log maksimal 50 baris terakhir
             if(box.childElementCount > 50) box.removeChild(box.firstChild);
-            
             box.innerHTML += `<div class="log-entry ${cl}"><span class="opacity-50">[${new Date().toLocaleTimeString()}]</span> ${typeof msg==='object'?JSON.stringify(msg):msg}</div>`;
             box.scrollTop = box.scrollHeight;
             if(type=='error') document.getElementById('debug-console').classList.add('open');
         }
 
-        // --- FIX BUG #9: Toggle Null Safety ---
         function toggleSection(id) {
             const el = document.getElementById(id);
             const icon = document.getElementById('icon-'+id);
-            if(!el || !icon) return; // Guard clause
+            if(!el || !icon) return;
             if(el.classList.contains('hidden')) { el.classList.remove('hidden'); icon.style.transform = 'rotate(180deg)'; } 
             else { el.classList.add('hidden'); icon.style.transform = 'rotate(0deg)'; }
         }
@@ -226,92 +336,48 @@
             document.getElementById('loading-text').innerText = text;
         }
 
-        // --- FIX BUG #2: Parsing Angka "1.200.000" vs "1,200,000" ---
         function cleanNum(raw) { 
             if(raw === null || raw === undefined || raw === '') return 0;
             if (typeof raw === 'number') return raw;
-            
             let s = String(raw).trim();
             let isNegative = s.startsWith('-') || (s.startsWith('(') && s.endsWith(')'));
-            
-            // Hapus karakter non-angka kecuali , dan .
             s = s.replace(/[^0-9.,]/g, '');
-
-            // Cek format (Heuristik)
             const hasDot = s.includes('.');
             const hasComma = s.includes(',');
-
             if (hasDot && hasComma) {
-                // Jika ada keduanya, yg terakhir adalah desimal
-                if (s.lastIndexOf('.') > s.lastIndexOf(',')) {
-                    // Format US: 1,000.00 -> Buang koma
-                    s = s.replace(/,/g, '');
-                } else {
-                    // Format ID: 1.000,00 -> Buang titik, ganti koma jadi titik
-                    s = s.replace(/\./g, '').replace(',', '.');
-                }
+                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, '');
+                else s = s.replace(/\./g, '').replace(',', '.');
             } else if (hasDot) {
-                // Hanya ada titik. Misal: 1.000.000 (ID) atau 1.5 (Desimal)
-                // Jika titik muncul lebih dari sekali, pasti ribuan
-                if ((s.match(/\./g) || []).length > 1) {
-                    s = s.replace(/\./g, '');
-                } else {
-                    // Jika cuma 1 titik, cek panjang angka setelah titik
-                    const parts = s.split('.');
-                    if (parts[1].length === 3) {
-                        // Asumsi 1.000 -> Ribuan (ID)
-                        s = s.replace(/\./g, ''); 
-                    } else {
-                        // Asumsi 1.5 -> Desimal (US/General)
-                        // KECUALI jika konteks gaji dan nilainya kecil sekali, ini tricky.
-                        // Default aman untuk sistem gaji Indonesia: Titik adalah ribuan jika > 3 digit.
-                        // Tapi untuk amannya kita anggap Ribuan untuk Payroll ID
-                        s = s.replace(/\./g, '');
-                    }
-                }
-            } else if (hasComma) {
-                // Hanya koma: 1,5 -> 1.5
-                s = s.replace(',', '.');
-            }
-
+                if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
+                else { const parts = s.split('.'); if (parts[1].length === 3) s = s.replace(/\./g, ''); }
+            } else if (hasComma) s = s.replace(',', '.');
             let val = parseFloat(s);
             if (isNaN(val)) return 0;
             return isNegative ? -val : val;
         }
 
-        // --- FIX BUG #4: Fuzzy Name Match ---
         function isNameMatch(excelName, masterName) {
             const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
             const n1 = normalize(excelName);
             const n2 = normalize(masterName);
-            
             if (!n1 || !n2) return false;
-            
-            // Cek Exact match / Substring
-            if (n1 === n2) return true;
-            if (n1.includes(n2) || n2.includes(n1)) return true;
-            
-            // Cek Token Intersection (Budi Santoso vs Budi S)
+            if (n1 === n2 || n1.includes(n2) || n2.includes(n1)) return true;
             const t1 = n1.split(/\s+/);
             const t2 = n2.split(/\s+/);
-            
             let matches = 0;
             const minLen = Math.min(t1.length, t2.length);
-            
-            for (let t of t1) {
-                if (t2.some(x => x.startsWith(t) || t.startsWith(x))) matches++;
-            }
-            
-            // Jika > 70% token cocok, anggap sama
+            for (let t of t1) { if (t2.some(x => x.startsWith(t) || t.startsWith(x))) matches++; }
             return (matches / minLen) >= 0.75;
         }
 
-        // --- AUTH & MASTER DATA ---
+        // --- AUTH & LOAD ---
         auth.onAuthStateChanged(u => {
             if(u) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('app-section').classList.remove('hidden');
                 loadData();
+                initHeaderSystem(); // Load Header System
+                toggleSection('header-content'); // Buka menu kop by default
             } else {
                 document.getElementById('login-section').classList.remove('hidden');
                 document.getElementById('app-section').classList.add('hidden');
@@ -322,15 +388,11 @@
         function loadData() {
             db.collection('karyawan').onSnapshot(s => {
                 masterKaryawanList = [];
-                s.forEach(d => { 
-                    const dt = d.data(); 
-                    masterKaryawanList.push(dt);
-                });
+                s.forEach(d => { masterKaryawanList.push(d.data()); });
                 document.getElementById('master-count').innerText = masterKaryawanList.length;
             });
         }
 
-        // --- FIX BUG #3: Firestore Batch Fail & Retry ---
         document.getElementById('master-excel-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
             showLoading(true, "Updating Master...");
@@ -339,43 +401,23 @@
                 try {
                     const wb = XLSX.read(evt.target.result, {type:'binary'});
                     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    
-                    let batch = db.batch(); 
-                    let count = 0;
-                    let successCount = 0;
-                    
+                    let batch = db.batch(); let count = 0; let successCount = 0;
                     for(let row of rows) {
                         const k = Object.keys(row);
                         const nm = k.find(x=>x.toUpperCase().includes('NAMA'));
                         const hp = k.find(x=>x.toUpperCase().includes('PHONE')||x.toUpperCase().includes('HP')||x.toUpperCase().includes('WA'));
-                        
                         if(nm && hp) {
                             const rawName = String(row[nm]).trim();
                             const rawWa = String(row[hp]).replace(/[^0-9]/g,'');
                             if(rawName.length < 3) continue; 
-                            
                             const id = rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
                             const ref = db.collection('karyawan').doc(id);
-                            
                             batch.set(ref, { nama: rawName, wa: rawWa }, {merge: true});
                             count++; 
-                            
-                            if(count >= 400){ 
-                                try {
-                                    await batch.commit(); 
-                                    successCount += count;
-                                } catch (err) {
-                                    log("Batch gagal: " + err.message, 'error');
-                                }
-                                batch = db.batch(); 
-                                count = 0;
-                            }
+                            if(count >= 400){ await batch.commit(); successCount += count; batch = db.batch(); count = 0; }
                         }
                     }
-                    if(count > 0) {
-                        try { await batch.commit(); successCount += count; } catch(err) { log("Last batch fail", 'error'); }
-                    }
-                    
+                    if(count > 0) { await batch.commit(); successCount += count; }
                     alert(`Berhasil update ${successCount} kontak.`);
                     toggleSection('master-content');
                 } catch(e) { alert("Gagal proses file"); }
@@ -384,12 +426,10 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- LOGIKA HITUNG GAJI UTAMA ---
+        // --- MAIN LOGIC ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
             showLoading(true, "Menganalisa File...");
-            
-            // Reset Error Banner
             document.getElementById('error-banner').classList.add('hidden');
             
             const reader = new FileReader();
@@ -397,174 +437,70 @@
                 try {
                     const wb = XLSX.read(evt.target.result, {type:'binary'});
                     const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
-
                     let hIdx = -1;
-                    // Scan header lebih dalam (sampai baris 30)
                     for(let i=0; i<30; i++) { 
                         const rowStr = JSON.stringify(rawData[i]||[]).toUpperCase();
                         if(rowStr.includes("GAJI POKOK") && rowStr.includes("NAMA")) { hIdx = i; break; } 
                     }
-                    
-                    if(hIdx === -1) {
-                        throw new Error("Header tidak ditemukan. Pastikan ada kolom 'NAMA' dan 'GAJI POKOK'.");
-                    }
+                    if(hIdx === -1) throw new Error("Header tidak ditemukan.");
 
                     const header = rawData[hIdx].map(x => String(x).toUpperCase().trim());
                     const getCol = (keywords) => header.findIndex(h => keywords.some(k => h === k || h.includes(k)));
 
-                    // Mapping Kolom
                     const col = {
-                        nama: getCol(["NAMA", "NAMA KARYAWAN"]), 
-                        nik: getCol(["NIK", "NO INDUK"]), 
-                        outlet: getCol(["DIVISI", "BAGIAN", "OUTLET"]),
-                        
-                        // INCOME
-                        gp: getCol(["GAJI POKOK"]), 
-                        tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]),
-                        omset: getCol(["BONUS OMSET", "OMSET"]), 
-                        kinerja: getCol(["BONUS KINERJA", "KINERJA"]),
-                        like: getCol(["LIKE KOMEN", "BONUS LIKE"]), 
-                        lembur: getCol(["LEMBUR HARIAN"]), 
-                        ot: getCol(["OVERTIME"]), 
-                        kebijakan: getCol(["KEBIJAKAN"]),
-                        
-                        // DEDUCTION
-                        absen: getCol(["POTONGAN ABSEN"]),
-                        bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]),
-                        bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]),
-                        weekend: getCol(["WEEKEND", "HARI BESAR"]), 
-                        pot_jam: getCol(["POTONGAN JAM"]), 
-
-                        // VALIDATOR
-                        thp_excel: getCol(["DITERIMA", "THP", "TOTAL GAJI", "TAKE HOME PAY"]) 
+                        nama: getCol(["NAMA", "NAMA KARYAWAN"]), nik: getCol(["NIK", "NO INDUK"]), outlet: getCol(["DIVISI", "BAGIAN", "OUTLET"]),
+                        gp: getCol(["GAJI POKOK"]), tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]), omset: getCol(["BONUS OMSET", "OMSET"]), 
+                        kinerja: getCol(["BONUS KINERJA", "KINERJA"]), like: getCol(["LIKE KOMEN", "BONUS LIKE"]), lembur: getCol(["LEMBUR HARIAN"]), 
+                        ot: getCol(["OVERTIME"]), kebijakan: getCol(["KEBIJAKAN"]), absen: getCol(["POTONGAN ABSEN"]), bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]), 
+                        bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]), weekend: getCol(["WEEKEND", "HARI BESAR"]), pot_jam: getCol(["POTONGAN JAM"]), 
+                        thp_excel: getCol(["DITERIMA", "THP", "TOTAL GAJI"]) 
                     };
-
-                    // --- FIX BUG #6: Missing Critical Columns ---
-                    let missing = [];
-                    if(col.gp === -1) missing.push("GAJI POKOK");
-                    if(col.nama === -1) missing.push("NAMA");
-                    
-                    if(missing.length > 0) {
-                        const errMsg = `Kolom WAJIB tidak ditemukan: ${missing.join(', ')}. Cek nama header di Excel.`;
-                        document.getElementById('error-text').innerText = errMsg;
-                        document.getElementById('error-banner').classList.remove('hidden');
-                        throw new Error(errMsg);
-                    }
 
                     const tbody = document.getElementById('payroll-table-body');
                     tbody.innerHTML = '';
                     document.getElementById('payroll-result').classList.remove('hidden');
-
                     let processedCount = 0;
                     const dataRows = rawData.slice(hIdx+1);
 
                     dataRows.forEach((row, idx) => {
                         if(!row[col.nama]) return; 
                         const rawNama = String(row[col.nama]).trim();
-                        // Skip baris sampah/total
                         if(rawNama.length < 2 || /TOTAL|SUBTOTAL/i.test(rawNama)) return;
 
                         const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0;
+                        let rawLembur = v(col.lembur), valLembur = rawLembur, countLembur = 0;
+                        if(rawLembur > 0 && rawLembur <= 31) { valLembur = rawLembur * 40000; countLembur = rawLembur; }
+                        let rawOT = v(col.ot), valOT = rawOT, countOT = 0;
+                        if(rawOT > 0 && rawOT < 100) { valOT = rawOT * 5000; countOT = rawOT; }
+                        let rawPotJam = v(col.pot_jam), valPotJam = rawPotJam, countPotJam = 0;
+                        if(rawPotJam > 0 && rawPotJam < 100) { valPotJam = rawPotJam * 5000; countPotJam = rawPotJam; }
+                        let rawAbsen = v(col.absen), valAbsen = rawAbsen, countAbsen = 0;
+                        // Asumsi potongan absen
+                        if(rawAbsen > 0 && rawAbsen < 31) { countAbsen = rawAbsen; valAbsen = rawAbsen * 72000; } // Default rate jika terdeteksi hari
 
-                        // --- FIX BUG #5: Heuristik Lembur Aman ---
-                        
-                        // 1. Lembur Harian (Target: Hari x 40.000)
-                        let rawLembur = v(col.lembur);
-                        let valLembur = rawLembur;
-                        let countLembur = 0;
-                        // Batas aman: 31 hari. Di atas itu pasti Rupiah.
-                        if(rawLembur > 0 && rawLembur <= 31) { 
-                            valLembur = rawLembur * 40000; 
-                            countLembur = rawLembur;
-                        }
-
-                        // 2. Overtime & Potongan Jam (Target: Jam x 5.000)
-                        let rawOT = v(col.ot);
-                        let valOT = rawOT;
-                        let countOT = 0;
-                        // Batas aman: 100 jam.
-                        if(rawOT > 0 && rawOT < 100) { 
-                            valOT = rawOT * 5000; 
-                            countOT = rawOT;
-                        }
-
-                        let rawPotJam = v(col.pot_jam);
-                        let valPotJam = rawPotJam;
-                        let countPotJam = 0;
-                        if(rawPotJam > 0 && rawPotJam < 100) { 
-                            valPotJam = rawPotJam * 5000; 
-                            countPotJam = rawPotJam;
-                        }
-
-                        const inc = {
-                            gp: v(col.gp), tunj: v(col.tunj), omset: v(col.omset), kinerja: v(col.kinerja),
-                            like: v(col.like), lembur: valLembur, ot: valOT, kebijakan: v(col.kebijakan)
-                        };
-                        
-                        const ded = {
-                            absen: v(col.absen), bpjs_kes: v(col.bpjs_kes), bpjs_tk: v(col.bpjs_tk),
-                            weekend: v(col.weekend), pot_jam: valPotJam
-                        };
-
+                        const inc = { gp: v(col.gp), tunj: v(col.tunj), omset: v(col.omset), kinerja: v(col.kinerja), like: v(col.like), lembur: valLembur, ot: valOT, kebijakan: v(col.kebijakan) };
+                        const ded = { absen: valAbsen, bpjs_kes: v(col.bpjs_kes), bpjs_tk: v(col.bpjs_tk), weekend: v(col.weekend), pot_jam: valPotJam };
                         const total_in = Math.round(Object.values(inc).reduce((a,b)=>a+b, 0));
                         const total_out = Math.round(Object.values(ded).reduce((a,b)=>a+b, 0));
                         const thp_system = total_in - total_out;
 
-                        // --- FIX BUG #7: THP Audit Empty ---
-                        let alertHtml = '';
-                        let rowClass = 'hover:bg-slate-50';
-                        
-                        if(col.thp_excel > -1) {
-                            const rawExcelVal = row[col.thp_excel];
-                            // Hanya audit jika sel Excel TIDAK kosong
-                            if(rawExcelVal !== undefined && rawExcelVal !== null && String(rawExcelVal).trim() !== '') {
-                                const excelTHP = cleanNum(rawExcelVal);
-                                if(Math.abs(thp_system - excelTHP) > 100) { // Toleransi 100 perak
-                                    rowClass = 'bg-red-50 hover:bg-red-100 border-l-4 border-red-500';
-                                    alertHtml = `<div class="text-[10px] text-red-600 font-bold mt-1">⚠️ EXCEL: ${Number(excelTHP).toLocaleString('id-ID')}</div>`;
-                                }
-                            }
-                        }
-
-                        // --- MATCHING NAME (Fuzzy) ---
                         const matched = masterKaryawanList.find(m => isNameMatch(rawNama, m.nama));
                         const wa = matched ? matched.wa : null;
-
-                        const d = { 
-                            NIK: row[col.nik]||'-', 
-                            NAMA: rawNama, 
-                            DIVISI: row[col.outlet]||'STAFF', 
-                            COUNTS: { lembur: countLembur, ot: countOT, pot_jam: countPotJam }, 
-                            INCOME: inc, DEDUCT: ded, 
-                            TOTAL_IN: total_in, TOTAL_OUT: total_out, THP: thp_system 
-                        };
+                        const d = { NIK: row[col.nik]||'-', NAMA: rawNama, DIVISI: row[col.outlet]||'STAFF', COUNTS: { lembur: countLembur, ot: countOT, pot_jam: countPotJam, absen: countAbsen }, INCOME: inc, DEDUCT: ded, TOTAL_IN: total_in, TOTAL_OUT: total_out, THP: thp_system };
                         const fmt = n => Number(n).toLocaleString('id-ID');
                         
-                        tbody.innerHTML += `<tr class="border-b transition ${rowClass}">
+                        tbody.innerHTML += `<tr class="border-b hover:bg-slate-50">
                             <td class="p-3">${wa?'<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">MATCH</span>':'<span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">NO HP</span>'}</td>
-                            <td class="p-3">
-                                <div class="font-bold text-slate-700 text-sm">${d.NAMA}</div>
-                                <div class="text-[10px] text-slate-400">${d.NIK}</div>
-                            </td>
+                            <td class="p-3"><div class="font-bold text-slate-700 text-sm">${d.NAMA}</div><div class="text-[10px] text-slate-400">${d.NIK}</div></td>
                             <td class="p-3 text-right text-green-700 text-xs font-mono">${fmt(d.TOTAL_IN)}</td>
                             <td class="p-3 text-right text-red-600 text-xs font-mono">(${fmt(d.TOTAL_OUT)})</td>
-                            <td class="p-3 text-right">
-                                <div class="font-bold text-blue-800 text-sm">${fmt(d.THP)}</div>
-                                ${alertHtml}
-                            </td>
-                            <td class="p-3 text-center sticky right-0 bg-white z-10">
-                                ${wa?`<button id="btn-${idx}" onclick='uploadAndSend(this, ${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'-'}
-                            </td>
+                            <td class="p-3 text-right"><div class="font-bold text-blue-800 text-sm">${fmt(d.THP)}</div></td>
+                            <td class="p-3 text-center sticky right-0 bg-white z-10">${wa?`<button id="btn-${idx}" onclick='uploadAndSend(this, ${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'-'}</td>
                         </tr>`;
                         processedCount++;
                     });
                     document.getElementById('process-count-badge').innerText = processedCount + " Karyawan";
-                    log(`Analisis selesai. ${processedCount} data diproses.`, 'success');
-
-                } catch(err) { 
-                    log("Fatal Error: "+err.message, 'error'); 
-                    alert("Gagal membaca file: " + err.message);
-                }
+                } catch(err) { alert("Error: " + err.message); }
                 showLoading(false);
             };
             reader.readAsBinaryString(file);
@@ -572,7 +508,11 @@
 
         // --- RENDER & SEND ---
         async function uploadAndSend(btn, data, waNumber) {
-            // UI Feedback (Bug #11 Fix)
+            if(!selectedHeaderImg) {
+                alert("Harap pilih Kop Surat terlebih dahulu di menu Pengaturan Kop Surat (Bagian 1).");
+                return;
+            }
+
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading`;
             btn.disabled = true;
@@ -584,73 +524,198 @@
             try {
                 const area = document.getElementById('render-area');
                 const fmt = n => Number(n).toLocaleString('id-ID');
-                const period = new Date().toLocaleDateString('id-ID',{month:'long',year:'numeric'}).toUpperCase();
+                const tglCetak = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
+                const periodeBulan = new Date().toLocaleDateString('id-ID', {month: 'long'}).toUpperCase();
                 
-                // Template Slip
+                // --- TEMPLATE BARU (SESUAI GAMBAR) ---
                 area.innerHTML = `
-                <div class="payslip-container">
-                    <div style="display:flex; justify-content:space-between; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
-                        <div>
-                            <h1 style="font-size: 24px; font-weight: bold; text-transform:uppercase;">SLIP GAJI</h1>
-                            <p>${data.DIVISI}</p>
-                        </div>
-                        <div style="text-align:right;">
-                            <p>PERIODE: ${period}</p>
-                            <p>NIK: ${data.NIK}</p>
-                        </div>
+                <div class="payslip-container" style="background:white; padding-bottom: 20px;">
+                    <div style="width:100%; margin-bottom: 0px;">
+                        <img src="${selectedHeaderImg}" style="width:100%; height:auto; display:block;">
                     </div>
-                    <div style="margin-bottom: 20px;">
-                        <table style="width:100%; font-size: 14px;">
-                            <tr><td style="width:100px;">NAMA</td><td>: <strong>${data.NAMA}</strong></td></tr>
+
+                    <div style="text-align:center; margin: 15px 0;">
+                        <h2 style="font-weight:bold; font-size:18px; margin:0; text-decoration: underline;">SLIP GAJI</h2>
+                    </div>
+
+                    <div style="padding: 0 40px; margin-bottom: 15px;">
+                        <table style="width:100%; font-size: 14px; border-collapse: collapse;">
+                            <tr>
+                                <td style="width: 100px; padding: 2px 0;">NIK</td>
+                                <td style="width: 10px;">:</td>
+                                <td style="font-weight: bold;">${data.NIK}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 2px 0;">NAMA</td>
+                                <td>:</td>
+                                <td style="font-weight: bold; text-transform: uppercase;">${data.NAMA}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 2px 0;">DIVISI</td>
+                                <td>:</td>
+                                <td style="font-weight: bold; text-transform: uppercase;">${data.DIVISI}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 2px 0;">PERIODE</td>
+                                <td>:</td>
+                                <td style="font-weight: bold; text-transform: uppercase;">${periodeBulan}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 2px 0;">HARI KERJA</td>
+                                <td>:</td>
+                                <td style="font-weight: bold;">25</td>
+                            </tr>
                         </table>
                     </div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                        <div>
-                            <h3 style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:10px;">PENDAPATAN</h3>
-                            <table style="width:100%; font-size:13px;">
-                                <tr><td style="padding:4px 0;">GAJI POKOK</td><td style="text-align:right;">${fmt(data.INCOME.gp)}</td></tr>
-                                ${data.INCOME.tunj ? `<tr><td style="padding:4px 0;">TUNJANGAN</td><td style="text-align:right;">${fmt(data.INCOME.tunj)}</td></tr>`:''}
-                                ${data.INCOME.omset ? `<tr><td style="padding:4px 0;">BONUS OMSET</td><td style="text-align:right;">${fmt(data.INCOME.omset)}</td></tr>`:''}
-                                ${data.INCOME.kinerja ? `<tr><td style="padding:4px 0;">BONUS KINERJA</td><td style="text-align:right;">${fmt(data.INCOME.kinerja)}</td></tr>`:''}
-                                ${data.INCOME.like ? `<tr><td style="padding:4px 0;">BONUS LIKE</td><td style="text-align:right;">${fmt(data.INCOME.like)}</td></tr>`:''}
-                                ${data.INCOME.lembur ? `<tr><td style="padding:4px 0;">LEMBUR HARIAN ${data.COUNTS.lembur>0?`(${data.COUNTS.lembur} Hr)`:''}</td><td style="text-align:right;">${fmt(data.INCOME.lembur)}</td></tr>`:''}
-                                ${data.INCOME.ot ? `<tr><td style="padding:4px 0;">OVERTIME ${data.COUNTS.ot>0?`(${data.COUNTS.ot} Jam)`:''}</td><td style="text-align:right;">${fmt(data.INCOME.ot)}</td></tr>`:''}
-                                ${data.INCOME.kebijakan ? `<tr><td style="padding:4px 0;">KEBIJAKAN</td><td style="text-align:right;">${fmt(data.INCOME.kebijakan)}</td></tr>`:''}
-                                <tr style="font-weight:bold; border-top:1px dashed #999;"><td style="padding-top:10px;">TOTAL INCOME</td><td style="text-align:right; padding-top:10px;">${fmt(data.TOTAL_IN)}</td></tr>
-                            </table>
-                        </div>
-                        <div>
-                            <h3 style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:10px;">POTONGAN</h3>
-                            <table style="width:100%; font-size:13px;">
-                                ${data.DEDUCT.absen ? `<tr><td style="padding:4px 0;">ABSEN</td><td style="text-align:right;">${fmt(data.DEDUCT.absen)}</td></tr>`:''}
-                                ${data.DEDUCT.weekend ? `<tr><td style="padding:4px 0;">POTONGAN WEEKEND</td><td style="text-align:right;">${fmt(data.DEDUCT.weekend)}</td></tr>`:''}
-                                ${data.DEDUCT.pot_jam ? `<tr><td style="padding:4px 0;">POTONGAN JAM ${data.COUNTS.pot_jam>0?`(${data.COUNTS.pot_jam} Jam)`:''}</td><td style="text-align:right;">${fmt(data.DEDUCT.pot_jam)}</td></tr>`:''}
-                                ${data.DEDUCT.bpjs_kes ? `<tr><td style="padding:4px 0;">BPJS KES</td><td style="text-align:right;">${fmt(data.DEDUCT.bpjs_kes)}</td></tr>`:''}
-                                ${data.DEDUCT.bpjs_tk ? `<tr><td style="padding:4px 0;">BPJS TK</td><td style="text-align:right;">${fmt(data.DEDUCT.bpjs_tk)}</td></tr>`:''}
-                                <tr style="font-weight:bold; border-top:1px dashed #999;"><td style="padding-top:10px;">TOTAL POTONGAN</td><td style="text-align:right; padding-top:10px;">${fmt(data.TOTAL_OUT)}</td></tr>
-                            </table>
-                        </div>
+
+                    <div style="padding: 0 40px;">
+                        <table style="width:100%; font-size: 14px; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 4px 0;">GAJI POKOK</td>
+                                <td style="text-align:center;"></td>
+                                <td style="width: 20px;">:</td>
+                                <td style="width: 30px;">Rp</td>
+                                <td style="text-align:right;">${fmt(data.INCOME.gp)}</td>
+                            </tr>
+                            ${data.INCOME.ot > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">OVERTIME MALAM</td>
+                                <td style="text-align:center;">${data.COUNTS.ot} JAM</td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.INCOME.ot)}</td>
+                            </tr>` : ''}
+                            ${data.INCOME.lembur > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">LEMBUR HARIAN</td>
+                                <td style="text-align:center;">${data.COUNTS.lembur} HARI</td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.INCOME.lembur)}</td>
+                            </tr>` : ''}
+                            ${data.INCOME.kebijakan > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">KEBIJAKAN KINERJA</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.INCOME.kebijakan)}</td>
+                            </tr>` : ''}
+                            ${data.INCOME.omset > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">BONUS OMSET</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.INCOME.omset)}</td>
+                            </tr>` : ''}
+                            ${data.INCOME.kinerja > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">BONUS KINERJA</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.INCOME.kinerja)}</td>
+                            </tr>` : ''}
+                            ${data.INCOME.like > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">BONUS LIKE KOMENT</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.INCOME.like)}</td>
+                            </tr>` : ''}
+                            ${data.INCOME.tunj > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">TUNJANGAN JABATAN</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.INCOME.tunj)}</td>
+                            </tr>` : ''}
+
+                            <tr style="font-weight: bold;">
+                                <td style="padding: 15px 0 5px 0;">GAJI KOTOR</td>
+                                <td></td>
+                                <td style="padding-top:10px;">:</td>
+                                <td style="padding-top:10px;">Rp</td>
+                                <td style="text-align:right; padding-top:10px;">${fmt(data.TOTAL_IN)}</td>
+                            </tr>
+                            <tr><td colspan="5" style="border-bottom: 1px solid #000;"></td></tr>
+                            <tr><td colspan="5" style="height: 10px;"></td></tr>
+
+                            ${data.DEDUCT.absen > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">POTONGAN ABSEN</td>
+                                <td style="text-align:center;">${data.COUNTS.absen || 1} HARI</td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.DEDUCT.absen)}</td>
+                            </tr>` : ''}
+                            ${data.DEDUCT.weekend > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">POTONGAN HARI BESAR/WEEKEND</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.DEDUCT.weekend)}</td>
+                            </tr>` : ''}
+                            ${data.DEDUCT.pot_jam > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">POTONGAN JAM</td>
+                                <td style="text-align:center;">${data.COUNTS.pot_jam} JAM</td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.DEDUCT.pot_jam)}</td>
+                            </tr>` : ''}
+                            ${data.DEDUCT.bpjs_kes > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">POTONGAN BPJS KESEHATAN</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.DEDUCT.bpjs_kes)}</td>
+                            </tr>` : ''}
+                            ${data.DEDUCT.bpjs_tk > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0;">POTONGAN BPJS KETENAGAKERJAAN</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right;">${fmt(data.DEDUCT.bpjs_tk)}</td>
+                            </tr>` : ''}
+
+                            <tr><td colspan="5" style="height: 10px; border-bottom: 2px solid #000;"></td></tr>
+                            
+                            <tr style="font-weight: bold; background-color: #ffff00;">
+                                <td style="padding: 8px 0 8px 5px;">GAJI BERSIH</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
+                                <td style="text-align:right; padding-right:5px;">${fmt(data.THP)}</td>
+                            </tr>
+                            <tr><td colspan="5" style="border-top: 2px solid #000;"></td></tr>
+                        </table>
                     </div>
-                    <div style="margin-top: 30px; border: 2px solid #000; padding: 15px; text-align:center;">
-                        <p style="font-size:14px; margin-bottom:5px;">TAKE HOME PAY</p>
-                        <h2 style="font-size:28px; font-weight:bold; margin:0;">Rp ${fmt(data.THP)}</h2>
-                    </div>
-                    <div style="margin-top:20px; text-align:right; font-size:12px; font-style:italic;">
-                        <p>Salatiga, ${new Date().toLocaleDateString('id-ID')}</p>
-                        <p style="margin-top:40px;">( HRD )</p>
+
+                    <div style="margin-top: 30px; display: flex; justify-content: flex-end; padding-right: 40px; font-size: 14px;">
+                        <div style="text-align: center;">
+                            <p>Salatiga, ${tglCetak}</p>
+                            <br><br><br><br>
+                            <p style="font-weight: bold; text-decoration: underline;">RYAN INDRA SETYAWAN</p>
+                        </div>
                     </div>
                 </div>`;
 
-                const canvas = await html2canvas(area.querySelector('.payslip-container'), {scale: 1.5});
+                // --- GENERATE IMAGE ---
+                const canvas = await html2canvas(area.querySelector('.payslip-container'), {scale: 1.5, useCORS: true});
                 canvas.toBlob(async (blob) => {
                     const fname = `slip_${data.NAMA.replace(/\s/g,'_')}_${Date.now()}.jpg`;
                     const snap = await storage.ref().child('slips/'+fname).put(blob);
                     const url = await snap.ref.getDownloadURL();
                     const msg = `Halo ${data.NAMA},\nBerikut Slip Gaji periode ini.\n\n*Total Diterima: Rp ${fmt(data.THP)}*\n\nUnduh Slip: ${url}`;
-                    
                     window.open(`https://wa.me/${formattedWa}?text=${encodeURIComponent(msg)}`, '_blank');
                     
-                    // Reset Button
                     btn.innerHTML = `<i class="fas fa-check"></i> Terkirim`;
                     btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
                     btn.classList.add('bg-green-600', 'hover:bg-green-700');

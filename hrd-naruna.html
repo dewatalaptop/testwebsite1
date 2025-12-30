@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dolan Payroll - V6 (Custom Header)</title>
+    <title>Dolan Payroll - V7 (Fixed Layout)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,13 +27,13 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        /* Render Container diperbaiki agar sesuai ukuran kertas A4/Struk dan Font Arial */
+        /* Render Container Styles - Dibuat Fixed Width agar hasil konsisten */
         .payslip-container { 
-            width: 800px; /* Resolusi tinggi untuk html2canvas */
+            width: 800px; 
             background: white; 
-            padding: 0; /* Padding diatur di dalam elemen */
-            font-family: Arial, Helvetica, sans-serif; /* Sesuai gambar referensi */
+            font-family: Arial, Helvetica, sans-serif; /* Font sesuai Excel */
             color: #000;
+            line-height: 1.3;
         }
         
         #render-area {
@@ -53,7 +53,6 @@
         .log-err { color: #f87171; background: rgba(254,226,226,0.1); }
         .log-success { color: #4ade80; }
         
-        /* Style untuk pilihan Kop */
         .kop-item { border: 2px solid transparent; transition: all 0.2s; }
         .kop-item.active { border-color: #3b82f6; background-color: #eff6ff; }
     </style>
@@ -69,8 +68,8 @@
         <div class="bg-white p-8 rounded-2xl w-full max-w-md shadow-2xl border-t-4 border-blue-600">
             <div class="text-center mb-8">
                 <i class="fas fa-shield-alt text-4xl text-blue-600 mb-2"></i>
-                <h2 class="text-2xl font-bold text-slate-800">Payroll V6</h2>
-                <p class="text-slate-500 text-sm">Custom Header & Layout</p>
+                <h2 class="text-2xl font-bold text-slate-800">Payroll V7</h2>
+                <p class="text-slate-500 text-sm">Exact Layout Replica</p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <input id="email" type="email" class="w-full border border-slate-300 p-3 rounded-lg mb-4" placeholder="Email Admin" required>
@@ -83,7 +82,7 @@
     <div id="app-section" class="hidden min-h-screen flex flex-col pb-20">
         <nav class="bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex justify-between items-center shadow-sm sticky top-0 z-40">
             <div class="flex items-center gap-2">
-                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V6</div>
+                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V7</div>
                 <span class="font-bold text-slate-800 text-lg">Dolan Payroll</span>
             </div>
             <div class="flex gap-3">
@@ -120,7 +119,6 @@
                                 <input type="file" id="header-upload" accept="image/*" class="hidden" onchange="handleHeaderUpload(this)"/>
                             </div>
                         </label>
-                        
                         <div class="border border-slate-200 rounded-lg p-2 bg-slate-50 flex flex-col">
                             <span class="text-xs font-bold text-slate-500 mb-2 uppercase">Kop Aktif Saat Ini:</span>
                             <div id="active-header-preview" class="flex-1 bg-white border border-slate-300 rounded flex items-center justify-center overflow-hidden relative">
@@ -128,11 +126,9 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="mt-4">
                         <h3 class="text-sm font-bold text-slate-700 mb-2">Galeri Kop Tersimpan</h3>
-                        <div id="header-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            </div>
+                        <div id="header-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
                         <button onclick="clearHeaderGallery()" class="mt-4 text-xs text-red-500 hover:text-red-700 underline">Hapus Semua Kop</button>
                     </div>
                 </div>
@@ -199,7 +195,7 @@
                                         <th class="p-3">Karyawan</th>
                                         <th class="p-3 text-right">Income</th>
                                         <th class="p-3 text-right">Potongan</th>
-                                        <th class="p-3 text-right font-bold bg-slate-700">THP (System)</th>
+                                        <th class="p-3 text-right font-bold bg-slate-700">THP</th>
                                         <th class="p-3 text-center sticky right-0 bg-slate-800 z-10">Aksi</th>
                                     </tr>
                                 </thead>
@@ -224,69 +220,52 @@
     <div id="render-area"></div>
 
     <script>
-        // --- KONFIGURASI FIREBASE ---
+        // --- FIREBASE CONFIG (Tetap sama) ---
         const firebaseConfig = { apiKey: "AIzaSyAecwXgmT8rMGw1LpXKTS3xX-2YPcDlZZw", authDomain: "naruna-payroll.firebaseapp.com", projectId: "naruna-payroll", storageBucket: "naruna-payroll.firebasestorage.app", messagingSenderId: "209087490496", appId: "1:209087490496:web:f632b7a1cc3fa9166f4025" };
-        
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const auth = firebase.auth(); 
-        const db = firebase.firestore(); 
-        const storage = firebase.storage();
+        const auth = firebase.auth(); const db = firebase.firestore(); const storage = firebase.storage();
         
         let masterKaryawanList = [];
-        let selectedHeaderImg = null; // Menyimpan Base64 kop yang aktif
+        let selectedHeaderImg = null; 
 
         // --- MANAJEMEN KOP SURAT ---
-        
         function initHeaderSystem() {
             const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
             const activeIndex = localStorage.getItem('activeHeaderIndex');
             renderHeaderGallery(savedHeaders, activeIndex);
-            
-            // Set active if exists
             if (activeIndex !== null && savedHeaders[activeIndex]) {
                 selectedHeaderImg = savedHeaders[activeIndex];
                 updateActivePreview(selectedHeaderImg);
             }
         }
-
         function handleHeaderUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
-
+            const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64 = e.target.result;
                 const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
                 savedHeaders.push(base64);
                 localStorage.setItem('savedHeaders', JSON.stringify(savedHeaders));
-                
-                // Auto select new
                 const newIndex = savedHeaders.length - 1;
                 localStorage.setItem('activeHeaderIndex', newIndex);
                 selectedHeaderImg = base64;
-                
                 renderHeaderGallery(savedHeaders, newIndex);
                 updateActivePreview(base64);
-                alert("Kop surat berhasil ditambahkan!");
             };
             reader.readAsDataURL(file);
         }
-
         function renderHeaderGallery(headers, activeIndex) {
             const gallery = document.getElementById('header-gallery');
             gallery.innerHTML = '';
-            
             headers.forEach((imgSrc, idx) => {
                 const isActive = idx == activeIndex;
                 const div = document.createElement('div');
                 div.className = `kop-item relative h-20 bg-slate-100 rounded cursor-pointer overflow-hidden ${isActive ? 'active' : ''}`;
                 div.onclick = () => selectHeader(idx);
-                div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover" />
-                                 ${isActive ? '<div class="absolute bottom-0 right-0 bg-blue-600 text-white text-[10px] px-1 font-bold">AKTIF</div>' : ''}`;
+                div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover" />${isActive ? '<div class="absolute bottom-0 right-0 bg-blue-600 text-white text-[10px] px-1 font-bold">AKTIF</div>' : ''}`;
                 gallery.appendChild(div);
             });
         }
-
         function selectHeader(index) {
             const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
             if (savedHeaders[index]) {
@@ -296,61 +275,36 @@
                 updateActivePreview(selectedHeaderImg);
             }
         }
-
-        function updateActivePreview(src) {
-            const preview = document.getElementById('active-header-preview');
-            preview.innerHTML = `<img src="${src}" class="w-full h-auto" />`;
-        }
-
+        function updateActivePreview(src) { document.getElementById('active-header-preview').innerHTML = `<img src="${src}" class="w-full h-auto" />`; }
         function clearHeaderGallery() {
             if(confirm("Hapus semua kop tersimpan?")) {
-                localStorage.removeItem('savedHeaders');
-                localStorage.removeItem('activeHeaderIndex');
+                localStorage.removeItem('savedHeaders'); localStorage.removeItem('activeHeaderIndex');
                 selectedHeaderImg = null;
                 document.getElementById('header-gallery').innerHTML = '';
                 document.getElementById('active-header-preview').innerHTML = '<span class="text-xs text-slate-400 italic">Belum ada kop dipilih</span>';
             }
         }
 
-        // --- UTILITIES ---
-        function log(msg, type='info') {
-            const box = document.getElementById('console-body');
-            const cl = type=='error'?'log-err':(type=='success'?'log-success':'');
-            if(box.childElementCount > 50) box.removeChild(box.firstChild);
-            box.innerHTML += `<div class="log-entry ${cl}"><span class="opacity-50">[${new Date().toLocaleTimeString()}]</span> ${typeof msg==='object'?JSON.stringify(msg):msg}</div>`;
-            box.scrollTop = box.scrollHeight;
-            if(type=='error') document.getElementById('debug-console').classList.add('open');
-        }
-
+        // --- UTILS & CORE ---
         function toggleSection(id) {
-            const el = document.getElementById(id);
-            const icon = document.getElementById('icon-'+id);
-            if(!el || !icon) return;
+            const el = document.getElementById(id); const icon = document.getElementById('icon-'+id);
+            if(!el) return;
             if(el.classList.contains('hidden')) { el.classList.remove('hidden'); icon.style.transform = 'rotate(180deg)'; } 
             else { el.classList.add('hidden'); icon.style.transform = 'rotate(0deg)'; }
         }
-
         function toggleConsole() { document.getElementById('debug-console').classList.toggle('open'); }
-        function showLoading(show, text="Processing...") {
-            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
-            document.getElementById('loading-text').innerText = text;
-        }
-
+        function showLoading(show, text="Processing...") { document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none'; document.getElementById('loading-text').innerText = text; }
+        
         function cleanNum(raw) { 
             if(raw === null || raw === undefined || raw === '') return 0;
             if (typeof raw === 'number') return raw;
             let s = String(raw).trim();
             let isNegative = s.startsWith('-') || (s.startsWith('(') && s.endsWith(')'));
             s = s.replace(/[^0-9.,]/g, '');
-            const hasDot = s.includes('.');
-            const hasComma = s.includes(',');
-            if (hasDot && hasComma) {
-                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, '');
-                else s = s.replace(/\./g, '').replace(',', '.');
-            } else if (hasDot) {
-                if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
-                else { const parts = s.split('.'); if (parts[1].length === 3) s = s.replace(/\./g, ''); }
-            } else if (hasComma) s = s.replace(',', '.');
+            const hasDot = s.includes('.'); const hasComma = s.includes(',');
+            if (hasDot && hasComma) { if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); else s = s.replace(/\./g, '').replace(',', '.'); }
+            else if (hasDot) { if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, ''); else { const parts = s.split('.'); if (parts[1].length === 3) s = s.replace(/\./g, ''); } }
+            else if (hasComma) s = s.replace(',', '.');
             let val = parseFloat(s);
             if (isNaN(val)) return 0;
             return isNegative ? -val : val;
@@ -358,26 +312,23 @@
 
         function isNameMatch(excelName, masterName) {
             const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
-            const n1 = normalize(excelName);
-            const n2 = normalize(masterName);
+            const n1 = normalize(excelName); const n2 = normalize(masterName);
             if (!n1 || !n2) return false;
             if (n1 === n2 || n1.includes(n2) || n2.includes(n1)) return true;
-            const t1 = n1.split(/\s+/);
-            const t2 = n2.split(/\s+/);
-            let matches = 0;
-            const minLen = Math.min(t1.length, t2.length);
+            const t1 = n1.split(/\s+/); const t2 = n2.split(/\s+/);
+            let matches = 0; const minLen = Math.min(t1.length, t2.length);
             for (let t of t1) { if (t2.some(x => x.startsWith(t) || t.startsWith(x))) matches++; }
             return (matches / minLen) >= 0.75;
         }
 
-        // --- AUTH & LOAD ---
+        // --- AUTH & DATA LOAD ---
         auth.onAuthStateChanged(u => {
             if(u) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('app-section').classList.remove('hidden');
                 loadData();
-                initHeaderSystem(); // Load Header System
-                toggleSection('header-content'); // Buka menu kop by default
+                initHeaderSystem();
+                toggleSection('header-content');
             } else {
                 document.getElementById('login-section').classList.remove('hidden');
                 document.getElementById('app-section').classList.add('hidden');
@@ -392,7 +343,8 @@
                 document.getElementById('master-count').innerText = masterKaryawanList.length;
             });
         }
-
+        
+        // --- UPLOAD EXCEL LOGIC ---
         document.getElementById('master-excel-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
             showLoading(true, "Updating Master...");
@@ -401,7 +353,7 @@
                 try {
                     const wb = XLSX.read(evt.target.result, {type:'binary'});
                     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    let batch = db.batch(); let count = 0; let successCount = 0;
+                    let batch = db.batch(); let count = 0;
                     for(let row of rows) {
                         const k = Object.keys(row);
                         const nm = k.find(x=>x.toUpperCase().includes('NAMA'));
@@ -414,11 +366,11 @@
                             const ref = db.collection('karyawan').doc(id);
                             batch.set(ref, { nama: rawName, wa: rawWa }, {merge: true});
                             count++; 
-                            if(count >= 400){ await batch.commit(); successCount += count; batch = db.batch(); count = 0; }
+                            if(count >= 400){ await batch.commit(); batch = db.batch(); count = 0; }
                         }
                     }
-                    if(count > 0) { await batch.commit(); successCount += count; }
-                    alert(`Berhasil update ${successCount} kontak.`);
+                    if(count > 0) await batch.commit();
+                    alert(`Berhasil update master.`);
                     toggleSection('master-content');
                 } catch(e) { alert("Gagal proses file"); }
                 showLoading(false);
@@ -426,7 +378,6 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- MAIN LOGIC ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
             showLoading(true, "Menganalisa File...");
@@ -452,8 +403,7 @@
                         gp: getCol(["GAJI POKOK"]), tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]), omset: getCol(["BONUS OMSET", "OMSET"]), 
                         kinerja: getCol(["BONUS KINERJA", "KINERJA"]), like: getCol(["LIKE KOMEN", "BONUS LIKE"]), lembur: getCol(["LEMBUR HARIAN"]), 
                         ot: getCol(["OVERTIME"]), kebijakan: getCol(["KEBIJAKAN"]), absen: getCol(["POTONGAN ABSEN"]), bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]), 
-                        bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]), weekend: getCol(["WEEKEND", "HARI BESAR"]), pot_jam: getCol(["POTONGAN JAM"]), 
-                        thp_excel: getCol(["DITERIMA", "THP", "TOTAL GAJI"]) 
+                        bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]), weekend: getCol(["WEEKEND", "HARI BESAR"]), pot_jam: getCol(["POTONGAN JAM"]) 
                     };
 
                     const tbody = document.getElementById('payroll-table-body');
@@ -468,15 +418,18 @@
                         if(rawNama.length < 2 || /TOTAL|SUBTOTAL/i.test(rawNama)) return;
 
                         const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0;
+                        
                         let rawLembur = v(col.lembur), valLembur = rawLembur, countLembur = 0;
                         if(rawLembur > 0 && rawLembur <= 31) { valLembur = rawLembur * 40000; countLembur = rawLembur; }
+                        
                         let rawOT = v(col.ot), valOT = rawOT, countOT = 0;
                         if(rawOT > 0 && rawOT < 100) { valOT = rawOT * 5000; countOT = rawOT; }
+                        
                         let rawPotJam = v(col.pot_jam), valPotJam = rawPotJam, countPotJam = 0;
                         if(rawPotJam > 0 && rawPotJam < 100) { valPotJam = rawPotJam * 5000; countPotJam = rawPotJam; }
+                        
                         let rawAbsen = v(col.absen), valAbsen = rawAbsen, countAbsen = 0;
-                        // Asumsi potongan absen
-                        if(rawAbsen > 0 && rawAbsen < 31) { countAbsen = rawAbsen; valAbsen = rawAbsen * 72000; } // Default rate jika terdeteksi hari
+                        if(rawAbsen > 0 && rawAbsen < 31) { countAbsen = rawAbsen; valAbsen = rawAbsen * 72000; }
 
                         const inc = { gp: v(col.gp), tunj: v(col.tunj), omset: v(col.omset), kinerja: v(col.kinerja), like: v(col.like), lembur: valLembur, ot: valOT, kebijakan: v(col.kebijakan) };
                         const ded = { absen: valAbsen, bpjs_kes: v(col.bpjs_kes), bpjs_tk: v(col.bpjs_tk), weekend: v(col.weekend), pot_jam: valPotJam };
@@ -495,7 +448,7 @@
                             <td class="p-3 text-right text-green-700 text-xs font-mono">${fmt(d.TOTAL_IN)}</td>
                             <td class="p-3 text-right text-red-600 text-xs font-mono">(${fmt(d.TOTAL_OUT)})</td>
                             <td class="p-3 text-right"><div class="font-bold text-blue-800 text-sm">${fmt(d.THP)}</div></td>
-                            <td class="p-3 text-center sticky right-0 bg-white z-10">${wa?`<button id="btn-${idx}" onclick='uploadAndSend(this, ${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'-'}</td>
+                            <td class="p-3 text-center sticky right-0 bg-white z-10">${wa?`<button onclick='uploadAndSend(this, ${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'-'}</td>
                         </tr>`;
                         processedCount++;
                     });
@@ -506,39 +459,39 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- RENDER & SEND ---
+        // --- RENDER & SEND (REVISI V7: FIXED LAYOUT) ---
         async function uploadAndSend(btn, data, waNumber) {
-            if(!selectedHeaderImg) {
-                alert("Harap pilih Kop Surat terlebih dahulu di menu Pengaturan Kop Surat (Bagian 1).");
-                return;
-            }
-
+            if(!selectedHeaderImg) { alert("Harap pilih Kop Surat terlebih dahulu di menu Pengaturan Kop Surat."); return; }
             const originalText = btn.innerHTML;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading`;
-            btn.disabled = true;
-            
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading`; btn.disabled = true;
             showLoading(true, `Menyiapkan slip ${data.NAMA}...`);
             let formattedWa = String(waNumber).replace(/[^0-9]/g, '');
             if (formattedWa.startsWith('0')) formattedWa = '62' + formattedWa.slice(1);
 
             try {
                 const area = document.getElementById('render-area');
-                const fmt = n => Number(n).toLocaleString('id-ID');
+                const fmt = (n) => n > 0 ? Number(n).toLocaleString('id-ID') : '-';
+                // Helper khusus untuk kolom nilai: Jika 0 maka align right tapi isi '-'
+                const fmtVal = (n) => `<td style="text-align:right;">${fmt(n)}</td>`;
+                // Helper untuk jam/hari: jika 0 tetap tampil "0 JAM" atau "0 HARI" sesuai gambar
+                const fmtCount = (n, unit) => `<td style="text-align:center;">${n} ${unit}</td>`;
+                
                 const tglCetak = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
                 const periodeBulan = new Date().toLocaleDateString('id-ID', {month: 'long'}).toUpperCase();
                 
-                // --- TEMPLATE BARU (SESUAI GAMBAR) ---
+                // HTML Template yang diperbaiki agar Static Table (Grid Like)
                 area.innerHTML = `
-                <div class="payslip-container" style="background:white; padding-bottom: 20px;">
-                    <div style="width:100%; margin-bottom: 0px;">
+                <div class="payslip-container" style="background:white; padding-bottom: 20px; width: 800px; font-family: Arial, Helvetica, sans-serif;">
+                    
+                    <div style="width:100%;">
                         <img src="${selectedHeaderImg}" style="width:100%; height:auto; display:block;">
                     </div>
 
-                    <div style="text-align:center; margin: 15px 0;">
-                        <h2 style="font-weight:bold; font-size:18px; margin:0; text-decoration: underline;">SLIP GAJI</h2>
+                    <div style="text-align:center; margin-top: 10px; margin-bottom: 5px;">
+                        <h2 style="font-weight:bold; font-size:16px; margin:0;">SLIP GAJI</h2>
                     </div>
 
-                    <div style="padding: 0 40px; margin-bottom: 15px;">
+                    <div style="padding: 0 30px; margin-bottom: 10px;">
                         <table style="width:100%; font-size: 14px; border-collapse: collapse;">
                             <tr>
                                 <td style="width: 100px; padding: 2px 0;">NIK</td>
@@ -568,125 +521,121 @@
                         </table>
                     </div>
 
-                    <div style="padding: 0 40px;">
+                    <div style="padding: 0 30px;">
                         <table style="width:100%; font-size: 14px; border-collapse: collapse;">
+                            <tr style="height:0px; visibility:hidden;">
+                                <td style="width:40%;"></td>
+                                <td style="width:20%;"></td>
+                                <td style="width:2%;"></td>
+                                <td style="width:5%;"></td>
+                                <td style="width:33%;"></td>
+                            </tr>
+
                             <tr>
-                                <td style="padding: 4px 0;">GAJI POKOK</td>
-                                <td style="text-align:center;"></td>
-                                <td style="width: 20px;">:</td>
-                                <td style="width: 30px;">Rp</td>
+                                <td style="padding: 3px 0;">GAJI POKOK</td>
+                                <td></td>
+                                <td>:</td>
+                                <td>Rp</td>
                                 <td style="text-align:right;">${fmt(data.INCOME.gp)}</td>
                             </tr>
-                            ${data.INCOME.ot > 0 ? `
                             <tr>
-                                <td style="padding: 4px 0;">OVERTIME MALAM</td>
-                                <td style="text-align:center;">${data.COUNTS.ot} JAM</td>
+                                <td style="padding: 3px 0;">OVERTIME MALAM</td>
+                                ${fmtCount(data.COUNTS.ot, 'JAM')}
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.INCOME.ot)}</td>
-                            </tr>` : ''}
-                            ${data.INCOME.lembur > 0 ? `
+                                ${fmtVal(data.INCOME.ot)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">LEMBUR HARIAN</td>
-                                <td style="text-align:center;">${data.COUNTS.lembur} HARI</td>
+                                <td style="padding: 3px 0;">LEMBUR HARIAN</td>
+                                ${fmtCount(data.COUNTS.lembur, 'HARI')}
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.INCOME.lembur)}</td>
-                            </tr>` : ''}
-                            ${data.INCOME.kebijakan > 0 ? `
+                                ${fmtVal(data.INCOME.lembur)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">KEBIJAKAN KINERJA</td>
+                                <td style="padding: 3px 0;">KEBIJAKAN KINERJA</td>
                                 <td></td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.INCOME.kebijakan)}</td>
-                            </tr>` : ''}
-                            ${data.INCOME.omset > 0 ? `
+                                ${fmtVal(data.INCOME.kebijakan)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">BONUS OMSET</td>
+                                <td style="padding: 3px 0;">BONUS OMSET</td>
                                 <td></td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.INCOME.omset)}</td>
-                            </tr>` : ''}
-                            ${data.INCOME.kinerja > 0 ? `
+                                ${fmtVal(data.INCOME.omset)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">BONUS KINERJA</td>
+                                <td style="padding: 3px 0;">BONUS KINERJA</td>
                                 <td></td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.INCOME.kinerja)}</td>
-                            </tr>` : ''}
-                            ${data.INCOME.like > 0 ? `
+                                ${fmtVal(data.INCOME.kinerja)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">BONUS LIKE KOMENT</td>
+                                <td style="padding: 3px 0;">BONUS LIKE KOMENT</td>
                                 <td></td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.INCOME.like)}</td>
-                            </tr>` : ''}
-                            ${data.INCOME.tunj > 0 ? `
+                                ${fmtVal(data.INCOME.like)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">TUNJANGAN JABATAN</td>
+                                <td style="padding: 3px 0;">TUNJANGAN JABATAN</td>
                                 <td></td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.INCOME.tunj)}</td>
-                            </tr>` : ''}
+                                ${fmtVal(data.INCOME.tunj)}
+                            </tr>
 
+                            <tr><td colspan="5" style="border-bottom: 1px solid #ccc; padding: 5px 0;"></td></tr>
                             <tr style="font-weight: bold;">
-                                <td style="padding: 15px 0 5px 0;">GAJI KOTOR</td>
+                                <td style="padding: 10px 0 5px 0;">GAJI KOTOR</td>
                                 <td></td>
                                 <td style="padding-top:10px;">:</td>
                                 <td style="padding-top:10px;">Rp</td>
                                 <td style="text-align:right; padding-top:10px;">${fmt(data.TOTAL_IN)}</td>
                             </tr>
-                            <tr><td colspan="5" style="border-bottom: 1px solid #000;"></td></tr>
-                            <tr><td colspan="5" style="height: 10px;"></td></tr>
+                            <tr><td colspan="5" style="height: 15px;"></td></tr>
 
-                            ${data.DEDUCT.absen > 0 ? `
                             <tr>
-                                <td style="padding: 4px 0;">POTONGAN ABSEN</td>
-                                <td style="text-align:center;">${data.COUNTS.absen || 1} HARI</td>
+                                <td style="padding: 3px 0;">POTONGAN ABSEN</td>
+                                <td style="text-align:center;">${data.COUNTS.absen || 0} HARI</td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.DEDUCT.absen)}</td>
-                            </tr>` : ''}
-                            ${data.DEDUCT.weekend > 0 ? `
+                                ${fmtVal(data.DEDUCT.absen)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">POTONGAN HARI BESAR/WEEKEND</td>
+                                <td style="padding: 3px 0;">POTONGAN HARI BESAR/WEEKEND</td>
                                 <td></td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.DEDUCT.weekend)}</td>
-                            </tr>` : ''}
-                            ${data.DEDUCT.pot_jam > 0 ? `
+                                ${fmtVal(data.DEDUCT.weekend)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">POTONGAN JAM</td>
-                                <td style="text-align:center;">${data.COUNTS.pot_jam} JAM</td>
+                                <td style="padding: 3px 0;">POTONGAN JAM</td>
+                                <td style="text-align:center;">${Number(data.COUNTS.pot_jam).toLocaleString('id-ID',{minimumFractionDigits:2})} JAM</td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.DEDUCT.pot_jam)}</td>
-                            </tr>` : ''}
-                            ${data.DEDUCT.bpjs_kes > 0 ? `
+                                ${fmtVal(data.DEDUCT.pot_jam)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">POTONGAN BPJS KESEHATAN</td>
+                                <td style="padding: 3px 0;">POTONGAN BPJS KESEHATAN</td>
                                 <td></td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.DEDUCT.bpjs_kes)}</td>
-                            </tr>` : ''}
-                            ${data.DEDUCT.bpjs_tk > 0 ? `
+                                ${fmtVal(data.DEDUCT.bpjs_kes)}
+                            </tr>
                             <tr>
-                                <td style="padding: 4px 0;">POTONGAN BPJS KETENAGAKERJAAN</td>
+                                <td style="padding: 3px 0;">POTONGAN BPJS KETENAGAKERJAAN</td>
                                 <td></td>
                                 <td>:</td>
                                 <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.DEDUCT.bpjs_tk)}</td>
-                            </tr>` : ''}
+                                ${fmtVal(data.DEDUCT.bpjs_tk)}
+                            </tr>
 
-                            <tr><td colspan="5" style="height: 10px; border-bottom: 2px solid #000;"></td></tr>
-                            
+                            <tr><td colspan="5" style="border-bottom: 2px solid #000; padding: 10px 0;"></td></tr>
+
                             <tr style="font-weight: bold; background-color: #ffff00;">
                                 <td style="padding: 8px 0 8px 5px;">GAJI BERSIH</td>
                                 <td></td>
@@ -698,16 +647,15 @@
                         </table>
                     </div>
 
-                    <div style="margin-top: 30px; display: flex; justify-content: flex-end; padding-right: 40px; font-size: 14px;">
-                        <div style="text-align: center;">
-                            <p>Salatiga, ${tglCetak}</p>
+                    <div style="margin-top: 30px; display: flex; justify-content: flex-end; padding-right: 30px; font-size: 14px;">
+                        <div style="text-align: left; min-width: 200px;">
+                            <p style="margin-bottom: 5px;">Salatiga, ${tglCetak}</p>
                             <br><br><br><br>
-                            <p style="font-weight: bold; text-decoration: underline;">RYAN INDRA SETYAWAN</p>
+                            <p style="font-weight: bold; text-decoration: underline; text-transform:uppercase;">${data.NAMA}</p>
                         </div>
                     </div>
                 </div>`;
 
-                // --- GENERATE IMAGE ---
                 const canvas = await html2canvas(area.querySelector('.payslip-container'), {scale: 1.5, useCORS: true});
                 canvas.toBlob(async (blob) => {
                     const fname = `slip_${data.NAMA.replace(/\s/g,'_')}_${Date.now()}.jpg`;
@@ -717,18 +665,11 @@
                     window.open(`https://wa.me/${formattedWa}?text=${encodeURIComponent(msg)}`, '_blank');
                     
                     btn.innerHTML = `<i class="fas fa-check"></i> Terkirim`;
-                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
-                    btn.disabled = false;
-                    showLoading(false);
+                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700'); btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    btn.disabled = false; showLoading(false);
                 }, 'image/jpeg', 0.85);
 
-            } catch(e) { 
-                alert("Gagal kirim: "+e.message); 
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                showLoading(false); 
-            }
+            } catch(e) { alert("Gagal kirim: "+e.message); btn.innerHTML = originalText; btn.disabled = false; showLoading(false); }
         }
     </script>
 </body>

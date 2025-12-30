@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dolan Payroll - V7 (Smart Diagnostic)</title>
+    <title>Dolan Payroll - V8 (Auto Register)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,41 +28,32 @@
         /* DIAGNOSTIC PANEL */
         #diagnostic-panel {
             position: fixed; bottom: 20px; right: 20px; width: 350px; 
-            background: #1e293b; color: #4ade80; border-radius: 10px; 
+            background: #0f172a; color: #4ade80; border-radius: 10px; 
             font-family: 'Courier New', monospace; font-size: 11px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 9999;
             display: flex; flex-direction: column; overflow: hidden;
             border: 1px solid #334155;
         }
         #log-content { height: 150px; overflow-y: auto; padding: 10px; border-bottom: 1px solid #334155; }
-        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #334155; padding-bottom: 2px; }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
         .log-err { color: #f87171; font-weight: bold; }
-        .log-warn { color: #fbbf24; }
-        .log-success { color: #4ade80; }
-        .log-info { color: #94a3b8; }
+        .log-success { color: #4ade80; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
 
     <div id="diagnostic-panel">
-        <div class="bg-slate-900 p-2 font-bold text-gray-400 flex justify-between items-center text-xs">
-            <span><i class="fas fa-bug"></i> SYSTEM MONITOR</span>
+        <div class="bg-slate-800 p-2 font-bold text-gray-400 flex justify-between items-center text-xs">
+            <span>SYSTEM MONITOR V8</span>
             <button onclick="clearLog()" class="hover:text-white">Clear</button>
         </div>
-        <div id="log-content">
-            <div class="log-info">System Ready...</div>
-        </div>
-        <div class="p-2 bg-slate-800">
-            <button onclick="copyReport()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded text-xs font-bold">
-                <i class="fas fa-copy"></i> COPY LAPORAN UNTUK DEVELOPER
-            </button>
-        </div>
+        <div id="log-content"><div class="text-gray-500">Menunggu aktivitas...</div></div>
     </div>
 
     <div id="login-section" class="min-h-screen flex items-center justify-center bg-slate-800">
         <div class="bg-white p-8 rounded-xl w-96 shadow-2xl">
-            <h2 class="text-2xl font-bold mb-6 text-center text-slate-700">Dolan Admin V7</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center text-slate-700">Login Admin</h2>
             <form onsubmit="handleLogin(event)">
                 <input id="email" class="w-full border p-3 rounded mb-3" placeholder="Email" required>
                 <input type="password" id="password" class="w-full border p-3 rounded mb-6" placeholder="Password" required>
@@ -73,10 +64,10 @@
 
     <div id="app-section" class="hidden min-h-screen flex flex-col">
         <nav class="bg-white border-b h-16 px-6 flex justify-between items-center shadow-sm sticky top-0 z-40">
-            <div class="font-bold text-lg text-slate-700"><i class="fas fa-chart-line text-blue-600"></i> Dolan<span class="text-blue-600">Payroll</span> Diagnostic</div>
+            <div class="font-bold text-lg text-slate-700"><i class="fas fa-check-circle text-green-600"></i> Dolan<span class="text-blue-600">Payroll</span> V8</div>
             <div class="flex gap-2 text-sm">
                 <button onclick="switchTab('payroll')" class="px-3 py-2 bg-blue-600 text-white rounded shadow">Gaji</button>
-                <button onclick="switchTab('karyawan')" class="px-3 py-2 bg-white border hover:bg-gray-50 rounded">Data Master</button>
+                <button onclick="switchTab('karyawan')" class="px-3 py-2 bg-white border hover:bg-gray-50 rounded">Master Data</button>
                 <button onclick="switchTab('outlet')" class="px-3 py-2 bg-white border hover:bg-gray-50 rounded">Outlet</button>
                 <button onclick="auth.signOut()" class="text-red-500 px-2"><i class="fas fa-power-off"></i></button>
             </div>
@@ -86,7 +77,9 @@
             
             <div id="tab-karyawan" class="tab-content hidden">
                 <div class="bg-white p-6 rounded-lg shadow border mb-6">
-                    <h2 class="font-bold text-lg mb-2">Sync Kontak HP</h2>
+                    <h2 class="font-bold text-lg mb-2">1. Upload Master Data (Wajib Pertama Kali)</h2>
+                    <p class="text-sm text-gray-500 mb-4">Upload file <b>NAMA NOMOR TELEPON.xlsx</b>. Sistem akan otomatis mendaftarkan karyawan baru.</p>
+                    
                     <div class="flex gap-3 mb-4">
                         <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded cursor-pointer text-sm font-bold flex items-center shadow">
                             <i class="fas fa-file-excel mr-2"></i> Upload File HP
@@ -94,9 +87,9 @@
                         </label>
                         <button onclick="openModal('modal-karyawan')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm">Input Manual</button>
                     </div>
-                    <div class="overflow-x-auto border rounded">
+                    <div class="overflow-x-auto border rounded max-h-[500px]">
                         <table class="w-full text-sm text-left">
-                            <thead class="bg-gray-50 text-gray-600 font-bold"><tr><th class="p-3">NIK</th><th class="p-3">Nama</th><th class="p-3">WhatsApp</th><th class="p-3">Aksi</th></tr></thead>
+                            <thead class="bg-gray-50 text-gray-600 font-bold sticky top-0"><tr><th class="p-3">NIK/NIP</th><th class="p-3">Nama</th><th class="p-3">WhatsApp</th><th class="p-3">Aksi</th></tr></thead>
                             <tbody id="table-karyawan-body" class="divide-y"></tbody>
                         </table>
                     </div>
@@ -110,23 +103,21 @@
 
             <div id="tab-payroll" class="tab-content">
                 <div class="bg-white p-6 rounded-lg shadow border mb-6">
-                    <h2 class="font-bold text-lg mb-2">Upload Gaji Bulanan</h2>
-                    <p class="text-sm text-gray-500 mb-4">Pastikan file memiliki kolom NIK. Sistem akan mencari header otomatis.</p>
+                    <h2 class="font-bold text-lg mb-2">2. Upload Gaji Bulanan</h2>
+                    <p class="text-sm text-gray-500 mb-4">Sistem akan membaca file <b>CONTOH GAJI.xlsx</b> dan mencocokkan dengan data Master.</p>
                     
                     <label class="border-2 border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 p-8 rounded-lg cursor-pointer flex flex-col items-center justify-center text-blue-700 transition mb-6">
                         <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
-                        <span class="font-bold">Klik Upload File Gaji (.xlsx)</span>
+                        <span class="font-bold">Klik Upload File Gaji</span>
                         <input type="file" id="payroll-file" accept=".xlsx,.xls" class="hidden">
                     </label>
 
                     <div id="payroll-result" class="hidden">
-                        <h3 class="font-bold text-gray-700 mb-2 border-b pb-2">Hasil Pembacaan</h3>
+                        <h3 class="font-bold text-gray-700 mb-2 border-b pb-2">Preview Hasil</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
                                 <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2">Status</th><th class="p-2">NIK</th><th class="p-2">Nama</th><th class="p-2">Outlet</th><th class="p-2 text-right">THP</th><th class="p-2">Aksi</th>
-                                    </tr>
+                                    <tr><th class="p-2">Status</th><th class="p-2">NIK</th><th class="p-2">Nama</th><th class="p-2">Outlet</th><th class="p-2 text-right">THP</th><th class="p-2">Aksi</th></tr>
                                 </thead>
                                 <tbody id="payroll-table-body" class="divide-y"></tbody>
                             </table>
@@ -142,77 +133,56 @@
     <div id="render-area" class="absolute left-[-9999px]"></div>
 
     <script>
-        // --- 0. SMART LOGGER ENGINE ---
-        let systemLogData = [];
+        // --- LOGIC START ---
         
+        // 1. LOGGER
         function log(msg, type='info') {
-            const timestamp = new Date().toLocaleTimeString();
-            systemLogData.push(`[${timestamp}] [${type.toUpperCase()}] ${msg}`);
-            
             const box = document.getElementById('log-content');
-            const cssClass = type === 'error' ? 'log-err' : (type === 'success' ? 'log-success' : (type==='warn'?'log-warn':'log-info'));
-            
-            const div = document.createElement('div');
-            div.className = `log-entry ${cssClass}`;
-            div.innerHTML = `[${timestamp}] ${msg}`;
-            box.appendChild(div);
+            const color = type=='error'?'log-err':(type=='success'?'log-success':'text-gray-300');
+            box.innerHTML += `<div class="log-entry ${color}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
             box.scrollTop = box.scrollHeight;
         }
+        function clearLog() { document.getElementById('log-content').innerHTML = ''; }
 
-        function clearLog() {
-            systemLogData = [];
-            document.getElementById('log-content').innerHTML = '';
-            log("Log dibersihkan.", "info");
-        }
-
-        function copyReport() {
-            const report = "=== LAPORAN DIAGNOSTIK DOLAN PAYROLL ===\n\n" + systemLogData.join('\n') + "\n\n=== END REPORT ===";
-            navigator.clipboard.writeText(report).then(() => {
-                alert("Laporan tersalin! Silakan Paste (Ctrl+V) ke WhatsApp developer.");
-            });
-        }
-
-        // --- 1. CONFIG ---
+        // 2. CONFIG
         const firebaseConfig = { apiKey: "AIzaSyAecwXgmT8rMGw1LpXKTS3xX-2YPcDlZZw", authDomain: "naruna-payroll.firebaseapp.com", projectId: "naruna-payroll", storageBucket: "naruna-payroll.firebasestorage.app", messagingSenderId: "209087490496", appId: "1:209087490496:web:f632b7a1cc3fa9166f4025" };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(); const db = firebase.firestore(); const storage = firebase.storage();
         let masterKaryawan = {}; let masterOutlet = {};
 
-        // --- 2. HELPERS ---
+        // 3. HELPERS
         function cleanStr(s) { return String(s||'').toLowerCase().replace(/[^a-z0-9]/g, ''); }
         function cleanPhone(p) { let s=String(p||'').replace(/[^0-9]/g,''); if(s.startsWith('08')) s='62'+s.slice(1); if(s.startsWith('8')) s='62'+s; return s; }
         function cleanNum(n) { if(!n) return 0; let s=String(n).replace(/Rp\.?/gi,'').replace(/\./g,'').replace(/,/g,'.').trim(); return parseInt(s)||0; }
 
-        // --- 3. AUTH & LOAD ---
+        // 4. AUTH & DATA LOAD
         auth.onAuthStateChanged(u => {
             if(u) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('app-section').classList.remove('hidden');
-                log(`Login berhasil sebagai ${u.email}`, "success");
-                loadData();
+                log("System Ready. Memuat database...", "success");
+                
+                db.collection('karyawan').onSnapshot(s => {
+                    const b = document.getElementById('table-karyawan-body'); b.innerHTML=''; masterKaryawan={};
+                    s.forEach(d => { const dt=d.data(); masterKaryawan[cleanStr(dt.nik)]={...dt, id:d.id}; b.innerHTML+=`<tr class="border-b"><td class="p-3 font-mono">${dt.nik}</td><td class="p-3 font-bold">${dt.nama}</td><td class="p-3 text-blue-500">${dt.wa||'-'}</td><td class="p-3"><button onclick="delKar('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`; });
+                    log(`Database Master: ${s.size} Karyawan.`, "info");
+                });
+                
+                db.collection('outlets').onSnapshot(s => {
+                    const g=document.getElementById('outlet-grid'); g.innerHTML=''; masterOutlet={};
+                    s.forEach(d => { const dt=d.data(); masterOutlet[dt.nama.toLowerCase()]={...dt}; g.innerHTML+=`<div class="bg-white p-3 border rounded shadow flex flex-col items-center relative"><img src="${dt.logoUrl}" class="h-8 mb-2"><div class="font-bold text-xs">${dt.nama}</div><button onclick="db.collection('outlets').doc('${d.id}').delete()" class="absolute top-1 right-1 text-red-300"><i class="fas fa-trash"></i></button></div>`; });
+                });
             } else {
                 document.getElementById('login-section').classList.remove('hidden');
                 document.getElementById('app-section').classList.add('hidden');
             }
         });
-        function handleLogin(e){ e.preventDefault(); auth.signInWithEmailAndPassword(document.getElementById('email').value,document.getElementById('password').value).catch(e=>log("Login Gagal: "+e.message, "error")); }
+        function handleLogin(e){ e.preventDefault(); auth.signInWithEmailAndPassword(document.getElementById('email').value,document.getElementById('password').value).catch(e=>log(e.message, 'error')); }
 
-        function loadData() {
-            db.collection('karyawan').onSnapshot(s => {
-                const b = document.getElementById('table-karyawan-body'); b.innerHTML=''; masterKaryawan={};
-                s.forEach(d => { const dt = d.data(); masterKaryawan[cleanStr(dt.nik)] = { ...dt, id: d.id }; b.innerHTML+=`<tr class="border-b"><td class="p-3">${dt.nik}</td><td class="p-3 font-bold">${dt.nama}</td><td class="p-3 text-blue-600">${dt.wa||'-'}</td><td class="p-3"><button onclick="db.collection('karyawan').doc('${d.id}').delete()" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`; });
-                log(`Database: ${s.size} karyawan termuat.`, "info");
-            });
-            db.collection('outlets').onSnapshot(s => {
-                const g = document.getElementById('outlet-grid'); g.innerHTML=''; masterOutlet={};
-                s.forEach(d => { const dt = d.data(); masterOutlet[dt.nama.toLowerCase()] = dt; g.innerHTML+=`<div class="bg-white p-3 border rounded shadow flex flex-col items-center relative"><img src="${dt.logoUrl}" class="h-8 mb-2"><div class="font-bold text-xs">${dt.nama}</div><button onclick="db.collection('outlets').doc('${d.id}').delete()" class="absolute top-1 right-1 text-red-300"><i class="fas fa-trash"></i></button></div>`; });
-            });
-        }
-
-        // --- 4. SMART SYNC HP ---
+        // 5. MASTER DATA UPLOAD (AUTO REGISTER & SYNC)
         document.getElementById('master-excel-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
-            log(`Mulai membaca file HP: ${file.name}`, "info");
+            log(`Membaca file HP: ${file.name}`, "info");
             
             const reader = new FileReader();
             reader.onload = async (evt) => {
@@ -221,65 +191,61 @@
                     const ws = wb.Sheets[wb.SheetNames[0]];
                     const rows = XLSX.utils.sheet_to_json(ws);
                     
-                    if(rows.length === 0) throw new Error("File Excel Kosong!");
-                    log(`Ditemukan ${rows.length} baris data. Mencari kolom Nama & HP...`, "info");
-
-                    // Diagnostic Header
-                    const headers = Object.keys(rows[0]);
-                    log(`Header terdeteksi: [${headers.join(', ')}]`, "info");
-
-                    let batch = db.batch(); let count=0; let matched=0;
-                    const allEmps = Object.values(masterKaryawan);
-
+                    if(rows.length === 0) throw new Error("File Kosong");
+                    
+                    let batch = db.batch(); let count=0; let newCount=0; let updateCount=0;
+                    
                     for(let row of rows) {
                         const keys = Object.keys(row);
-                        const nameKey = keys.find(k => k.toLowerCase().includes('nama'));
-                        const phoneKey = keys.find(k => k.toLowerCase().includes('hp') || k.toLowerCase().includes('telp') || k.toLowerCase().includes('wa') || k.toLowerCase().includes('phone'));
+                        // Cari kolom kunci
+                        const nameKey = keys.find(k => k.toUpperCase().includes('NAMA'));
+                        const phoneKey = keys.find(k => k.toUpperCase().includes('PHONE') || k.toUpperCase().includes('HP') || k.toUpperCase().includes('WA') || k.toUpperCase().includes('TELP'));
+                        const nikKey = keys.find(k => k.toUpperCase().includes('NIP') || k.toUpperCase().includes('NIK'));
+                        
+                        if(!nameKey || !phoneKey) continue;
 
-                        if(!nameKey || !phoneKey) continue; // Skip jika kolom tak jelas
-
-                        const rawName = String(row[nameKey]);
+                        const rawName = String(row[nameKey]).trim();
                         const rawPhone = cleanPhone(row[phoneKey]);
-                        if(!rawPhone) continue;
-
-                        // Fuzzy Matching Logic
-                        let matchID = null;
-                        const sName = cleanStr(rawName);
+                        const rawNik = nikKey ? String(row[nikKey]).trim() : `AUTO${Math.floor(Math.random()*10000)}`;
                         
-                        // Cek 1: NAMA SAMA PERSIS (Normalized)
-                        for (let emp of allEmps) {
-                            const dbName = cleanStr(emp.nama);
-                            // Cek exact atau partial strong
-                            if (dbName === sName || dbName.includes(sName) || sName.includes(dbName)) {
-                                matchID = emp.id;
-                                break;
-                            }
-                        }
+                        if(!rawName || !rawPhone) continue;
 
-                        if(matchID) {
-                            batch.update(db.collection('karyawan').doc(matchID), { wa: rawPhone });
-                            count++; matched++;
-                            // log(`Matched: ${rawName} -> ${rawPhone}`, "success"); // Terlalu spam
+                        // CEK APAKAH SUDAH ADA DI DB?
+                        const existingId = masterKaryawan[cleanStr(rawNik)] ? masterKaryawan[cleanStr(rawNik)].id : null;
+
+                        if (existingId) {
+                            // UPDATE
+                            const ref = db.collection('karyawan').doc(existingId);
+                            batch.update(ref, { wa: rawPhone, nama: rawName }); // Update nama juga biar sync
+                            updateCount++;
+                        } else {
+                            // REGISTER BARU (PENTING!)
+                            const newRef = db.collection('karyawan').doc(cleanStr(rawNik));
+                            batch.set(newRef, { 
+                                nik: rawNik, 
+                                nama: rawName, 
+                                wa: rawPhone,
+                                source: 'excel_upload' 
+                            });
+                            newCount++;
                         }
                         
+                        count++;
                         if(count >= 400) { await batch.commit(); batch = db.batch(); count=0; }
                     }
-                    if(count > 0) await batch.commit();
                     
-                    log(`Sinkronisasi Selesai. ${matched} data terupdate dari ${rows.length} baris.`, matched>0?"success":"warn");
-                    if(matched===0) log("PERINGATAN: Tidak ada data yang cocok. Cek apakah ejaan nama di Excel HP sama dengan di Gaji.", "warn");
-
-                } catch(err) {
-                    log("ERROR SYNC: " + err.message, "error");
-                }
+                    if(count > 0) await batch.commit();
+                    log(`Selesai! ${newCount} Karyawan Baru Ditambahkan, ${updateCount} Diupdate.`, "success");
+                    
+                } catch(err) { log("Error: "+err.message, "error"); }
             };
             reader.readAsBinaryString(file);
         });
 
-        // --- 5. PAYROLL ENGINE (AUTO HEADER) ---
+        // 6. PAYROLL UPLOAD (DYNAMIC MAPPING)
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
-            log(`Mulai proses gaji: ${file.name}`, "info");
+            log(`Memproses Gaji: ${file.name}`, "info");
             
             const reader = new FileReader();
             reader.onload = (evt) => {
@@ -288,53 +254,54 @@
                     const ws = wb.Sheets[wb.SheetNames[0]];
                     const rawData = XLSX.utils.sheet_to_json(ws, {header: 1});
 
-                    // 1. CARI HEADER ROW
+                    // 1. CARI BARIS HEADER
                     let headerRowIdx = -1;
-                    for(let i=0; i<Math.min(20, rawData.length); i++) { // Cari di 20 baris pertama
-                        const str = JSON.stringify(rawData[i]).toUpperCase();
+                    for(let i=0; i<20; i++) {
+                        const str = JSON.stringify(rawData[i]||[]).toUpperCase();
                         if(str.includes("NIK") && str.includes("NAMA")) {
                             headerRowIdx = i;
-                            log(`Header ditemukan di Baris Excel ke-${i+1}`, "success");
                             break;
                         }
                     }
 
-                    if(headerRowIdx === -1) {
-                        throw new Error("Tidak menemukan kolom 'NIK' dan 'NAMA' di 20 baris pertama. Cek format Excel.");
-                    }
+                    if(headerRowIdx === -1) throw new Error("Header NIK/NAMA tidak ditemukan.");
 
-                    const headerRow = rawData[headerRowIdx];
-                    // Mapping Index Kolom (Relatif terhadap NIK)
-                    let nikIdx = -1;
-                    headerRow.forEach((h, idx) => { if(String(h).toUpperCase().includes("NIK")) nikIdx = idx; });
+                    const header = rawData[headerRowIdx].map(h => String(h).toUpperCase().trim());
                     
-                    if(nikIdx === -1) throw new Error("Kolom NIK hilang.");
+                    // 2. MAPPING DINAMIS (Cari index kolom berdasarkan nama header)
+                    const idx = {
+                        NIK: header.indexOf("NIK"),
+                        NAMA: header.indexOf("NAMA"),
+                        OUTLET: header.findIndex(h => h.includes("OUTLET") || h.includes("DIVISI")), // Fallback Divisi
+                        GP: header.findIndex(h => h.includes("GAJI POKOK") || h.includes("GP")),
+                        TOTAL: header.findIndex(h => h.includes("DITERIMA") || h.includes("TOTAL") || h.includes("THP"))
+                    };
                     
-                    // Log Kolom Penting
-                    log(`Mapping Kolom: NIK pada index ${nikIdx}, Nama ${nikIdx+1}, GP ${nikIdx+4}`, "info");
+                    log(`Mapping: NIK[${idx.NIK}], NAMA[${idx.NAMA}], GP[${idx.GP}]`, "info");
 
                     const tbody = document.getElementById('payroll-table-body');
                     tbody.innerHTML = '';
                     document.getElementById('payroll-result').classList.remove('hidden');
 
-                    let processedCount = 0;
                     const dataRows = rawData.slice(headerRowIdx+1);
-                    
-                    dataRows.forEach((row, idx) => {
-                        const nik = row[nikIdx] ? String(row[nikIdx]).trim() : '';
+                    dataRows.forEach((row) => {
+                        const nik = row[idx.NIK] ? String(row[idx.NIK]).trim() : '';
                         if(!nik) return;
 
-                        // Gunakan RELATIVE INDEXING dari "CONTOH GAJI" user
-                        // Asumsi: NIK(0), Nama(1), Outlet(2), Jabatan(3), GP(4)...
-                        const i = nikIdx;
+                        // DATA EXTRACTION (Gunakan Index Dinamis + Offset manual jika kolom tidak bernama)
+                        // Karena struktur "CONTOH GAJI" Anda punya kolom tanpa nama atau nama ganda,
+                        // Kita kombinasikan Dinamis (untuk Identitas) + Relatif (untuk Nominal)
+                        
+                        // Posisi relatif dari NIK (Aman untuk file CONTOH GAJI Anda)
+                        const i = idx.NIK; 
+                        
                         const d = {
                             NIK: nik,
-                            NAMA: row[i+1],
-                            OUTLET: row[i+2],
-                            JABATAN: row[i+3],
+                            NAMA: idx.NAMA !== -1 ? row[idx.NAMA] : row[i+2], // Gunakan index NAMA yg ketemu, atau fallback i+2
+                            OUTLET: row[i+1], // Divisi biasanya setelah NIK di file Anda
                             GP: cleanNum(row[i+4]),
                             LEMBUR: cleanNum(row[i+6]) + cleanNum(row[i+8]),
-                            BONUS: cleanNum(row[i+9]) + cleanNum(row[i+10]) + cleanNum(row[i+11]),
+                            BONUS: cleanNum(row[i+10]) + cleanNum(row[i+11]),
                             POT_ABSEN: cleanNum(row[i+14]),
                             BPJS: cleanNum(row[i+15]) + cleanNum(row[i+16]),
                             CASBON: cleanNum(row[i+17]),
@@ -343,89 +310,71 @@
 
                         const emp = masterKaryawan[cleanStr(nik)];
                         const wa = emp ? emp.wa : null;
-
+                        const status = wa ? `<span class="text-green-600 font-bold">OK</span>` : `<span class="text-red-500 font-bold text-xs">Unregistered</span>`;
+                        
                         tbody.innerHTML += `
                             <tr class="border-b hover:bg-gray-50">
-                                <td class="p-2">${wa?'<span class="text-green-600 font-bold">OK</span>':'<span class="text-red-500 font-bold">X</span>'}</td>
+                                <td class="p-2">${status}</td>
                                 <td class="p-2 text-xs font-mono">${d.NIK}</td>
-                                <td class="p-2 font-bold text-gray-700">${d.NAMA||'?'}</td>
+                                <td class="p-2 font-bold">${d.NAMA}</td>
                                 <td class="p-2 text-xs">${d.OUTLET||'-'}</td>
-                                <td class="p-2 text-right font-mono">Rp ${d.TOTAL.toLocaleString('id-ID')}</td>
+                                <td class="p-2 text-right">Rp ${d.TOTAL.toLocaleString()}</td>
                                 <td class="p-2 text-center">${wa ? `<button onclick='genSlip(${JSON.stringify(d)},"${wa}")' class="bg-green-600 text-white px-2 py-1 rounded text-xs">Kirim</button>` : ''}</td>
                             </tr>
                         `;
-                        processedCount++;
                     });
 
-                    log(`Berhasil memproses ${processedCount} baris gaji.`, "success");
-
-                } catch(err) {
-                    log("FATAL ERROR GAJI: " + err.message, "error");
-                    alert("Gagal Proses: " + err.message);
-                }
+                } catch(err) { log("Error Gaji: "+err.message, "error"); }
             };
             reader.readAsBinaryString(file);
         });
 
-        // --- 6. GENERATE SLIP ---
+        // 7. GENERATE SLIP
         async function genSlip(data, wa) {
-            log(`Generating slip untuk ${data.NAMA}...`, "info");
             const area = document.getElementById('render-area');
-            const outletInfo = masterOutlet[(data.OUTLET||'').toLowerCase()] || {nama: data.OUTLET||'Outlet', logoUrl: '', alamat: ''};
+            const outletInfo = masterOutlet[(data.OUTLET||'').toLowerCase()] || {nama: data.OUTLET||'Outlet', logoUrl: ''};
             const fmt = n => 'Rp ' + Number(n).toLocaleString('id-ID');
 
             area.innerHTML = `
             <div class="payslip-container">
-                <div class="payslip-header">
-                    ${outletInfo.logoUrl ? `<img src="${outletInfo.logoUrl}" class="payslip-logo" crossorigin="anonymous">` : ''}
-                    <div><h1 class="text-xl font-bold uppercase">${outletInfo.nama}</h1><p class="text-sm">${outletInfo.alamat||''}</p></div>
+                <div style="display:flex; align-items:center; border-bottom:3px solid #000; padding-bottom:20px; margin-bottom:20px">
+                    ${outletInfo.logoUrl ? `<img src="${outletInfo.logoUrl}" style="width:100px; height:60px; object-fit:contain; margin-right:20px" crossorigin="anonymous">` : ''}
+                    <div><h1 class="text-xl font-bold uppercase">${outletInfo.nama}</h1></div>
                 </div>
                 <h2 class="text-center font-bold text-lg border-b pb-2 mb-4">SLIP GAJI</h2>
                 <table class="payslip-table mb-4">
                     <tr><td width="150">NIK</td><td>: ${data.NIK}</td></tr>
                     <tr><td>NAMA</td><td>: ${data.NAMA}</td></tr>
-                    <tr><td>JABATAN</td><td>: ${data.JABATAN}</td></tr>
                 </table>
                 <table class="payslip-table">
                     <tr><td>GAJI POKOK</td><td>:</td><td class="val-col">${fmt(data.GP)}</td></tr>
                     <tr><td>LEMBUR</td><td>:</td><td class="val-col">${fmt(data.LEMBUR)}</td></tr>
-                    <tr><td>TOTAL BONUS</td><td>:</td><td class="val-col">${fmt(data.BONUS)}</td></tr>
+                    <tr><td>BONUS</td><td>:</td><td class="val-col">${fmt(data.BONUS)}</td></tr>
                     <tr><td colspan="3" class="h-4"></td></tr>
-                    <tr><td>POT. ABSEN</td><td>:</td><td class="val-col text-red-600">${fmt(data.POT_ABSEN)}</td></tr>
-                    <tr><td>BPJS</td><td>:</td><td class="val-col text-red-600">${fmt(data.BPJS)}</td></tr>
-                    <tr><td>CASBON</td><td>:</td><td class="val-col text-red-600">${fmt(data.CASBON)}</td></tr>
+                    <tr><td>POTONGAN</td><td>:</td><td class="val-col text-red-600">${fmt(data.POT_ABSEN + data.BPJS + data.CASBON)}</td></tr>
                     <tr class="total-row"><td class="p-2">DITERIMA</td><td class="p-2">:</td><td class="val-col p-2">${fmt(data.TOTAL)}</td></tr>
                 </table>
-                <div class="mt-8 text-right mr-8">
-                    <div class="mb-12">Salatiga, ${new Date().toLocaleDateString('id-ID')}</div>
-                    <div class="font-bold underline">${data.NAMA}</div>
-                </div>
+                <div class="mt-12 text-right font-bold underline">${data.NAMA}</div>
             </div>`;
 
-            // Wait Image
             const img = area.querySelector('img');
             if(img && img.src) await new Promise(r => { if(img.complete) r(); else img.onload = r; setTimeout(r, 2000); });
 
-            try {
-                const canvas = await html2canvas(area.querySelector('.payslip-container'), {scale:2, useCORS:true});
-                const link = document.createElement('a');
-                link.download = `Slip_${String(data.NAMA).replace(/\s/g,'_')}.jpg`;
-                link.href = canvas.toDataURL("image/jpeg", 0.9);
-                link.click();
-                
-                log(`Slip ${data.NAMA} berhasil dibuat & didownload.`, "success");
-                window.open(`https://wa.me/${wa}?text=${encodeURIComponent('Halo, berikut slip gaji periode ini.')}`, '_blank');
-            } catch(e) {
-                log("Gagal membuat gambar slip: " + e.message, "error");
-            }
+            const canvas = await html2canvas(area.querySelector('.payslip-container'), {scale:2, useCORS:true});
+            const link = document.createElement('a');
+            link.download = `Slip_${data.NAMA}.jpg`;
+            link.href = canvas.toDataURL("image/jpeg", 0.9);
+            link.click();
+            window.open(`https://wa.me/${wa}?text=${encodeURIComponent('Berikut slip gaji anda.')}`, '_blank');
         }
-
+        
         // Utils
         function switchTab(id) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden')); document.getElementById('tab-'+id).classList.remove('hidden'); }
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function saveKaryawanManual() { const n=document.getElementById('in-nik').value, nm=document.getElementById('in-nama').value, w=document.getElementById('in-wa').value; if(n&&nm) db.collection('karyawan').doc(cleanStr(n)).set({nik:n, nama:nm, wa:cleanPhone(w)}).then(()=>{closeModal('modal-karyawan');log("Karyawan manual disimpan.", "success");}); }
-        function saveOutlet() { const n=document.getElementById('in-outlet').value, f=document.getElementById('in-logo').files[0]; if(n&&f) storage.ref('logos/'+Date.now()).put(f).then(s=>s.ref.getDownloadURL()).then(u=>db.collection('outlets').add({nama:n, alamat:document.getElementById('in-addr').value, logoUrl:u})).then(()=>{closeModal('modal-outlet');log("Outlet disimpan.", "success");}); }
+        function saveKaryawanManual() { const n=document.getElementById('in-nik').value, nm=document.getElementById('in-nama').value, w=document.getElementById('in-wa').value; if(n&&nm) db.collection('karyawan').doc(cleanStr(n)).set({nik:n, nama:nm, wa:cleanPhone(w)}).then(()=>{closeModal('modal-karyawan');log("Tersimpan manual.", "success");}); }
+        function saveOutlet() { const n=document.getElementById('in-outlet').value, f=document.getElementById('in-logo').files[0]; if(n&&f) storage.ref('logos/'+Date.now()).put(f).then(s=>s.ref.getDownloadURL()).then(u=>db.collection('outlets').add({nama:n, logoUrl:u})).then(()=>{closeModal('modal-outlet');log("Outlet OK.", "success");}); }
+        function delKar(id){ if(confirm('Hapus?')) db.collection('karyawan').doc(id).delete(); }
     </script>
 </body>
 </html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dolan Payroll System</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <style>
+        /* Custom Styles for Payslip Rendering */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* Area Slip Gaji (Hidden from view, used for generation) */
+        #render-area {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+
+        .payslip-container {
+            width: 800px; /* Fixed width for consistent image */
+            background: white;
+            padding: 40px;
+            border: 1px solid #ddd;
+            color: #1f2937;
+        }
+
+        .payslip-header { display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px; }
+        .payslip-logo { width: 150px; height: auto; object-fit: contain; margin-right: 20px; }
+        .payslip-company-info { font-size: 14px; }
+        .payslip-title { text-align: center; font-weight: bold; font-size: 18px; margin: 10px 0 20px 0; text-transform: uppercase; }
+        
+        .payslip-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 14px; }
+        .payslip-table td { padding: 4px 8px; }
+        .label-col { width: 180px; font-weight: 600; }
+        .colon-col { width: 10px; }
+        .val-col { text-align: right; }
+
+        .section-title { font-weight: bold; margin-top: 15px; margin-bottom: 5px; font-size: 14px; border-bottom: 1px solid #eee; }
+        
+        .total-row { background-color: #fef08a; font-weight: bold; border-top: 2px solid #000; border-bottom: 2px solid #000; }
+        .total-row td { padding: 10px 8px; font-size: 16px; }
+
+        .footer-sign { margin-top: 40px; text-align: right; margin-right: 40px; }
+        .sign-box { height: 80px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-section" class="flex items-center justify-center h-screen">
+        <div class="bg-white p-8 rounded shadow-lg w-96">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Dolan Payroll Login</h2>
+            <input type="email" id="email" placeholder="Email Admin" class="w-full p-2 border rounded mb-4">
+            <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-6">
+            <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Login</button>
+            <p id="login-error" class="text-red-500 text-sm mt-2 text-center hidden"></p>
+        </div>
+    </div>
+
+    <div id="app-section" class="hidden min-h-screen flex flex-col">
+        <nav class="bg-gray-800 text-white p-4 flex justify-between items-center shadow-md">
+            <div class="font-bold text-xl"><i class="fas fa-money-check-alt mr-2"></i> Dolan Payroll</div>
+            <div>
+                <button onclick="switchTab('karyawan')" class="px-4 py-2 hover:bg-gray-700 rounded mr-2">Data Karyawan</button>
+                <button onclick="switchTab('outlet')" class="px-4 py-2 hover:bg-gray-700 rounded mr-2">Data Outlet</button>
+                <button onclick="switchTab('payroll')" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 font-bold">Proses Gaji</button>
+                <button onclick="handleLogout()" class="ml-4 text-red-400 hover:text-red-300"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-6 flex-grow">
+            
+            <div id="tab-karyawan" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-700">Master Data Karyawan</h2>
+                    <button onclick="openModalKaryawan()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"><i class="fas fa-plus mr-2"></i> Tambah Karyawan</button>
+                </div>
+                <div class="bg-white rounded shadow overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-700">
+                                <th class="p-3 border-b">NIK</th>
+                                <th class="p-3 border-b">Nama</th>
+                                <th class="p-3 border-b">No. WhatsApp</th>
+                                <th class="p-3 border-b">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-karyawan-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-outlet" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-700">Master Data Outlet</h2>
+                    <button onclick="openModalOutlet()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"><i class="fas fa-plus mr-2"></i> Tambah Outlet</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="outlet-grid">
+                    </div>
+            </div>
+
+            <div id="tab-payroll" class="tab-content">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4">Proses Gaji Bulanan</h2>
+                
+                <div class="bg-white p-6 rounded shadow mb-6 border-2 border-dashed border-blue-300 text-center">
+                    <i class="fas fa-file-excel text-green-600 text-4xl mb-3"></i>
+                    <p class="mb-4 text-gray-600">Upload File Excel Gaji (Pastikan header kolom sesuai)</p>
+                    <input type="file" id="excel-file" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mx-auto" style="max-width: 300px;">
+                </div>
+
+                <div id="payroll-result" class="hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">Preview & Eksekusi</h3>
+                        <span class="text-sm text-gray-500">*Pastikan pop-up blocker dimatikan untuk download otomatis</span>
+                    </div>
+                    <div class="bg-white rounded shadow overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-800 text-white">
+                                    <th class="p-2">Status</th>
+                                    <th class="p-2">NIK</th>
+                                    <th class="p-2">Nama (Excel)</th>
+                                    <th class="p-2">Outlet</th>
+                                    <th class="p-2">THP</th>
+                                    <th class="p-2">No WA (Database)</th>
+                                    <th class="p-2 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payroll-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modal-karyawan" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded w-96">
+            <h3 class="font-bold text-lg mb-4">Input Data Karyawan</h3>
+            <input type="text" id="input-nik" placeholder="NIK (Contoh: DS008)" class="w-full p-2 border mb-2 rounded">
+            <input type="text" id="input-nama" placeholder="Nama Lengkap" class="w-full p-2 border mb-2 rounded">
+            <input type="text" id="input-wa" placeholder="No WA (081xxx)" class="w-full p-2 border mb-4 rounded">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modal-karyawan')" class="px-4 py-2 bg-gray-300 rounded">Batal</button>
+                <button onclick="saveKaryawan()" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-outlet" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded w-96">
+            <h3 class="font-bold text-lg mb-4">Input Data Outlet</h3>
+            <input type="text" id="input-outlet-name" placeholder="Nama Outlet (Sesuai Excel)" class="w-full p-2 border mb-2 rounded">
+            <textarea id="input-outlet-addr" placeholder="Alamat Lengkap" class="w-full p-2 border mb-2 rounded"></textarea>
+            <label class="text-xs text-gray-500">Logo Outlet:</label>
+            <input type="file" id="input-outlet-logo" class="w-full mb-4">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modal-outlet')" class="px-4 py-2 bg-gray-300 rounded">Batal</button>
+                <button onclick="saveOutlet()" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="render-area">
+        </div>
+
+    <script>
+        // --- 1. CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAecwXgmT8rMGw1LpXKTS3xX-2YPcDlZZw",
+            authDomain: "naruna-payroll.firebaseapp.com",
+            projectId: "naruna-payroll",
+            storageBucket: "naruna-payroll.firebasestorage.app",
+            messagingSenderId: "209087490496",
+            appId: "1:209087490496:web:f632b7a1cc3fa9166f4025"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Global State
+        let masterKaryawan = {}; // Mapping NIK -> {nama, wa}
+        let masterOutlet = {};   // Mapping NamaOutlet -> {alamat, logoUrl}
+        let currentUser = null;
+
+        // --- 2. AUTHENTICATION ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('app-section').classList.remove('hidden');
+                loadMasterData(); // Load data saat login berhasil
+            } else {
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('app-section').classList.add('hidden');
+            }
+        });
+
+        function handleLogin() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(e, p).catch(err => {
+                document.getElementById('login-error').classList.remove('hidden');
+                document.getElementById('login-error').innerText = err.message;
+            });
+        }
+
+        function handleLogout() {
+            auth.signOut();
+        }
+
+        // --- 3. MASTER DATA LOGIC ---
+        async function loadMasterData() {
+            // Load Karyawan
+            db.collection('karyawan').onSnapshot(snap => {
+                const tbody = document.getElementById('table-karyawan-body');
+                tbody.innerHTML = '';
+                masterKaryawan = {};
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    masterKaryawan[data.nik] = data; // Cache for matching
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3 font-mono text-sm">${data.nik}</td>
+                            <td class="p-3 font-bold">${data.nama}</td>
+                            <td class="p-3 text-blue-600">${data.wa}</td>
+                            <td class="p-3">
+                                <button onclick="deleteKaryawan('${doc.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+
+            // Load Outlet
+            db.collection('outlets').onSnapshot(snap => {
+                const grid = document.getElementById('outlet-grid');
+                grid.innerHTML = '';
+                masterOutlet = {};
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    masterOutlet[data.nama.toLowerCase()] = data; // Cache (lowercase key)
+                    grid.innerHTML += `
+                        <div class="bg-white p-4 rounded border shadow hover:shadow-md transition">
+                            <div class="h-20 w-full flex items-center justify-center mb-4 bg-gray-50 rounded">
+                                <img src="${data.logoUrl}" class="h-16 object-contain">
+                            </div>
+                            <h3 class="font-bold text-lg">${data.nama}</h3>
+                            <p class="text-xs text-gray-500 h-10 overflow-hidden">${data.alamat}</p>
+                            <button onclick="db.collection('outlets').doc('${doc.id}').delete()" class="mt-2 text-red-500 text-xs hover:underline">Hapus</button>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        async function saveKaryawan() {
+            const nik = document.getElementById('input-nik').value.trim();
+            const nama = document.getElementById('input-nama').value.trim();
+            let wa = document.getElementById('input-wa').value.trim();
+
+            if (!nik || !nama || !wa) return alert("Semua wajib diisi");
+            
+            // Format WA to 628...
+            if (wa.startsWith('0')) wa = '62' + wa.slice(1);
+
+            await db.collection('karyawan').doc(nik).set({ nik, nama, wa });
+            closeModal('modal-karyawan');
+            // Clear form
+            document.getElementById('input-nik').value = '';
+            document.getElementById('input-nama').value = '';
+            document.getElementById('input-wa').value = '';
+        }
+
+        async function deleteKaryawan(id) {
+            if(confirm("Hapus karyawan ini?")) {
+                await db.collection('karyawan').doc(id).delete();
+            }
+        }
+
+        async function saveOutlet() {
+            const nama = document.getElementById('input-outlet-name').value;
+            const alamat = document.getElementById('input-outlet-addr').value;
+            const file = document.getElementById('input-outlet-logo').files[0];
+
+            if(!nama || !file) return alert("Nama dan Logo wajib diisi");
+
+            const uploadTask = storage.ref(`logos/${file.name}`).put(file);
+            uploadTask.on('state_changed', null, null, async () => {
+                const logoUrl = await uploadTask.snapshot.ref.getDownloadURL();
+                await db.collection('outlets').add({ nama, alamat, logoUrl });
+                closeModal('modal-outlet');
+            });
+        }
+
+        // --- 4. EXCEL & PAYROLL LOGIC ---
+        document.getElementById('excel-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const bstr = evt.target.result;
+                const wb = XLSX.read(bstr, {type:'binary'});
+                const wsname = wb.SheetNames[0];
+                const ws = wb.Sheets[wsname];
+                const data = XLSX.utils.sheet_to_json(ws);
+                processPayrollData(data);
+            };
+            reader.readAsBinaryString(file);
+        });
+
+        function processPayrollData(data) {
+            const tbody = document.getElementById('payroll-table-body');
+            tbody.innerHTML = '';
+            document.getElementById('payroll-result').classList.remove('hidden');
+
+            data.forEach((row, index) => {
+                const nik = row['NIK'] || '';
+                const employee = masterKaryawan[nik];
+                const wa = employee ? employee.wa : null;
+                const statusHtml = wa 
+                    ? `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Ready</span>`
+                    : `<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">No Data</span>`;
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td class="p-2">${statusHtml}</td>
+                    <td class="p-2 font-mono text-xs">${nik}</td>
+                    <td class="p-2 font-bold">${row['NAMA'] || ''}</td>
+                    <td class="p-2 text-xs">${row['OUTLET'] || ''}</td>
+                    <td class="p-2 font-mono font-bold">Rp ${Number(row['GAJI BERSIH'] || row['TOTAL'] || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-2 text-xs text-gray-500">${wa || `<button onclick="quickAdd('${nik}', '${row['NAMA']}')" class="text-blue-500 underline">Add WA</button>`}</td>
+                    <td class="p-2 text-center">
+                        ${wa ? `
+                            <button onclick="generateAndBlast(${index})" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                                <i class="fab fa-whatsapp"></i> Slip
+                            </button>
+                        ` : '-'}
+                    </td>
+                `;
+                // Store raw data in element for processing
+                tr.dataset.rowData = JSON.stringify(row);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function quickAdd(nik, nama) {
+            document.getElementById('input-nik').value = nik;
+            document.getElementById('input-nama').value = nama;
+            openModalKaryawan();
+        }
+
+        // --- 5. GENERATE IMAGE & BLAST LOGIC ---
+        async function generateAndBlast(rowIndex) {
+            const tr = document.getElementById('payroll-table-body').children[rowIndex];
+            const rowData = JSON.parse(tr.dataset.rowData);
+            
+            // 1. Get Outlet Info
+            const outletKey = (rowData['OUTLET'] || '').toLowerCase();
+            const outletInfo = masterOutlet[outletKey] || { logoUrl: 'https://via.placeholder.com/150', alamat: 'Alamat Default', nama: 'Dolan Sawah' };
+
+            // 2. Get Employee Info
+            const employee = masterKaryawan[rowData['NIK']];
+            if(!employee) return alert("Data Karyawan belum lengkap di Master Data");
+
+            // 3. Render HTML Template
+            const renderArea = document.getElementById('render-area');
+            renderArea.innerHTML = createPayslipHTML(rowData, outletInfo, employee);
+
+            // 4. Convert to Image
+            try {
+                const canvas = await html2canvas(document.querySelector('.payslip-container'), { scale: 2 });
+                const imgData = canvas.toDataURL("image/jpeg", 0.9);
+
+                // 5. Action: Download & Open WA
+                // Create temp link to download
+                const link = document.createElement('a');
+                link.download = `Slip_${rowData['NAMA']}_${rowData['PERIODE']}.jpg`;
+                link.href = imgData;
+                link.click();
+
+                // Open WhatsApp
+                const message = `Halo ${employee.nama},%0A%0ABerikut adalah slip gaji Anda untuk periode ${rowData['PERIODE'] || 'Bulan Ini'}.%0A(Mohon lampirkan file gambar yang baru saja terunduh)%0A%0ATerima kasih,%0AManajemen ${outletInfo.nama}`;
+                window.open(`https://wa.me/${employee.wa}?text=${message}`, '_blank');
+
+            } catch (err) {
+                console.error(err);
+                alert("Gagal generate gambar. Cek konsol.");
+            }
+        }
+
+        function createPayslipHTML(data, outlet, emp) {
+            // Helper rupiah
+            const fmt = (n) => n ? 'Rp ' + Number(n).toLocaleString('id-ID') : '-';
+
+            return `
+            <div class="payslip-container">
+                <div class="payslip-header">
+                    <img src="${outlet.logoUrl}" class="payslip-logo" crossorigin="anonymous">
+                    <div class="payslip-company-info">
+                        <div class="font-bold text-xl">${outlet.nama.toUpperCase()}</div>
+                        <div class="text-gray-600 w-64">${outlet.alamat}</div>
+                    </div>
+                </div>
+
+                <div class="payslip-title">SLIP GAJI</div>
+
+                <table class="payslip-table">
+                    <tr>
+                        <td class="label-col">NIK</td><td class="colon-col">:</td><td>${data['NIK']}</td>
+                        <td class="label-col">PERIODE</td><td class="colon-col">:</td><td>${data['PERIODE'] || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">NAMA</td><td class="colon-col">:</td><td>${emp.nama.toUpperCase()}</td>
+                        <td class="label-col">HARI KERJA</td><td class="colon-col">:</td><td>${data['HARI KERJA'] || '25'}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">DIVISI</td><td class="colon-col">:</td><td>${data['DIVISI'] || data['JABATAN'] || '-'}</td>
+                    </tr>
+                </table>
+
+                <div style="height: 10px;"></div>
+
+                <table class="payslip-table">
+                    <tr><td class="label-col">GAJI POKOK</td><td class="colon-col">:</td><td class="val-col">${fmt(data['GAJI POKOK'] || data['GP'])}</td></tr>
+                    <tr><td class="label-col">OVERTIME/LEMBUR</td><td class="colon-col">:</td><td class="val-col">${fmt(data['LEMBUR'])}</td></tr>
+                    <tr><td class="label-col">BONUS OMSET</td><td class="colon-col">:</td><td class="val-col">${fmt(data['BONUS OMSET'])}</td></tr>
+                    <tr><td class="label-col">BONUS KINERJA</td><td class="colon-col">:</td><td class="val-col">${fmt(data['BONUS KINERJA'])}</td></tr>
+                    <tr><td class="label-col">BONUS LAIN</td><td class="colon-col">:</td><td class="val-col">${fmt(data['BONUS LIKE KOMENT'] || data['LAINNYA'])}</td></tr>
+                    <tr><td class="label-col">TUNJANGAN JABATAN</td><td class="colon-col">:</td><td class="val-col">${fmt(data['TUNJANGAN JABATAN'])}</td></tr>
+                    
+                    <tr><td colspan="3"><div style="height:10px"></div></td></tr>
+
+                    <tr class="font-bold bg-gray-100">
+                        <td class="label-col">GAJI KOTOR</td><td class="colon-col">:</td><td class="val-col">${fmt(data['GAJI KOTOR'])}</td>
+                    </tr>
+
+                    <tr><td colspan="3"><div style="height:10px"></div></td></tr>
+
+                    <tr><td class="label-col">POTONGAN ABSEN</td><td class="colon-col">:</td><td class="val-col text-red-600">${fmt(data['POTONGAN ABSEN'])}</td></tr>
+                    <tr><td class="label-col">BPJS KESEHATAN</td><td class="colon-col">:</td><td class="val-col text-red-600">${fmt(data['BPJS KES'] || data['POTONGAN BPJS KES'])}</td></tr>
+                    <tr><td class="label-col">BPJS KETENAGAKERJAAN</td><td class="colon-col">:</td><td class="val-col text-red-600">${fmt(data['BPJS TK'] || data['POTONGAN BPJS TK'])}</td></tr>
+                    <tr><td class="label-col">CASBON/LAIN</td><td class="colon-col">:</td><td class="val-col text-red-600">${fmt(data['CASBON'])}</td></tr>
+                </table>
+
+                <table class="w-full mt-4">
+                    <tr class="total-row">
+                        <td>GAJI BERSIH (DITERIMA)</td>
+                        <td class="text-right">${fmt(data['GAJI BERSIH'] || data['TOTAL'])}</td>
+                    </tr>
+                </table>
+
+                <div class="footer-sign">
+                    <div style="margin-bottom: 5px;">Salatiga, ${new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}</div>
+                    <div class="sign-box"></div>
+                    <div class="font-bold underline">${emp.nama.toUpperCase()}</div>
+                    <div class="text-xs text-gray-500">Penerima</div>
+                </div>
+            </div>
+            `;
+        }
+
+        // --- UI HELPERS ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        }
+        function openModalKaryawan() { document.getElementById('modal-karyawan').classList.remove('hidden'); }
+        function openModalOutlet() { document.getElementById('modal-outlet').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>

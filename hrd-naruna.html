@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Naruna Payroll - V7 (SSOT Mode)</title>
+    <title>Naruna Payroll - V7 (Final SSOT)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -66,7 +66,7 @@
             <div class="text-center mb-8">
                 <i class="fas fa-file-invoice-dollar text-4xl text-blue-600 mb-2"></i>
                 <h2 class="text-2xl font-bold text-slate-800">Naruna Payroll V7</h2>
-                <p class="text-slate-500 text-sm font-mono mt-1"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">SSOT MODE</span></p>
+                <p class="text-slate-500 text-sm font-mono mt-1"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">STRICT SSOT</span></p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <input id="email" type="email" class="w-full border border-slate-300 p-3 rounded-lg mb-4" placeholder="Email Admin" required>
@@ -82,7 +82,7 @@
                 <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V7</div>
                 <div class="flex flex-col">
                     <span class="font-bold text-slate-800 leading-tight">Naruna Payroll</span>
-                    <span class="text-[10px] text-slate-400 font-mono">SSOT ENABLED</span>
+                    <span class="text-[10px] text-slate-400 font-mono">STRICT SSOT MODE</span>
                 </div>
             </div>
             <div class="flex gap-3">
@@ -152,12 +152,13 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-lg border border-blue-100 overflow-hidden relative">
-                <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div> <div class="bg-white p-4 border-b border-slate-100">
+                <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div> 
+                <div class="bg-white p-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
                         <div class="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-green-200">3</div>
                         <div>
-                            <h2 class="font-bold text-slate-800 text-lg">Upload File Gaji (SSOT)</h2>
-                            <p class="text-xs text-slate-500">Sistem hanya membaca angka final dari Excel.</p>
+                            <h2 class="font-bold text-slate-800 text-lg">Upload File Gaji (Final SSOT)</h2>
+                            <p class="text-xs text-slate-500">Excel adalah penentu kebenaran mutlak (Single Source of Truth).</p>
                         </div>
                     </div>
                 </div>
@@ -167,14 +168,14 @@
                         <div class="bg-green-50 hover:bg-green-100 border-2 border-green-200 border-dashed rounded-xl p-6 text-center transition">
                             <i class="fas fa-file-excel text-3xl text-green-600 mb-2"></i>
                             <h3 class="font-bold text-green-900">Pilih File Excel Final</h3>
-                            <p class="text-xs text-green-700 mt-1">Pastikan semua perhitungan lembur/potongan sudah selesai di Excel</p>
+                            <p class="text-xs text-green-700 mt-1">Pastikan ada kolom: <b>NAMA, TOTAL PENDAPATAN, TOTAL POTONGAN, THP</b></p>
                             <input type="file" id="payroll-file" accept=".xlsx,.xls" class="hidden"/>
                         </div>
                     </label>
 
                     <div id="payroll-result" class="hidden mt-6">
                         <div class="flex justify-between items-end mb-3">
-                            <h3 class="font-bold text-slate-700">Preview Data</h3>
+                            <h3 class="font-bold text-slate-700">Preview Data (Audit Mode)</h3>
                             <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded font-bold" id="process-count-badge">0 Data</span>
                         </div>
                         <div class="overflow-x-auto custom-scroll border rounded-lg shadow-sm">
@@ -183,10 +184,10 @@
                                     <tr>
                                         <th class="p-3">Status</th>
                                         <th class="p-3">Karyawan</th>
-                                        <th class="p-3 text-right">Total Income</th>
-                                        <th class="p-3 text-right">Total Potongan</th>
-                                        <th class="p-3 text-right font-bold bg-slate-700">THP (Hitung)</th>
-                                        <th class="p-3 text-right font-bold bg-green-900 text-green-100">THP (Excel)</th>
+                                        <th class="p-3 text-right">Excel Total In</th>
+                                        <th class="p-3 text-right">Excel Total Out</th>
+                                        <th class="p-3 text-right font-bold bg-green-900 text-green-100">Excel THP (Final)</th>
+                                        <th class="p-3 text-right border-l border-slate-600">Audit Check</th>
                                         <th class="p-3 text-center sticky right-0 bg-slate-800 z-10">Aksi</th>
                                     </tr>
                                 </thead>
@@ -278,7 +279,6 @@
         function toggleConsole() { document.getElementById('debug-console').classList.toggle('open'); }
         function showLoading(show, text="Processing...") { document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none'; document.getElementById('loading-text').innerText = text; }
         
-        // CLEAN NUM: Hanya membersihkan karakter, TIDAK mengubah logika
         function cleanNum(raw) { 
             if(raw === null || raw === undefined || raw === '') return 0;
             if (typeof raw === 'number') return raw;
@@ -359,10 +359,10 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- SSOT PAYROLL PROCESSING ---
+        // --- SSOT PAYROLL PROCESSING (STRICT MODE) ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
-            showLoading(true, "Membaca Excel (Mode SSOT)...");
+            showLoading(true, "Membaca Excel (Strict Mode)...");
             document.getElementById('error-banner').classList.add('hidden');
             
             const reader = new FileReader();
@@ -371,7 +371,7 @@
                     const wb = XLSX.read(evt.target.result, {type:'binary'});
                     const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
                     
-                    // 1. Cari Header
+                    // 1. Cari Header (Strict Match First)
                     let hIdx = -1;
                     for(let i=0; i<30; i++) { 
                         const rowStr = JSON.stringify(rawData[i]||[]).toUpperCase();
@@ -380,40 +380,52 @@
                     if(hIdx === -1) throw new Error("Header tidak ditemukan. Pastikan ada kolom 'NAMA'.");
 
                     const header = rawData[hIdx].map(x => String(x).toUpperCase().trim());
-                    const getCol = (keywords) => header.findIndex(h => keywords.some(k => h === k || h.includes(k)));
+                    
+                    // Helper getCol: Prefer exact match, then includes for flexibility on non-critical cols
+                    const getCol = (names, strict=false) => {
+                        // Coba cari exact match dulu
+                        let idx = header.findIndex(h => names.includes(h));
+                        if (idx !== -1) return idx;
+                        // Kalau tidak ketemu dan tidak strict, cari yang 'includes'
+                        if (!strict) return header.findIndex(h => names.some(n => h.includes(n)));
+                        return -1;
+                    };
 
-                    // 2. Mapping Kolom (NOMINAL vs JUMLAH)
-                    // PENTING: Prioritaskan kolom yang mengandung "RP" atau "NOMINAL" untuk nilai uang
+                    // 2. Mapping Kolom
                     const col = {
                         nama: getCol(["NAMA", "NAMA KARYAWAN"]), 
                         nik: getCol(["NIK", "NO INDUK"]), 
                         outlet: getCol(["DIVISI", "BAGIAN", "OUTLET"]),
                         
-                        // --- INCOME (NOMINAL RUPIAH) ---
+                        // NEW: Kolom Total & Hari Kerja dari Excel (Idealnya ada)
+                        total_in_excel: getCol(["TOTAL PENDAPATAN", "TOTAL INCOME", "JUMLAH PENDAPATAN"]),
+                        total_out_excel: getCol(["TOTAL POTONGAN", "JUMLAH POTONGAN"]),
+                        hk_excel: getCol(["HARI KERJA", "HK", "JML HARI KERJA"]),
+
+                        // INCOME COMPONENTS
                         gp: getCol(["GAJI POKOK", "GAPOK"]), 
                         tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]), 
                         omset: getCol(["BONUS OMSET", "OMSET"]), 
                         kinerja: getCol(["BONUS KINERJA", "KINERJA"]), 
                         like: getCol(["LIKE KOMEN", "BONUS LIKE"]), 
                         kebijakan: getCol(["KEBIJAKAN"]),
-                        // Cari spesifik Rupiah, kalau tidak ada pakai generik
-                        lembur_rp: getCol(["LEMBUR (RP)", "NOMINAL LEMBUR", "LEMBUR RP", "LEMBUR HARIAN"]), 
-                        ot_rp: getCol(["OVERTIME (RP)", "NOMINAL OT", "OVERTIME RP", "OVERTIME"]),
+                        lembur_rp: getCol(["LEMBUR (RP)", "NOMINAL LEMBUR", "LEMBUR RP"]), 
+                        ot_rp: getCol(["OVERTIME (RP)", "NOMINAL OT", "OVERTIME RP"]),
                         
-                        // --- DEDUCTION (NOMINAL RUPIAH) ---
+                        // DEDUCTION COMPONENTS
                         absen_rp: getCol(["POTONGAN ABSEN", "ABSEN (RP)", "NOMINAL ABSEN"]),
                         bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]), 
                         bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]), 
                         weekend_rp: getCol(["WEEKEND", "HARI BESAR", "POTONGAN WEEKEND"]), 
-                        pot_jam_rp: getCol(["POTONGAN JAM (RP)", "NOMINAL POT JAM", "POTONGAN JAM"]),
+                        pot_jam_rp: getCol(["POTONGAN JAM (RP)", "NOMINAL POT JAM"]),
                         
-                        // --- COUNTERS (HANYA UNTUK DISPLAY "X HARI/JAM") ---
-                        lembur_cnt: getCol(["JML LEMBUR", "HARI LEMBUR", "JML HARI LEMBUR"]),
-                        ot_cnt: getCol(["JML OT", "JAM OT", "JAM LEMBUR", "JML JAM OVERTIME"]),
-                        absen_cnt: getCol(["JML ABSEN", "HARI ABSEN", "JML HARI ABSEN"]),
-                        pot_jam_cnt: getCol(["JML POT JAM", "JAM TERLAMBAT", "JML JAM"]),
+                        // COUNTERS (Display Only)
+                        lembur_cnt: getCol(["JML LEMBUR", "HARI LEMBUR"]),
+                        ot_cnt: getCol(["JML OT", "JAM OT"]),
+                        absen_cnt: getCol(["JML ABSEN", "HARI ABSEN"]),
+                        pot_jam_cnt: getCol(["JML POT JAM", "JAM TERLAMBAT"]),
 
-                        // --- FINAL CHECK ---
+                        // FINAL CHECK (Wajib Ada)
                         thp_excel: getCol(["THP", "TAKE HOME PAY", "TOTAL DITERIMA"])
                     };
 
@@ -428,45 +440,43 @@
                         const rawNama = String(row[col.nama]).trim();
                         if(rawNama.length < 2 || /TOTAL|SUBTOTAL/i.test(rawNama)) return;
 
-                        // Helper ambil value
-                        const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0; // Baca angka Rupiah
-                        const c = (idx) => (idx > -1) ? row[idx] : 0; // Baca Counter (bisa string/angka)
+                        const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0;
+                        const c = (idx) => (idx > -1) ? row[idx] : 0;
 
-                        // 3. LOGIKA SSOT: Baca apa adanya
+                        // Income detail (untuk slip)
                         const inc = { 
-                            gp: v(col.gp), 
-                            tunj: v(col.tunj), 
-                            omset: v(col.omset), 
-                            kinerja: v(col.kinerja), 
-                            like: v(col.like), 
-                            lembur: v(col.lembur_rp), // Langsung ambil Rupiah
-                            ot: v(col.ot_rp),         // Langsung ambil Rupiah
-                            kebijakan: v(col.kebijakan) 
+                            gp: v(col.gp), tunj: v(col.tunj), omset: v(col.omset), kinerja: v(col.kinerja), 
+                            like: v(col.like), lembur: v(col.lembur_rp), ot: v(col.ot_rp), kebijakan: v(col.kebijakan) 
                         };
                         
+                        // Deduct detail (untuk slip)
                         const ded = { 
-                            absen: v(col.absen_rp),   // Langsung ambil Rupiah
-                            bpjs_kes: v(col.bpjs_kes), 
-                            bpjs_tk: v(col.bpjs_tk), 
-                            weekend: v(col.weekend_rp), 
-                            pot_jam: v(col.pot_jam_rp) // Langsung ambil Rupiah
+                            absen: v(col.absen_rp), bpjs_kes: v(col.bpjs_kes), bpjs_tk: v(col.bpjs_tk), 
+                            weekend: v(col.weekend_rp), pot_jam: v(col.pot_jam_rp) 
                         };
 
                         const counts = {
-                            lembur: c(col.lembur_cnt),
-                            ot: c(col.ot_cnt),
-                            absen: c(col.absen_cnt),
-                            pot_jam: c(col.pot_jam_cnt)
+                            lembur: c(col.lembur_cnt), ot: c(col.ot_cnt), absen: c(col.absen_cnt), pot_jam: c(col.pot_jam_cnt)
                         };
 
-                        const total_in = Object.values(inc).reduce((a,b)=>a+b, 0);
-                        const total_out = Object.values(ded).reduce((a,b)=>a+b, 0);
-                        const thp_system = total_in - total_out; // Check sum sistem
-                        const thp_excel = v(col.thp_excel); // Check sum Excel
+                        // LOGIKA SSOT UTAMA:
+                        // 1. Ambil THP dari Excel (Wajib)
+                        const thp_excel = v(col.thp_excel);
+                        
+                        // 2. Ambil Total In/Out dari Excel jika ada, kalau tidak baru hitung sum
+                        const sum_in = Object.values(inc).reduce((a,b)=>a+b, 0);
+                        const sum_out = Object.values(ded).reduce((a,b)=>a+b, 0);
+                        
+                        const total_in_final = (col.total_in_excel > -1) ? v(col.total_in_excel) : sum_in;
+                        const total_out_final = (col.total_out_excel > -1) ? v(col.total_out_excel) : sum_out;
+                        
+                        // 3. Ambil Hari Kerja dari Excel
+                        const hk_final = (col.hk_excel > -1) ? c(col.hk_excel) : "-";
 
-                        // Validasi Selisih
-                        const diff = Math.abs(thp_system - thp_excel);
-                        const isMatch = diff < 1000; // Toleransi pembulatan kecil
+                        // 4. Audit Check (System Sum vs Excel THP)
+                        const thp_system_check = total_in_final - total_out_final;
+                        const diff = Math.abs(thp_system_check - thp_excel);
+                        const isMatch = diff < 1; // Strict match (toleransi float only)
 
                         const matched = masterKaryawanList.find(m => isNameMatch(rawNama, m.nama));
                         const wa = matched ? matched.wa : null;
@@ -474,13 +484,14 @@
                         const d = { 
                             NIK: row[col.nik]||'-', 
                             NAMA: rawNama, 
-                            DIVISI: row[col.outlet]||'STAFF', 
+                            DIVISI: row[col.outlet]||'STAFF',
+                            HK: hk_final, // Dynamic HK
                             COUNTS: counts, 
                             INCOME: inc, 
                             DEDUCT: ded, 
-                            TOTAL_IN: total_in, 
-                            TOTAL_OUT: total_out, 
-                            THP: thp_system 
+                            TOTAL_IN: total_in_final, 
+                            TOTAL_OUT: total_out_final, 
+                            THP_EXCEL: thp_excel // Ini yang akan dirender
                         };
                         
                         const fmt = n => Number(n).toLocaleString('id-ID');
@@ -488,12 +499,11 @@
                         tbody.innerHTML += `<tr class="border-b hover:bg-slate-50">
                             <td class="p-3">${wa?'<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">MATCH</span>':'<span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">NO HP</span>'}</td>
                             <td class="p-3"><div class="font-bold text-slate-700 text-sm">${d.NAMA}</div><div class="text-[10px] text-slate-400">${d.NIK}</div></td>
-                            <td class="p-3 text-right text-green-700 text-xs font-mono">${fmt(d.TOTAL_IN)}</td>
-                            <td class="p-3 text-right text-red-600 text-xs font-mono">(${fmt(d.TOTAL_OUT)})</td>
-                            <td class="p-3 text-right"><div class="font-bold text-slate-700 text-sm">${fmt(d.THP)}</div></td>
+                            <td class="p-3 text-right text-xs font-mono">${fmt(d.TOTAL_IN)}</td>
+                            <td class="p-3 text-right text-xs font-mono">(${fmt(d.TOTAL_OUT)})</td>
+                            <td class="p-3 text-right"><div class="font-bold text-green-800 text-sm">${fmt(d.THP_EXCEL)}</div></td>
                             <td class="p-3 text-right border-l border-slate-200">
-                                <div class="font-bold ${isMatch?'text-green-700':'text-red-600'} text-sm">${fmt(thp_excel)}</div>
-                                ${!isMatch ? '<div class="badge-diff">Beda '+fmt(diff)+'</div>' : '<div class="badge-ssot">VALID</div>'}
+                                ${!isMatch ? `<div class="badge-diff">Diff: ${fmt(diff)}</div>` : '<div class="badge-ssot">AUDIT OK</div>'}
                             </td>
                             <td class="p-3 text-center sticky right-0 bg-white z-10">${wa?`<button onclick='uploadAndSend(this, ${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'-'}</td>
                         </tr>`;
@@ -519,7 +529,6 @@
                 const area = document.getElementById('render-area');
                 const fmt = (n) => n > 0 ? Number(n).toLocaleString('id-ID') : '-';
                 const fmtVal = (n) => `<td style="text-align:right;">${fmt(n)}</td>`;
-                // Format Counter: Tampilkan angka mentah (misal: "2 Hari" atau "4 Jam")
                 const fmtCount = (n, unit) => `<td style="text-align:center;">${n && n!=0 ? n + ' ' + unit : '-'}</td>`;
                 
                 const tglCetak = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
@@ -543,7 +552,7 @@
                             <tr><td style="padding: 2px 0;">NAMA</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${data.NAMA}</td></tr>
                             <tr><td style="padding: 2px 0;">DIVISI</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${data.DIVISI}</td></tr>
                             <tr><td style="padding: 2px 0;">PERIODE</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${periodeBulan}</td></tr>
-                            <tr><td style="padding: 2px 0;">HARI KERJA</td><td>:</td><td style="font-weight: bold;">25</td></tr>
+                            <tr><td style="padding: 2px 0;">HARI KERJA</td><td>:</td><td style="font-weight: bold;">${data.HK}</td></tr>
                         </table>
                     </div>
 
@@ -579,7 +588,7 @@
 
                             <tr style="font-weight: bold; background-color: #ffff00;">
                                 <td style="padding: 8px 0 8px 5px;">GAJI BERSIH</td><td></td><td>:</td><td>Rp</td>
-                                <td style="text-align:right; padding-right:5px;">${fmt(data.THP)}</td>
+                                <td style="text-align:right; padding-right:5px;">${fmt(data.THP_EXCEL)}</td>
                             </tr>
                             <tr><td colspan="5" style="border-top: 2px solid #000;"></td></tr>
                         </table>
@@ -599,7 +608,7 @@
                     const fname = `slip_${data.NAMA.replace(/\s/g,'_')}_${Date.now()}.jpg`;
                     const snap = await storage.ref().child('slips/'+fname).put(blob);
                     const url = await snap.ref.getDownloadURL();
-                    const msg = `Halo ${data.NAMA},\nBerikut Slip Gaji periode ini.\n\n*Total Diterima: Rp ${fmt(data.THP)}*\n\nUnduh Slip: ${url}`;
+                    const msg = `Halo ${data.NAMA},\nBerikut Slip Gaji periode ini.\n\n*Total Diterima: Rp ${fmt(data.THP_EXCEL)}*\n\nUnduh Slip: ${url}`;
                     window.open(`https://wa.me/${formattedWa}?text=${encodeURIComponent(msg)}`, '_blank');
                     
                     btn.innerHTML = `<i class="fas fa-check"></i> Terkirim`;

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Naruna Payroll - V7 (Fixed Layout)</title>
+    <title>Naruna Payroll - V7 (SSOT Mode)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,34 +27,31 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        /* Render Container Styles - Dibuat Fixed Width agar hasil konsisten */
+        /* Render Container - Fixed Width for Consistency */
         .payslip-container { 
             width: 800px; 
             background: white; 
-            font-family: Arial, Helvetica, sans-serif; /* Font sesuai Excel */
+            font-family: Arial, Helvetica, sans-serif;
             color: #000;
             line-height: 1.3;
         }
         
         #render-area {
             position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -50;
-            opacity: 0;
-            pointer-events: none;
+            top: 0; left: 0; z-index: -50; opacity: 0; pointer-events: none;
         }
 
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 100; justify-content: center; align-items: center; color: white; flex-direction: column; backdrop-filter: blur(4px); }
         
-        #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; color: #cbd5e1; font-family: monospace; z-index: 50; transition: transform 0.3s ease; transform: translateY(100%); max-height: 40vh; display: flex; flex-direction: column; border-top-left-radius: 12px; border-top-right-radius: 12px; shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1); }
+        #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; color: #cbd5e1; font-family: monospace; z-index: 50; transition: transform 0.3s ease; transform: translateY(100%); max-height: 40vh; display: flex; flex-direction: column; border-top-left-radius: 12px; border-top-right-radius: 12px; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1); }
         #debug-console.open { transform: translateY(0); }
-        .log-entry { padding: 4px 8px; border-bottom: 1px solid #334155; font-size: 11px; }
-        .log-err { color: #f87171; background: rgba(254,226,226,0.1); }
-        .log-success { color: #4ade80; }
         
         .kop-item { border: 2px solid transparent; transition: all 0.2s; }
         .kop-item.active { border-color: #3b82f6; background-color: #eff6ff; }
+        
+        /* Status Badge */
+        .badge-ssot { background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; letter-spacing: 0.5px; }
+        .badge-diff { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body class="text-slate-800">
@@ -67,14 +64,14 @@
     <div id="login-section" class="min-h-screen flex items-center justify-center p-4 bg-slate-900">
         <div class="bg-white p-8 rounded-2xl w-full max-w-md shadow-2xl border-t-4 border-blue-600">
             <div class="text-center mb-8">
-                <i class="fas fa-shield-alt text-4xl text-blue-600 mb-2"></i>
-                <h2 class="text-2xl font-bold text-slate-800">Payroll V7</h2>
-                <p class="text-slate-500 text-sm">Exact Layout Replica</p>
+                <i class="fas fa-file-invoice-dollar text-4xl text-blue-600 mb-2"></i>
+                <h2 class="text-2xl font-bold text-slate-800">Naruna Payroll V7</h2>
+                <p class="text-slate-500 text-sm font-mono mt-1"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">SSOT MODE</span></p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <input id="email" type="email" class="w-full border border-slate-300 p-3 rounded-lg mb-4" placeholder="Email Admin" required>
                 <input type="password" id="password" class="w-full border border-slate-300 p-3 rounded-lg mb-6" placeholder="Password" required>
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-bold shadow-lg">MASUK SISTEM</button>
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-bold shadow-lg transition transform hover:scale-[1.02]">MASUK SISTEM</button>
             </form>
         </div>
     </div>
@@ -83,7 +80,10 @@
         <nav class="bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex justify-between items-center shadow-sm sticky top-0 z-40">
             <div class="flex items-center gap-2">
                 <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V7</div>
-                <span class="font-bold text-slate-800 text-lg">Naruna Payroll</span>
+                <div class="flex flex-col">
+                    <span class="font-bold text-slate-800 leading-tight">Naruna Payroll</span>
+                    <span class="text-[10px] text-slate-400 font-mono">SSOT ENABLED</span>
+                </div>
             </div>
             <div class="flex gap-3">
                 <button onclick="toggleConsole()" class="text-slate-500 hover:text-blue-600 p-2"><i class="fas fa-bug"></i></button>
@@ -91,7 +91,7 @@
             </div>
         </nav>
 
-        <main class="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full space-y-6">
+        <main class="flex-1 p-4 md:p-6 max-w-6xl mx-auto w-full space-y-6">
 
             <div id="error-banner" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-sm mb-4">
                 <p class="font-bold">⚠️ Perhatian</p>
@@ -102,35 +102,27 @@
                 <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center cursor-pointer" onclick="toggleSection('header-content')">
                     <div class="flex items-center gap-3">
                         <div class="bg-purple-100 text-purple-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</div>
-                        <div>
-                            <h2 class="font-bold text-slate-700">Pengaturan Kop Surat</h2>
-                            <p class="text-xs text-slate-500">Upload dan pilih kop yang akan digunakan</p>
-                        </div>
+                        <div><h2 class="font-bold text-slate-700">Pengaturan Kop Surat</h2></div>
                     </div>
                     <i class="fas fa-chevron-down text-slate-400 transition-transform" id="icon-header-content"></i>
                 </div>
-                
                 <div id="header-content" class="p-4 hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <label class="cursor-pointer group h-32">
                             <div class="border-2 border-dashed border-slate-300 rounded-lg h-full flex flex-col justify-center items-center text-center group-hover:border-purple-500 transition bg-slate-50 hover:bg-purple-50">
                                 <i class="fas fa-image text-slate-400 mb-2 text-xl group-hover:text-purple-500"></i>
-                                <span class="text-sm font-medium text-slate-600">Tambah Gambar Kop Baru</span>
+                                <span class="text-sm font-medium text-slate-600">Tambah Gambar Kop</span>
                                 <input type="file" id="header-upload" accept="image/*" class="hidden" onchange="handleHeaderUpload(this)"/>
                             </div>
                         </label>
                         <div class="border border-slate-200 rounded-lg p-2 bg-slate-50 flex flex-col">
-                            <span class="text-xs font-bold text-slate-500 mb-2 uppercase">Kop Aktif Saat Ini:</span>
+                            <span class="text-xs font-bold text-slate-500 mb-2 uppercase">Kop Aktif:</span>
                             <div id="active-header-preview" class="flex-1 bg-white border border-slate-300 rounded flex items-center justify-center overflow-hidden relative">
                                 <span class="text-xs text-slate-400 italic">Belum ada kop dipilih</span>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-4">
-                        <h3 class="text-sm font-bold text-slate-700 mb-2">Galeri Kop Tersimpan</h3>
-                        <div id="header-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-                        <button onclick="clearHeaderGallery()" class="mt-4 text-xs text-red-500 hover:text-red-700 underline">Hapus Semua Kop</button>
-                    </div>
+                    <div id="header-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
                 </div>
             </div>
 
@@ -138,13 +130,10 @@
                 <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center cursor-pointer" onclick="toggleSection('master-content')">
                     <div class="flex items-center gap-3">
                         <div class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</div>
-                        <div>
-                            <h2 class="font-bold text-slate-700">Master Data Karyawan</h2>
-                        </div>
+                        <div><h2 class="font-bold text-slate-700">Master Data Karyawan</h2></div>
                     </div>
                     <i class="fas fa-chevron-down text-slate-400 transition-transform" id="icon-master-content"></i>
                 </div>
-                
                 <div id="master-content" class="p-4 hidden">
                     <div class="flex flex-col md:flex-row gap-4 mb-4">
                         <label class="flex-1 cursor-pointer group">
@@ -163,28 +152,29 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-lg border border-blue-100 overflow-hidden relative">
-                <div class="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
-                <div class="bg-white p-4 border-b border-slate-100">
+                <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div> <div class="bg-white p-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
-                        <div class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-blue-200">3</div>
+                        <div class="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-green-200">3</div>
                         <div>
-                            <h2 class="font-bold text-slate-800 text-lg">Upload File Gaji</h2>
+                            <h2 class="font-bold text-slate-800 text-lg">Upload File Gaji (SSOT)</h2>
+                            <p class="text-xs text-slate-500">Sistem hanya membaca angka final dari Excel.</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="p-5">
                     <label class="block mb-4 cursor-pointer">
-                        <div class="bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 border-dashed rounded-xl p-6 text-center transition">
+                        <div class="bg-green-50 hover:bg-green-100 border-2 border-green-200 border-dashed rounded-xl p-6 text-center transition">
                             <i class="fas fa-file-excel text-3xl text-green-600 mb-2"></i>
-                            <h3 class="font-bold text-blue-900">Pilih File Excel Gaji</h3>
+                            <h3 class="font-bold text-green-900">Pilih File Excel Final</h3>
+                            <p class="text-xs text-green-700 mt-1">Pastikan semua perhitungan lembur/potongan sudah selesai di Excel</p>
                             <input type="file" id="payroll-file" accept=".xlsx,.xls" class="hidden"/>
                         </div>
                     </label>
 
                     <div id="payroll-result" class="hidden mt-6">
                         <div class="flex justify-between items-end mb-3">
-                            <h3 class="font-bold text-slate-700">Hasil Perhitungan</h3>
+                            <h3 class="font-bold text-slate-700">Preview Data</h3>
                             <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded font-bold" id="process-count-badge">0 Data</span>
                         </div>
                         <div class="overflow-x-auto custom-scroll border rounded-lg shadow-sm">
@@ -193,9 +183,10 @@
                                     <tr>
                                         <th class="p-3">Status</th>
                                         <th class="p-3">Karyawan</th>
-                                        <th class="p-3 text-right">Income</th>
-                                        <th class="p-3 text-right">Potongan</th>
-                                        <th class="p-3 text-right font-bold bg-slate-700">THP</th>
+                                        <th class="p-3 text-right">Total Income</th>
+                                        <th class="p-3 text-right">Total Potongan</th>
+                                        <th class="p-3 text-right font-bold bg-slate-700">THP (Hitung)</th>
+                                        <th class="p-3 text-right font-bold bg-green-900 text-green-100">THP (Excel)</th>
                                         <th class="p-3 text-center sticky right-0 bg-slate-800 z-10">Aksi</th>
                                     </tr>
                                 </thead>
@@ -220,7 +211,7 @@
     <div id="render-area"></div>
 
     <script>
-        // --- FIREBASE CONFIG (Tetap sama) ---
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = { apiKey: "AIzaSyAecwXgmT8rMGw1LpXKTS3xX-2YPcDlZZw", authDomain: "naruna-payroll.firebaseapp.com", projectId: "naruna-payroll", storageBucket: "naruna-payroll.firebasestorage.app", messagingSenderId: "209087490496", appId: "1:209087490496:web:f632b7a1cc3fa9166f4025" };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const auth = firebase.auth(); const db = firebase.firestore(); const storage = firebase.storage();
@@ -276,16 +267,8 @@
             }
         }
         function updateActivePreview(src) { document.getElementById('active-header-preview').innerHTML = `<img src="${src}" class="w-full h-auto" />`; }
-        function clearHeaderGallery() {
-            if(confirm("Hapus semua kop tersimpan?")) {
-                localStorage.removeItem('savedHeaders'); localStorage.removeItem('activeHeaderIndex');
-                selectedHeaderImg = null;
-                document.getElementById('header-gallery').innerHTML = '';
-                document.getElementById('active-header-preview').innerHTML = '<span class="text-xs text-slate-400 italic">Belum ada kop dipilih</span>';
-            }
-        }
 
-        // --- UTILS & CORE ---
+        // --- UTILS ---
         function toggleSection(id) {
             const el = document.getElementById(id); const icon = document.getElementById('icon-'+id);
             if(!el) return;
@@ -295,6 +278,7 @@
         function toggleConsole() { document.getElementById('debug-console').classList.toggle('open'); }
         function showLoading(show, text="Processing...") { document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none'; document.getElementById('loading-text').innerText = text; }
         
+        // CLEAN NUM: Hanya membersihkan karakter, TIDAK mengubah logika
         function cleanNum(raw) { 
             if(raw === null || raw === undefined || raw === '') return 0;
             if (typeof raw === 'number') return raw;
@@ -315,13 +299,10 @@
             const n1 = normalize(excelName); const n2 = normalize(masterName);
             if (!n1 || !n2) return false;
             if (n1 === n2 || n1.includes(n2) || n2.includes(n1)) return true;
-            const t1 = n1.split(/\s+/); const t2 = n2.split(/\s+/);
-            let matches = 0; const minLen = Math.min(t1.length, t2.length);
-            for (let t of t1) { if (t2.some(x => x.startsWith(t) || t.startsWith(x))) matches++; }
-            return (matches / minLen) >= 0.75;
+            return false;
         }
 
-        // --- AUTH & DATA LOAD ---
+        // --- AUTH & DATA ---
         auth.onAuthStateChanged(u => {
             if(u) {
                 document.getElementById('login-section').classList.add('hidden');
@@ -344,7 +325,7 @@
             });
         }
         
-        // --- UPLOAD EXCEL LOGIC ---
+        // --- MASTER UPLOAD ---
         document.getElementById('master-excel-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
             showLoading(true, "Updating Master...");
@@ -378,9 +359,10 @@
             reader.readAsBinaryString(file);
         });
 
+        // --- SSOT PAYROLL PROCESSING ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
-            showLoading(true, "Menganalisa File...");
+            showLoading(true, "Membaca Excel (Mode SSOT)...");
             document.getElementById('error-banner').classList.add('hidden');
             
             const reader = new FileReader();
@@ -388,22 +370,51 @@
                 try {
                     const wb = XLSX.read(evt.target.result, {type:'binary'});
                     const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
+                    
+                    // 1. Cari Header
                     let hIdx = -1;
                     for(let i=0; i<30; i++) { 
                         const rowStr = JSON.stringify(rawData[i]||[]).toUpperCase();
-                        if(rowStr.includes("GAJI POKOK") && rowStr.includes("NAMA")) { hIdx = i; break; } 
+                        if(rowStr.includes("NAMA")) { hIdx = i; break; } 
                     }
-                    if(hIdx === -1) throw new Error("Header tidak ditemukan.");
+                    if(hIdx === -1) throw new Error("Header tidak ditemukan. Pastikan ada kolom 'NAMA'.");
 
                     const header = rawData[hIdx].map(x => String(x).toUpperCase().trim());
                     const getCol = (keywords) => header.findIndex(h => keywords.some(k => h === k || h.includes(k)));
 
+                    // 2. Mapping Kolom (NOMINAL vs JUMLAH)
+                    // PENTING: Prioritaskan kolom yang mengandung "RP" atau "NOMINAL" untuk nilai uang
                     const col = {
-                        nama: getCol(["NAMA", "NAMA KARYAWAN"]), nik: getCol(["NIK", "NO INDUK"]), outlet: getCol(["DIVISI", "BAGIAN", "OUTLET"]),
-                        gp: getCol(["GAJI POKOK"]), tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]), omset: getCol(["BONUS OMSET", "OMSET"]), 
-                        kinerja: getCol(["BONUS KINERJA", "KINERJA"]), like: getCol(["LIKE KOMEN", "BONUS LIKE"]), lembur: getCol(["LEMBUR HARIAN"]), 
-                        ot: getCol(["OVERTIME"]), kebijakan: getCol(["KEBIJAKAN"]), absen: getCol(["POTONGAN ABSEN"]), bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]), 
-                        bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]), weekend: getCol(["WEEKEND", "HARI BESAR"]), pot_jam: getCol(["POTONGAN JAM"]) 
+                        nama: getCol(["NAMA", "NAMA KARYAWAN"]), 
+                        nik: getCol(["NIK", "NO INDUK"]), 
+                        outlet: getCol(["DIVISI", "BAGIAN", "OUTLET"]),
+                        
+                        // --- INCOME (NOMINAL RUPIAH) ---
+                        gp: getCol(["GAJI POKOK", "GAPOK"]), 
+                        tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]), 
+                        omset: getCol(["BONUS OMSET", "OMSET"]), 
+                        kinerja: getCol(["BONUS KINERJA", "KINERJA"]), 
+                        like: getCol(["LIKE KOMEN", "BONUS LIKE"]), 
+                        kebijakan: getCol(["KEBIJAKAN"]),
+                        // Cari spesifik Rupiah, kalau tidak ada pakai generik
+                        lembur_rp: getCol(["LEMBUR (RP)", "NOMINAL LEMBUR", "LEMBUR RP", "LEMBUR HARIAN"]), 
+                        ot_rp: getCol(["OVERTIME (RP)", "NOMINAL OT", "OVERTIME RP", "OVERTIME"]),
+                        
+                        // --- DEDUCTION (NOMINAL RUPIAH) ---
+                        absen_rp: getCol(["POTONGAN ABSEN", "ABSEN (RP)", "NOMINAL ABSEN"]),
+                        bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]), 
+                        bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]), 
+                        weekend_rp: getCol(["WEEKEND", "HARI BESAR", "POTONGAN WEEKEND"]), 
+                        pot_jam_rp: getCol(["POTONGAN JAM (RP)", "NOMINAL POT JAM", "POTONGAN JAM"]),
+                        
+                        // --- COUNTERS (HANYA UNTUK DISPLAY "X HARI/JAM") ---
+                        lembur_cnt: getCol(["JML LEMBUR", "HARI LEMBUR", "JML HARI LEMBUR"]),
+                        ot_cnt: getCol(["JML OT", "JAM OT", "JAM LEMBUR", "JML JAM OVERTIME"]),
+                        absen_cnt: getCol(["JML ABSEN", "HARI ABSEN", "JML HARI ABSEN"]),
+                        pot_jam_cnt: getCol(["JML POT JAM", "JAM TERLAMBAT", "JML JAM"]),
+
+                        // --- FINAL CHECK ---
+                        thp_excel: getCol(["THP", "TAKE HOME PAY", "TOTAL DITERIMA"])
                     };
 
                     const tbody = document.getElementById('payroll-table-body');
@@ -417,29 +428,61 @@
                         const rawNama = String(row[col.nama]).trim();
                         if(rawNama.length < 2 || /TOTAL|SUBTOTAL/i.test(rawNama)) return;
 
-                        const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0;
-                        
-                        let rawLembur = v(col.lembur), valLembur = rawLembur, countLembur = 0;
-                        if(rawLembur > 0 && rawLembur <= 31) { valLembur = rawLembur * 40000; countLembur = rawLembur; }
-                        
-                        let rawOT = v(col.ot), valOT = rawOT, countOT = 0;
-                        if(rawOT > 0 && rawOT < 100) { valOT = rawOT * 5000; countOT = rawOT; }
-                        
-                        let rawPotJam = v(col.pot_jam), valPotJam = rawPotJam, countPotJam = 0;
-                        if(rawPotJam > 0 && rawPotJam < 100) { valPotJam = rawPotJam * 5000; countPotJam = rawPotJam; }
-                        
-                        let rawAbsen = v(col.absen), valAbsen = rawAbsen, countAbsen = 0;
-                        if(rawAbsen > 0 && rawAbsen < 31) { countAbsen = rawAbsen; valAbsen = rawAbsen * 72000; }
+                        // Helper ambil value
+                        const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0; // Baca angka Rupiah
+                        const c = (idx) => (idx > -1) ? row[idx] : 0; // Baca Counter (bisa string/angka)
 
-                        const inc = { gp: v(col.gp), tunj: v(col.tunj), omset: v(col.omset), kinerja: v(col.kinerja), like: v(col.like), lembur: valLembur, ot: valOT, kebijakan: v(col.kebijakan) };
-                        const ded = { absen: valAbsen, bpjs_kes: v(col.bpjs_kes), bpjs_tk: v(col.bpjs_tk), weekend: v(col.weekend), pot_jam: valPotJam };
-                        const total_in = Math.round(Object.values(inc).reduce((a,b)=>a+b, 0));
-                        const total_out = Math.round(Object.values(ded).reduce((a,b)=>a+b, 0));
-                        const thp_system = total_in - total_out;
+                        // 3. LOGIKA SSOT: Baca apa adanya
+                        const inc = { 
+                            gp: v(col.gp), 
+                            tunj: v(col.tunj), 
+                            omset: v(col.omset), 
+                            kinerja: v(col.kinerja), 
+                            like: v(col.like), 
+                            lembur: v(col.lembur_rp), // Langsung ambil Rupiah
+                            ot: v(col.ot_rp),         // Langsung ambil Rupiah
+                            kebijakan: v(col.kebijakan) 
+                        };
+                        
+                        const ded = { 
+                            absen: v(col.absen_rp),   // Langsung ambil Rupiah
+                            bpjs_kes: v(col.bpjs_kes), 
+                            bpjs_tk: v(col.bpjs_tk), 
+                            weekend: v(col.weekend_rp), 
+                            pot_jam: v(col.pot_jam_rp) // Langsung ambil Rupiah
+                        };
+
+                        const counts = {
+                            lembur: c(col.lembur_cnt),
+                            ot: c(col.ot_cnt),
+                            absen: c(col.absen_cnt),
+                            pot_jam: c(col.pot_jam_cnt)
+                        };
+
+                        const total_in = Object.values(inc).reduce((a,b)=>a+b, 0);
+                        const total_out = Object.values(ded).reduce((a,b)=>a+b, 0);
+                        const thp_system = total_in - total_out; // Check sum sistem
+                        const thp_excel = v(col.thp_excel); // Check sum Excel
+
+                        // Validasi Selisih
+                        const diff = Math.abs(thp_system - thp_excel);
+                        const isMatch = diff < 1000; // Toleransi pembulatan kecil
 
                         const matched = masterKaryawanList.find(m => isNameMatch(rawNama, m.nama));
                         const wa = matched ? matched.wa : null;
-                        const d = { NIK: row[col.nik]||'-', NAMA: rawNama, DIVISI: row[col.outlet]||'STAFF', COUNTS: { lembur: countLembur, ot: countOT, pot_jam: countPotJam, absen: countAbsen }, INCOME: inc, DEDUCT: ded, TOTAL_IN: total_in, TOTAL_OUT: total_out, THP: thp_system };
+                        
+                        const d = { 
+                            NIK: row[col.nik]||'-', 
+                            NAMA: rawNama, 
+                            DIVISI: row[col.outlet]||'STAFF', 
+                            COUNTS: counts, 
+                            INCOME: inc, 
+                            DEDUCT: ded, 
+                            TOTAL_IN: total_in, 
+                            TOTAL_OUT: total_out, 
+                            THP: thp_system 
+                        };
+                        
                         const fmt = n => Number(n).toLocaleString('id-ID');
                         
                         tbody.innerHTML += `<tr class="border-b hover:bg-slate-50">
@@ -447,7 +490,11 @@
                             <td class="p-3"><div class="font-bold text-slate-700 text-sm">${d.NAMA}</div><div class="text-[10px] text-slate-400">${d.NIK}</div></td>
                             <td class="p-3 text-right text-green-700 text-xs font-mono">${fmt(d.TOTAL_IN)}</td>
                             <td class="p-3 text-right text-red-600 text-xs font-mono">(${fmt(d.TOTAL_OUT)})</td>
-                            <td class="p-3 text-right"><div class="font-bold text-blue-800 text-sm">${fmt(d.THP)}</div></td>
+                            <td class="p-3 text-right"><div class="font-bold text-slate-700 text-sm">${fmt(d.THP)}</div></td>
+                            <td class="p-3 text-right border-l border-slate-200">
+                                <div class="font-bold ${isMatch?'text-green-700':'text-red-600'} text-sm">${fmt(thp_excel)}</div>
+                                ${!isMatch ? '<div class="badge-diff">Beda '+fmt(diff)+'</div>' : '<div class="badge-ssot">VALID</div>'}
+                            </td>
                             <td class="p-3 text-center sticky right-0 bg-white z-10">${wa?`<button onclick='uploadAndSend(this, ${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'-'}</td>
                         </tr>`;
                         processedCount++;
@@ -459,11 +506,11 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- RENDER & SEND (REVISI V7: FIXED LAYOUT) ---
+        // --- RENDER & SEND ---
         async function uploadAndSend(btn, data, waNumber) {
-            if(!selectedHeaderImg) { alert("Harap pilih Kop Surat terlebih dahulu di menu Pengaturan Kop Surat."); return; }
+            if(!selectedHeaderImg) { alert("Harap pilih Kop Surat terlebih dahulu."); return; }
             const originalText = btn.innerHTML;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading`; btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Wait`; btn.disabled = true;
             showLoading(true, `Menyiapkan slip ${data.NAMA}...`);
             let formattedWa = String(waNumber).replace(/[^0-9]/g, '');
             if (formattedWa.startsWith('0')) formattedWa = '62' + formattedWa.slice(1);
@@ -471,15 +518,14 @@
             try {
                 const area = document.getElementById('render-area');
                 const fmt = (n) => n > 0 ? Number(n).toLocaleString('id-ID') : '-';
-                // Helper khusus untuk kolom nilai: Jika 0 maka align right tapi isi '-'
                 const fmtVal = (n) => `<td style="text-align:right;">${fmt(n)}</td>`;
-                // Helper untuk jam/hari: jika 0 tetap tampil "0 JAM" atau "0 HARI" sesuai gambar
-                const fmtCount = (n, unit) => `<td style="text-align:center;">${n} ${unit}</td>`;
+                // Format Counter: Tampilkan angka mentah (misal: "2 Hari" atau "4 Jam")
+                const fmtCount = (n, unit) => `<td style="text-align:center;">${n && n!=0 ? n + ' ' + unit : '-'}</td>`;
                 
                 const tglCetak = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
                 const periodeBulan = new Date().toLocaleDateString('id-ID', {month: 'long'}).toUpperCase();
                 
-                // HTML Template yang diperbaiki agar Static Table (Grid Like)
+                // HTML Template Fixed Layout 800px
                 area.innerHTML = `
                 <div class="payslip-container" style="background:white; padding-bottom: 20px; width: 800px; font-family: Arial, Helvetica, sans-serif;">
                     
@@ -493,154 +539,46 @@
 
                     <div style="padding: 0 30px; margin-bottom: 10px;">
                         <table style="width:100%; font-size: 14px; border-collapse: collapse;">
-                            <tr>
-                                <td style="width: 100px; padding: 2px 0;">NIK</td>
-                                <td style="width: 10px;">:</td>
-                                <td style="font-weight: bold;">${data.NIK}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 2px 0;">NAMA</td>
-                                <td>:</td>
-                                <td style="font-weight: bold; text-transform: uppercase;">${data.NAMA}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 2px 0;">DIVISI</td>
-                                <td>:</td>
-                                <td style="font-weight: bold; text-transform: uppercase;">${data.DIVISI}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 2px 0;">PERIODE</td>
-                                <td>:</td>
-                                <td style="font-weight: bold; text-transform: uppercase;">${periodeBulan}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 2px 0;">HARI KERJA</td>
-                                <td>:</td>
-                                <td style="font-weight: bold;">25</td>
-                            </tr>
+                            <tr><td style="width: 100px; padding: 2px 0;">NIK</td><td style="width: 10px;">:</td><td style="font-weight: bold;">${data.NIK}</td></tr>
+                            <tr><td style="padding: 2px 0;">NAMA</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${data.NAMA}</td></tr>
+                            <tr><td style="padding: 2px 0;">DIVISI</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${data.DIVISI}</td></tr>
+                            <tr><td style="padding: 2px 0;">PERIODE</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${periodeBulan}</td></tr>
+                            <tr><td style="padding: 2px 0;">HARI KERJA</td><td>:</td><td style="font-weight: bold;">25</td></tr>
                         </table>
                     </div>
 
                     <div style="padding: 0 30px;">
                         <table style="width:100%; font-size: 14px; border-collapse: collapse;">
                             <tr style="height:0px; visibility:hidden;">
-                                <td style="width:40%;"></td>
-                                <td style="width:20%;"></td>
-                                <td style="width:2%;"></td>
-                                <td style="width:5%;"></td>
-                                <td style="width:33%;"></td>
+                                <td style="width:40%;"></td><td style="width:20%;"></td><td style="width:2%;"></td><td style="width:5%;"></td><td style="width:33%;"></td>
                             </tr>
 
-                            <tr>
-                                <td style="padding: 3px 0;">GAJI POKOK</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                <td style="text-align:right;">${fmt(data.INCOME.gp)}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">OVERTIME MALAM</td>
-                                ${fmtCount(data.COUNTS.ot, 'JAM')}
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.INCOME.ot)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">LEMBUR HARIAN</td>
-                                ${fmtCount(data.COUNTS.lembur, 'HARI')}
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.INCOME.lembur)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">KEBIJAKAN KINERJA</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.INCOME.kebijakan)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">BONUS OMSET</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.INCOME.omset)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">BONUS KINERJA</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.INCOME.kinerja)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">BONUS LIKE KOMENT</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.INCOME.like)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">TUNJANGAN JABATAN</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.INCOME.tunj)}
-                            </tr>
+                            <tr><td style="padding: 3px 0;">GAJI POKOK</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.gp)}</tr>
+                            <tr><td style="padding: 3px 0;">OVERTIME MALAM</td>${fmtCount(data.COUNTS.ot, 'JAM')}<td>:</td><td>Rp</td>${fmtVal(data.INCOME.ot)}</tr>
+                            <tr><td style="padding: 3px 0;">LEMBUR HARIAN</td>${fmtCount(data.COUNTS.lembur, 'HARI')}<td>:</td><td>Rp</td>${fmtVal(data.INCOME.lembur)}</tr>
+                            <tr><td style="padding: 3px 0;">KEBIJAKAN KINERJA</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.kebijakan)}</tr>
+                            <tr><td style="padding: 3px 0;">BONUS OMSET</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.omset)}</tr>
+                            <tr><td style="padding: 3px 0;">BONUS KINERJA</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.kinerja)}</tr>
+                            <tr><td style="padding: 3px 0;">BONUS LIKE KOMENT</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.like)}</tr>
+                            <tr><td style="padding: 3px 0;">TUNJANGAN JABATAN</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.tunj)}</tr>
 
                             <tr><td colspan="5" style="border-bottom: 1px solid #ccc; padding: 5px 0;"></td></tr>
                             <tr style="font-weight: bold;">
-                                <td style="padding: 10px 0 5px 0;">GAJI KOTOR</td>
-                                <td></td>
-                                <td style="padding-top:10px;">:</td>
-                                <td style="padding-top:10px;">Rp</td>
+                                <td style="padding: 10px 0 5px 0;">GAJI KOTOR</td><td></td><td style="padding-top:10px;">:</td><td style="padding-top:10px;">Rp</td>
                                 <td style="text-align:right; padding-top:10px;">${fmt(data.TOTAL_IN)}</td>
                             </tr>
                             <tr><td colspan="5" style="height: 15px;"></td></tr>
 
-                            <tr>
-                                <td style="padding: 3px 0;">POTONGAN ABSEN</td>
-                                <td style="text-align:center;">${data.COUNTS.absen || 0} HARI</td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.DEDUCT.absen)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">POTONGAN HARI BESAR/WEEKEND</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.DEDUCT.weekend)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">POTONGAN JAM</td>
-                                <td style="text-align:center;">${Number(data.COUNTS.pot_jam).toLocaleString('id-ID',{minimumFractionDigits:2})} JAM</td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.DEDUCT.pot_jam)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">POTONGAN BPJS KESEHATAN</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.DEDUCT.bpjs_kes)}
-                            </tr>
-                            <tr>
-                                <td style="padding: 3px 0;">POTONGAN BPJS KETENAGAKERJAAN</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
-                                ${fmtVal(data.DEDUCT.bpjs_tk)}
-                            </tr>
+                            <tr><td style="padding: 3px 0;">POTONGAN ABSEN</td>${fmtCount(data.COUNTS.absen, 'HARI')}<td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.absen)}</tr>
+                            <tr><td style="padding: 3px 0;">POTONGAN HARI BESAR</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.weekend)}</tr>
+                            <tr><td style="padding: 3px 0;">POTONGAN JAM</td>${fmtCount(data.COUNTS.pot_jam, 'JAM')}<td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.pot_jam)}</tr>
+                            <tr><td style="padding: 3px 0;">POTONGAN BPJS KES</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.bpjs_kes)}</tr>
+                            <tr><td style="padding: 3px 0;">POTONGAN BPJS TK</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.bpjs_tk)}</tr>
 
                             <tr><td colspan="5" style="border-bottom: 2px solid #000; padding: 10px 0;"></td></tr>
 
                             <tr style="font-weight: bold; background-color: #ffff00;">
-                                <td style="padding: 8px 0 8px 5px;">GAJI BERSIH</td>
-                                <td></td>
-                                <td>:</td>
-                                <td>Rp</td>
+                                <td style="padding: 8px 0 8px 5px;">GAJI BERSIH</td><td></td><td>:</td><td>Rp</td>
                                 <td style="text-align:right; padding-right:5px;">${fmt(data.THP)}</td>
                             </tr>
                             <tr><td colspan="5" style="border-top: 2px solid #000;"></td></tr>

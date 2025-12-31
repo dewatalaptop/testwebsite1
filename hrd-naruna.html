@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Naruna Payroll - V7 (Final SSOT)</title>
+    <title>Naruna Payroll - V7 (Fix Arofik/Excel Format)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,7 +27,7 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        /* Render Container - Fixed Width for Consistency */
+        /* Render Container - Fixed Width */
         .payslip-container { 
             width: 800px; 
             background: white; 
@@ -36,21 +36,14 @@
             line-height: 1.3;
         }
         
-        #render-area {
-            position: fixed;
-            top: 0; left: 0; z-index: -50; opacity: 0; pointer-events: none;
-        }
-
+        #render-area { position: fixed; top: 0; left: 0; z-index: -50; opacity: 0; pointer-events: none; }
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 100; justify-content: center; align-items: center; color: white; flex-direction: column; backdrop-filter: blur(4px); }
-        
-        #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; color: #cbd5e1; font-family: monospace; z-index: 50; transition: transform 0.3s ease; transform: translateY(100%); max-height: 40vh; display: flex; flex-direction: column; border-top-left-radius: 12px; border-top-right-radius: 12px; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1); }
+        #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; color: #cbd5e1; font-family: monospace; z-index: 50; transition: transform 0.3s ease; transform: translateY(100%); max-height: 40vh; display: flex; flex-direction: column; border-top-left-radius: 12px; border-top-right-radius: 12px; }
         #debug-console.open { transform: translateY(0); }
         
         .kop-item { border: 2px solid transparent; transition: all 0.2s; }
         .kop-item.active { border-color: #3b82f6; background-color: #eff6ff; }
-        
-        /* Status Badge */
-        .badge-ssot { background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; letter-spacing: 0.5px; }
+        .badge-ssot { background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
         .badge-diff { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
@@ -66,12 +59,12 @@
             <div class="text-center mb-8">
                 <i class="fas fa-file-invoice-dollar text-4xl text-blue-600 mb-2"></i>
                 <h2 class="text-2xl font-bold text-slate-800">Naruna Payroll V7</h2>
-                <p class="text-slate-500 text-sm font-mono mt-1"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">STRICT SSOT</span></p>
+                <p class="text-slate-500 text-sm font-mono mt-1"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">SMART MAPPING</span></p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <input id="email" type="email" class="w-full border border-slate-300 p-3 rounded-lg mb-4" placeholder="Email Admin" required>
                 <input type="password" id="password" class="w-full border border-slate-300 p-3 rounded-lg mb-6" placeholder="Password" required>
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-bold shadow-lg transition transform hover:scale-[1.02]">MASUK SISTEM</button>
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-bold shadow-lg">MASUK SISTEM</button>
             </form>
         </div>
     </div>
@@ -82,12 +75,12 @@
                 <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V7</div>
                 <div class="flex flex-col">
                     <span class="font-bold text-slate-800 leading-tight">Naruna Payroll</span>
-                    <span class="text-[10px] text-slate-400 font-mono">STRICT SSOT MODE</span>
+                    <span class="text-[10px] text-slate-400 font-mono">SSOT + AUTO MAP</span>
                 </div>
             </div>
             <div class="flex gap-3">
                 <button onclick="toggleConsole()" class="text-slate-500 hover:text-blue-600 p-2"><i class="fas fa-bug"></i></button>
-                <button onclick="auth.signOut()" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-100 transition"><i class="fas fa-power-off mr-1"></i> Keluar</button>
+                <button onclick="auth.signOut()" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-100"><i class="fas fa-power-off mr-1"></i> Keluar</button>
             </div>
         </nav>
 
@@ -100,26 +93,20 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center cursor-pointer" onclick="toggleSection('header-content')">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-purple-100 text-purple-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</div>
-                        <div><h2 class="font-bold text-slate-700">Pengaturan Kop Surat</h2></div>
-                    </div>
+                    <h2 class="font-bold text-slate-700">1. Pengaturan Kop Surat</h2>
                     <i class="fas fa-chevron-down text-slate-400 transition-transform" id="icon-header-content"></i>
                 </div>
                 <div id="header-content" class="p-4 hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <label class="cursor-pointer group h-32">
                             <div class="border-2 border-dashed border-slate-300 rounded-lg h-full flex flex-col justify-center items-center text-center group-hover:border-purple-500 transition bg-slate-50 hover:bg-purple-50">
-                                <i class="fas fa-image text-slate-400 mb-2 text-xl group-hover:text-purple-500"></i>
-                                <span class="text-sm font-medium text-slate-600">Tambah Gambar Kop</span>
+                                <i class="fas fa-image text-slate-400 mb-2 text-xl"></i>
+                                <span class="text-sm font-medium text-slate-600">Upload Kop Baru</span>
                                 <input type="file" id="header-upload" accept="image/*" class="hidden" onchange="handleHeaderUpload(this)"/>
                             </div>
                         </label>
                         <div class="border border-slate-200 rounded-lg p-2 bg-slate-50 flex flex-col">
-                            <span class="text-xs font-bold text-slate-500 mb-2 uppercase">Kop Aktif:</span>
-                            <div id="active-header-preview" class="flex-1 bg-white border border-slate-300 rounded flex items-center justify-center overflow-hidden relative">
-                                <span class="text-xs text-slate-400 italic">Belum ada kop dipilih</span>
-                            </div>
+                            <div id="active-header-preview" class="flex-1 bg-white border border-slate-300 rounded flex items-center justify-center overflow-hidden"><span class="text-xs text-slate-400">Preview Kop</span></div>
                         </div>
                     </div>
                     <div id="header-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
@@ -128,10 +115,7 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center cursor-pointer" onclick="toggleSection('master-content')">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</div>
-                        <div><h2 class="font-bold text-slate-700">Master Data Karyawan</h2></div>
-                    </div>
+                    <h2 class="font-bold text-slate-700">2. Master Data Karyawan</h2>
                     <i class="fas fa-chevron-down text-slate-400 transition-transform" id="icon-master-content"></i>
                 </div>
                 <div id="master-content" class="p-4 hidden">
@@ -144,7 +128,7 @@
                             </div>
                         </label>
                         <div class="flex-1 bg-blue-50 rounded-lg p-4 flex flex-col justify-center items-center text-center">
-                            <span class="text-xs text-blue-600 uppercase font-bold tracking-wider">Total Kontak</span>
+                            <span class="text-xs text-blue-600 uppercase font-bold tracking-wider">Kontak</span>
                             <span id="master-count" class="text-2xl font-bold text-blue-900">0</span>
                         </div>
                     </div>
@@ -157,8 +141,8 @@
                     <div class="flex items-center gap-3">
                         <div class="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-green-200">3</div>
                         <div>
-                            <h2 class="font-bold text-slate-800 text-lg">Upload File Gaji (Final SSOT)</h2>
-                            <p class="text-xs text-slate-500">Excel adalah penentu kebenaran mutlak (Single Source of Truth).</p>
+                            <h2 class="font-bold text-slate-800 text-lg">Upload Gaji (Final Check)</h2>
+                            <p class="text-xs text-slate-500">Otomatis membaca kolom tanpa header (merged cells).</p>
                         </div>
                     </div>
                 </div>
@@ -167,15 +151,14 @@
                     <label class="block mb-4 cursor-pointer">
                         <div class="bg-green-50 hover:bg-green-100 border-2 border-green-200 border-dashed rounded-xl p-6 text-center transition">
                             <i class="fas fa-file-excel text-3xl text-green-600 mb-2"></i>
-                            <h3 class="font-bold text-green-900">Pilih File Excel Final</h3>
-                            <p class="text-xs text-green-700 mt-1">Pastikan ada kolom: <b>NAMA, TOTAL PENDAPATAN, TOTAL POTONGAN, THP</b></p>
-                            <input type="file" id="payroll-file" accept=".xlsx,.xls" class="hidden"/>
+                            <h3 class="font-bold text-green-900">Pilih File Excel Gaji</h3>
+                            <input type="file" id="payroll-file" accept=".xlsx,.xls,.csv" class="hidden"/>
                         </div>
                     </label>
 
                     <div id="payroll-result" class="hidden mt-6">
                         <div class="flex justify-between items-end mb-3">
-                            <h3 class="font-bold text-slate-700">Preview Data (Audit Mode)</h3>
+                            <h3 class="font-bold text-slate-700">Preview Data</h3>
                             <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded font-bold" id="process-count-badge">0 Data</span>
                         </div>
                         <div class="overflow-x-auto custom-scroll border rounded-lg shadow-sm">
@@ -184,10 +167,9 @@
                                     <tr>
                                         <th class="p-3">Status</th>
                                         <th class="p-3">Karyawan</th>
-                                        <th class="p-3 text-right">Excel Total In</th>
-                                        <th class="p-3 text-right">Excel Total Out</th>
+                                        <th class="p-3 text-right">Hitungan Sistem</th>
                                         <th class="p-3 text-right font-bold bg-green-900 text-green-100">Excel THP (Final)</th>
-                                        <th class="p-3 text-right border-l border-slate-600">Audit Check</th>
+                                        <th class="p-3 text-right border-l border-slate-600">Audit</th>
                                         <th class="p-3 text-center sticky right-0 bg-slate-800 z-10">Aksi</th>
                                     </tr>
                                 </thead>
@@ -201,18 +183,10 @@
         </main>
     </div>
 
-    <div id="debug-console">
-        <div class="bg-slate-800 p-2 flex justify-between items-center text-xs border-b border-slate-700 cursor-pointer" onclick="toggleConsole()">
-            <span class="font-bold text-blue-400"><i class="fas fa-terminal mr-2"></i>System Logs</span>
-            <i class="fas fa-chevron-down"></i>
-        </div>
-        <div id="console-body" class="overflow-y-auto p-2 h-48 custom-scroll"></div>
-    </div>
-    
+    <div id="debug-console"><div id="console-body" class="overflow-y-auto p-2 h-48 custom-scroll"></div></div>
     <div id="render-area"></div>
 
     <script>
-        // --- FIREBASE CONFIG ---
         const firebaseConfig = { apiKey: "AIzaSyAecwXgmT8rMGw1LpXKTS3xX-2YPcDlZZw", authDomain: "naruna-payroll.firebaseapp.com", projectId: "naruna-payroll", storageBucket: "naruna-payroll.firebasestorage.app", messagingSenderId: "209087490496", appId: "1:209087490496:web:f632b7a1cc3fa9166f4025" };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const auth = firebase.auth(); const db = firebase.firestore(); const storage = firebase.storage();
@@ -220,61 +194,12 @@
         let masterKaryawanList = [];
         let selectedHeaderImg = null; 
 
-        // --- MANAJEMEN KOP SURAT ---
-        function initHeaderSystem() {
-            const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
-            const activeIndex = localStorage.getItem('activeHeaderIndex');
-            renderHeaderGallery(savedHeaders, activeIndex);
-            if (activeIndex !== null && savedHeaders[activeIndex]) {
-                selectedHeaderImg = savedHeaders[activeIndex];
-                updateActivePreview(selectedHeaderImg);
-            }
-        }
-        function handleHeaderUpload(input) {
-            const file = input.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result;
-                const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
-                savedHeaders.push(base64);
-                localStorage.setItem('savedHeaders', JSON.stringify(savedHeaders));
-                const newIndex = savedHeaders.length - 1;
-                localStorage.setItem('activeHeaderIndex', newIndex);
-                selectedHeaderImg = base64;
-                renderHeaderGallery(savedHeaders, newIndex);
-                updateActivePreview(base64);
-            };
-            reader.readAsDataURL(file);
-        }
-        function renderHeaderGallery(headers, activeIndex) {
-            const gallery = document.getElementById('header-gallery');
-            gallery.innerHTML = '';
-            headers.forEach((imgSrc, idx) => {
-                const isActive = idx == activeIndex;
-                const div = document.createElement('div');
-                div.className = `kop-item relative h-20 bg-slate-100 rounded cursor-pointer overflow-hidden ${isActive ? 'active' : ''}`;
-                div.onclick = () => selectHeader(idx);
-                div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover" />${isActive ? '<div class="absolute bottom-0 right-0 bg-blue-600 text-white text-[10px] px-1 font-bold">AKTIF</div>' : ''}`;
-                gallery.appendChild(div);
-            });
-        }
-        function selectHeader(index) {
-            const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
-            if (savedHeaders[index]) {
-                localStorage.setItem('activeHeaderIndex', index);
-                selectedHeaderImg = savedHeaders[index];
-                renderHeaderGallery(savedHeaders, index);
-                updateActivePreview(selectedHeaderImg);
-            }
-        }
-        function updateActivePreview(src) { document.getElementById('active-header-preview').innerHTML = `<img src="${src}" class="w-full h-auto" />`; }
-
-        // --- UTILS ---
+        // --- CORE FUNCTIONS ---
         function toggleSection(id) {
             const el = document.getElementById(id); const icon = document.getElementById('icon-'+id);
             if(!el) return;
-            if(el.classList.contains('hidden')) { el.classList.remove('hidden'); icon.style.transform = 'rotate(180deg)'; } 
-            else { el.classList.add('hidden'); icon.style.transform = 'rotate(0deg)'; }
+            el.classList.toggle('hidden');
+            icon.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
         }
         function toggleConsole() { document.getElementById('debug-console').classList.toggle('open'); }
         function showLoading(show, text="Processing...") { document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none'; document.getElementById('loading-text').innerText = text; }
@@ -283,23 +208,20 @@
             if(raw === null || raw === undefined || raw === '') return 0;
             if (typeof raw === 'number') return raw;
             let s = String(raw).trim();
+            // Handle (1000) as negative
             let isNegative = s.startsWith('-') || (s.startsWith('(') && s.endsWith(')'));
             s = s.replace(/[^0-9.,]/g, '');
+            if(!s) return 0;
+            
+            // Logic for ID format (dots as thousands, comma as decimal)
             const hasDot = s.includes('.'); const hasComma = s.includes(',');
             if (hasDot && hasComma) { if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); else s = s.replace(/\./g, '').replace(',', '.'); }
             else if (hasDot) { if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, ''); else { const parts = s.split('.'); if (parts[1].length === 3) s = s.replace(/\./g, ''); } }
             else if (hasComma) s = s.replace(',', '.');
+            
             let val = parseFloat(s);
             if (isNaN(val)) return 0;
             return isNegative ? -val : val;
-        }
-
-        function isNameMatch(excelName, masterName) {
-            const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
-            const n1 = normalize(excelName); const n2 = normalize(masterName);
-            if (!n1 || !n2) return false;
-            if (n1 === n2 || n1.includes(n2) || n2.includes(n1)) return true;
-            return false;
         }
 
         // --- AUTH & DATA ---
@@ -324,7 +246,49 @@
                 document.getElementById('master-count').innerText = masterKaryawanList.length;
             });
         }
-        
+
+        // --- HEADER SYSTEM (Simplified) ---
+        function initHeaderSystem() {
+            const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
+            const activeIndex = localStorage.getItem('activeHeaderIndex');
+            renderHeaderGallery(savedHeaders, activeIndex);
+            if (activeIndex !== null && savedHeaders[activeIndex]) { selectedHeaderImg = savedHeaders[activeIndex]; updateActivePreview(selectedHeaderImg); }
+        }
+        function handleHeaderUpload(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
+                savedHeaders.push(base64);
+                localStorage.setItem('savedHeaders', JSON.stringify(savedHeaders));
+                const newIndex = savedHeaders.length - 1;
+                localStorage.setItem('activeHeaderIndex', newIndex);
+                selectedHeaderImg = base64;
+                renderHeaderGallery(savedHeaders, newIndex);
+                updateActivePreview(base64);
+            };
+            reader.readAsDataURL(file);
+        }
+        function renderHeaderGallery(headers, activeIndex) {
+            const gallery = document.getElementById('header-gallery');
+            gallery.innerHTML = '';
+            headers.forEach((imgSrc, idx) => {
+                const isActive = idx == activeIndex;
+                const div = document.createElement('div');
+                div.className = `kop-item relative h-20 bg-slate-100 rounded cursor-pointer overflow-hidden ${isActive ? 'active' : ''}`;
+                div.onclick = () => {
+                    localStorage.setItem('activeHeaderIndex', idx);
+                    selectedHeaderImg = imgSrc;
+                    renderHeaderGallery(headers, idx);
+                    updateActivePreview(imgSrc);
+                };
+                div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover" />${isActive ? '<div class="absolute bottom-0 right-0 bg-blue-600 text-white text-[10px] px-1 font-bold">AKTIF</div>' : ''}`;
+                gallery.appendChild(div);
+            });
+        }
+        function updateActivePreview(src) { document.getElementById('active-header-preview').innerHTML = `<img src="${src}" class="w-full h-auto" />`; }
+
         // --- MASTER UPLOAD ---
         document.getElementById('master-excel-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if(!file) return;
@@ -352,83 +316,86 @@
                     }
                     if(count > 0) await batch.commit();
                     alert(`Berhasil update master.`);
-                    toggleSection('master-content');
-                } catch(e) { alert("Gagal proses file"); }
+                } catch(e) { alert("Gagal proses master."); }
                 showLoading(false);
             };
             reader.readAsBinaryString(file);
         });
 
-        // --- SSOT PAYROLL PROCESSING (STRICT MODE) ---
+        // --- INTELLIGENT EXCEL PARSER (SSOT + NEIGHBOR LOGIC) ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
-            showLoading(true, "Membaca Excel (Strict Mode)...");
-            document.getElementById('error-banner').classList.add('hidden');
+            showLoading(true, "Menganalisa Struktur Excel...");
             
             const reader = new FileReader();
             reader.onload = (evt) => {
                 try {
                     const wb = XLSX.read(evt.target.result, {type:'binary'});
+                    // Pakai header:1 untuk dapat array of arrays, penting untuk deteksi kolom kosong
                     const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
                     
-                    // 1. Cari Header (Strict Match First)
+                    // 1. Cari Header Row
                     let hIdx = -1;
                     for(let i=0; i<30; i++) { 
                         const rowStr = JSON.stringify(rawData[i]||[]).toUpperCase();
                         if(rowStr.includes("NAMA")) { hIdx = i; break; } 
                     }
-                    if(hIdx === -1) throw new Error("Header tidak ditemukan. Pastikan ada kolom 'NAMA'.");
+                    if(hIdx === -1) throw new Error("Header tidak ditemukan (Kolom NAMA wajib ada).");
 
                     const header = rawData[hIdx].map(x => String(x).toUpperCase().trim());
                     
-                    // Helper getCol: Prefer exact match, then includes for flexibility on non-critical cols
-                    const getCol = (names, strict=false) => {
-                        // Coba cari exact match dulu
-                        let idx = header.findIndex(h => names.includes(h));
-                        if (idx !== -1) return idx;
-                        // Kalau tidak ketemu dan tidak strict, cari yang 'includes'
-                        if (!strict) return header.findIndex(h => names.some(n => h.includes(n)));
-                        return -1;
-                    };
+                    // Helper getCol
+                    const getCol = (names) => header.findIndex(h => names.some(n => h.includes(n) || h === n));
 
-                    // 2. Mapping Kolom
+                    // 2. Mapping Dasar
                     const col = {
                         nama: getCol(["NAMA", "NAMA KARYAWAN"]), 
                         nik: getCol(["NIK", "NO INDUK"]), 
                         outlet: getCol(["DIVISI", "BAGIAN", "OUTLET"]),
                         
-                        // NEW: Kolom Total & Hari Kerja dari Excel (Idealnya ada)
-                        total_in_excel: getCol(["TOTAL PENDAPATAN", "TOTAL INCOME", "JUMLAH PENDAPATAN"]),
-                        total_out_excel: getCol(["TOTAL POTONGAN", "JUMLAH POTONGAN"]),
-                        hk_excel: getCol(["HARI KERJA", "HK", "JML HARI KERJA"]),
+                        // Kolom Final & Info (SSOT)
+                        total_in_excel: getCol(["TOTAL PENDAPATAN", "TOTAL INCOME"]), // Optional
+                        total_out_excel: getCol(["TOTAL POTONGAN"]), // Optional
+                        hk_excel: getCol(["HARI KERJA", "HK", "TOTAL MASUK", "TOTAL MASUK ( HARI )"]),
+                        // Update Keyword THP untuk handle "JUMLAH DITERIMA"
+                        thp_excel: getCol(["THP", "TAKE HOME PAY", "TOTAL DITERIMA", "JUMLAH DITERIMA"]),
 
-                        // INCOME COMPONENTS
+                        // Income Components
                         gp: getCol(["GAJI POKOK", "GAPOK"]), 
                         tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]), 
                         omset: getCol(["BONUS OMSET", "OMSET"]), 
-                        kinerja: getCol(["BONUS KINERJA", "KINERJA"]), 
+                        kinerja: getCol(["BONUS KINERJA", "KINERJA", "KEBIJAKAN KINERJA"]), 
                         like: getCol(["LIKE KOMEN", "BONUS LIKE"]), 
-                        kebijakan: getCol(["KEBIJAKAN"]),
-                        lembur_rp: getCol(["LEMBUR (RP)", "NOMINAL LEMBUR", "LEMBUR RP"]), 
-                        ot_rp: getCol(["OVERTIME (RP)", "NOMINAL OT", "OVERTIME RP"]),
+                        kebijakan: getCol(["KEBIJAKAN KINERJA", "KEBIJAKAN"]), // Double check mapping
                         
-                        // DEDUCTION COMPONENTS
-                        absen_rp: getCol(["POTONGAN ABSEN", "ABSEN (RP)", "NOMINAL ABSEN"]),
+                        // Deduction Components
                         bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]), 
                         bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]), 
-                        weekend_rp: getCol(["WEEKEND", "HARI BESAR", "POTONGAN WEEKEND"]), 
-                        pot_jam_rp: getCol(["POTONGAN JAM (RP)", "NOMINAL POT JAM"]),
+                        weekend_rp: getCol(["WEEKEND", "HARI BESAR", "POTONGAN HARI WEEKEND"]),
                         
-                        // COUNTERS (Display Only)
-                        lembur_cnt: getCol(["JML LEMBUR", "HARI LEMBUR"]),
-                        ot_cnt: getCol(["JML OT", "JAM OT"]),
-                        absen_cnt: getCol(["JML ABSEN", "HARI ABSEN"]),
-                        pot_jam_cnt: getCol(["JML POT JAM", "JAM TERLAMBAT"]),
-
-                        // FINAL CHECK (Wajib Ada)
-                        thp_excel: getCol(["THP", "TAKE HOME PAY", "TOTAL DITERIMA"])
+                        // Counters (Untuk Slip & Logika Tetangga)
+                        lembur_cnt: getCol(["JML LEMBUR", "LEMBUR HARIAN"]),
+                        ot_cnt: getCol(["JML OT", "JAM OT", "OVERTIME"]),
+                        absen_cnt: getCol(["JML ABSEN", "HARI ABSEN", "ABSEN (HARI)"]),
+                        pot_jam_cnt: getCol(["JML POT JAM", "JAM TERLAMBAT", "POTONGAN JAM"])
                     };
 
+                    // 3. INTELLIGENT NOMINAL MAPPING (NEIGHBOR LOGIC)
+                    // Fungsi: Cari header explicit (Rp), kalau tidak ada, ambil index counter + 1
+                    const findNominal = (keywords, counterIdx) => {
+                        let idx = getCol(keywords);
+                        if(idx !== -1) return idx; // Ketemu explicit
+                        if(counterIdx !== -1) return counterIdx + 1; // Fallback ke tetangga
+                        return -1;
+                    };
+
+                    col.lembur_rp = findNominal(["LEMBUR (RP)", "NOMINAL LEMBUR"], col.lembur_cnt);
+                    col.ot_rp = findNominal(["OVERTIME (RP)", "NOMINAL OT", "OVERTIME ( 5000/ JAM )"], col.ot_cnt);
+                    col.absen_rp = findNominal(["POTONGAN ABSEN", "NOMINAL ABSEN", "POTONGAN ATAS ABSEN"], col.absen_cnt);
+                    col.pot_jam_rp = findNominal(["POTONGAN JAM (RP)", "NOMINAL POT JAM"], col.pot_jam_cnt);
+
+
+                    // Render
                     const tbody = document.getElementById('payroll-table-body');
                     tbody.innerHTML = '';
                     document.getElementById('payroll-result').classList.remove('hidden');
@@ -443,13 +410,12 @@
                         const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0;
                         const c = (idx) => (idx > -1) ? row[idx] : 0;
 
-                        // Income detail (untuk slip)
+                        // Baca Komponen
                         const inc = { 
                             gp: v(col.gp), tunj: v(col.tunj), omset: v(col.omset), kinerja: v(col.kinerja), 
-                            like: v(col.like), lembur: v(col.lembur_rp), ot: v(col.ot_rp), kebijakan: v(col.kebijakan) 
+                            like: v(col.like), lembur: v(col.lembur_rp), ot: v(col.ot_rp), kebijakan: 0 
                         };
                         
-                        // Deduct detail (untuk slip)
                         const ded = { 
                             absen: v(col.absen_rp), bpjs_kes: v(col.bpjs_kes), bpjs_tk: v(col.bpjs_tk), 
                             weekend: v(col.weekend_rp), pot_jam: v(col.pot_jam_rp) 
@@ -459,51 +425,37 @@
                             lembur: c(col.lembur_cnt), ot: c(col.ot_cnt), absen: c(col.absen_cnt), pot_jam: c(col.pot_jam_cnt)
                         };
 
-                        // LOGIKA SSOT UTAMA:
-                        // 1. Ambil THP dari Excel (Wajib)
+                        // SSOT: Ambil THP Excel
                         const thp_excel = v(col.thp_excel);
                         
-                        // 2. Ambil Total In/Out dari Excel jika ada, kalau tidak baru hitung sum
+                        // Hitung Manual untuk Audit
                         const sum_in = Object.values(inc).reduce((a,b)=>a+b, 0);
                         const sum_out = Object.values(ded).reduce((a,b)=>a+b, 0);
+                        const thp_system = sum_in - sum_out;
+                        const diff = Math.abs(thp_system - thp_excel);
                         
-                        const total_in_final = (col.total_in_excel > -1) ? v(col.total_in_excel) : sum_in;
-                        const total_out_final = (col.total_out_excel > -1) ? v(col.total_out_excel) : sum_out;
-                        
-                        // 3. Ambil Hari Kerja dari Excel
-                        const hk_final = (col.hk_excel > -1) ? c(col.hk_excel) : "-";
-
-                        // 4. Audit Check (System Sum vs Excel THP)
-                        const thp_system_check = total_in_final - total_out_final;
-                        const diff = Math.abs(thp_system_check - thp_excel);
-                        const isMatch = diff < 1; // Strict match (toleransi float only)
-
-                        const matched = masterKaryawanList.find(m => isNameMatch(rawNama, m.nama));
+                        // Match Name
+                        const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+                        const n1 = normalize(rawNama);
+                        const matched = masterKaryawanList.find(m => {
+                            const n2 = normalize(m.nama);
+                            return n1 === n2 || n1.includes(n2) || n2.includes(n1);
+                        });
                         const wa = matched ? matched.wa : null;
                         
-                        const d = { 
-                            NIK: row[col.nik]||'-', 
-                            NAMA: rawNama, 
-                            DIVISI: row[col.outlet]||'STAFF',
-                            HK: hk_final, // Dynamic HK
-                            COUNTS: counts, 
-                            INCOME: inc, 
-                            DEDUCT: ded, 
-                            TOTAL_IN: total_in_final, 
-                            TOTAL_OUT: total_out_final, 
-                            THP_EXCEL: thp_excel // Ini yang akan dirender
-                        };
+                        const hk = (col.hk_excel > -1) ? c(col.hk_excel) : "-";
+
+                        const d = { NIK: row[col.nik]||'-', NAMA: rawNama, DIVISI: row[col.outlet]||'STAFF', HK: hk, COUNTS: counts, INCOME: inc, DEDUCT: ded, THP_EXCEL: thp_excel, SUM_IN: sum_in, SUM_OUT: sum_out };
                         
                         const fmt = n => Number(n).toLocaleString('id-ID');
                         
                         tbody.innerHTML += `<tr class="border-b hover:bg-slate-50">
                             <td class="p-3">${wa?'<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">MATCH</span>':'<span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">NO HP</span>'}</td>
                             <td class="p-3"><div class="font-bold text-slate-700 text-sm">${d.NAMA}</div><div class="text-[10px] text-slate-400">${d.NIK}</div></td>
-                            <td class="p-3 text-right text-xs font-mono">${fmt(d.TOTAL_IN)}</td>
-                            <td class="p-3 text-right text-xs font-mono">(${fmt(d.TOTAL_OUT)})</td>
+                            <td class="p-3 text-right text-xs text-slate-500 font-mono">${fmt(thp_system)}</td>
                             <td class="p-3 text-right"><div class="font-bold text-green-800 text-sm">${fmt(d.THP_EXCEL)}</div></td>
                             <td class="p-3 text-right border-l border-slate-200">
-                                ${!isMatch ? `<div class="badge-diff">Diff: ${fmt(diff)}</div>` : '<div class="badge-ssot">AUDIT OK</div>'}
+                                ${diff > 1 ? `<div class="badge-diff" title="System: ${fmt(thp_system)}">Diff: ${fmt(diff)}</div>` : '<div class="badge-ssot">OK</div>'}
                             </td>
                             <td class="p-3 text-center sticky right-0 bg-white z-10">${wa?`<button onclick='uploadAndSend(this, ${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'-'}</td>
                         </tr>`;
@@ -518,10 +470,10 @@
 
         // --- RENDER & SEND ---
         async function uploadAndSend(btn, data, waNumber) {
-            if(!selectedHeaderImg) { alert("Harap pilih Kop Surat terlebih dahulu."); return; }
+            if(!selectedHeaderImg) { alert("Pilih Kop Surat dulu!"); return; }
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Wait`; btn.disabled = true;
-            showLoading(true, `Menyiapkan slip ${data.NAMA}...`);
+            
             let formattedWa = String(waNumber).replace(/[^0-9]/g, '');
             if (formattedWa.startsWith('0')) formattedWa = '62' + formattedWa.slice(1);
 
@@ -530,75 +482,55 @@
                 const fmt = (n) => n > 0 ? Number(n).toLocaleString('id-ID') : '-';
                 const fmtVal = (n) => `<td style="text-align:right;">${fmt(n)}</td>`;
                 const fmtCount = (n, unit) => `<td style="text-align:center;">${n && n!=0 ? n + ' ' + unit : '-'}</td>`;
+                const tgl = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
+                const bln = new Date().toLocaleDateString('id-ID', {month: 'long'}).toUpperCase();
                 
-                const tglCetak = new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
-                const periodeBulan = new Date().toLocaleDateString('id-ID', {month: 'long'}).toUpperCase();
-                
-                // HTML Template Fixed Layout 800px
                 area.innerHTML = `
-                <div class="payslip-container" style="background:white; padding-bottom: 20px; width: 800px; font-family: Arial, Helvetica, sans-serif;">
-                    
-                    <div style="width:100%;">
-                        <img src="${selectedHeaderImg}" style="width:100%; height:auto; display:block;">
-                    </div>
-
-                    <div style="text-align:center; margin-top: 10px; margin-bottom: 5px;">
-                        <h2 style="font-weight:bold; font-size:16px; margin:0;">SLIP GAJI</h2>
-                    </div>
-
-                    <div style="padding: 0 30px; margin-bottom: 10px;">
-                        <table style="width:100%; font-size: 14px; border-collapse: collapse;">
-                            <tr><td style="width: 100px; padding: 2px 0;">NIK</td><td style="width: 10px;">:</td><td style="font-weight: bold;">${data.NIK}</td></tr>
-                            <tr><td style="padding: 2px 0;">NAMA</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${data.NAMA}</td></tr>
-                            <tr><td style="padding: 2px 0;">DIVISI</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${data.DIVISI}</td></tr>
-                            <tr><td style="padding: 2px 0;">PERIODE</td><td>:</td><td style="font-weight: bold; text-transform: uppercase;">${periodeBulan}</td></tr>
-                            <tr><td style="padding: 2px 0;">HARI KERJA</td><td>:</td><td style="font-weight: bold;">${data.HK}</td></tr>
+                <div class="payslip-container" style="background:white; padding-bottom: 20px;">
+                    <img src="${selectedHeaderImg}" style="width:100%; height:auto;">
+                    <div style="text-align:center; margin-top:10px;"><h2 style="font-weight:bold; font-size:16px;">SLIP GAJI</h2></div>
+                    <div style="padding:0 30px; margin-bottom:10px;">
+                        <table style="width:100%; font-size:14px;">
+                            <tr><td style="width:100px;">NIK</td><td style="width:10px;">:</td><td style="font-weight:bold;">${data.NIK}</td></tr>
+                            <tr><td>NAMA</td><td>:</td><td style="font-weight:bold; text-transform:uppercase;">${data.NAMA}</td></tr>
+                            <tr><td>DIVISI</td><td>:</td><td style="font-weight:bold; text-transform:uppercase;">${data.DIVISI}</td></tr>
+                            <tr><td>PERIODE</td><td>:</td><td style="font-weight:bold;">${bln}</td></tr>
+                            <tr><td>HARI KERJA</td><td>:</td><td style="font-weight:bold;">${data.HK}</td></tr>
                         </table>
                     </div>
+                    <div style="padding:0 30px;">
+                        <table style="width:100%; font-size:14px; border-collapse:collapse;">
+                            <tr><td style="width:40%;"></td><td style="width:20%;"></td><td style="width:2%;"></td><td style="width:5%;"></td><td style="width:33%;"></td></tr>
+                            
+                            <tr><td style="padding:3px 0;">GAJI POKOK</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.gp)}</tr>
+                            <tr><td style="padding:3px 0;">TUNJANGAN JABATAN</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.tunj)}</tr>
+                            <tr><td style="padding:3px 0;">BONUS OMSET</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.omset)}</tr>
+                            <tr><td style="padding:3px 0;">BONUS KINERJA</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.kinerja)}</tr>
+                            <tr><td style="padding:3px 0;">BONUS LIKE KOMEN</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.like)}</tr>
+                            <tr><td style="padding:3px 0;">LEMBUR HARIAN</td>${fmtCount(data.COUNTS.lembur, 'HARI')}<td>:</td><td>Rp</td>${fmtVal(data.INCOME.lembur)}</tr>
+                            <tr><td style="padding:3px 0;">OVERTIME</td>${fmtCount(data.COUNTS.ot, 'JAM')}<td>:</td><td>Rp</td>${fmtVal(data.INCOME.ot)}</tr>
+                            
+                            <tr><td colspan="5" style="border-bottom:1px solid #ccc; padding:5px 0;"></td></tr>
+                            <tr style="font-weight:bold;"><td style="padding-top:5px;">TOTAL INCOME</td><td></td><td style="padding-top:5px;">:</td><td style="padding-top:5px;">Rp</td><td style="text-align:right; padding-top:5px;">${fmt(data.SUM_IN)}</td></tr>
+                            <tr><td colspan="5" style="height:10px;"></td></tr>
 
-                    <div style="padding: 0 30px;">
-                        <table style="width:100%; font-size: 14px; border-collapse: collapse;">
-                            <tr style="height:0px; visibility:hidden;">
-                                <td style="width:40%;"></td><td style="width:20%;"></td><td style="width:2%;"></td><td style="width:5%;"></td><td style="width:33%;"></td>
+                            <tr><td style="padding:3px 0;">POTONGAN ABSEN</td>${fmtCount(data.COUNTS.absen, 'HARI')}<td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.absen)}</tr>
+                            <tr><td style="padding:3px 0;">POTONGAN BPJS KES</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.bpjs_kes)}</tr>
+                            <tr><td style="padding:3px 0;">POTONGAN BPJS TK</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.bpjs_tk)}</tr>
+                            <tr><td style="padding:3px 0;">POTONGAN JAM</td>${fmtCount(data.COUNTS.pot_jam, 'JAM')}<td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.pot_jam)}</tr>
+                            <tr><td style="padding:3px 0;">POTONGAN WEEKEND</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.weekend)}</tr>
+
+                            <tr><td colspan="5" style="border-bottom:2px solid #000; padding:10px 0;"></td></tr>
+                            <tr style="font-weight:bold; background-color:#ffff00;">
+                                <td style="padding:8px 0 8px 5px;">GAJI BERSIH</td><td></td><td>:</td><td>Rp</td><td style="text-align:right; padding-right:5px;">${fmt(data.THP_EXCEL)}</td>
                             </tr>
-
-                            <tr><td style="padding: 3px 0;">GAJI POKOK</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.gp)}</tr>
-                            <tr><td style="padding: 3px 0;">OVERTIME MALAM</td>${fmtCount(data.COUNTS.ot, 'JAM')}<td>:</td><td>Rp</td>${fmtVal(data.INCOME.ot)}</tr>
-                            <tr><td style="padding: 3px 0;">LEMBUR HARIAN</td>${fmtCount(data.COUNTS.lembur, 'HARI')}<td>:</td><td>Rp</td>${fmtVal(data.INCOME.lembur)}</tr>
-                            <tr><td style="padding: 3px 0;">KEBIJAKAN KINERJA</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.kebijakan)}</tr>
-                            <tr><td style="padding: 3px 0;">BONUS OMSET</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.omset)}</tr>
-                            <tr><td style="padding: 3px 0;">BONUS KINERJA</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.kinerja)}</tr>
-                            <tr><td style="padding: 3px 0;">BONUS LIKE KOMENT</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.like)}</tr>
-                            <tr><td style="padding: 3px 0;">TUNJANGAN JABATAN</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.tunj)}</tr>
-
-                            <tr><td colspan="5" style="border-bottom: 1px solid #ccc; padding: 5px 0;"></td></tr>
-                            <tr style="font-weight: bold;">
-                                <td style="padding: 10px 0 5px 0;">GAJI KOTOR</td><td></td><td style="padding-top:10px;">:</td><td style="padding-top:10px;">Rp</td>
-                                <td style="text-align:right; padding-top:10px;">${fmt(data.TOTAL_IN)}</td>
-                            </tr>
-                            <tr><td colspan="5" style="height: 15px;"></td></tr>
-
-                            <tr><td style="padding: 3px 0;">POTONGAN ABSEN</td>${fmtCount(data.COUNTS.absen, 'HARI')}<td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.absen)}</tr>
-                            <tr><td style="padding: 3px 0;">POTONGAN HARI BESAR</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.weekend)}</tr>
-                            <tr><td style="padding: 3px 0;">POTONGAN JAM</td>${fmtCount(data.COUNTS.pot_jam, 'JAM')}<td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.pot_jam)}</tr>
-                            <tr><td style="padding: 3px 0;">POTONGAN BPJS KES</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.bpjs_kes)}</tr>
-                            <tr><td style="padding: 3px 0;">POTONGAN BPJS TK</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.DEDUCT.bpjs_tk)}</tr>
-
-                            <tr><td colspan="5" style="border-bottom: 2px solid #000; padding: 10px 0;"></td></tr>
-
-                            <tr style="font-weight: bold; background-color: #ffff00;">
-                                <td style="padding: 8px 0 8px 5px;">GAJI BERSIH</td><td></td><td>:</td><td>Rp</td>
-                                <td style="text-align:right; padding-right:5px;">${fmt(data.THP_EXCEL)}</td>
-                            </tr>
-                            <tr><td colspan="5" style="border-top: 2px solid #000;"></td></tr>
+                            <tr><td colspan="5" style="border-top:2px solid #000;"></td></tr>
                         </table>
                     </div>
-
-                    <div style="margin-top: 30px; display: flex; justify-content: flex-end; padding-right: 30px; font-size: 14px;">
-                        <div style="text-align: left; min-width: 200px;">
-                            <p style="margin-bottom: 5px;">Salatiga, ${tglCetak}</p>
-                            <br><br><br><br>
-                            <p style="font-weight: bold; text-decoration: underline; text-transform:uppercase;">${data.NAMA}</p>
+                    <div style="margin-top:30px; display:flex; justify-content:flex-end; padding-right:30px;">
+                        <div style="text-align:left; min-width:200px;">
+                            <p>Salatiga, ${tgl}</p><br><br><br>
+                            <p style="font-weight:bold; text-decoration:underline; text-transform:uppercase;">${data.NAMA}</p>
                         </div>
                     </div>
                 </div>`;
@@ -612,11 +544,10 @@
                     window.open(`https://wa.me/${formattedWa}?text=${encodeURIComponent(msg)}`, '_blank');
                     
                     btn.innerHTML = `<i class="fas fa-check"></i> Terkirim`;
-                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700'); btn.classList.add('bg-green-600', 'hover:bg-green-700');
-                    btn.disabled = false; showLoading(false);
+                    btn.classList.replace('bg-blue-600', 'bg-green-600'); btn.disabled = false;
                 }, 'image/jpeg', 0.85);
 
-            } catch(e) { alert("Gagal kirim: "+e.message); btn.innerHTML = originalText; btn.disabled = false; showLoading(false); }
+            } catch(e) { alert("Error: "+e.message); btn.innerHTML = originalText; btn.disabled = false; }
         }
     </script>
 </body>

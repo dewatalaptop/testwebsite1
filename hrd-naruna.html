@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Naruna Payroll - V7 (Fix Arofik/Excel Format)</title>
+    <title>Naruna Payroll - V7 (Final Fix Overtime)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -59,7 +59,7 @@
             <div class="text-center mb-8">
                 <i class="fas fa-file-invoice-dollar text-4xl text-blue-600 mb-2"></i>
                 <h2 class="text-2xl font-bold text-slate-800">Naruna Payroll V7</h2>
-                <p class="text-slate-500 text-sm font-mono mt-1"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">SMART MAPPING</span></p>
+                <p class="text-slate-500 text-sm font-mono mt-1"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">SMART MAPPING v2</span></p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <input id="email" type="email" class="w-full border border-slate-300 p-3 rounded-lg mb-4" placeholder="Email Admin" required>
@@ -75,7 +75,7 @@
                 <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V7</div>
                 <div class="flex flex-col">
                     <span class="font-bold text-slate-800 leading-tight">Naruna Payroll</span>
-                    <span class="text-[10px] text-slate-400 font-mono">SSOT + AUTO MAP</span>
+                    <span class="text-[10px] text-slate-400 font-mono">FIXED OVERTIME</span>
                 </div>
             </div>
             <div class="flex gap-3">
@@ -141,8 +141,8 @@
                     <div class="flex items-center gap-3">
                         <div class="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-md shadow-green-200">3</div>
                         <div>
-                            <h2 class="font-bold text-slate-800 text-lg">Upload Gaji (Final Check)</h2>
-                            <p class="text-xs text-slate-500">Otomatis membaca kolom tanpa header (merged cells).</p>
+                            <h2 class="font-bold text-slate-800 text-lg">Upload Gaji (SSOT)</h2>
+                            <p class="text-xs text-slate-500">Fixed: Membaca kolom kosong sebagai nominal Rupiah.</p>
                         </div>
                     </div>
                 </div>
@@ -167,9 +167,8 @@
                                     <tr>
                                         <th class="p-3">Status</th>
                                         <th class="p-3">Karyawan</th>
-                                        <th class="p-3 text-right">Hitungan Sistem</th>
-                                        <th class="p-3 text-right font-bold bg-green-900 text-green-100">Excel THP (Final)</th>
-                                        <th class="p-3 text-right border-l border-slate-600">Audit</th>
+                                        <th class="p-3 text-right">Excel THP (Final)</th>
+                                        <th class="p-3 text-right border-l border-slate-600">Audit System</th>
                                         <th class="p-3 text-center sticky right-0 bg-slate-800 z-10">Aksi</th>
                                     </tr>
                                 </thead>
@@ -208,12 +207,10 @@
             if(raw === null || raw === undefined || raw === '') return 0;
             if (typeof raw === 'number') return raw;
             let s = String(raw).trim();
-            // Handle (1000) as negative
             let isNegative = s.startsWith('-') || (s.startsWith('(') && s.endsWith(')'));
             s = s.replace(/[^0-9.,]/g, '');
             if(!s) return 0;
             
-            // Logic for ID format (dots as thousands, comma as decimal)
             const hasDot = s.includes('.'); const hasComma = s.includes(',');
             if (hasDot && hasComma) { if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); else s = s.replace(/\./g, '').replace(',', '.'); }
             else if (hasDot) { if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, ''); else { const parts = s.split('.'); if (parts[1].length === 3) s = s.replace(/\./g, ''); } }
@@ -247,7 +244,7 @@
             });
         }
 
-        // --- HEADER SYSTEM (Simplified) ---
+        // --- HEADER SYSTEM ---
         function initHeaderSystem() {
             const savedHeaders = JSON.parse(localStorage.getItem('savedHeaders')) || [];
             const activeIndex = localStorage.getItem('activeHeaderIndex');
@@ -289,39 +286,6 @@
         }
         function updateActivePreview(src) { document.getElementById('active-header-preview').innerHTML = `<img src="${src}" class="w-full h-auto" />`; }
 
-        // --- MASTER UPLOAD ---
-        document.getElementById('master-excel-upload').addEventListener('change', async (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            showLoading(true, "Updating Master...");
-            const reader = new FileReader();
-            reader.onload = async (evt) => {
-                try {
-                    const wb = XLSX.read(evt.target.result, {type:'binary'});
-                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    let batch = db.batch(); let count = 0;
-                    for(let row of rows) {
-                        const k = Object.keys(row);
-                        const nm = k.find(x=>x.toUpperCase().includes('NAMA'));
-                        const hp = k.find(x=>x.toUpperCase().includes('PHONE')||x.toUpperCase().includes('HP')||x.toUpperCase().includes('WA'));
-                        if(nm && hp) {
-                            const rawName = String(row[nm]).trim();
-                            const rawWa = String(row[hp]).replace(/[^0-9]/g,'');
-                            if(rawName.length < 3) continue; 
-                            const id = rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                            const ref = db.collection('karyawan').doc(id);
-                            batch.set(ref, { nama: rawName, wa: rawWa }, {merge: true});
-                            count++; 
-                            if(count >= 400){ await batch.commit(); batch = db.batch(); count = 0; }
-                        }
-                    }
-                    if(count > 0) await batch.commit();
-                    alert(`Berhasil update master.`);
-                } catch(e) { alert("Gagal proses master."); }
-                showLoading(false);
-            };
-            reader.readAsBinaryString(file);
-        });
-
         // --- INTELLIGENT EXCEL PARSER (SSOT + NEIGHBOR LOGIC) ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
@@ -331,10 +295,8 @@
             reader.onload = (evt) => {
                 try {
                     const wb = XLSX.read(evt.target.result, {type:'binary'});
-                    // Pakai header:1 untuk dapat array of arrays, penting untuk deteksi kolom kosong
                     const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
                     
-                    // 1. Cari Header Row
                     let hIdx = -1;
                     for(let i=0; i<30; i++) { 
                         const rowStr = JSON.stringify(rawData[i]||[]).toUpperCase();
@@ -343,59 +305,55 @@
                     if(hIdx === -1) throw new Error("Header tidak ditemukan (Kolom NAMA wajib ada).");
 
                     const header = rawData[hIdx].map(x => String(x).toUpperCase().trim());
-                    
-                    // Helper getCol
                     const getCol = (names) => header.findIndex(h => names.some(n => h.includes(n) || h === n));
 
-                    // 2. Mapping Dasar
                     const col = {
                         nama: getCol(["NAMA", "NAMA KARYAWAN"]), 
                         nik: getCol(["NIK", "NO INDUK"]), 
                         outlet: getCol(["DIVISI", "BAGIAN", "OUTLET"]),
                         
-                        // Kolom Final & Info (SSOT)
-                        total_in_excel: getCol(["TOTAL PENDAPATAN", "TOTAL INCOME"]), // Optional
-                        total_out_excel: getCol(["TOTAL POTONGAN"]), // Optional
+                        total_in_excel: getCol(["TOTAL PENDAPATAN", "TOTAL INCOME"]),
+                        total_out_excel: getCol(["TOTAL POTONGAN"]),
                         hk_excel: getCol(["HARI KERJA", "HK", "TOTAL MASUK", "TOTAL MASUK ( HARI )"]),
-                        // Update Keyword THP untuk handle "JUMLAH DITERIMA"
                         thp_excel: getCol(["THP", "TAKE HOME PAY", "TOTAL DITERIMA", "JUMLAH DITERIMA"]),
 
-                        // Income Components
                         gp: getCol(["GAJI POKOK", "GAPOK"]), 
                         tunj: getCol(["TUNJANGAN JABATAN", "TUNJANGAN"]), 
                         omset: getCol(["BONUS OMSET", "OMSET"]), 
                         kinerja: getCol(["BONUS KINERJA", "KINERJA", "KEBIJAKAN KINERJA"]), 
                         like: getCol(["LIKE KOMEN", "BONUS LIKE"]), 
-                        kebijakan: getCol(["KEBIJAKAN KINERJA", "KEBIJAKAN"]), // Double check mapping
-                        
-                        // Deduction Components
+                        kebijakan: getCol(["KEBIJAKAN"]), // Hapus kebijakan kinerja dari sini agar tidak double
+
                         bpjs_kes: getCol(["BPJS KESEHATAN", "BPJS KES"]), 
                         bpjs_tk: getCol(["BPJS KETENAGAKERJAAN", "BPJS TK"]), 
                         weekend_rp: getCol(["WEEKEND", "HARI BESAR", "POTONGAN HARI WEEKEND"]),
                         
-                        // Counters (Untuk Slip & Logika Tetangga)
+                        // FIX: "OVERTIME ( 5000/ JAM )" adalah Counter, BUKAN Rupiah
                         lembur_cnt: getCol(["JML LEMBUR", "LEMBUR HARIAN"]),
-                        ot_cnt: getCol(["JML OT", "JAM OT", "OVERTIME"]),
+                        ot_cnt: getCol(["JML OT", "JAM OT", "OVERTIME ( 5000/ JAM )", "OVERTIME"]),
                         absen_cnt: getCol(["JML ABSEN", "HARI ABSEN", "ABSEN (HARI)"]),
                         pot_jam_cnt: getCol(["JML POT JAM", "JAM TERLAMBAT", "POTONGAN JAM"])
                     };
 
-                    // 3. INTELLIGENT NOMINAL MAPPING (NEIGHBOR LOGIC)
-                    // Fungsi: Cari header explicit (Rp), kalau tidak ada, ambil index counter + 1
+                    // Smart Neighbor Logic: Jika tidak ketemu kolom RP, pakai kolom kosong sebelah counter
                     const findNominal = (keywords, counterIdx) => {
-                        let idx = getCol(keywords);
-                        if(idx !== -1) return idx; // Ketemu explicit
-                        if(counterIdx !== -1) return counterIdx + 1; // Fallback ke tetangga
+                        // Cari explicit dulu (tapi HINDARI header yang mengandung angka tarif seperti "5000/JAM")
+                        // Kita filter keywords agar ketat
+                        let explicitIdx = getCol(keywords);
+                        if(explicitIdx !== -1) return explicitIdx;
+                        
+                        // Kalau counter ketemu, asumsi kanannya adalah uang
+                        if(counterIdx !== -1) return counterIdx + 1;
                         return -1;
                     };
 
                     col.lembur_rp = findNominal(["LEMBUR (RP)", "NOMINAL LEMBUR"], col.lembur_cnt);
-                    col.ot_rp = findNominal(["OVERTIME (RP)", "NOMINAL OT", "OVERTIME ( 5000/ JAM )"], col.ot_cnt);
+                    // Hapus "OVERTIME" umum dari pencarian RP agar tidak tertukar lagi
+                    col.ot_rp = findNominal(["OVERTIME (RP)", "NOMINAL OT"], col.ot_cnt);
                     col.absen_rp = findNominal(["POTONGAN ABSEN", "NOMINAL ABSEN", "POTONGAN ATAS ABSEN"], col.absen_cnt);
                     col.pot_jam_rp = findNominal(["POTONGAN JAM (RP)", "NOMINAL POT JAM"], col.pot_jam_cnt);
 
 
-                    // Render
                     const tbody = document.getElementById('payroll-table-body');
                     tbody.innerHTML = '';
                     document.getElementById('payroll-result').classList.remove('hidden');
@@ -410,10 +368,9 @@
                         const v = (idx) => (idx > -1) ? cleanNum(row[idx]) : 0;
                         const c = (idx) => (idx > -1) ? row[idx] : 0;
 
-                        // Baca Komponen
                         const inc = { 
                             gp: v(col.gp), tunj: v(col.tunj), omset: v(col.omset), kinerja: v(col.kinerja), 
-                            like: v(col.like), lembur: v(col.lembur_rp), ot: v(col.ot_rp), kebijakan: 0 
+                            like: v(col.like), lembur: v(col.lembur_rp), ot: v(col.ot_rp), kebijakan: v(col.kebijakan) 
                         };
                         
                         const ded = { 
@@ -425,16 +382,12 @@
                             lembur: c(col.lembur_cnt), ot: c(col.ot_cnt), absen: c(col.absen_cnt), pot_jam: c(col.pot_jam_cnt)
                         };
 
-                        // SSOT: Ambil THP Excel
                         const thp_excel = v(col.thp_excel);
-                        
-                        // Hitung Manual untuk Audit
                         const sum_in = Object.values(inc).reduce((a,b)=>a+b, 0);
                         const sum_out = Object.values(ded).reduce((a,b)=>a+b, 0);
                         const thp_system = sum_in - sum_out;
                         const diff = Math.abs(thp_system - thp_excel);
                         
-                        // Match Name
                         const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
                         const n1 = normalize(rawNama);
                         const matched = masterKaryawanList.find(m => {
@@ -452,10 +405,9 @@
                         tbody.innerHTML += `<tr class="border-b hover:bg-slate-50">
                             <td class="p-3">${wa?'<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">MATCH</span>':'<span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">NO HP</span>'}</td>
                             <td class="p-3"><div class="font-bold text-slate-700 text-sm">${d.NAMA}</div><div class="text-[10px] text-slate-400">${d.NIK}</div></td>
-                            <td class="p-3 text-right text-xs text-slate-500 font-mono">${fmt(thp_system)}</td>
                             <td class="p-3 text-right"><div class="font-bold text-green-800 text-sm">${fmt(d.THP_EXCEL)}</div></td>
                             <td class="p-3 text-right border-l border-slate-200">
-                                ${diff > 1 ? `<div class="badge-diff" title="System: ${fmt(thp_system)}">Diff: ${fmt(diff)}</div>` : '<div class="badge-ssot">OK</div>'}
+                                ${diff > 1 ? `<div class="badge-diff" title="System Calc: ${fmt(thp_system)}">Diff: ${fmt(diff)}</div>` : '<div class="badge-ssot">OK</div>'}
                             </td>
                             <td class="p-3 text-center sticky right-0 bg-white z-10">${wa?`<button onclick='uploadAndSend(this, ${JSON.stringify(d)},"${wa}")' class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-md text-xs font-bold transition flex items-center gap-1 mx-auto"><i class="fab fa-whatsapp"></i> KIRIM</button>`:'-'}</td>
                         </tr>`;
@@ -509,6 +461,7 @@
                             <tr><td style="padding:3px 0;">BONUS LIKE KOMEN</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.like)}</tr>
                             <tr><td style="padding:3px 0;">LEMBUR HARIAN</td>${fmtCount(data.COUNTS.lembur, 'HARI')}<td>:</td><td>Rp</td>${fmtVal(data.INCOME.lembur)}</tr>
                             <tr><td style="padding:3px 0;">OVERTIME</td>${fmtCount(data.COUNTS.ot, 'JAM')}<td>:</td><td>Rp</td>${fmtVal(data.INCOME.ot)}</tr>
+                            <tr><td style="padding:3px 0;">KEBIJAKAN KINERJA</td><td></td><td>:</td><td>Rp</td>${fmtVal(data.INCOME.kebijakan)}</tr>
                             
                             <tr><td colspan="5" style="border-bottom:1px solid #ccc; padding:5px 0;"></td></tr>
                             <tr style="font-weight:bold;"><td style="padding-top:5px;">TOTAL INCOME</td><td></td><td style="padding-top:5px;">:</td><td style="padding-top:5px;">Rp</td><td style="text-align:right; padding-top:5px;">${fmt(data.SUM_IN)}</td></tr>

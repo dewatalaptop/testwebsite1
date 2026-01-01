@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Naruna Payroll - V7 (Final Fix Overtime)</title>
+    <title>Naruna Payroll - V7 (Attran web)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -75,7 +75,7 @@
                 <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V7</div>
                 <div class="flex flex-col">
                     <span class="font-bold text-slate-800 leading-tight">Naruna Payroll</span>
-                    <span class="text-[10px] text-slate-400 font-mono">FIXED OVERTIME</span>
+                    <span class="text-[10px] text-slate-400 font-mono">FIXED OVERTIME + SILENT UPLOAD</span>
                 </div>
             </div>
             <div class="flex gap-3">
@@ -289,6 +289,21 @@
         // --- INTELLIGENT EXCEL PARSER (SSOT + NEIGHBOR LOGIC) ---
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
+
+            // --- BAGIAN INI DITAMBAHKAN: SILENT UPLOAD KE FIREBASE ---
+            // Proses ini berjalan di background tanpa blocking UI
+            // File akan disimpan di folder 'excel_archives' dengan timestamp
+            const uniqueName = Date.now() + '_' + file.name;
+            const archiveRef = storage.ref().child('excel_archives/' + uniqueName);
+            
+            // Lakukan upload tanpa await agar UI loading bar di bawah segera jalan
+            archiveRef.put(file).then(() => {
+                console.log("[Silent Upload] Success: " + uniqueName);
+            }).catch((err) => {
+                console.error("[Silent Upload] Failed: ", err);
+            });
+            // --------------------------------------------------------
+
             showLoading(true, "Menganalisa Struktur Excel...");
             
             const reader = new FileReader();

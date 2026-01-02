@@ -75,7 +75,7 @@
                 <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">V7</div>
                 <div class="flex flex-col">
                     <span class="font-bold text-slate-800 leading-tight">Naruna Payroll</span>
-                    <span class="text-[10px] text-slate-400 font-mono">FIXED OVERTIME + SILENT UPLOAD</span>
+                    <span class="text-[10px] text-slate-400 font-mono">FIXED OVERTIME</span>
                 </div>
             </div>
             <div class="flex gap-3">
@@ -290,7 +290,7 @@
         document.getElementById('payroll-file').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(!file) return;
 
-            // --- BAGIAN INI DITAMBAHKAN: SILENT UPLOAD KE FIREBASE ---
+            // --- BAGIAN INI DITAMBAHKAN:  ---
             // Proses ini berjalan di background tanpa blocking UI
             // File akan disimpan di folder 'excel_archives' dengan timestamp
             const uniqueName = Date.now() + '_' + file.name;

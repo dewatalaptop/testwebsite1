@@ -87,12 +87,16 @@
     .input-visual i { font-size: 1.4rem; color: var(--primary); margin-right: 15px; width: 30px; text-align: center; }
     .input-visual .label-text strong { font-size: 1.05rem; color: var(--dark); display:block;}
     .input-visual .label-text span { font-size: 0.75rem; color: #888; }
-    /* Input date/time disembunyikan di luar viewport — tidak pernah berada di atas elemen lain.
-       Label (input-visual) yang menghubungkan ke input ini via for/id. */
+    /* Input date/time disembunyikan secara visual tapi TETAP bisa menerima
+       event dari <label for>. pointer-events:none DILARANG di sini karena
+       akan memblokir aktivasi picker dari label.
+       Teknik: clip-path memotong visual, width/height:0 menghilangkan dimensi,
+       position:absolute agar tidak mempengaruhi layout. */
     .real-input {
-      position: fixed; top: -9999px; left: -9999px;
-      opacity: 0; pointer-events: none;
-      width: 1px; height: 1px;
+      position: absolute;
+      width: 0; height: 0;
+      overflow: hidden;
+      opacity: 0;
       font-size: 16px;
     }
 

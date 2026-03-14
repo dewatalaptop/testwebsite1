@@ -72,10 +72,13 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .input-group-custom { position: relative; margin-bottom: 15px; }
+    /* FIX #1+#2: .input-visual jadi anchor position agar hidden-input tidak meluber ke luar kotak.
+       overflow:hidden memotong hidden-input tepat di batas kotak — tidak menutupi elemen lain. */
     .input-visual {
       display: flex; align-items: center; padding: 15px;
       background: #fff; border: 2px solid #eee; border-radius: 15px;
       transition: 0.3s; cursor: pointer;
+      position: relative; overflow: hidden;
     }
     .input-visual:focus-within { border-color: var(--primary); }
     .input-group-custom.error .input-visual { border-color: var(--danger); background: #fff5f5; }
@@ -84,7 +87,11 @@
     .input-visual i { font-size: 1.4rem; color: var(--primary); margin-right: 15px; width: 30px; text-align: center; }
     .input-visual .label-text strong { font-size: 1.05rem; color: var(--dark); display:block;}
     .input-visual .label-text span { font-size: 0.75rem; color: #888; }
-    .hidden-input { position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0; cursor: pointer; z-index: 10; }
+    /* FIX #1: hidden-input terbatas persis di dalam .input-visual (bukan .input-group-custom).
+       font-size:16px mencegah iOS Safari auto-zoom saat input di-tap. */
+    .hidden-input {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 16px;
+    }
 
     .stepper-control {
       display: flex; align-items: center; justify-content: space-between;
@@ -263,20 +270,23 @@
 <div id="step1" class="step-section active">
   <div class="card">
     <div class="input-group-custom" id="groupDate">
-      <div class="input-visual">
+      <!-- FIX #3: hidden-input dipindahkan ke DALAM .input-visual agar overflow:hidden bekerja.
+           onclick="triggerPicker('inputDate')" = fallback showPicker() untuk iOS Safari -->
+      <div class="input-visual" onclick="triggerPicker('inputDate')">
         <i class="far fa-calendar-alt"></i>
         <div class="label-text"><span>Tanggal Kunjungan</span><strong id="displayDate">Pilih Tanggal</strong></div>
+        <input type="date" id="inputDate" class="hidden-input" onchange="updateDateUI()" tabindex="-1">
       </div>
-      <input type="date" id="inputDate" class="hidden-input" onchange="updateDateUI()">
       <div class="error-msg">Mohon pilih tanggal.</div>
     </div>
 
     <div class="input-group-custom" id="groupTime">
-      <div class="input-visual">
+      <!-- FIX #3: hidden-input dipindahkan ke DALAM .input-visual -->
+      <div class="input-visual" onclick="triggerPicker('inputTime')">
         <i class="far fa-clock"></i>
         <div class="label-text"><span>Jam Kedatangan</span><strong id="displayTime">--:--</strong></div>
+        <input type="time" id="inputTime" class="hidden-input" onchange="updateTimeUI()" tabindex="-1">
       </div>
-      <input type="time" id="inputTime" class="hidden-input" onchange="updateTimeUI()">
       <div class="error-msg">Mohon tentukan jam.</div>
     </div>
 
@@ -309,12 +319,14 @@
   <div class="card">
     <div class="input-group-custom" id="groupName">
         <label style="font-size:0.85rem; color:#666; margin-bottom:5px; display:block;">Nama Lengkap</label>
-        <input type="text" id="inputName" placeholder="Contoh: Budi Santoso" style="width:100%; padding:12px; border:2px solid #eee; border-radius:10px; font-size:1rem;">
+        <input type="text" id="inputName" placeholder="Contoh: Budi Santoso" style="width:100%; padding:12px; border:2px solid #eee; border-radius:10px; font-size:1rem;"
+               oninput="clearError('groupName')" autocomplete="name">
         <div class="error-msg">Nama wajib diisi.</div>
     </div>
     <div class="input-group-custom" id="groupPhone">
         <label style="font-size:0.85rem; color:#666; margin-bottom:5px; display:block;">WhatsApp (Aktif)</label>
-        <input type="tel" id="inputPhone" placeholder="Contoh: 081234..." style="width:100%; padding:12px; border:2px solid #eee; border-radius:10px; font-size:1rem;">
+        <input type="tel" id="inputPhone" placeholder="Contoh: 081234..." style="width:100%; padding:12px; border:2px solid #eee; border-radius:10px; font-size:1rem;"
+               oninput="clearError('groupPhone')" autocomplete="tel" inputmode="numeric">
         <div class="error-msg">Nomor wajib diisi.</div>
     </div>
     <div style="margin-bottom:15px;">
@@ -453,7 +465,10 @@
       listenFullDates();
 
       await loadData();
-      document.getElementById('loader').style.display = 'none';
+      // FIX #11: matikan loader sepenuhnya agar tidak menghalangi klik
+      const loader = document.getElementById('loader');
+      loader.style.display = 'none';
+      loader.style.pointerEvents = 'none';
       updateUIState();
       
       const headerTitle = document.querySelector('#mainHeader h1');
@@ -467,6 +482,31 @@
         }
       });
     });
+
+    // FIX #3: triggerPicker() — fallback untuk iOS Safari yang kadang
+    // tidak membuka picker dari hidden input. Prioritas: showPicker() API,
+    // fallback ke programmatic focus + click.
+    function triggerPicker(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        try {
+            if (typeof input.showPicker === 'function') {
+                input.showPicker();
+            } else {
+                input.focus();
+                input.click();
+            }
+        } catch(e) {
+            // showPicker() bisa throw di beberapa browser jika tidak dipicu user gesture
+            input.focus();
+            input.click();
+        }
+    }
+
+    // FIX #8: clearError() — hapus class error saat user mulai mengetik
+    function clearError(groupId) {
+        document.getElementById(groupId).classList.remove('error');
+    }
 
     function updatePaxStep(amount) {
         const input = document.getElementById('inputPax');
@@ -491,15 +531,19 @@
         const val = document.getElementById('inputDate').value;
         const display = document.getElementById('displayDate');
 
-        // Reset state lokasi setiap tanggal berubah
-        resetLocationState();
+        // FIX #5: hanya reset jika user memang sudah memilih tanggal
+        // Jika val kosong berarti dipanggil dari listenFullDates (init) — jangan reset
+        if (val) resetLocationState();
 
         if (val) {
             if (fullDates[val] === true) {
                 display.textContent = "Tanggal ini penuh";
                 display.style.color = 'var(--danger)';
             } else {
-                display.textContent = new Date(val).toLocaleDateString('id-ID', {
+                // FIX #10: parse manual agar tidak terkena off-by-one timezone
+                // new Date('2025-03-15') = UTC midnight → di +07:00 jadi 14 Maret
+                const [y, m, d] = val.split('-').map(Number);
+                display.textContent = new Date(y, m-1, d).toLocaleDateString('id-ID', {
                     weekday:'short', day:'numeric', month:'short', year:'numeric'
                 });
                 display.style.color = 'var(--primary-dark)';
@@ -511,8 +555,10 @@
         }
 
         // Auto-refresh daftar lokasi jika user sudah di step 2
+        // FIX #6: availabilityLoading bisa true dari sesi sebelumnya; reset dulu
         if (currentStep === 2) {
-            checkAvailability();
+            availabilityLoading = false;
+            checkAvailability().catch(() => {});
         }
     }
 
@@ -538,7 +584,8 @@
 
         // Auto-refresh daftar lokasi jika user sudah di step 2
         if (currentStep === 2) {
-            checkAvailability();
+            availabilityLoading = false;
+            checkAvailability().catch(() => {});
         }
     }
 
@@ -605,17 +652,21 @@
                 
                 groups[cat].sort((a,b)=>a.name.localeCompare(b.name)).forEach(menu => {
                     const note = getMenuNote(menu.name, cat);
+                    // FIX #7: escape untuk tampilan HTML (XSS) dan untuk atribut onclick (escape kutip)
+                    const safeMenuDisplay = escapeHtml(menu.name);
+                    const safeMenuDesc   = escapeHtml(menu.desc);
+                    const safeMenuOnclick = menu.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                     htmlItems += `
                         <div class="menu-item">
                             <div class="menu-info">
-                                <h4>${menu.name}</h4>
-                                <p>${menu.desc}</p>
+                                <h4>${safeMenuDisplay}</h4>
+                                <p>${safeMenuDesc}</p>
                                 ${note}
                             </div>
                             <div class="stepper-control" style="width:110px;">
-                                <button class="stepper-btn" onclick="updateMenuQty('${menu.name}', -1, '${safeCat}')">-</button>
-                                <input type="number" id="qty-${cleanId(menu.name)}" class="stepper-input" value="0" min="0" onchange="manualMenuQty('${menu.name}', '${safeCat}')">
-                                <button class="stepper-btn" onclick="updateMenuQty('${menu.name}', 1, '${safeCat}')">+</button>
+                                <button class="stepper-btn" onclick="updateMenuQty('${safeMenuOnclick}', -1, '${safeCat}')">-</button>
+                                <input type="number" id="qty-${cleanId(menu.name)}" class="stepper-input" value="0" min="0" onchange="manualMenuQty('${safeMenuOnclick}', '${safeCat}')">
+                                <button class="stepper-btn" onclick="updateMenuQty('${safeMenuOnclick}', 1, '${safeCat}')">+</button>
                             </div>
                         </div>
                     `;
@@ -691,7 +742,8 @@
             if(!isValid) return;
             // FIX #6: cegah double klik tombol "Cari Tempat"
             if (availabilityLoading) return;
-            const ok = await checkAvailability();
+            // FIX #4: .catch(()=>false) agar unhandled rejection tidak crash
+            const ok = await checkAvailability().catch(() => false);
             if(!ok) return;
             currentStep = 2;
         } 
@@ -994,6 +1046,7 @@
             }).then(() => window.location.reload());
 
         } catch(e) {
+            // FIX #9: selalu re-enable tombol saat error
             btnNext.disabled = false;
 
             // Tampilkan pesan khusus jika overbooking terdeteksi
@@ -1008,10 +1061,12 @@
                     currentStep = 2;
                     selectedLocationName = "";
                     updateUIState();
-                    checkAvailability();
+                    availabilityLoading = false;
+                    checkAvailability().catch(() => {});
                 });
             } else {
-                Swal.fire('Error', 'Gagal koneksi. Coba lagi.', 'error');
+                console.error('submitReservation error:', e);
+                Swal.fire('Error', 'Gagal koneksi. Silahkan coba lagi.', 'error');
             }
         }
     }

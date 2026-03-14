@@ -886,6 +886,12 @@
             snapConfirmed.forEach(doc => processDoc(doc.data()));
             snapPending.forEach(doc => processDoc(doc.data()));
 
+            if (typeof diagLog === 'function') {
+                diagLog('ok', 'Firestore OK | confirmed=' + snapConfirmed.size +
+                    ' | pending=' + snapPending.size +
+                    ' | usageMap=' + JSON.stringify(usageMap).slice(0, 80));
+            }
+
             container.innerHTML = '';
             locationsData.sort((a,b) => a.name.localeCompare(b.name)).forEach(loc => {
                 const locNameLower = loc.name.toLowerCase();
@@ -961,8 +967,35 @@
             return true;
         } catch(e) {
             console.error(e);
-            container.innerHTML = '<p style="text-align:center; color:red;"><i class="fas fa-exclamation-circle"></i> Gagal memuat data. Coba lagi.</p>';
-            availabilityLoading = false; // FIX #6: error pun harus buka kunci
+            // Log ke diagnostik agar error Firestore terlihat jelas
+            if (typeof diagLog === 'function') {
+                diagLog('err', 'checkAvailability catch: ' + e.code + ' | ' + e.message);
+            }
+            container.innerHTML = '';
+            availabilityLoading = false;
+
+            // Deteksi error permission Firestore
+            const isPermission = e.code === 'permission-denied' ||
+                (e.message && e.message.toLowerCase().includes('permission'));
+
+            if (isPermission) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Akses Ditolak',
+                    html: 'Firestore Security Rules memblokir pembacaan data reservasi.<br><br>' +
+                          '<b>Solusi:</b> Buka Firebase Console → Firestore → Rules, ' +
+                          'lalu izinkan akses read pada collection <code>reservations</code> ' +
+                          'dan <code>reservation_requests</code>.',
+                    confirmButtonColor: 'var(--primary)'
+                });
+            } else {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat Data',
+                    text: 'Error: ' + (e.message || e.code || 'Unknown') + '. Periksa koneksi internet Anda.',
+                    confirmButtonColor: 'var(--primary)'
+                });
+            }
             return false;
         }
     }

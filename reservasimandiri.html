@@ -72,13 +72,13 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .input-group-custom { position: relative; margin-bottom: 15px; }
-    /* FIX #1+#2: .input-visual jadi anchor position agar hidden-input tidak meluber ke luar kotak.
-       overflow:hidden memotong hidden-input tepat di batas kotak — tidak menutupi elemen lain. */
+    /* input-visual adalah <label> — klik di mana saja di dalam kotak membuka picker.
+       Tidak ada overlay transparan, tidak ada hidden-input di dalam kotak.
+       Ini metode paling stabil di semua browser termasuk iOS Safari. */
     .input-visual {
       display: flex; align-items: center; padding: 15px;
       background: #fff; border: 2px solid #eee; border-radius: 15px;
       transition: 0.3s; cursor: pointer;
-      position: relative; overflow: hidden;
     }
     .input-visual:focus-within { border-color: var(--primary); }
     .input-group-custom.error .input-visual { border-color: var(--danger); background: #fff5f5; }
@@ -87,10 +87,13 @@
     .input-visual i { font-size: 1.4rem; color: var(--primary); margin-right: 15px; width: 30px; text-align: center; }
     .input-visual .label-text strong { font-size: 1.05rem; color: var(--dark); display:block;}
     .input-visual .label-text span { font-size: 0.75rem; color: #888; }
-    /* FIX #1: hidden-input terbatas persis di dalam .input-visual (bukan .input-group-custom).
-       font-size:16px mencegah iOS Safari auto-zoom saat input di-tap. */
-    .hidden-input {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 16px;
+    /* Input date/time disembunyikan di luar viewport — tidak pernah berada di atas elemen lain.
+       Label (input-visual) yang menghubungkan ke input ini via for/id. */
+    .real-input {
+      position: fixed; top: -9999px; left: -9999px;
+      opacity: 0; pointer-events: none;
+      width: 1px; height: 1px;
+      font-size: 16px;
     }
 
     .stepper-control {
@@ -270,23 +273,22 @@
 <div id="step1" class="step-section active">
   <div class="card">
     <div class="input-group-custom" id="groupDate">
-      <!-- FIX #3: hidden-input dipindahkan ke DALAM .input-visual agar overflow:hidden bekerja.
-           onclick="triggerPicker('inputDate')" = fallback showPicker() untuk iOS Safari -->
-      <div class="input-visual" onclick="triggerPicker('inputDate')">
+      <!-- label[for] menghubungkan ke #inputDate — klik label = buka picker.
+           Tidak ada overlay, tidak ada JS untuk membuka picker. Stabil di semua browser. -->
+      <label class="input-visual" for="inputDate">
         <i class="far fa-calendar-alt"></i>
         <div class="label-text"><span>Tanggal Kunjungan</span><strong id="displayDate">Pilih Tanggal</strong></div>
-        <input type="date" id="inputDate" class="hidden-input" onchange="updateDateUI()" tabindex="-1">
-      </div>
+      </label>
+      <input type="date" id="inputDate" class="real-input" onchange="updateDateUI()">
       <div class="error-msg">Mohon pilih tanggal.</div>
     </div>
 
     <div class="input-group-custom" id="groupTime">
-      <!-- FIX #3: hidden-input dipindahkan ke DALAM .input-visual -->
-      <div class="input-visual" onclick="triggerPicker('inputTime')">
+      <label class="input-visual" for="inputTime">
         <i class="far fa-clock"></i>
         <div class="label-text"><span>Jam Kedatangan</span><strong id="displayTime">--:--</strong></div>
-        <input type="time" id="inputTime" class="hidden-input" onchange="updateTimeUI()" tabindex="-1">
-      </div>
+      </label>
+      <input type="time" id="inputTime" class="real-input" onchange="updateTimeUI()">
       <div class="error-msg">Mohon tentukan jam.</div>
     </div>
 
@@ -482,26 +484,6 @@
         }
       });
     });
-
-    // FIX #3: triggerPicker() — fallback untuk iOS Safari yang kadang
-    // tidak membuka picker dari hidden input. Prioritas: showPicker() API,
-    // fallback ke programmatic focus + click.
-    function triggerPicker(inputId) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-        try {
-            if (typeof input.showPicker === 'function') {
-                input.showPicker();
-            } else {
-                input.focus();
-                input.click();
-            }
-        } catch(e) {
-            // showPicker() bisa throw di beberapa browser jika tidak dipicu user gesture
-            input.focus();
-            input.click();
-        }
-    }
 
     // FIX #8: clearError() — hapus class error saat user mulai mengetik
     function clearError(groupId) {

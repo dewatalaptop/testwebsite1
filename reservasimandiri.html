@@ -245,6 +245,47 @@
       border-radius: 6px; font-weight: 600; cursor: pointer; align-self: flex-start;
       display: flex; align-items: center; gap: 5px; font-size: 0.9rem;
     }
+
+    /* ── DIAGNOSTIC REPORTER ── */
+    #diagBox {
+      display: none;
+      position: fixed; bottom: 80px; left: 10px; right: 10px;
+      background: #1a1a2e; color: #e2e2e2;
+      border: 2px solid #e74c3c; border-radius: 14px;
+      padding: 14px; z-index: 99999;
+      font-family: monospace; font-size: 0.72rem;
+      max-height: 55vh; overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    #diagBox .diag-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    #diagBox .diag-title {
+      color: #e74c3c; font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;
+    }
+    #diagBox .diag-actions { display: flex; gap: 8px; }
+    #diagBox button {
+      background: #e74c3c; color: white; border: none;
+      padding: 4px 10px; border-radius: 6px; font-size: 0.7rem;
+      cursor: pointer; font-weight: bold;
+    }
+    #diagBox button.diag-clear { background: #555; }
+    #diagLog { white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
+    #diagLog .log-ok   { color: #2ecc71; }
+    #diagLog .log-warn { color: #f39c12; }
+    #diagLog .log-err  { color: #e74c3c; }
+    #diagLog .log-info { color: #3498db; }
+    #diagLog .log-sep  { color: #555; }
+    #diagToggle {
+      position: fixed; bottom: 80px; right: 12px;
+      background: #e74c3c; color: white;
+      width: 42px; height: 42px; border-radius: 50%;
+      border: none; font-size: 1.1rem; font-weight: bold;
+      cursor: pointer; z-index: 99998;
+      box-shadow: 0 4px 12px rgba(231,76,60,0.5);
+      display: flex; align-items: center; justify-content: center;
+    }
   </style>
 
 </head>
@@ -1183,7 +1224,186 @@
         });
     }
 
+
+    // ============================================================
+    // DIAGNOSTIC REPORTER
+    // Mencatat semua error, klik tombol, dan status fungsi kritis
+    // ============================================================
+    const diagLogs = [];
+
+    function diagLog(type, msg) {
+      const time = new Date().toTimeString().slice(0,8);
+      const entry = { time, type, msg };
+      diagLogs.push(entry);
+
+      // Tampilkan di box
+      const el = document.getElementById('diagLog');
+      if (!el) return;
+      const classMap = { ok:'log-ok', warn:'log-warn', err:'log-err', info:'log-info', sep:'log-sep' };
+      const span = document.createElement('span');
+      span.className = classMap[type] || 'log-info';
+      span.textContent = `[${time}] ${msg}\n`;
+      el.appendChild(span);
+      el.scrollTop = el.scrollHeight;
+
+      // Auto-buka box saat ada error
+      if (type === 'err') {
+        document.getElementById('diagBox').style.display = 'block';
+      }
+    }
+
+    function diagToggle() {
+      const box = document.getElementById('diagBox');
+      box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function diagClear() {
+      diagLogs.length = 0;
+      document.getElementById('diagLog').innerHTML = '<span class="log-info">Log dikosongkan.\n</span>';
+    }
+
+    function diagCopy() {
+      // Format laporan lengkap untuk dikirim ke developer
+      const ua = navigator.userAgent;
+      const lines = [
+        '=== DIAGNOSTIC REPORT ===',
+        'Waktu   : ' + new Date().toLocaleString('id-ID'),
+        'Browser : ' + ua,
+        'URL     : ' + location.href,
+        'Step    : ' + (typeof currentStep !== 'undefined' ? currentStep : 'N/A'),
+        'FirebaseLoaded: ' + (typeof firebase !== 'undefined'),
+        'DBReady : ' + (typeof db !== 'undefined'),
+        'fullDatesLoaded: ' + (typeof fullDatesLoaded !== 'undefined' ? fullDatesLoaded : 'N/A'),
+        'locationsData: ' + (typeof locationsData !== 'undefined' ? locationsData.length + ' item' : 'N/A'),
+        '--- LOG ---',
+        ...diagLogs.map(e => `[${e.time}][${e.type.toUpperCase()}] ${e.msg}`),
+        '=== END ==='
+      ];
+      const text = lines.join('\n');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => { diagLog('ok', '✓ Report berhasil di-copy ke clipboard'); })
+          .catch(() => { diagFallbackCopy(text); });
+      } else {
+        diagFallbackCopy(text);
+      }
+    }
+
+    function diagFallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        diagLog('ok', '✓ Report di-copy (fallback)');
+      } catch(e) {
+        diagLog('err', '✗ Gagal copy. Salin manual dari sini:\n' + text);
+      }
+      document.body.removeChild(ta);
+    }
+
+    // --- Tangkap SEMUA error JS global ---
+    window.onerror = function(msg, src, line, col, err) {
+      diagLog('err', 'JS Error: ' + msg + ' | ' + (src||'') + ':' + line);
+      return false;
+    };
+    window.onunhandledrejection = function(e) {
+      const reason = e.reason ? (e.reason.message || String(e.reason)) : 'Unknown rejection';
+      diagLog('err', 'Unhandled Promise: ' + reason);
+    };
+
+    // --- Patch nextStep untuk mencatat setiap klik ---
+    const _origNextStep = nextStep;
+    nextStep = async function() {
+      diagLog('info', '▶ nextStep() dipanggil | step=' + currentStep +
+        ' | date=' + (document.getElementById('inputDate').value || 'kosong') +
+        ' | time=' + (document.getElementById('inputTime').value || 'kosong'));
+      try {
+        await _origNextStep.apply(this, arguments);
+        diagLog('ok', '✓ nextStep() selesai | step sekarang=' + currentStep);
+      } catch(e) {
+        diagLog('err', '✗ nextStep() error: ' + e.message);
+        throw e;
+      }
+    };
+
+    // --- Patch checkAvailability ---
+    const _origCheck = checkAvailability;
+    checkAvailability = async function() {
+      const date = document.getElementById('inputDate').value;
+      diagLog('info', '🔍 checkAvailability() | date=' + date +
+        ' | fullDatesLoaded=' + fullDatesLoaded +
+        ' | availabilityLoading=' + availabilityLoading);
+      try {
+        const result = await _origCheck.apply(this, arguments);
+        diagLog(result ? 'ok' : 'warn', '  → hasil: ' + result +
+          ' | locationsData.length=' + locationsData.length);
+        return result;
+      } catch(e) {
+        diagLog('err', '  → checkAvailability() throw: ' + e.message);
+        throw e;
+      }
+    };
+
+    // --- Patch submitReservation ---
+    const _origSubmit = submitReservation;
+    submitReservation = async function() {
+      diagLog('info', '📤 submitReservation() | lokasi=' + selectedLocationName);
+      try {
+        await _origSubmit.apply(this, arguments);
+        diagLog('ok', '✓ submitReservation() selesai');
+      } catch(e) {
+        diagLog('err', '✗ submitReservation() error: ' + e.message);
+        throw e;
+      }
+    };
+
+    // --- Patch loadData ---
+    const _origLoad = loadData;
+    loadData = async function() {
+      diagLog('info', '📦 loadData() mulai');
+      try {
+        await _origLoad.apply(this, arguments);
+        diagLog('ok', '✓ loadData() selesai | locations=' + locationsData.length + ' | menus=' + Object.keys(menusData).length);
+      } catch(e) {
+        diagLog('err', '✗ loadData() error: ' + e.message);
+        throw e;
+      }
+    };
+
+    // --- Catat status Firebase saat halaman siap ---
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        diagLog('sep', '────────────────────');
+        diagLog('info', '🚀 Halaman siap');
+        diagLog('info', 'Firebase: ' + (typeof firebase !== 'undefined' ? '✓' : '✗ TIDAK DIMUAT'));
+        diagLog('info', 'Firestore db: ' + (typeof db !== 'undefined' ? '✓' : '✗ GAGAL'));
+        diagLog('info', 'Auth: ' + (typeof auth !== 'undefined' ? '✓' : '✗ GAGAL'));
+        diagLog('info', 'Swal: ' + (typeof Swal !== 'undefined' ? '✓' : '✗ GAGAL'));
+        diagLog('sep', '────────────────────');
+        diagLog('info', 'Ketuk ⚠ (pojok kanan bawah) untuk buka/tutup laporan ini');
+        diagLog('info', 'Ketuk [Copy] lalu kirim hasilnya untuk debugging');
+      }, 1500); // tunggu setelah DOMContentLoaded lain selesai
+    });
+
   </script>
 
+  <!-- ── DIAGNOSTIC REPORTER ── -->
+
+<button id="diagToggle" onclick="diagToggle()" title="Error Reporter">⚠</button>
+
+  <div id="diagBox">
+    <div class="diag-header">
+      <span class="diag-title">🔍 ERROR REPORTER</span>
+      <div class="diag-actions">
+        <button onclick="diagCopy()">📋 Copy</button>
+        <button class="diag-clear" onclick="diagClear()">🗑 Clear</button>
+        <button class="diag-clear" onclick="diagToggle()">✕</button>
+      </div>
+    </div>
+    <div id="diagLog"><span class="log-info">Menunggu aktivitas...</span></div>
+  </div>
 </body>
 </html>

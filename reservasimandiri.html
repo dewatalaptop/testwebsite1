@@ -299,9 +299,9 @@
     <div class="input-group-custom">
         <label style="font-size:0.85rem; color:#666; margin-bottom:8px; display:block;">Jumlah Orang</label>
         <div class="stepper-control">
-            <button class="stepper-btn" onclick="updatePaxStep(-1)">-</button>
+            <button type="button" class="stepper-btn" onclick="updatePaxStep(-1)">-</button>
             <input type="number" id="inputPax" class="stepper-input" value="2" min="1" onchange="validatePax()">
-            <button class="stepper-btn" onclick="updatePaxStep(1)">+</button>
+            <button type="button" class="stepper-btn" onclick="updatePaxStep(1)">+</button>
         </div>
     </div>
   </div>
@@ -356,18 +356,18 @@
   </div>
 
   <div class="bottom-bar">
-    <button class="btn-back" id="btnBack" onclick="prevStep()" style="display:none;"><i class="fas fa-arrow-left"></i></button>
+    <button type="button" class="btn-back" id="btnBack" onclick="prevStep()" style="display:none;"><i class="fas fa-arrow-left"></i></button>
     <div id="priceInfo" style="display:none; flex-grow:1; margin-left:15px;">
         <span style="display:block; font-size:0.7rem; color:#888; text-transform:uppercase;">Keranjang</span>
         <strong style="color:var(--primary); font-size:1.1rem;" id="totalItemText">0 Menu</strong>
     </div>
-    <button class="btn-action" id="btnNext" onclick="nextStep()">Cari Tempat <i class="fas fa-search"></i></button>
+    <button type="button" class="btn-action" id="btnNext" onclick="nextStep()">Cari Tempat <i class="fas fa-search"></i></button>
   </div>
 
   <div id="adminPanel" class="admin-overlay">
     <div class="admin-header">
       <div style="font-weight:700;"><i class="fas fa-user-cog"></i> Admin Panel</div>
-      <button onclick="closeAdmin()" style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; padding:5px 12px; border-radius:6px; cursor:pointer;">
+      <button type="button" onclick="closeAdmin()" style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; padding:5px 12px; border-radius:6px; cursor:pointer;">
         Close <i class="fas fa-times"></i>
       </button>
     </div>
@@ -377,14 +377,14 @@
   <h3 style="color:var(--primary-dark); margin-bottom:20px;">Login Admin</h3>
   <input type="email" id="adminEmail" class="login-input" placeholder="Email Admin">
   <input type="password" id="adminPass" class="login-input" placeholder="Password">
-  <button class="btn-login" onclick="adminLogin()">Masuk</button>
+  <button type="button" class="btn-login" onclick="adminLogin()">Masuk</button>
   <p id="loginError" style="color:red; font-size:0.8rem; display:none; margin-top:10px;"></p>
 </div>
 
 <div id="adminDashboardView" class="admin-container" style="display:none;">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
     <h3 style="margin:0; color:var(--dark);">Kelola Foto Tempat</h3>
-    <button onclick="adminLogout()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:6px; font-size:0.8rem; cursor:pointer;">Logout</button>
+    <button type="button" onclick="adminLogout()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:6px; font-size:0.8rem; cursor:pointer;">Logout</button>
   </div>
   <div class="card" style="background:#fff3cd; color:#856404; font-size:0.85rem; margin-bottom:20px;">
     <i class="fas fa-info-circle"></i> <b>Info:</b> Foto akan otomatis dikompres agar ringan dan disimpan langsung ke database (bukan storage). Ini menjamin keberhasilan upload.
@@ -650,9 +650,9 @@
                                 ${note}
                             </div>
                             <div class="stepper-control" style="width:110px;">
-                                <button class="stepper-btn" onclick="updateMenuQty('${safeMenuOnclick}', -1, '${safeCat}')">-</button>
+                                <button type="button" class="stepper-btn" onclick="updateMenuQty('${safeMenuOnclick}', -1, '${safeCat}')">-</button>
                                 <input type="number" id="qty-${cleanId(menu.name)}" class="stepper-input" value="0" min="0" onchange="manualMenuQty('${safeMenuOnclick}', '${safeCat}')">
-                                <button class="stepper-btn" onclick="updateMenuQty('${safeMenuOnclick}', 1, '${safeCat}')">+</button>
+                                <button type="button" class="stepper-btn" onclick="updateMenuQty('${safeMenuOnclick}', 1, '${safeCat}')">+</button>
                             </div>
                         </div>
                     `;
@@ -907,7 +907,7 @@
                     <div class="loc-content">
                         <span class="loc-name">${safeName}</span>
                         <span class="cap-badge ${capClass}">${capLabel}</span>
-                        <button class="btn-loc-view" onclick="openImage(event,'${imageUrl}','${safeName}')">
+                        <button type="button" class="btn-loc-view" onclick="openImage(event,'${imageUrl}','${safeName}')">
                             <i class="fas fa-images"></i> Lihat Foto
                         </button>
                     </div>
@@ -972,56 +972,45 @@
         try {
             const paxVal = parseInt(document.getElementById('inputPax').value) || 1;
 
-            // FIX #2: Firestore Transaction — cek kapasitas terkini sebelum commit
-            // Ini mencegah overbooking jika dua user submit bersamaan
-            await db.runTransaction(async (transaction) => {
+            // Cek kapasitas terkini sebelum submit
+            const [snapConfirmed, snapPending] = await Promise.all([
+                db.collection('reservations').where('date', '==', dateVal).get(),
+                db.collection('reservation_requests').where('date', '==', dateVal).get()
+            ]);
 
-                // Baca ulang data reservasi terkini di dalam transaction
-                const [snapConfirmed, snapPending] = await Promise.all([
-                    db.collection('reservations').where('date', '==', dateVal).get(),
-                    db.collection('reservation_requests').where('date', '==', dateVal).get()
-                ]);
+            const usageMap = {};
+            const countUsage = (d) => {
+                if (d.tempat) usageMap[d.tempat] = (usageMap[d.tempat] || 0) + (parseInt(d.jumlah) || 0);
+            };
+            snapConfirmed.forEach(doc => countUsage(doc.data()));
+            snapPending.forEach(doc => countUsage(doc.data()));
 
-                // Hitung ulang kapasitas yang sudah terpakai
-                const usageMap = {};
-                const countUsage = (d) => {
-                    if (d.tempat) usageMap[d.tempat] = (usageMap[d.tempat] || 0) + (parseInt(d.jumlah) || 0);
-                };
-                snapConfirmed.forEach(doc => countUsage(doc.data()));
-                snapPending.forEach(doc => countUsage(doc.data()));
+            const chosenLoc = locationsData.find(l => l.name === selectedLocationName);
+            if (!chosenLoc) throw new Error('Lokasi tidak ditemukan.');
 
-                // Temukan data lokasi yang dipilih
-                const chosenLoc = locationsData.find(l => l.name === selectedLocationName);
-                if (!chosenLoc) throw new Error('Lokasi tidak ditemukan.');
+            const capacity = (chosenLoc.capacity !== undefined && chosenLoc.capacity !== null)
+                ? parseInt(chosenLoc.capacity)
+                : 50;
 
-                // FIX #3: capacity default 50 di sini juga
-                const capacity = (chosenLoc.capacity !== undefined && chosenLoc.capacity !== null)
-                    ? parseInt(chosenLoc.capacity)
-                    : 50;
+            const used = usageMap[selectedLocationName] || 0;
+            const remaining = capacity - used;
 
-                const used = usageMap[selectedLocationName] || 0;
-                const remaining = capacity - used;
+            if (remaining < paxVal) {
+                throw new Error(`KAPASITAS_PENUH:Tempat "${selectedLocationName}" sudah tidak tersedia untuk ${paxVal} orang (sisa ${remaining}). Silahkan pilih tempat lain.`);
+            }
 
-                // Jika kapasitas tidak cukup lagi saat submit → tolak
-                if (remaining < paxVal) {
-                    throw new Error(`KAPASITAS_PENUH:Tempat "${selectedLocationName}" sudah tidak tersedia untuk ${paxVal} orang (sisa ${remaining}). Silahkan pilih tempat lain.`);
-                }
-
-                // Kapasitas masih cukup → tulis dokumen baru
-                const newDocRef = db.collection('reservation_requests').doc();
-                transaction.set(newDocRef, {
-                    date: dateVal,
-                    jam: document.getElementById('inputTime').value,
-                    jumlah: paxVal,
-                    tempat: selectedLocationName,
-                    nama: document.getElementById('inputName').value,
-                    nomorHp: normalizePhone(document.getElementById('inputPhone').value),
-                    tambahan: document.getElementById('inputNote').value,
-                    menus: Object.entries(selectedMenus).map(([k, v]) => ({ name: k, quantity: v })),
-                    status: 'pending',
-                    via: 'Web App V9',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            await db.collection('reservation_requests').add({
+                date: dateVal,
+                jam: document.getElementById('inputTime').value,
+                jumlah: paxVal,
+                tempat: selectedLocationName,
+                nama: document.getElementById('inputName').value,
+                nomorHp: normalizePhone(document.getElementById('inputPhone').value),
+                tambahan: document.getElementById('inputNote').value,
+                menus: Object.entries(selectedMenus).map(([k, v]) => ({ name: k, quantity: v })),
+                status: 'pending',
+                via: 'Web App V9',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
             Swal.fire({
@@ -1122,7 +1111,7 @@
                  </div>
                  <div class="upload-controls">
                     <input type="file" id="file-${loc.id}" accept="image/*" class="file-input">
-                    <button class="btn-upload-save" onclick="handleFileUpload('${loc.id}')">
+                    <button type="button" id="btn-upload-${loc.id}" class="btn-upload-save" onclick="handleFileUpload('${loc.id}')">
                        <i class="fas fa-save"></i> Simpan Foto
                     </button>
                  </div>
@@ -1143,7 +1132,7 @@
             if(!file) { Swal.fire('Peringatan', 'Pilih file foto dulu!', 'warning'); return; }
             if (!file.type.match('image.*')) { Swal.fire('Format Salah', 'Harus file gambar (jpg/png).', 'error'); return; }
 
-            const btn = document.querySelector(`button[onclick="handleFileUpload('${locId}')"]`);
+            const btn = document.getElementById(`btn-upload-${locId}`);
             const oldText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
             btn.disabled = true;
@@ -1161,7 +1150,7 @@
         } catch (e) {
             console.error(e);
             Swal.fire('Gagal', 'Terjadi kesalahan: ' + e.message, 'error');
-            const btn = document.querySelector(`button[onclick="handleFileUpload('${locId}')"]`);
+            const btn = document.getElementById(`btn-upload-${locId}`);
             if(btn) { btn.innerHTML = '<i class="fas fa-save"></i> Simpan Foto'; btn.disabled = false; }
         }
     }

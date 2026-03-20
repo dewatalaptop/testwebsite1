@@ -51,6 +51,8 @@
     .login-box input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(42,157,143,.12);}
     .btn-login{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:12px;transition:all .2s;font-family:inherit;}
     .btn-login:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(42,157,143,.3);}
+    .login-error{display:none;background:#fee2e2;color:#c0392b;border:1px solid #f5c6c6;border-radius:8px;padding:10px 14px;margin-top:12px;font-size:.83rem;font-weight:600;text-align:left;}
+    .login-error.show{display:block;}
 
     /* SIDEBAR */
     .sidebar{width:var(--sidebar-w);background:var(--secondary);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:100;transition:transform .3s cubic-bezier(.4,0,.2,1);}
@@ -104,7 +106,7 @@
     .stat-info h4{font-size:.74rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
     .stat-info .value{font-size:1.75rem;font-weight:800;line-height:1.2;}
 
-    /* ===== SEARCH ENGINE ===== */
+    /* SEARCH ENGINE */
     .search-shell{position:relative;margin-bottom:10px;}
     .search-shell .s-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.88rem;pointer-events:none;transition:color .2s;}
     .search-shell.focused .s-icon{color:var(--primary);}
@@ -115,8 +117,6 @@
     .kbd{background:#f1f5f4;border:1px solid #d9e4e1;border-radius:5px;padding:2px 6px;font-size:.67rem;font-weight:600;color:#7a9490;}
     .s-clear{background:none;border:none;cursor:pointer;color:#aaa;font-size:.75rem;padding:3px 5px;display:none;transition:color .15s;}
     .s-clear:hover{color:var(--danger);}
-
-    /* Suggestions */
     #suggest-box{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:var(--sh-lg);z-index:500;overflow:hidden;display:none;}
     #suggest-box.show{display:block;}
     .sg-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);padding:9px 14px 4px;background:#f8faf9;display:flex;justify-content:space-between;align-items:center;}
@@ -126,8 +126,6 @@
     .sg-item:hover,.sg-item.kactive{background:var(--primary-light);}
     .sg-item i{width:14px;color:var(--muted);font-size:.78rem;flex-shrink:0;}
     .sg-meta{font-size:.73rem;color:var(--muted);margin-left:auto;}
-
-    /* Search info */
     .s-info{display:none;background:var(--primary-light);border:1px solid #c4e8e4;border-radius:8px;padding:8px 14px;font-size:.82rem;color:var(--primary-dark);margin-bottom:16px;align-items:center;gap:8px;}
     .s-info.on{display:flex;}
 
@@ -161,8 +159,6 @@
     .ra-rej{background:#fee2e2;color:var(--danger);}.ra-rej:hover{background:var(--danger);color:#fff;}
     .ra-app{background:var(--primary-light);color:var(--primary-dark);}.ra-app:hover{background:var(--primary);color:#fff;}
     mark{background:#fef08a;color:inherit;border-radius:2px;padding:0 1px;}
-
-    /* Empty state */
     .empty{text-align:center;padding:55px 20px;color:var(--muted);grid-column:1/-1;}
     .empty i{font-size:2.8rem;opacity:.25;display:block;margin-bottom:14px;}
     .empty p{font-size:.95rem;font-weight:600;color:#aaa;}
@@ -182,8 +178,6 @@
     .cal-dots{position:absolute;bottom:4px;display:flex;gap:2px;}
     .cal-dot{width:5px;height:5px;background:var(--primary);border-radius:50%;}
     .cal-day.selected .cal-dot{background:rgba(255,255,255,.65);}
-
-    /* RES ITEM */
     .res-item{background:#fff;padding:14px 17px;border-radius:10px;margin-bottom:9px;border-left:4px solid var(--primary);display:flex;justify-content:space-between;align-items:center;box-shadow:var(--sh-sm);transition:box-shadow .15s;}
     .res-item:hover{box-shadow:var(--sh-md);}
 
@@ -213,20 +207,9 @@
     .mc-qty{width:52px;padding:4px 7px;border:1px solid #ddd;border-radius:6px;font-size:.82rem;text-align:center;font-family:inherit;}
     .mc-price{font-size:.74rem;color:var(--success);min-width:68px;text-align:right;}
 
-    /* ===== ERROR HANDLER SYSTEM ===== */
-    /* Toast — bottom right */
-    #err-toast{
-      position:fixed;bottom:24px;right:24px;z-index:99999;
-      display:flex;flex-direction:column;gap:8px;pointer-events:none;
-      max-width:380px;
-    }
-    .err-toast-item{
-      background:#1e1e1e;color:#fff;border-radius:12px;padding:14px 16px;
-      box-shadow:0 8px 28px rgba(0,0,0,.35);pointer-events:all;
-      display:flex;align-items:flex-start;gap:12px;
-      animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);
-      border-left:4px solid var(--danger);
-    }
+    /* ERROR HANDLER */
+    #err-toast{position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:380px;}
+    .err-toast-item{background:#1e1e1e;color:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.35);pointer-events:all;display:flex;align-items:flex-start;gap:12px;animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);border-left:4px solid var(--danger);}
     @keyframes toastIn{from{opacity:0;transform:translateX(60px);}to{opacity:1;transform:translateX(0);}}
     @keyframes toastOut{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(60px);}}
     .err-toast-icon{font-size:1rem;color:#ff6b6b;flex-shrink:0;margin-top:1px;}
@@ -240,22 +223,10 @@
     .err-toast-detail{background:#333;color:#ccc;}.err-toast-detail:hover{background:#444;}
     .err-toast-close{background:none;border:none;color:#666;font-size:.8rem;cursor:pointer;padding:2px;margin-left:auto;flex-shrink:0;}
     .err-toast-close:hover{color:#fff;}
-
-    /* Error Log Panel */
-    #err-panel{
-      position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.6);
-      display:none;align-items:center;justify-content:center;padding:20px;
-    }
+    #err-panel{position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;}
     #err-panel.show{display:flex;}
-    .err-panel-box{
-      background:#0f1923;border-radius:16px;width:100%;max-width:680px;max-height:88vh;
-      display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6);
-      border:1px solid #2a3a4a;overflow:hidden;
-    }
-    .err-panel-head{
-      padding:18px 22px;border-bottom:1px solid #1e2e3e;
-      display:flex;align-items:center;gap:12px;
-    }
+    .err-panel-box{background:#0f1923;border-radius:16px;width:100%;max-width:680px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6);border:1px solid #2a3a4a;overflow:hidden;}
+    .err-panel-head{padding:18px 22px;border-bottom:1px solid #1e2e3e;display:flex;align-items:center;gap:12px;}
     .err-panel-head h3{color:#ff6b6b;font-size:1rem;font-weight:700;flex:1;}
     .err-panel-tabs{display:flex;gap:2px;background:#0a1018;border-radius:8px;padding:3px;}
     .err-tab{padding:5px 14px;border:none;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;color:#888;background:none;transition:all .15s;}
@@ -263,10 +234,7 @@
     .err-panel-close{background:none;border:none;color:#666;font-size:1rem;cursor:pointer;padding:4px;}
     .err-panel-close:hover{color:#fff;}
     .err-panel-body{flex:1;overflow-y:auto;padding:16px 22px;}
-    .err-log-item{
-      background:#0a1018;border-radius:10px;padding:14px 16px;margin-bottom:10px;
-      border-left:3px solid var(--danger);
-    }
+    .err-log-item{background:#0a1018;border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--danger);}
     .err-log-item.warn{border-left-color:var(--warning);}
     .err-log-item.info{border-left-color:var(--primary);}
     .err-log-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
@@ -289,15 +257,7 @@
     .epf-btn{padding:7px 16px;border:none;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;transition:all .15s;}
     .epf-copy-all{background:#2a9d8f;color:#fff;}.epf-copy-all:hover{background:#21867a;}
     .epf-clear{background:#1e2e3e;color:#94a3b8;}.epf-clear:hover{background:#2a3a4e;}
-
-    /* Error nav button */
-    #err-nav-btn{
-      position:fixed;bottom:24px;left:24px;z-index:9999;
-      background:#1e1e1e;color:#ff6b6b;border:1px solid #333;
-      border-radius:10px;padding:8px 14px;font-size:.75rem;font-weight:700;
-      cursor:pointer;font-family:inherit;display:none;align-items:center;gap:7px;
-      box-shadow:var(--sh-md);transition:all .2s;
-    }
+    #err-nav-btn{position:fixed;bottom:24px;left:24px;z-index:9999;background:#1e1e1e;color:#ff6b6b;border:1px solid #333;border-radius:10px;padding:8px 14px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;display:none;align-items:center;gap:7px;box-shadow:var(--sh-md);transition:all .2s;}
     #err-nav-btn:hover{background:#2a1515;border-color:#ff6b6b;}
     #err-nav-btn .err-count{background:var(--danger);color:#fff;border-radius:20px;padding:1px 7px;font-size:.68rem;}
   </style>
@@ -312,9 +272,10 @@
     <div class="login-logo"><i class="fas fa-seedling" style="color:var(--primary);"></i></div>
     <h2>Dolan Sawah</h2>
     <p>Admin Intelligence Dashboard</p>
-    <input type="email" id="email" placeholder="Email Admin" onkeydown="if(event.key==='Enter')password.focus()">
+    <input type="email" id="email" placeholder="Email Admin" onkeydown="if(event.key==='Enter')document.getElementById('password').focus()">
     <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter')handleLogin()">
     <button class="btn-login" onclick="handleLogin()"><i class="fas fa-arrow-right-to-bracket"></i> Masuk</button>
+    <div class="login-error" id="login-error"></div>
   </div>
 </div>
 
@@ -480,17 +441,17 @@
 
 <script>
 // ============================================================
-//  FIREBASE
+//  FIREBASE INIT
 // ============================================================
 firebase.initializeApp({
-  apiKey:"AIzaSyA_c1tU70FM84Qi_f_aSaQ-YVLo_18lCkI",
-  authDomain:"reservasi-dolan-sawah.firebaseapp.com",
-  projectId:"reservasi-dolan-sawah",
-  storageBucket:"reservasi-dolan-sawah.appspot.com",
-  messagingSenderId:"213151400721",
-  appId:"1:213151400721:web:e51b0d8cdd24206cf682b0"
+  apiKey: "AIzaSyA_c1tU70FM84Qi_f_aSaQ-YVLo_18lCkI",
+  authDomain: "reservasi-dolan-sawah.firebaseapp.com",
+  projectId: "reservasi-dolan-sawah",
+  storageBucket: "reservasi-dolan-sawah.appspot.com",
+  messagingSenderId: "213151400721",
+  appId: "1:213151400721:web:e51b0d8cdd24206cf682b0"
 });
-const db = firebase.firestore();
+const db   = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
@@ -500,18 +461,16 @@ const ErrorLog = (() => {
   let entries = [];
   let currentFilter = 'all';
 
-  // Format timestamp
-  const ts = () => new Date().toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const ts     = () => new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
   const tsDate = () => new Date().toLocaleString('id-ID');
 
-  // Detect calling function name from stack
   function getCallerFn(stack) {
     if (!stack) return 'unknown';
     const lines = stack.split('\n');
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
-      // skip internal error handler frames
-      if (line.includes('ErrorLog') || line.includes('logError') || line.includes('window.onerror') || line.includes('unhandledrejection')) continue;
+      if (line.includes('ErrorLog') || line.includes('logError') ||
+          line.includes('window.onerror') || line.includes('unhandledrejection')) continue;
       const match = line.match(/at\s+([\w$.]+)\s*\(/);
       if (match && match[1] !== 'anonymous') return match[1];
       const matchAnon = line.match(/at\s+(.+?):\d+:\d+/);
@@ -523,7 +482,7 @@ const ErrorLog = (() => {
   function add(type, message, fnName, stack, extra) {
     const entry = {
       id: Date.now() + Math.random(),
-      type,       // 'error' | 'warn' | 'info'
+      type,
       message: String(message),
       fn: fnName || 'unknown',
       stack: stack || '',
@@ -532,8 +491,7 @@ const ErrorLog = (() => {
       timeDate: tsDate()
     };
     entries.unshift(entry);
-    if (entries.length > 100) entries = entries.slice(0, 100); // cap at 100
-
+    if (entries.length > 100) entries = entries.slice(0, 100);
     updateNavBtn();
     renderPanel();
     if (type === 'error') showToast(entry);
@@ -543,7 +501,6 @@ const ErrorLog = (() => {
   function updateNavBtn() {
     const btn = document.getElementById('err-nav-btn');
     const cnt = document.getElementById('err-count');
-    const errorCount = entries.filter(e => e.type === 'error').length;
     if (btn) {
       btn.style.display = entries.length ? 'flex' : 'none';
       if (cnt) cnt.textContent = entries.length;
@@ -551,103 +508,97 @@ const ErrorLog = (() => {
   }
 
   function renderPanel() {
-    const body = document.getElementById('err-panel-body');
+    const body    = document.getElementById('err-panel-body');
     const countEl = document.getElementById('err-panel-count');
     if (!body) return;
-
     const filtered = currentFilter === 'all' ? entries : entries.filter(e => e.type === currentFilter);
-    if (countEl) countEl.textContent = `${filtered.length} entri${filtered.length !== entries.length ? ` (total ${entries.length})` : ''}`;
-
+    if (countEl) countEl.textContent = filtered.length + ' entri' + (filtered.length !== entries.length ? ' (total ' + entries.length + ')' : '');
     if (!filtered.length) {
       body.innerHTML = '<p style="color:#4a5568;text-align:center;padding:30px 0;font-size:.88rem;">Tidak ada log untuk filter ini</p>';
       return;
     }
-
-    body.innerHTML = filtered.map(e => {
-      const stackId = 'stk_' + e.id.toString().replace('.','');
-      const stackHtml = e.stack
-        ? `<div class="err-log-stack" id="${stackId}">${escHtml(e.stack)}</div>
-           <button class="elb elb-stack" onclick="toggleStack('${stackId}')"><i class="fas fa-code"></i> Stack Trace</button>`
+    body.innerHTML = filtered.map(function(e) {
+      var stackId  = 'stk_' + String(e.id).replace('.', '');
+      var stackHtml = e.stack
+        ? '<div class="err-log-stack" id="' + stackId + '">' + escHtml(e.stack) + '</div>' +
+          '<button class="elb elb-stack" onclick="toggleStack(\'' + stackId + '\')"><i class="fas fa-code"></i> Stack Trace</button>'
         : '';
-
-      return `<div class="err-log-item ${e.type}">
-        <div class="err-log-meta">
-          <div class="err-log-badge">
-            <span class="err-log-type ${e.type}">${e.type.toUpperCase()}</span>
-            <span class="err-log-fn"><i class="fas fa-at" style="font-size:.65rem;"></i> ${escHtml(e.fn)}</span>
-          </div>
-          <span class="err-log-time">${e.time}</span>
-        </div>
-        <div class="err-log-message">${escHtml(e.message)}</div>
-        ${e.extra ? `<div style="font-size:.73rem;color:#60a5fa;font-family:monospace;margin-bottom:4px;">Context: ${escHtml(JSON.stringify(e.extra))}</div>` : ''}
-        ${stackHtml}
-        <div class="err-log-actions">
-          <button class="elb elb-copy" onclick="copyEntry(${JSON.stringify(e.id)})"><i class="fas fa-copy"></i> Copy</button>
-        </div>
-      </div>`;
+      var extraHtml = e.extra
+        ? '<div style="font-size:.73rem;color:#60a5fa;font-family:monospace;margin-bottom:4px;">Context: ' + escHtml(JSON.stringify(e.extra)) + '</div>'
+        : '';
+      return '<div class="err-log-item ' + e.type + '">' +
+        '<div class="err-log-meta">' +
+          '<div class="err-log-badge">' +
+            '<span class="err-log-type ' + e.type + '">' + e.type.toUpperCase() + '</span>' +
+            '<span class="err-log-fn"><i class="fas fa-at" style="font-size:.65rem;"></i> ' + escHtml(e.fn) + '</span>' +
+          '</div>' +
+          '<span class="err-log-time">' + e.time + '</span>' +
+        '</div>' +
+        '<div class="err-log-message">' + escHtml(e.message) + '</div>' +
+        extraHtml + stackHtml +
+        '<div class="err-log-actions">' +
+          '<button class="elb elb-copy" onclick="copyEntry(' + JSON.stringify(e.id) + ')"><i class="fas fa-copy"></i> Copy</button>' +
+        '</div>' +
+      '</div>';
     }).join('');
   }
 
   function showToast(entry) {
     const container = document.getElementById('err-toast');
     if (!container) return;
-
-    const toastId = 'toast_' + entry.id.toString().replace('.','');
+    const toastId = 'toast_' + String(entry.id).replace('.', '');
     const el = document.createElement('div');
     el.className = 'err-toast-item';
     el.id = toastId;
-    el.innerHTML = `
-      <i class="fas fa-circle-exclamation err-toast-icon"></i>
-      <div class="err-toast-body">
-        <div class="err-toast-title">ERROR — ${escHtml(entry.fn)}</div>
-        <div class="err-toast-msg">${escHtml(entry.message.substring(0, 120))}${entry.message.length > 120 ? '...' : ''}</div>
-        <div class="err-toast-loc">${entry.time}</div>
-        <div class="err-toast-actions">
-          <button class="err-toast-btn err-toast-copy" onclick="copyEntry(${JSON.stringify(entry.id)})"><i class="fas fa-copy"></i> Copy Error</button>
-          <button class="err-toast-btn err-toast-detail" onclick="showErrPanel()"><i class="fas fa-list"></i> Detail</button>
-        </div>
-      </div>
-      <button class="err-toast-close" onclick="dismissToast('${toastId}')"><i class="fas fa-times"></i></button>`;
-
+    el.innerHTML =
+      '<i class="fas fa-circle-exclamation err-toast-icon"></i>' +
+      '<div class="err-toast-body">' +
+        '<div class="err-toast-title">ERROR — ' + escHtml(entry.fn) + '</div>' +
+        '<div class="err-toast-msg">' + escHtml(entry.message.substring(0, 120)) + (entry.message.length > 120 ? '...' : '') + '</div>' +
+        '<div class="err-toast-loc">' + entry.time + '</div>' +
+        '<div class="err-toast-actions">' +
+          '<button class="err-toast-btn err-toast-copy" onclick="copyEntry(' + JSON.stringify(entry.id) + ')"><i class="fas fa-copy"></i> Copy Error</button>' +
+          '<button class="err-toast-btn err-toast-detail" onclick="showErrPanel()"><i class="fas fa-list"></i> Detail</button>' +
+        '</div>' +
+      '</div>' +
+      '<button class="err-toast-close" onclick="dismissToast(\'' + toastId + '\')"><i class="fas fa-times"></i></button>';
     container.appendChild(el);
-
-    // Auto dismiss after 8s
-    setTimeout(() => dismissToast(toastId), 8000);
+    setTimeout(function() { dismissToast(toastId); }, 8000);
   }
 
-  // Public API
   return {
-    error(message, fnName, stack, extra) { return add('error', message, fnName, stack, extra); },
-    warn(message, fnName, extra)         { return add('warn', message, fnName, '', extra); },
-    info(message, fnName, extra)         { return add('info', message, fnName, '', extra); },
-    getEntries()  { return entries; },
-    getFiltered() { return currentFilter==='all' ? entries : entries.filter(e=>e.type===currentFilter); },
-    setFilter(f)  { currentFilter=f; renderPanel(); },
-    clear()       { entries=[]; currentFilter='all'; updateNavBtn(); renderPanel(); },
-    getCallerFn,
-    renderPanel,
-    getAllAsText() {
-      return entries.map(e =>
-        `[${ e.timeDate }] [${e.type.toUpperCase()}] @ ${e.fn}\n` +
-        `Message: ${e.message}\n` +
-        (e.extra ? `Context: ${JSON.stringify(e.extra)}\n` : '') +
-        (e.stack ? `Stack:\n${e.stack}\n` : '') +
-        `---`
-      ).join('\n\n');
+    error: function(message, fnName, stack, extra) { return add('error', message, fnName, stack, extra); },
+    warn:  function(message, fnName, extra)         { return add('warn',  message, fnName, '',    extra); },
+    info:  function(message, fnName, extra)         { return add('info',  message, fnName, '',    extra); },
+    getEntries:  function() { return entries; },
+    getFiltered: function() { return currentFilter === 'all' ? entries : entries.filter(function(e) { return e.type === currentFilter; }); },
+    setFilter:   function(f) { currentFilter = f; renderPanel(); },
+    clear:       function() { entries = []; currentFilter = 'all'; updateNavBtn(); renderPanel(); },
+    getCallerFn: getCallerFn,
+    renderPanel: renderPanel,
+    getAllAsText: function() {
+      return entries.map(function(e) {
+        return '[' + e.timeDate + '] [' + e.type.toUpperCase() + '] @ ' + e.fn + '\n' +
+          'Message: ' + e.message + '\n' +
+          (e.extra ? 'Context: ' + JSON.stringify(e.extra) + '\n' : '') +
+          (e.stack ? 'Stack:\n' + e.stack + '\n' : '') + '---';
+      }).join('\n\n');
     }
   };
 })();
 
-// Helper untuk escape HTML dalam error log
+// ── HTML escape helper ──
 function escHtml(s) {
-  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s || '').replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
 }
 
 // ── Global error catchers ──
 window.onerror = function(msg, src, line, col, err) {
-  const fn = err ? ErrorLog.getCallerFn(err.stack) : 'window';
+  var fn = err ? ErrorLog.getCallerFn(err.stack) : 'window';
   ErrorLog.error(
-    `${msg} (${src.split('/').pop()}:${line}:${col})`,
+    msg + ' (' + src.split('/').pop() + ':' + line + ':' + col + ')',
     fn,
     err ? err.stack : '',
     null
@@ -655,206 +606,223 @@ window.onerror = function(msg, src, line, col, err) {
   return false;
 };
 
-window.addEventListener('unhandledrejection', e => {
-  const reason = e.reason;
-  const msg    = reason?.message || String(reason) || 'Unhandled Promise Rejection';
-  const stack  = reason?.stack   || '';
-  const fn     = ErrorLog.getCallerFn(stack) || 'Promise';
-  ErrorLog.error(`[Promise] ${msg}`, fn, stack, null);
+window.addEventListener('unhandledrejection', function(e) {
+  var reason = e.reason;
+  var msg    = (reason && reason.message) ? reason.message : (String(reason) || 'Unhandled Promise Rejection');
+  var stack  = (reason && reason.stack) ? reason.stack : '';
+  var fn     = ErrorLog.getCallerFn(stack) || 'Promise';
+  ErrorLog.error('[Promise] ' + msg, fn, stack, null);
 });
 
-// ── Error Panel UI functions ──
+// ── Error Panel UI ──
 function showErrPanel()  { document.getElementById('err-panel').classList.add('show'); }
 function hideErrPanel()  { document.getElementById('err-panel').classList.remove('show'); }
-function dismissToast(id){ const el=document.getElementById(id); if(el){el.style.animation='toastOut .25s ease forwards';setTimeout(()=>el.remove(),250);} }
-function toggleStack(id) { const el=document.getElementById(id); if(el) el.classList.toggle('show'); }
+
+function dismissToast(id) {
+  var el = document.getElementById(id);
+  if (el) { el.style.animation = 'toastOut .25s ease forwards'; setTimeout(function() { el.remove(); }, 250); }
+}
+
+function toggleStack(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('show');
+}
 
 function filterErrLog(type, btn) {
   ErrorLog.setFilter(type);
-  document.querySelectorAll('.err-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.err-tab').forEach(function(t) { t.classList.remove('active'); });
   if (btn) btn.classList.add('active');
 }
 
 function copyEntry(id) {
-  const entry = ErrorLog.getEntries().find(e => e.id === id);
+  var entry = ErrorLog.getEntries().find(function(e) { return e.id === id; });
   if (!entry) return;
-  const text =
-    `=== DOLAN SAWAH ERROR REPORT ===\n` +
-    `Time     : ${entry.timeDate}\n` +
-    `Type     : ${entry.type.toUpperCase()}\n` +
-    `Function : ${entry.fn}\n` +
-    `Message  : ${entry.message}\n` +
-    (entry.extra ? `Context  : ${JSON.stringify(entry.extra)}\n` : '') +
-    (entry.stack ? `\nStack Trace:\n${entry.stack}\n` : '') +
-    `================================`;
-  navigator.clipboard.writeText(text).then(() => {
-    Swal.fire({icon:'success',title:'Disalin!',text:'Error report siap dikirim.',timer:1500,showConfirmButton:false});
-  }).catch(() => {
-    // fallback
-    const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    Swal.fire({icon:'success',title:'Disalin!',timer:1200,showConfirmButton:false});
+  var text =
+    '=== DOLAN SAWAH ERROR REPORT ===\n' +
+    'Time     : ' + entry.timeDate + '\n' +
+    'Type     : ' + entry.type.toUpperCase() + '\n' +
+    'Function : ' + entry.fn + '\n' +
+    'Message  : ' + entry.message + '\n' +
+    (entry.extra ? 'Context  : ' + JSON.stringify(entry.extra) + '\n' : '') +
+    (entry.stack ? '\nStack Trace:\n' + entry.stack + '\n' : '') +
+    '================================';
+  navigator.clipboard.writeText(text).then(function() {
+    Swal.fire({icon:'success', title:'Disalin!', text:'Error report siap dikirim.', timer:1500, showConfirmButton:false});
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    Swal.fire({icon:'success', title:'Disalin!', timer:1200, showConfirmButton:false});
   });
 }
 
 function copyAllErrors() {
-  const text = `=== DOLAN SAWAH — FULL ERROR LOG ===\nDiekspor: ${new Date().toLocaleString('id-ID')}\n\n` + ErrorLog.getAllAsText();
-  navigator.clipboard.writeText(text).then(() => {
-    Swal.fire({icon:'success',title:'Semua log disalin!',text:`${ErrorLog.getEntries().length} entri telah disalin.`,timer:1800,showConfirmButton:false});
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    Swal.fire({icon:'success',title:'Disalin!',timer:1200,showConfirmButton:false});
+  var text = '=== DOLAN SAWAH — FULL ERROR LOG ===\nDiekspor: ' + new Date().toLocaleString('id-ID') + '\n\n' + ErrorLog.getAllAsText();
+  navigator.clipboard.writeText(text).then(function() {
+    Swal.fire({icon:'success', title:'Semua log disalin!', text: ErrorLog.getEntries().length + ' entri telah disalin.', timer:1800, showConfirmButton:false});
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    Swal.fire({icon:'success', title:'Disalin!', timer:1200, showConfirmButton:false});
   });
 }
 
 function clearErrors() {
-  Swal.fire({title:'Hapus semua log?',icon:'question',showCancelButton:true,confirmButtonText:'Hapus',confirmButtonColor:'var(--danger)'})
-    .then(r => { if(r.isConfirmed) { ErrorLog.clear(); hideErrPanel(); } });
+  Swal.fire({title:'Hapus semua log?', icon:'question', showCancelButton:true, confirmButtonText:'Hapus', confirmButtonColor:'#e76f51'})
+    .then(function(r) { if (r.isConfirmed) { ErrorLog.clear(); hideErrPanel(); } });
 }
 
-// Close panel on backdrop click
 document.getElementById('err-panel').addEventListener('click', function(e) {
   if (e.target === this) hideErrPanel();
 });
 
-// ── Wrapped safe executor — pakai ini untuk semua operasi critical ──
+// ── Safe executor — wraps async operations ──
 async function safe(fnName, fn, extra) {
   try {
     return await fn();
   } catch(e) {
     ErrorLog.error(e.message || String(e), fnName, e.stack, extra || null);
-    throw e; // re-throw supaya caller bisa handle juga
+    throw e;
   }
 }
 
 // ============================================================
-//  STATE — 3-LAYER ARCHITECTURE
+//  STATE
 // ============================================================
-let unsubReq,unsubRes,unsubMenus,unsubLoc;
-let requestsCache  = [];   // L1: raw Firebase
-let filteredReqs   = [];   // L2: scored + filtered
-// L3: renderInbox(filteredReqs)
+var unsubReq, unsubRes, unsubMenus, unsubLoc;
+var requestsCache     = [];
+var filteredReqs      = [];
+var reservationsCache = [];
+var globalMenuPrices  = {};
+var globalMenuList    = [];
 
-let reservationsCache = [];
-let globalMenuPrices  = {};
-let globalMenuList    = [];
+var currentMonth = new Date().getMonth();
+var currentYear  = new Date().getFullYear();
+var myBarChart   = null;
+var myDoughnut   = null;
 
-let currentMonth = new Date().getMonth();
-let currentYear  = new Date().getFullYear();
-let myBarChart = null, myDoughnut = null;
-
-let currentQuery = '';
-let searchTmt    = null;
-let suggestIdx   = -1;
+var currentQuery = '';
+var searchTmt    = null;
+var suggestIdx   = -1;
 
 // ============================================================
 //  UTILS
 // ============================================================
-const fmtIDR = n => new Intl.NumberFormat('id-ID').format(n||0);
-const todayStr = () => new Date().toLocaleDateString('sv-SE');
-const esc = s => String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtIDR(n) { return new Intl.NumberFormat('id-ID').format(n || 0); }
+function todayStr() { return new Date().toLocaleDateString('sv-SE'); }
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
 
 // ============================================================
 //  SEARCH HISTORY
 // ============================================================
-function getHistory(){ try{return JSON.parse(localStorage.getItem('ds_sh')||'[]');}catch{return[];} }
-function pushHistory(q){
-  if(!q||q.length<2) return;
-  let h=getHistory().filter(x=>x!==q);
-  h.unshift(q); h=h.slice(0,8);
-  localStorage.setItem('ds_sh',JSON.stringify(h));
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('ds_sh') || '[]'); } catch(e) { return []; }
 }
-function clearHistory(){ localStorage.removeItem('ds_sh'); renderSuggest(''); }
+function pushHistory(q) {
+  if (!q || q.length < 2) return;
+  var h = getHistory().filter(function(x) { return x !== q; });
+  h.unshift(q);
+  h = h.slice(0, 8);
+  localStorage.setItem('ds_sh', JSON.stringify(h));
+}
+function clearHistory() {
+  localStorage.removeItem('ds_sh');
+  renderSuggest('');
+}
 
 // ============================================================
-//  SEARCH ENGINE — INDEX + FUZZY + SCORING + INTENT
+//  SEARCH ENGINE
 // ============================================================
-function buildIdx(r){
-  return [r.nama,r.nomorHp,r.date,r.jam,r.tempat,r.jumlah,r.note,r.catatan,r.pesan,r.tambahan,
-    (r.menus||[]).map(m=>m.name).join(' ')].filter(Boolean).join(' ').toLowerCase();
+function buildIdx(r) {
+  return [r.nama, r.nomorHp, r.date, r.jam, r.tempat, r.jumlah, r.note, r.catatan, r.pesan, r.tambahan,
+    (r.menus || []).map(function(m) { return m.name; }).join(' ')
+  ].filter(Boolean).join(' ').toLowerCase();
 }
 
-function fuzzy(text,kw){
-  if(text.includes(kw)) return true;
-  let t=0,k=0;
-  while(t<text.length&&k<kw.length){if(text[t]===kw[k])k++;t++;}
-  return k===kw.length;
+function fuzzy(text, kw) {
+  if (text.includes(kw)) return true;
+  var t = 0, k = 0;
+  while (t < text.length && k < kw.length) { if (text[t] === kw[k]) k++; t++; }
+  return k === kw.length;
 }
 
-const MONTHS_ID = {januari:1,februari:2,maret:3,april:4,mei:5,juni:6,juli:7,agustus:8,september:9,oktober:10,november:11,desember:12};
+var MONTHS_ID = {januari:1,februari:2,maret:3,april:4,mei:5,juni:6,juli:7,agustus:8,september:9,oktober:10,november:11,desember:12};
 
-function parseIntent(q){
-  const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+function parseIntent(q) {
+  var tokens  = q.toLowerCase().split(/\s+/).filter(Boolean);
   return {
-    tokens,
-    numbers:  tokens.filter(t=>/^\d+$/.test(t)),
-    textKws:  tokens.filter(t=>!/^\d+$/.test(t)),
-    months:   tokens.filter(t=>MONTHS_ID[t])
+    tokens:  tokens,
+    numbers: tokens.filter(function(t) { return /^\d+$/.test(t); }),
+    textKws: tokens.filter(function(t) { return !/^\d+$/.test(t); }),
+    months:  tokens.filter(function(t) { return !!MONTHS_ID[t]; })
   };
 }
 
-function scoreOne(r, intent){
-  const idx  = r._idx;
-  const nama = (r.nama||'').toLowerCase();
-  let score  = 0;
+function scoreOne(r, intent) {
+  var idx   = r._idx;
+  var nama  = (r.nama || '').toLowerCase();
+  var score = 0;
 
-  intent.textKws.forEach(k=>{
-    if(nama.startsWith(k))                          score += 6;
-    else if(nama.includes(k))                       score += 4;
-    if((r.tempat||'').toLowerCase().includes(k))    score += 3;
-    if(idx.includes(k))                             score += 1;
-    if(fuzzy(idx,k))                                score += 0.4;
+  intent.textKws.forEach(function(k) {
+    if (nama.startsWith(k))                           score += 6;
+    else if (nama.includes(k))                        score += 4;
+    if ((r.tempat || '').toLowerCase().includes(k))   score += 3;
+    if (idx.includes(k))                              score += 1;
+    if (fuzzy(idx, k))                                score += 0.4;
   });
 
-  // number → jumlah orang intent
-  intent.numbers.forEach(n=>{
-    if(String(r.jumlah)===n)  score += 5;
-    if(idx.includes(n))       score += 0.5;
+  intent.numbers.forEach(function(n) {
+    if (String(r.jumlah) === n) score += 5;
+    if (idx.includes(n))        score += 0.5;
   });
 
-  // month name → date intent
-  intent.months.forEach(m=>{
-    const pad = String(MONTHS_ID[m]).padStart(2,'0');
-    if((r.date||'').includes(`-${pad}-`)) score += 5;
+  intent.months.forEach(function(m) {
+    var pad = String(MONTHS_ID[m]).padStart(2, '0');
+    if ((r.date || '').includes('-' + pad + '-')) score += 5;
   });
 
   return score;
 }
 
-function performSearch(query){
+function performSearch(query) {
   currentQuery = query;
-  const q = query.trim();
-
-  if(!q){
-    filteredReqs = [...requestsCache];
+  var q = query.trim();
+  if (!q) {
+    filteredReqs = requestsCache.slice();
   } else {
-    const intent = parseIntent(q);
+    var intent = parseIntent(q);
     filteredReqs = requestsCache
-      .map(r=>({...r, _score: scoreOne(r, intent)}))
-      .filter(r=>r._score>0)
-      .sort((a,b)=>b._score-a._score);
+      .map(function(r) { return Object.assign({}, r, {_score: scoreOne(r, intent)}); })
+      .filter(function(r) { return r._score > 0; })
+      .sort(function(a, b) { return b._score - a._score; });
   }
-
   updateInfoBar(q);
   renderInbox(filteredReqs);
 }
 
-// debounced handler
-function handleSearch(v){
-  document.getElementById('s-clear').style.display = v?'block':'none';
+function handleSearch(v) {
+  document.getElementById('s-clear').style.display = v ? 'block' : 'none';
   renderSuggest(v);
   clearTimeout(searchTmt);
-  searchTmt = setTimeout(()=>{
+  searchTmt = setTimeout(function() {
     performSearch(v);
-    if(v.length>=2) pushHistory(v);
+    if (v.length >= 2) pushHistory(v);
   }, 180);
 }
 
-function clearSearch(){
-  const inp = document.getElementById('search-input');
+function clearSearch() {
+  var inp = document.getElementById('search-input');
   inp.value = '';
   document.getElementById('s-clear').style.display = 'none';
   hideSuggest();
@@ -862,596 +830,756 @@ function clearSearch(){
   inp.focus();
 }
 
-function updateInfoBar(q){
-  const bar = document.getElementById('s-info');
-  if(q){ bar.classList.add('on'); bar.innerHTML=`<i class="fas fa-filter"></i> Menampilkan <b>${filteredReqs.length}</b> dari <b>${requestsCache.length}</b> request untuk "<b>${esc(q)}</b>"`; }
-  else { bar.classList.remove('on'); }
+function updateInfoBar(q) {
+  var bar = document.getElementById('s-info');
+  if (q) {
+    bar.classList.add('on');
+    bar.innerHTML = '<i class="fas fa-filter"></i> Menampilkan <b>' + filteredReqs.length + '</b> dari <b>' + requestsCache.length + '</b> request untuk "<b>' + esc(q) + '</b>"';
+  } else {
+    bar.classList.remove('on');
+  }
 }
 
 // ============================================================
 //  AUTO-SUGGEST
 // ============================================================
-function renderSuggest(v){
-  const box = document.getElementById('suggest-box');
-  const q   = v.trim().toLowerCase();
-  let html  = '';
+function renderSuggest(v) {
+  var box  = document.getElementById('suggest-box');
+  var q    = v.trim().toLowerCase();
+  var html = '';
 
-  const hist = getHistory().filter(h=>!q||h.toLowerCase().includes(q));
-  if(!q && hist.length){
-    html += `<div class="sg-label">Riwayat <button onclick="clearHistory()">Hapus</button></div>`;
-    hist.slice(0,4).forEach((h,i)=>{
-      html += `<div class="sg-item" data-si="${i}" onclick="pickSuggest('${esc(h)}')"><i class="fas fa-clock"></i><span>${esc(h)}</span></div>`;
+  var hist = getHistory().filter(function(h) { return !q || h.toLowerCase().includes(q); });
+  if (!q && hist.length) {
+    html += '<div class="sg-label">Riwayat <button onclick="clearHistory()">Hapus</button></div>';
+    hist.slice(0, 4).forEach(function(h, i) {
+      html += '<div class="sg-item" data-si="' + i + '" onclick="pickSuggest(\'' + esc(h) + '\')"><i class="fas fa-clock"></i><span>' + esc(h) + '</span></div>';
     });
   }
 
-  if(q.length>=1){
-    const nm = requestsCache.filter(r=>(r.nama||'').toLowerCase().includes(q)).slice(0,5);
-    if(nm.length){
-      html += `<div class="sg-label">Nama Tamu</div>`;
-      nm.forEach((r,i)=>{
-        html += `<div class="sg-item" data-si="${hist.length+i}" onclick="pickSuggest('${esc(r.nama)}')">
-          <i class="fas fa-user"></i><span>${highlight(esc(r.nama),q)}</span>
-          <span class="sg-meta">${r.date}</span></div>`;
+  if (q.length >= 1) {
+    var nm = requestsCache.filter(function(r) { return (r.nama || '').toLowerCase().includes(q); }).slice(0, 5);
+    if (nm.length) {
+      html += '<div class="sg-label">Nama Tamu</div>';
+      nm.forEach(function(r, i) {
+        html += '<div class="sg-item" data-si="' + (hist.length + i) + '" onclick="pickSuggest(\'' + esc(r.nama) + '\')">' +
+          '<i class="fas fa-user"></i><span>' + highlight(esc(r.nama), q) + '</span>' +
+          '<span class="sg-meta">' + r.date + '</span></div>';
       });
     }
-    // date fragment
-    const dt = requestsCache.filter(r=>(r.date||'').includes(q)).slice(0,3);
-    if(dt.length && /^\d{4}-\d{2}/.test(q)){
-      html += `<div class="sg-label">Tanggal</div>`;
-      dt.forEach((r,i)=>{
-        html += `<div class="sg-item" data-si="${hist.length+5+i}" onclick="pickSuggest('${esc(r.date)}')">
-          <i class="fas fa-calendar-day"></i><span>${esc(r.date)} — ${esc(r.nama)}</span></div>`;
+    var dt = requestsCache.filter(function(r) { return (r.date || '').includes(q); }).slice(0, 3);
+    if (dt.length && /^\d{4}-\d{2}/.test(q)) {
+      html += '<div class="sg-label">Tanggal</div>';
+      dt.forEach(function(r, i) {
+        html += '<div class="sg-item" data-si="' + (hist.length + 5 + i) + '" onclick="pickSuggest(\'' + esc(r.date) + '\')">' +
+          '<i class="fas fa-calendar-day"></i><span>' + esc(r.date) + ' — ' + esc(r.nama) + '</span></div>';
       });
     }
   }
 
-  if(!html){ box.classList.remove('show'); return; }
+  if (!html) { box.classList.remove('show'); return; }
   box.innerHTML = html;
   box.classList.add('show');
   suggestIdx = -1;
 }
 
-function hideSuggest(){ document.getElementById('suggest-box').classList.remove('show'); suggestIdx=-1; }
-function pickSuggest(v){
-  const inp = document.getElementById('search-input');
+function hideSuggest() { document.getElementById('suggest-box').classList.remove('show'); suggestIdx = -1; }
+
+function pickSuggest(v) {
+  var inp = document.getElementById('search-input');
   inp.value = v;
   hideSuggest();
   document.getElementById('s-clear').style.display = 'block';
   performSearch(v);
   pushHistory(v);
 }
-function onSearchFocus(){ document.getElementById('search-shell').classList.add('focused'); renderSuggest(document.getElementById('search-input').value); }
-function onSearchBlur(){ document.getElementById('search-shell').classList.remove('focused'); setTimeout(hideSuggest,180); }
 
-function onSearchKeydown(e){
-  const box   = document.getElementById('suggest-box');
-  const items = box.querySelectorAll('.sg-item');
-  if(e.key==='ArrowDown'){ e.preventDefault(); suggestIdx=Math.min(suggestIdx+1,items.length-1); hlSuggest(items); }
-  else if(e.key==='ArrowUp'){ e.preventDefault(); suggestIdx=Math.max(suggestIdx-1,0); hlSuggest(items); }
-  else if(e.key==='Enter' && suggestIdx>=0 && items[suggestIdx]) items[suggestIdx].click();
+function onSearchFocus() {
+  document.getElementById('search-shell').classList.add('focused');
+  renderSuggest(document.getElementById('search-input').value);
 }
-function hlSuggest(items){ items.forEach((el,i)=>el.classList.toggle('kactive',i===suggestIdx)); if(items[suggestIdx]) items[suggestIdx].scrollIntoView({block:'nearest'}); }
+function onSearchBlur() {
+  document.getElementById('search-shell').classList.remove('focused');
+  setTimeout(hideSuggest, 180);
+}
 
-// Global keyboard shortcuts
-document.addEventListener('keydown', e=>{
-  const inp = document.getElementById('search-input');
-  if(!inp) return;
-  if(e.key==='/' && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA'){
+function onSearchKeydown(e) {
+  var box   = document.getElementById('suggest-box');
+  var items = box.querySelectorAll('.sg-item');
+  if (e.key === 'ArrowDown') { e.preventDefault(); suggestIdx = Math.min(suggestIdx + 1, items.length - 1); hlSuggest(items); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); suggestIdx = Math.max(suggestIdx - 1, 0); hlSuggest(items); }
+  else if (e.key === 'Enter' && suggestIdx >= 0 && items[suggestIdx]) items[suggestIdx].click();
+}
+
+function hlSuggest(items) {
+  items.forEach(function(el, i) { el.classList.toggle('kactive', i === suggestIdx); });
+  if (items[suggestIdx]) items[suggestIdx].scrollIntoView({block:'nearest'});
+}
+
+document.addEventListener('keydown', function(e) {
+  var inp = document.getElementById('search-input');
+  if (!inp) return;
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
     e.preventDefault();
     switchTab('inbox', document.querySelectorAll('.nav-item')[1]);
-    setTimeout(()=>{ inp.focus(); inp.select(); },60);
+    setTimeout(function() { inp.focus(); inp.select(); }, 60);
   }
-  if(e.key==='Escape'){ if(document.activeElement===inp){ clearSearch(); inp.blur(); } hideSuggest(); }
+  if (e.key === 'Escape') {
+    if (document.activeElement === inp) { clearSearch(); inp.blur(); }
+    hideSuggest();
+  }
 });
 
 // ============================================================
 //  HIGHLIGHT
 // ============================================================
-function highlight(text, q){
-  if(!q||!text) return text||'';
-  const parts = String(q).trim().split(/\s+/).filter(Boolean).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
-  if(!parts.length) return text;
-  return text.replace(new RegExp(`(${parts.join('|')})`, 'gi'), '<mark>$1</mark>');
+function highlight(text, q) {
+  if (!q || !text) return text || '';
+  var parts = String(q).trim().split(/\s+/).filter(Boolean).map(function(k) {
+    return k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  });
+  if (!parts.length) return text;
+  return text.replace(new RegExp('(' + parts.join('|') + ')', 'gi'), '<mark>$1</mark>');
 }
 
 // ============================================================
 //  AUTH
 // ============================================================
-auth.onAuthStateChanged(user=>{
-  if(user){
-    document.getElementById('login-overlay').style.display='none';
-    document.getElementById('main-content').style.display='block';
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    document.getElementById('login-overlay').style.display  = 'none';
+    document.getElementById('main-content').style.display   = 'block';
     initApp();
   } else {
-    document.getElementById('login-overlay').style.display='flex';
-    document.getElementById('main-content').style.display='none';
+    document.getElementById('login-overlay').style.display  = 'flex';
+    document.getElementById('main-content').style.display   = 'none';
     stopAll();
   }
 });
 
-async function handleLogin(){
-  const e=document.getElementById('email').value, p=document.getElementById('password').value;
-  if(!e||!p) return Swal.fire('Perhatian','Email & password wajib diisi.','warning');
-  try{ await auth.signInWithEmailAndPassword(e,p); }
-  catch(err){
-    ErrorLog.error(err.message,'handleLogin',err.stack,{email:e});
-    Swal.fire('Login Gagal',err.message,'error');
+function showLoginError(msg) {
+  var el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideLoginError() {
+  document.getElementById('login-error').classList.remove('show');
+}
+
+// Firebase auth error code → pesan Indonesia
+function friendlyAuthError(code) {
+  var map = {
+    'auth/invalid-email':          'Format email tidak valid.',
+    'auth/user-not-found':         'Email tidak terdaftar.',
+    'auth/wrong-password':         'Password salah. Silakan coba lagi.',
+    'auth/invalid-credential':     'Email atau password salah.',
+    'auth/too-many-requests':      'Terlalu banyak percobaan. Coba lagi nanti.',
+    'auth/network-request-failed': 'Koneksi jaringan gagal. Periksa internet Anda.',
+    'auth/user-disabled':          'Akun ini telah dinonaktifkan.'
+  };
+  return map[code] || 'Login gagal: ' + code;
+}
+
+async function handleLogin() {
+  hideLoginError();
+  var emailVal = document.getElementById('email').value.trim();
+  var passVal  = document.getElementById('password').value;
+  if (!emailVal || !passVal) {
+    showLoginError('Email dan password wajib diisi.');
+    return;
+  }
+  try {
+    await auth.signInWithEmailAndPassword(emailVal, passVal);
+  } catch(err) {
+    var msg = friendlyAuthError(err.code);
+    showLoginError(msg);
+    ErrorLog.error(err.message, 'handleLogin', err.stack, {email: emailVal, code: err.code});
   }
 }
-function handleLogout(){
-  Swal.fire({title:'Yakin logout?',icon:'question',showCancelButton:true,confirmButtonText:'Logout'})
-    .then(r=>{ if(r.isConfirmed) auth.signOut(); });
+
+function handleLogout() {
+  Swal.fire({title:'Yakin logout?', icon:'question', showCancelButton:true, confirmButtonText:'Logout', cancelButtonText:'Batal'})
+    .then(function(r) { if (r.isConfirmed) auth.signOut(); });
 }
 
 // ============================================================
 //  INIT
 // ============================================================
-function initApp(){
-  document.getElementById('date-display').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  stopAll(); listenMasterData(); listenRequests(); listenReservations();
+function initApp() {
+  document.getElementById('date-display').textContent = new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  stopAll();
+  listenMasterData();
+  listenRequests();
+  listenReservations();
 }
-function stopAll(){ [unsubReq,unsubRes,unsubMenus,unsubLoc].forEach(u=>u&&u()); }
-function forceRefresh(){ Swal.fire({title:'Refreshing...',timer:700,didOpen:()=>Swal.showLoading()}); initApp(); }
+
+function stopAll() {
+  [unsubReq, unsubRes, unsubMenus, unsubLoc].forEach(function(u) { if (u) u(); });
+}
+
+function forceRefresh() {
+  Swal.fire({title:'Refreshing...', timer:700, didOpen: function() { Swal.showLoading(); }});
+  initApp();
+}
 
 // ============================================================
 //  MASTER DATA
 // ============================================================
-function listenMasterData(){
-  unsubMenus = db.collection('menus').onSnapshot(snap=>{
+function listenMasterData() {
+  unsubMenus = db.collection('menus').onSnapshot(function(snap) {
     try {
-      globalMenuPrices={}; globalMenuList=[];
-      const list=document.getElementById('master-menu-list');
-      list.innerHTML='';
-      snap.forEach(doc=>{
-        const d=doc.data();
-        globalMenuPrices[doc.id]=d.price||0;
-        globalMenuList.push({id:doc.id,price:d.price||0});
-        list.innerHTML+=`<div class="master-item">
-          <div><div style="font-weight:600;">${esc(doc.id)}</div><div style="font-size:.78rem;color:var(--success);">Rp ${fmtIDR(d.price)}</div></div>
-          <div class="m-acts">
-            <button class="bico e" onclick="editMenuPrice('${esc(doc.id)}',${d.price})"><i class="fas fa-pen"></i></button>
-            <button class="bico d" onclick="deleteDoc('menus','${doc.id}')"><i class="fas fa-trash"></i></button>
-          </div></div>`;
+      globalMenuPrices = {};
+      globalMenuList   = [];
+      var list = document.getElementById('master-menu-list');
+      list.innerHTML = '';
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        globalMenuPrices[doc.id] = d.price || 0;
+        globalMenuList.push({id: doc.id, price: d.price || 0});
+        list.innerHTML += '<div class="master-item">' +
+          '<div><div style="font-weight:600;">' + esc(doc.id) + '</div><div style="font-size:.78rem;color:var(--success);">Rp ' + fmtIDR(d.price) + '</div></div>' +
+          '<div class="m-acts">' +
+            '<button class="bico e" onclick="editMenuPrice(\'' + esc(doc.id) + '\',' + (d.price || 0) + ')"><i class="fas fa-pen"></i></button>' +
+            '<button class="bico d" onclick="deleteDoc(\'menus\',\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>' +
+          '</div></div>';
       });
-      if(snap.empty) list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada menu</div>';
-    } catch(e) { ErrorLog.error(e.message,'listenMasterData[menus]',e.stack); }
-  }, err => { ErrorLog.error(err.message,'listenMasterData[menus:snapshot]',err.stack); });
+      if (snap.empty) list.innerHTML = '<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada menu</div>';
+    } catch(e) { ErrorLog.error(e.message, 'listenMasterData[menus]', e.stack); }
+  }, function(err) { ErrorLog.error(err.message, 'listenMasterData[menus:snapshot]', err.stack); });
 
-  unsubLoc = db.collection('locations').onSnapshot(snap=>{
+  unsubLoc = db.collection('locations').onSnapshot(function(snap) {
     try {
-      const list=document.getElementById('master-location-list');
-      list.innerHTML='';
-      snap.forEach(doc=>{
-        const d=doc.data();
-        list.innerHTML+=`<div class="master-item">
-          <div><div style="font-weight:600;">${esc(d.name)}</div><div style="font-size:.78rem;color:var(--muted);">${d.capacity} pax</div></div>
-          <div class="m-acts"><button class="bico d" onclick="deleteDoc('locations','${doc.id}')"><i class="fas fa-trash"></i></button></div>
-        </div>`;
+      var list = document.getElementById('master-location-list');
+      list.innerHTML = '';
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        list.innerHTML += '<div class="master-item">' +
+          '<div><div style="font-weight:600;">' + esc(d.name) + '</div><div style="font-size:.78rem;color:var(--muted);">' + (d.capacity || 0) + ' pax</div></div>' +
+          '<div class="m-acts"><button class="bico d" onclick="deleteDoc(\'locations\',\'' + doc.id + '\')"><i class="fas fa-trash"></i></button></div>' +
+        '</div>';
       });
-      if(snap.empty) list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada lokasi</div>';
-    } catch(e) { ErrorLog.error(e.message,'listenMasterData[locations]',e.stack); }
-  }, err => { ErrorLog.error(err.message,'listenMasterData[locations:snapshot]',err.stack); });
+      if (snap.empty) list.innerHTML = '<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada lokasi</div>';
+    } catch(e) { ErrorLog.error(e.message, 'listenMasterData[locations]', e.stack); }
+  }, function(err) { ErrorLog.error(err.message, 'listenMasterData[locations:snapshot]', err.stack); });
 }
 
 // ============================================================
 //  REQUESTS
 // ============================================================
-function listenRequests(){
-  unsubReq = db.collection('reservation_requests').orderBy('createdAt','desc').onSnapshot(snap=>{
+function listenRequests() {
+  unsubReq = db.collection('reservation_requests').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
     try {
-      requestsCache = snap.docs.map(d=>{
-        const r={id:d.id,...d.data()};
-        r._idx=buildIdx(r);
+      requestsCache = snap.docs.map(function(d) {
+        var r = Object.assign({id: d.id}, d.data());
+        r._idx = buildIdx(r);
         return r;
       });
       performSearch(currentQuery);
-      document.getElementById('stat-pending').textContent=requestsCache.length;
-      const badge=document.getElementById('sidebar-badge');
-      badge.textContent=requestsCache.length;
-      badge.style.display=requestsCache.length?'inline-block':'none';
-    } catch(e) { ErrorLog.error(e.message,'listenRequests[snapshot]',e.stack); }
-  }, err => { ErrorLog.error(err.message,'listenRequests[snapshot:error]',err.stack,{hint:'Cek Firestore rules atau index'}); });
+      document.getElementById('stat-pending').textContent = requestsCache.length;
+      var badge = document.getElementById('sidebar-badge');
+      badge.textContent    = requestsCache.length;
+      badge.style.display  = requestsCache.length ? 'inline-block' : 'none';
+    } catch(e) { ErrorLog.error(e.message, 'listenRequests[snapshot]', e.stack); }
+  }, function(err) { ErrorLog.error(err.message, 'listenRequests[snapshot:error]', err.stack, {hint:'Cek Firestore rules atau index'}); });
 }
 
 // ============================================================
-//  RENDER INBOX — L3
+//  RENDER INBOX
 // ============================================================
-function renderInbox(data=requestsCache){
-  const cont=document.getElementById('inbox-container');
-  const q=currentQuery;
+function renderInbox(data) {
+  if (!data) data = requestsCache;
+  var cont = document.getElementById('inbox-container');
+  var q    = currentQuery;
 
   try {
-    if(!data.length){
-      cont.innerHTML=`<div class="empty">
-        <i class="fas fa-inbox"></i>
-        <p>${q?'Tidak ada hasil pencarian':'Inbox kosong'}</p>
-        <small>${q?'Coba kata kunci lain atau tekan ESC':'Semua permintaan sudah diproses'}</small>
-      </div>`;
+    if (!data.length) {
+      cont.innerHTML =
+        '<div class="empty">' +
+          '<i class="fas fa-inbox"></i>' +
+          '<p>' + (q ? 'Tidak ada hasil pencarian' : 'Inbox kosong') + '</p>' +
+          '<small>' + (q ? 'Coba kata kunci lain atau tekan ESC' : 'Semua permintaan sudah diproses') + '</small>' +
+        '</div>';
       return;
     }
 
-    cont.innerHTML=data.map(r=>{
-      const note=r.note||r.catatan||r.pesan||r.tambahan||'-';
-      const scoreTag=q&&r._score?`<span class="rc-score">★ ${r._score.toFixed(1)}</span>`:'';
+    cont.innerHTML = data.map(function(r) {
+      var note      = r.note || r.catatan || r.pesan || r.tambahan || '-';
+      var scoreTag  = (q && r._score) ? '<span class="rc-score">&#9733; ' + r._score.toFixed(1) + '</span>' : '';
 
-      let menuRows='<tr><td colspan="3" style="color:#aaa;font-style:italic;font-size:.78rem;">Tidak ada menu tambahan</td></tr>';
-      if(r.menus&&r.menus.length){
-        menuRows=r.menus.map(m=>{
-          const price=globalMenuPrices[m.name]||0;
-          return `<tr>
-            <td>${highlight(esc(m.name),q)}</td>
-            <td style="text-align:center;color:var(--primary);font-weight:700;">x${m.quantity}</td>
-            <td style="text-align:right;color:var(--success);">Rp ${fmtIDR(price*m.quantity)}</td>
-          </tr>`;
+      var menuRows = '<tr><td colspan="3" style="color:#aaa;font-style:italic;font-size:.78rem;">Tidak ada menu tambahan</td></tr>';
+      if (r.menus && r.menus.length) {
+        menuRows = r.menus.map(function(m) {
+          var price = globalMenuPrices[m.name] || 0;
+          return '<tr>' +
+            '<td>' + highlight(esc(m.name), q) + '</td>' +
+            '<td style="text-align:center;color:var(--primary);font-weight:700;">x' + m.quantity + '</td>' +
+            '<td style="text-align:right;color:var(--success);">Rp ' + fmtIDR(price * m.quantity) + '</td>' +
+          '</tr>';
         }).join('');
       }
 
-      return `<div class="request-card">
-        <div class="rc-body">
-          <div class="rc-header">
-            <div>
-              <div class="rc-name" onclick="quickEdit('${r.id}','nama','${esc(r.nama)}')" title="Klik untuk edit nama">${highlight(esc(r.nama),q)}</div>
-              <div class="rc-phone"><i class="fab fa-whatsapp"></i> ${highlight(esc(r.nomorHp||'-'),q)}</div>
-            </div>
-            <div class="rc-tags">${scoreTag}<span class="rc-via">${esc(r.via||'Web')}</span></div>
-          </div>
-
-          <div class="rc-meta">
-            <div class="rc-mi" onclick="quickEdit('${r.id}','date','${esc(r.date)}')" title="Edit tanggal"><i class="fas fa-calendar-day"></i>${highlight(esc(r.date),q)}</div>
-            <div class="rc-mi" onclick="quickEdit('${r.id}','jam','${esc(r.jam)}')" title="Edit jam"><i class="fas fa-clock"></i>${highlight(esc(r.jam),q)}</div>
-            <div class="rc-mi" onclick="quickEdit('${r.id}','jumlah','${r.jumlah}')" title="Edit jumlah"><i class="fas fa-users"></i>${r.jumlah} Orang</div>
-            <div class="rc-mi" onclick="quickEdit('${r.id}','tempat','${esc(r.tempat)}')" title="Edit tempat"><i class="fas fa-location-dot"></i>${highlight(esc(r.tempat),q)}</div>
-          </div>
-
-          <div class="rc-dbox">
-            <div class="rc-dlabel"><i class="fas fa-note-sticky"></i>Catatan</div>
-            <div class="rc-note">"${highlight(esc(note),q)}"</div>
-          </div>
-
-          <div class="rc-dbox" style="margin-bottom:0;">
-            <div class="rc-dlabel"><i class="fas fa-utensils"></i>Menu Tambahan</div>
-            <table class="menu-tbl">${menuRows}</table>
-          </div>
-        </div>
-
-        <div class="rc-actions">
-          <button class="ra ra-wa"  onclick="prepareChat('${r.id}')"><i class="fab fa-whatsapp"></i> WA</button>
-          <button class="ra ra-edit" onclick="editRequest('${r.id}')"><i class="fas fa-pen"></i> Edit</button>
-          <button class="ra ra-rej"  onclick="rejectRequest('${r.id}','${esc(r.nama)}')"><i class="fas fa-times"></i> Tolak</button>
-          <button class="ra ra-app rc-full" onclick="approveRequest('${r.id}')"><i class="fas fa-check"></i> Terima & Approve</button>
-        </div>
-      </div>`;
+      return '<div class="request-card">' +
+        '<div class="rc-body">' +
+          '<div class="rc-header">' +
+            '<div>' +
+              '<div class="rc-name" onclick="quickEdit(\'' + r.id + '\',\'nama\',\'' + esc(r.nama) + '\')" title="Klik untuk edit nama">' + highlight(esc(r.nama), q) + '</div>' +
+              '<div class="rc-phone"><i class="fab fa-whatsapp"></i> ' + highlight(esc(r.nomorHp || '-'), q) + '</div>' +
+            '</div>' +
+            '<div class="rc-tags">' + scoreTag + '<span class="rc-via">' + esc(r.via || 'Web') + '</span></div>' +
+          '</div>' +
+          '<div class="rc-meta">' +
+            '<div class="rc-mi" onclick="quickEdit(\'' + r.id + '\',\'date\',\'' + esc(r.date) + '\')" title="Edit tanggal"><i class="fas fa-calendar-day"></i>' + highlight(esc(r.date), q) + '</div>' +
+            '<div class="rc-mi" onclick="quickEdit(\'' + r.id + '\',\'jam\',\'' + esc(r.jam) + '\')" title="Edit jam"><i class="fas fa-clock"></i>' + highlight(esc(r.jam), q) + '</div>' +
+            '<div class="rc-mi" onclick="quickEdit(\'' + r.id + '\',\'jumlah\',\'' + r.jumlah + '\')" title="Edit jumlah"><i class="fas fa-users"></i>' + r.jumlah + ' Orang</div>' +
+            '<div class="rc-mi" onclick="quickEdit(\'' + r.id + '\',\'tempat\',\'' + esc(r.tempat) + '\')" title="Edit tempat"><i class="fas fa-location-dot"></i>' + highlight(esc(r.tempat), q) + '</div>' +
+          '</div>' +
+          '<div class="rc-dbox">' +
+            '<div class="rc-dlabel"><i class="fas fa-note-sticky"></i>Catatan</div>' +
+            '<div class="rc-note">"' + highlight(esc(note), q) + '"</div>' +
+          '</div>' +
+          '<div class="rc-dbox" style="margin-bottom:0;">' +
+            '<div class="rc-dlabel"><i class="fas fa-utensils"></i>Menu Tambahan</div>' +
+            '<table class="menu-tbl">' + menuRows + '</table>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rc-actions">' +
+          '<button class="ra ra-wa"   onclick="prepareChat(\'' + r.id + '\')"><i class="fab fa-whatsapp"></i> WA</button>' +
+          '<button class="ra ra-edit" onclick="editRequest(\'' + r.id + '\')"><i class="fas fa-pen"></i> Edit</button>' +
+          '<button class="ra ra-rej"  onclick="rejectRequest(\'' + r.id + '\',\'' + esc(r.nama) + '\')"><i class="fas fa-times"></i> Tolak</button>' +
+          '<button class="ra ra-app rc-full" onclick="approveRequest(\'' + r.id + '\')"><i class="fas fa-check"></i> Terima &amp; Approve</button>' +
+        '</div>' +
+      '</div>';
     }).join('');
   } catch(e) {
     ErrorLog.error(e.message, 'renderInbox', e.stack, {dataCount: data.length, query: q});
-    cont.innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation" style="color:var(--danger);opacity:1;"></i><p style="color:var(--danger);">Gagal render inbox</p><small>${escHtml(e.message)}</small></div>`;
+    cont.innerHTML = '<div class="empty"><i class="fas fa-triangle-exclamation" style="color:var(--danger);opacity:1;"></i><p style="color:var(--danger);">Gagal render inbox</p><small>' + escHtml(e.message) + '</small></div>';
   }
 }
 
 // ============================================================
 //  QUICK INLINE EDIT
 // ============================================================
-async function quickEdit(id,field,cur){
-  const labels={nama:'Nama Tamu',date:'Tanggal',jam:'Jam',jumlah:'Jumlah Orang',tempat:'Tempat'};
-  const types={date:'date',jumlah:'number'};
-  const {value}=await Swal.fire({
-    title:`Edit ${labels[field]||field}`,input:types[field]||'text',inputValue:cur||'',
-    showCancelButton:true,confirmButtonText:'Simpan',confirmButtonColor:'var(--primary)',
-    inputValidator:v=>{if(!v)return 'Nilai tidak boleh kosong';}
+async function quickEdit(id, field, cur) {
+  var labels = {nama:'Nama Tamu', date:'Tanggal', jam:'Jam', jumlah:'Jumlah Orang', tempat:'Tempat'};
+  var types  = {date:'date', jumlah:'number'};
+  var result = await Swal.fire({
+    title: 'Edit ' + (labels[field] || field),
+    input: types[field] || 'text',
+    inputValue: cur || '',
+    showCancelButton: true,
+    confirmButtonText: 'Simpan',
+    confirmButtonColor: '#2a9d8f',
+    cancelButtonText: 'Batal',
+    inputValidator: function(v) { if (!v) return 'Nilai tidak boleh kosong'; }
   });
-  if(value!==undefined&&value!==null){
-    await safe('quickEdit', async () => {
-      await db.collection('reservation_requests').doc(id).update({[field]:value});
-      Swal.fire({icon:'success',title:'Diperbarui!',timer:900,showConfirmButton:false});
-    }, {id, field, value});
+  if (result.value !== undefined && result.value !== null) {
+    var update = {};
+    update[field] = result.value;
+    await safe('quickEdit', async function() {
+      await db.collection('reservation_requests').doc(id).update(update);
+      Swal.fire({icon:'success', title:'Diperbarui!', timer:900, showConfirmButton:false});
+    }, {id: id, field: field, value: result.value});
   }
 }
 
 // ============================================================
-//  FULL EDIT  (semua field + menu checklist UI)
+//  FULL EDIT
 // ============================================================
-async function editRequest(id){
-  const r=requestsCache.find(x=>x.id===id);
-  if(!r) return;
+async function editRequest(id) {
+  var r = requestsCache.find(function(x) { return x.id === id; });
+  if (!r) return;
 
-  const menuHtml=globalMenuList.length
-    ? globalMenuList.map(m=>{
-        const ex=(r.menus||[]).find(x=>x.name===m.id);
-        const chk=ex?'checked':'';
-        const qty=ex?ex.quantity:1;
-        return `<div class="mc-item">
-          <input type="checkbox" id="mc_${esc(m.id)}" ${chk} onchange="toggleQty('${esc(m.id)}')">
-          <label for="mc_${esc(m.id)}">${esc(m.id)}</label>
-          <input type="number" id="mq_${esc(m.id)}" class="mc-qty" value="${qty}" min="1" style="${chk?'':'opacity:.3;pointer-events:none;'}">
-          <span class="mc-price">Rp ${fmtIDR(m.price)}</span>
-        </div>`;
+  var menuHtml = globalMenuList.length
+    ? globalMenuList.map(function(m) {
+        var ex  = (r.menus || []).find(function(x) { return x.name === m.id; });
+        var chk = ex ? 'checked' : '';
+        var qty = ex ? ex.quantity : 1;
+        return '<div class="mc-item">' +
+          '<input type="checkbox" id="mc_' + esc(m.id) + '" ' + chk + ' onchange="toggleQty(\'' + esc(m.id) + '\')">' +
+          '<label for="mc_' + esc(m.id) + '">' + esc(m.id) + '</label>' +
+          '<input type="number" id="mq_' + esc(m.id) + '" class="mc-qty" value="' + qty + '" min="1" style="' + (chk ? '' : 'opacity:.3;pointer-events:none;') + '">' +
+          '<span class="mc-price">Rp ' + fmtIDR(m.price) + '</span>' +
+        '</div>';
       }).join('')
     : '<p style="color:#aaa;font-size:.82rem;padding:8px;">Belum ada menu di Data Master</p>';
 
-  const {value:form}=await Swal.fire({
-    title:'<strong>Edit Reservasi</strong>',width:560,
-    html:`<style>.swal2-popup .swal2-input{margin:3px 0;font-family:inherit;font-size:.87rem;}</style>
+  var result = await Swal.fire({
+    title: '<strong>Edit Reservasi</strong>',
+    width: 560,
+    html:
+      '<style>.swal2-popup .swal2-input{margin:3px 0;font-family:inherit;font-size:.87rem;}</style>' +
 
 ```
-  <div style="text-align:left;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nama Tamu</div><input id="ef-nama" class="swal2-input" value="${esc(r.nama||'')}" style="width:100%;"></div>
-      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nomor HP</div><input id="ef-hp" class="swal2-input" value="${esc(r.nomorHp||'')}" style="width:100%;"></div>
-      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Tanggal</div><input id="ef-date" type="date" class="swal2-input" value="${r.date||''}" style="width:100%;"></div>
-      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Jam</div><input id="ef-jam" class="swal2-input" value="${esc(r.jam||'')}" style="width:100%;"></div>
-      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Jumlah Orang</div><input id="ef-jml" type="number" class="swal2-input" value="${r.jumlah||''}" style="width:100%;"></div>
-      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Tempat</div><input id="ef-tpt" class="swal2-input" value="${esc(r.tempat||'')}" style="width:100%;"></div>
-    </div>
-    <div style="margin-bottom:8px;"><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Catatan</div><input id="ef-note" class="swal2-input" value="${esc(r.note||r.catatan||r.pesan||r.tambahan||'')}" style="width:100%;"></div>
-    <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:6px;"><i class="fas fa-utensils"></i> Menu Tambahan</div><div class="menu-cl">${menuHtml}</div></div>
-  </div>`,
-showCancelButton:true,confirmButtonText:'Simpan',cancelButtonText:'Batal',confirmButtonColor:'var(--primary)',
-preConfirm:()=>{
-  const nama=document.getElementById('ef-nama').value.trim();
-  if(!nama) return Swal.showValidationMessage('Nama wajib diisi');
-  const menus=[];
-  globalMenuList.forEach(m=>{
-    const cb=document.getElementById(`mc_${m.id}`);
-    const qEl=document.getElementById(`mq_${m.id}`);
-    if(cb&&cb.checked&&qEl) menus.push({name:m.id,quantity:parseInt(qEl.value)||1});
+  '<div style="text-align:left;">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">' +
+      '<div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nama Tamu</div><input id="ef-nama" class="swal2-input" value="' + esc(r.nama || '') + '" style="width:100%;"></div>' +
+      '<div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nomor HP</div><input id="ef-hp" class="swal2-input" value="' + esc(r.nomorHp || '') + '" style="width:100%;"></div>' +
+      '<div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Tanggal</div><input id="ef-date" type="date" class="swal2-input" value="' + (r.date || '') + '" style="width:100%;"></div>' +
+      '<div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Jam</div><input id="ef-jam" class="swal2-input" value="' + esc(r.jam || '') + '" style="width:100%;"></div>' +
+      '<div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Jumlah Orang</div><input id="ef-jml" type="number" class="swal2-input" value="' + (r.jumlah || '') + '" style="width:100%;"></div>' +
+      '<div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Tempat</div><input id="ef-tpt" class="swal2-input" value="' + esc(r.tempat || '') + '" style="width:100%;"></div>' +
+    '</div>' +
+    '<div style="margin-bottom:8px;"><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Catatan</div><input id="ef-note" class="swal2-input" value="' + esc(r.note || r.catatan || r.pesan || r.tambahan || '') + '" style="width:100%;"></div>' +
+    '<div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:6px;"><i class="fas fa-utensils"></i> Menu Tambahan</div><div class="menu-cl">' + menuHtml + '</div></div>' +
+  '</div>',
+showCancelButton: true,
+confirmButtonText: 'Simpan',
+cancelButtonText: 'Batal',
+confirmButtonColor: '#2a9d8f',
+preConfirm: function() {
+  var nama = document.getElementById('ef-nama').value.trim();
+  if (!nama) return Swal.showValidationMessage('Nama wajib diisi');
+  var menus = [];
+  globalMenuList.forEach(function(m) {
+    var cb  = document.getElementById('mc_' + m.id);
+    var qEl = document.getElementById('mq_' + m.id);
+    if (cb && cb.checked && qEl) menus.push({name: m.id, quantity: parseInt(qEl.value) || 1});
   });
   return {
-    nama,
-    nomorHp:document.getElementById('ef-hp').value.trim(),
-    date:document.getElementById('ef-date').value,
-    jam:document.getElementById('ef-jam').value.trim(),
-    jumlah:document.getElementById('ef-jml').value,
-    tempat:document.getElementById('ef-tpt').value.trim(),
-    note:document.getElementById('ef-note').value.trim(),
-    menus
+    nama:    nama,
+    nomorHp: document.getElementById('ef-hp').value.trim(),
+    date:    document.getElementById('ef-date').value,
+    jam:     document.getElementById('ef-jam').value.trim(),
+    jumlah:  document.getElementById('ef-jml').value,
+    tempat:  document.getElementById('ef-tpt').value.trim(),
+    note:    document.getElementById('ef-note').value.trim(),
+    menus:   menus
   };
 }
 ```
 
 });
 
-if(form){
-await safe(‘editRequest’, async () => {
-await db.collection(‘reservation_requests’).doc(id).update(form);
-Swal.fire({icon:‘success’,title:‘Tersimpan!’,timer:1200,showConfirmButton:false});
-}, {id, fields: Object.keys(form)});
+if (result.value) {
+await safe(‘editRequest’, async function() {
+await db.collection(‘reservation_requests’).doc(id).update(result.value);
+Swal.fire({icon:‘success’, title:‘Tersimpan!’, timer:1200, showConfirmButton:false});
+}, {id: id, fields: Object.keys(result.value)});
 }
 }
 
-function toggleQty(mid){
-const cb=document.getElementById(`mc_${mid}`);
-const qEl=document.getElementById(`mq_${mid}`);
-if(!cb||!qEl) return;
-qEl.style.opacity=cb.checked?‘1’:’.3’;
-qEl.style.pointerEvents=cb.checked?‘auto’:‘none’;
+function toggleQty(mid) {
+var cb  = document.getElementById(‘mc_’ + mid);
+var qEl = document.getElementById(‘mq_’ + mid);
+if (!cb || !qEl) return;
+qEl.style.opacity       = cb.checked ? ‘1’ : ‘.3’;
+qEl.style.pointerEvents = cb.checked ? ‘auto’ : ‘none’;
 }
 
 // ============================================================
 //  REJECT
 // ============================================================
-async function rejectRequest(id,nama){
-const r=await Swal.fire({title:‘Tolak Permintaan?’,html:`Permintaan dari <b>${esc(nama)}</b> akan dihapus.`,icon:‘warning’,showCancelButton:true,confirmButtonColor:‘var(–danger)’,confirmButtonText:‘Ya, Tolak’,cancelButtonText:‘Batal’});
-if(r.isConfirmed){
-await safe(‘rejectRequest’, async () => {
+async function rejectRequest(id, nama) {
+var r = await Swal.fire({
+title: ‘Tolak Permintaan?’,
+html: ‘Permintaan dari <b>’ + esc(nama) + ‘</b> akan dihapus.’,
+icon: ‘warning’,
+showCancelButton: true,
+confirmButtonColor: ‘#e76f51’,
+confirmButtonText: ‘Ya, Tolak’,
+cancelButtonText: ‘Batal’
+});
+if (r.isConfirmed) {
+await safe(‘rejectRequest’, async function() {
 await db.collection(‘reservation_requests’).doc(id).delete();
-Swal.fire({icon:‘info’,title:‘Ditolak’,timer:1000,showConfirmButton:false});
-}, {id, nama});
+Swal.fire({icon:‘info’, title:‘Ditolak’, timer:1000, showConfirmButton:false});
+}, {id: id, nama: nama});
 }
 }
 
 // ============================================================
 //  WHATSAPP
 // ============================================================
-function prepareChat(reqId){
+function prepareChat(reqId) {
 try {
-const r=requestsCache.find(x=>x.id===reqId);
-if(!r){ ErrorLog.warn(`prepareChat: ID "${reqId}" tidak ditemukan di cache`,‘prepareChat’,{reqId}); return; }
-let tot=0,details=’’;
-(r.menus||[]).forEach(m=>{
-const price=globalMenuPrices[m.name]||0;
-const sub=price*m.quantity; tot+=sub;
-details+=`- ${m.name} (${m.quantity}x) : Rp ${fmtIDR(sub)}\n`;
+var r = requestsCache.find(function(x) { return x.id === reqId; });
+if (!r) {
+ErrorLog.warn(‘prepareChat: ID “’ + reqId + ‘” tidak ditemukan di cache’, ‘prepareChat’, {reqId: reqId});
+return;
+}
+var tot = 0, details = ‘’;
+(r.menus || []).forEach(function(m) {
+var price = globalMenuPrices[m.name] || 0;
+var sub   = price * m.quantity;
+tot      += sub;
+details  += ‘- ’ + m.name + ’ (’ + m.quantity + ‘x) : Rp ’ + fmtIDR(sub) + ‘\n’;
 });
-const ppn=Math.round(tot*.1), total=tot+ppn, dp=Math.round(total*.5);
-const note=r.note||r.catatan||r.pesan||r.tambahan||’’;
-const msg=`Halo Kak *${r.nama}* 👋,\nTerima kasih telah melakukan reservasi di *Dolan Sawah*.\n\n`+
-`Berikut detail pesanan Anda:\n🗓 Tanggal: ${r.date}\n⏰ Jam: ${r.jam}\n👥 Jumlah: ${r.jumlah} Orang\n📍 Tempat: ${r.tempat}\n`+
-(note?`📝 Note: ${note}\n`:’’)+
-`\n*Rincian Pesanan:*\n${details||'- Belum ada menu -\n'}\n`+
-`----------------------------------\nSubtotal    : Rp ${fmtIDR(tot)}\nPPN (10%) : Rp ${fmtIDR(ppn)}\n*Total         : Rp ${fmtIDR(total)}*\n\n`+
-`----------------------------------\nMohon DP (50%) sebesar:\n👉 *Rp ${fmtIDR(dp)}*\n\n`+
-`Transfer ke:\n✅ *BRI* 185301000258568\na.n *CV Dolan Sawah*\n\nKirimkan bukti transfer untuk kami proses ✅. Terima kasih! 🙏`;
-let phone=(r.nomorHp||’’).replace(/\D/g,’’);
-if(!phone){ ErrorLog.warn(‘Nomor HP kosong’,‘prepareChat’,{nama:r.nama,id:reqId}); }
-if(phone.startsWith(‘0’)) phone=‘62’+phone.slice(1);
-window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,’_blank’);
+var ppn   = Math.round(tot * 0.1);
+var total = tot + ppn;
+var dp    = Math.round(total * 0.5);
+var note  = r.note || r.catatan || r.pesan || r.tambahan || ‘’;
+var msg   =
+‘Halo Kak *’ + r.nama + ’* \uD83D\uDC4B,\nTerima kasih telah melakukan reservasi di *Dolan Sawah*.\n\n’ +
+’Berikut detail pesanan Anda:\n\uD83D\uDDD3 Tanggal: ’ + r.date + ’\n\u23F0 Jam: ’ + r.jam + ’\n\uD83D\uDC65 Jumlah: ’ + r.jumlah + ’ Orang\n\uD83D\uDCCD Tempat: ’ + r.tempat + ‘\n’ +
+(note ? ’\uD83D\uDCDD Note: ’ + note + ‘\n’ : ‘’) +
+‘\n*Rincian Pesanan:*\n’ + (details || ‘- Belum ada menu -\n’) + ‘\n’ +
+’–––––––––––––––––\nSubtotal    : Rp ’ + fmtIDR(tot) + ’\nPPN (10%) : Rp ’ + fmtIDR(ppn) + ‘\n*Total         : Rp ’ + fmtIDR(total) + ’*\n\n’ +
+‘–––––––––––––––––\nMohon DP (50%) sebesar:\n\uD83D\uDC49 *Rp ’ + fmtIDR(dp) + ’*\n\n’ +
+‘Transfer ke:\n\u2705 *BRI* 185301000258568\na.n *CV Dolan Sawah*\n\nKirimkan bukti transfer untuk kami proses \u2705. Terima kasih! \uD83D\uDE4F’;
+
+```
+var phone = (r.nomorHp || '').replace(/\D/g, '');
+if (!phone) ErrorLog.warn('Nomor HP kosong', 'prepareChat', {nama: r.nama, id: reqId});
+if (phone.startsWith('0')) phone = '62' + phone.slice(1);
+window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
+```
+
 } catch(e) {
-ErrorLog.error(e.message,‘prepareChat’,e.stack,{reqId});
-Swal.fire(‘Error’,’Gagal membuka WhatsApp: ’+e.message,‘error’);
+ErrorLog.error(e.message, ‘prepareChat’, e.stack, {reqId: reqId});
+Swal.fire(‘Error’, ’Gagal membuka WhatsApp: ’ + e.message, ‘error’);
 }
 }
 
 // ============================================================
 //  APPROVE
 // ============================================================
-async function approveRequest(id){
-const r=requestsCache.find(x=>x.id===id);
-if(!r) return;
-const {value:form}=await Swal.fire({
-title:’<strong>Setujui Reservasi</strong>’,
-html:`<p style="color:#666;margin-bottom:14px;font-size:.88rem;">Untuk <b>${esc(r.nama)}</b> — ${r.date} ${r.jam}</p> <div style="text-align:left;font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nominal DP (Rp)</div> <input id="sw-dp" type="number" class="swal2-input" placeholder="Masukkan nominal"> <div style="text-align:left;font-size:.73rem;font-weight:700;color:#888;margin:8px 0 3px;">Metode Pembayaran</div> <select id="sw-pay" class="swal2-input"><option>Transfer BRI</option><option>QRIS</option><option>Cash</option></select>`,
-showCancelButton:true,confirmButtonText:‘Approve & Simpan’,cancelButtonText:‘Batal’,confirmButtonColor:‘var(–primary)’,
-preConfirm:()=>{
-const dp=document.getElementById(‘sw-dp’).value;
-if(!dp||dp<=0) return Swal.showValidationMessage(‘DP wajib diisi’);
-return{dp:parseInt(dp),pay:document.getElementById(‘sw-pay’).value};
+async function approveRequest(id) {
+var r = requestsCache.find(function(x) { return x.id === id; });
+if (!r) return;
+
+var result = await Swal.fire({
+title: ‘<strong>Setujui Reservasi</strong>’,
+html:
+‘<p style="color:#666;margin-bottom:14px;font-size:.88rem;">Untuk <b>’ + esc(r.nama) + ’</b> — ’ + r.date + ’ ’ + r.jam + ‘</p>’ +
+‘<div style="text-align:left;font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nominal DP (Rp)</div>’ +
+‘<input id="sw-dp" type="number" class="swal2-input" placeholder="Masukkan nominal">’ +
+‘<div style="text-align:left;font-size:.73rem;font-weight:700;color:#888;margin:8px 0 3px;">Metode Pembayaran</div>’ +
+‘<select id="sw-pay" class="swal2-input"><option>Transfer BRI</option><option>QRIS</option><option>Cash</option></select>’,
+showCancelButton: true,
+confirmButtonText: ‘Approve & Simpan’,
+cancelButtonText: ‘Batal’,
+confirmButtonColor: ‘#2a9d8f’,
+preConfirm: function() {
+var dp = document.getElementById(‘sw-dp’).value;
+if (!dp || dp <= 0) return Swal.showValidationMessage(‘DP wajib diisi’);
+return {dp: parseInt(dp), pay: document.getElementById(‘sw-pay’).value};
 }
 });
-if(form){
-await safe(‘approveRequest’, async () => {
-const data={…r,status:‘approved’,dp:form.dp,tipeDp:form.pay,approvedAt:firebase.firestore.FieldValue.serverTimestamp()};
-delete data.id; delete data._idx; delete data._score;
-await db.collection(‘reservations’).add(data);
-await db.collection(‘reservation_requests’).doc(id).delete();
-window.open(`https://dewatalaptop.github.io/reservasids?autoOpen=true&date=${r.date}&search=${encodeURIComponent(r.nama)}`,’_blank’);
-Swal.fire({icon:‘success’,title:‘Berhasil!’,timer:1800,showConfirmButton:false});
-}, {id, nama:r.nama, dp:form.dp});
+
+if (result.value) {
+await safe(‘approveRequest’, async function() {
+// Build clean data object without spread to avoid parser issues
+var data = Object.assign({}, r);
+delete data.id;
+delete data._idx;
+delete data._score;
+data.status     = ‘approved’;
+data.dp         = result.value.dp;
+data.tipeDp     = result.value.pay;
+data.approvedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+```
+  await db.collection('reservations').add(data);
+  await db.collection('reservation_requests').doc(id).delete();
+  window.open('https://dewatalaptop.github.io/reservasids?autoOpen=true&date=' + r.date + '&search=' + encodeURIComponent(r.nama), '_blank');
+  Swal.fire({icon:'success', title:'Berhasil!', timer:1800, showConfirmButton:false});
+}, {id: id, nama: r.nama, dp: result.value.dp});
+```
+
 }
 }
 
 // ============================================================
 //  RESERVATIONS + DASHBOARD
 // ============================================================
-function listenReservations(){
-unsubRes=db.collection(‘reservations’).onSnapshot(snap=>{
+function listenReservations() {
+unsubRes = db.collection(‘reservations’).onSnapshot(function(snap) {
 try {
-reservationsCache=snap.docs.map(d=>({id:d.id,…d.data()}));
-renderDashboard(); renderCalendar(); updateCharts();
-} catch(e) { ErrorLog.error(e.message,‘listenReservations[render]’,e.stack); }
-}, err => { ErrorLog.error(err.message,‘listenReservations[snapshot]’,err.stack,{hint:‘Cek Firestore rules’}); });
+reservationsCache = snap.docs.map(function(d) {
+return Object.assign({id: d.id}, d.data());
+});
+renderDashboard();
+renderCalendar();
+updateCharts();
+} catch(e) { ErrorLog.error(e.message, ‘listenReservations[render]’, e.stack); }
+}, function(err) { ErrorLog.error(err.message, ‘listenReservations[snapshot]’, err.stack, {hint:‘Cek Firestore rules’}); });
 }
 
-function renderDashboard(){
+function renderDashboard() {
 try {
-const today=todayStr();
-const todayPax=reservationsCache.filter(x=>x.date===today).reduce((s,x)=>s+(parseInt(x.jumlah)||0),0);
-document.getElementById(‘stat-today-pax’).textContent=todayPax;
-const now=new Date();
-document.getElementById(‘stat-month-total’).textContent=reservationsCache.filter(x=>{
-const d=new Date(x.date); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+var today    = todayStr();
+var todayPax = reservationsCache
+.filter(function(x) { return x.date === today; })
+.reduce(function(s, x) { return s + (parseInt(x.jumlah) || 0); }, 0);
+document.getElementById(‘stat-today-pax’).textContent = todayPax;
+
+```
+var now = new Date();
+document.getElementById('stat-month-total').textContent = reservationsCache.filter(function(x) {
+  var d = new Date(x.date);
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 }).length;
 
-```
-const sorted=[...reservationsCache].sort((a,b)=>(b.approvedAt?.seconds||0)-(a.approvedAt?.seconds||0)).slice(0,6);
-const list=document.getElementById('recent-list');
-list.innerHTML=sorted.length?sorted.map(r=>`
-  <div class="res-item">
-    <div><b>${esc(r.nama)}</b><div style="font-size:.78rem;color:var(--muted);margin-top:2px;">${r.date} · ${r.jam} · ${esc(r.tempat)}</div></div>
-    <span style="background:var(--primary-light);color:var(--primary-dark);padding:3px 11px;border-radius:20px;font-size:.78rem;font-weight:700;">${r.jumlah} pax</span>
-  </div>`).join(''):'<p style="color:#aaa;text-align:center;padding:18px 0;font-size:.88rem;">Belum ada reservasi</p>';
+var sorted = reservationsCache.slice()
+  .sort(function(a, b) { return ((b.approvedAt && b.approvedAt.seconds) || 0) - ((a.approvedAt && a.approvedAt.seconds) || 0); })
+  .slice(0, 6);
+
+var list = document.getElementById('recent-list');
+list.innerHTML = sorted.length
+  ? sorted.map(function(r) {
+      return '<div class="res-item">' +
+        '<div><b>' + esc(r.nama) + '</b><div style="font-size:.78rem;color:var(--muted);margin-top:2px;">' + r.date + ' \u00B7 ' + r.jam + ' \u00B7 ' + esc(r.tempat) + '</div></div>' +
+        '<span style="background:var(--primary-light);color:var(--primary-dark);padding:3px 11px;border-radius:20px;font-size:.78rem;font-weight:700;">' + r.jumlah + ' pax</span>' +
+      '</div>';
+    }).join('')
+  : '<p style="color:#aaa;text-align:center;padding:18px 0;font-size:.88rem;">Belum ada reservasi</p>';
 ```
 
-} catch(e) { ErrorLog.error(e.message,‘renderDashboard’,e.stack); }
+} catch(e) { ErrorLog.error(e.message, ‘renderDashboard’, e.stack); }
 }
 
 // ============================================================
 //  CALENDAR
 // ============================================================
-function renderCalendar(){
-const grid=document.getElementById(‘calendar-grid’);
-grid.innerHTML=’’;
-const MNAMES=[‘Januari’,‘Februari’,‘Maret’,‘April’,‘Mei’,‘Juni’,‘Juli’,‘Agustus’,‘September’,‘Oktober’,‘November’,‘Desember’];
-document.getElementById(‘cal-month-year’).textContent=`${MNAMES[currentMonth]} ${currentYear}`;
-const firstDay=new Date(currentYear,currentMonth,1).getDay();
-const days=new Date(currentYear,currentMonth+1,0).getDate();
-const today=todayStr();
-for(let i=0;i<firstDay;i++) grid.innerHTML+=`<div></div>`;
-for(let d=1;d<=days;d++){
-const ds=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-const cnt=reservationsCache.filter(x=>x.date===ds).length;
-const dots=cnt?`<div class="cal-dots">${'<span class="cal-dot"></span>'.repeat(Math.min(cnt,3))}</div>`:’’;
-grid.innerHTML+=`<div class="cal-day ${ds===today?'today':''}" onclick="showDateDetail('${ds}',this)">${d}${dots}</div>`;
+var MNAMES = [‘Januari’,‘Februari’,‘Maret’,‘April’,‘Mei’,‘Juni’,‘Juli’,‘Agustus’,‘September’,‘Oktober’,‘November’,‘Desember’];
+
+function renderCalendar() {
+var grid = document.getElementById(‘calendar-grid’);
+grid.innerHTML = ‘’;
+document.getElementById(‘cal-month-year’).textContent = MNAMES[currentMonth] + ’ ’ + currentYear;
+
+var firstDay = new Date(currentYear, currentMonth, 1).getDay();
+var days     = new Date(currentYear, currentMonth + 1, 0).getDate();
+var today    = todayStr();
+
+for (var i = 0; i < firstDay; i++) grid.innerHTML += ‘<div></div>’;
+
+for (var d = 1; d <= days; d++) {
+var ds  = currentYear + ‘-’ + String(currentMonth + 1).padStart(2, ‘0’) + ‘-’ + String(d).padStart(2, ‘0’);
+var cnt = reservationsCache.filter(function(x) { return x.date === ds; }).length;
+var dots = cnt ? ‘<div class="cal-dots">’ + ‘<span class="cal-dot"></span>’.repeat(Math.min(cnt, 3)) + ‘</div>’ : ‘’;
+var cls  = ds === today ? ‘today’ : ‘’;
+grid.innerHTML += ‘<div class="cal-day ' + cls + '" onclick="showDateDetail(\'' + ds + '\',this)">’ + d + dots + ‘</div>’;
 }
 }
 
-function showDateDetail(date,el){
-document.querySelectorAll(’.cal-day’).forEach(d=>d.classList.remove(‘selected’));
-el?.classList.add(‘selected’);
-const fmt=new Date(date+‘T00:00:00’).toLocaleDateString(‘id-ID’,{weekday:‘long’,day:‘numeric’,month:‘long’,year:‘numeric’});
-document.getElementById(‘selected-date-text’).textContent=fmt;
-const filtered=reservationsCache.filter(x=>x.date===date);
-const list=document.getElementById(‘day-detail-list’);
-list.innerHTML=filtered.length?filtered.map(r=>` <div class="res-item"> <div><b>${r.jam} — ${esc(r.nama)}</b><div style="font-size:.78rem;color:var(--muted);margin-top:2px;">${esc(r.tempat)} · ${r.jumlah} pax</div></div> <button style="background:#dcfce7;color:#16a34a;border:none;border-radius:8px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:.78rem;" onclick="window.open('https://wa.me/${(r.nomorHp||'').replace(/\D/g,'')}')"><i class="fab fa-whatsapp"></i> WA</button> </div>`).join(’’):’<p style="color:#aaa;padding:16px 0;font-size:.88rem;">Tidak ada reservasi.</p>’;
+function showDateDetail(date, el) {
+document.querySelectorAll(’.cal-day’).forEach(function(d) { d.classList.remove(‘selected’); });
+if (el) el.classList.add(‘selected’);
+
+var fmt = new Date(date + ‘T00:00:00’).toLocaleDateString(‘id-ID’, {weekday:‘long’, day:‘numeric’, month:‘long’, year:‘numeric’});
+document.getElementById(‘selected-date-text’).textContent = fmt;
+
+var filtered = reservationsCache.filter(function(x) { return x.date === date; });
+var list     = document.getElementById(‘day-detail-list’);
+list.innerHTML = filtered.length
+? filtered.map(function(r) {
+var phone = (r.nomorHp || ‘’).replace(/\D/g, ‘’);
+return ‘<div class="res-item">’ +
+‘<div><b>’ + r.jam + ’ \u2014 ’ + esc(r.nama) + ‘</b><div style="font-size:.78rem;color:var(--muted);margin-top:2px;">’ + esc(r.tempat) + ’ \u00B7 ’ + r.jumlah + ’ pax</div></div>’ +
+‘<button style="background:#dcfce7;color:#16a34a;border:none;border-radius:8px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:.78rem;" onclick="window.open(\'https://wa.me/' + phone + '\')"><i class="fab fa-whatsapp"></i> WA</button>’ +
+‘</div>’;
+}).join(’’)
+: ‘<p style="color:#aaa;padding:16px 0;font-size:.88rem;">Tidak ada reservasi.</p>’;
 }
 
-function changeMonth(dir){
-currentMonth+=dir;
-if(currentMonth<0){currentMonth=11;currentYear–;}
-if(currentMonth>11){currentMonth=0;currentYear++;}
+function changeMonth(dir) {
+currentMonth += dir;
+if (currentMonth < 0)  { currentMonth = 11; currentYear–; }
+if (currentMonth > 11) { currentMonth = 0;  currentYear++; }
 renderCalendar();
 }
 
 // ============================================================
 //  CHARTS
 // ============================================================
-function updateCharts(){
+function updateCharts() {
 try {
-document.getElementById(‘chart-year-lbl’).textContent=currentYear;
-const barData=Array(12).fill(0);
-reservationsCache.forEach(r=>{
+document.getElementById(‘chart-year-lbl’).textContent = currentYear;
+var barData = new Array(12).fill(0);
+reservationsCache.forEach(function(r) {
 try {
-const d=new Date(r.date);
-if(d.getFullYear()===currentYear) barData[d.getMonth()]++;
-} catch(e){ ErrorLog.warn(`updateCharts: skip record dengan date invalid — "${r.date}"`,‘updateCharts’,{id:r.id}); }
+var d = new Date(r.date);
+if (d.getFullYear() === currentYear) barData[d.getMonth()]++;
+} catch(e) {
+ErrorLog.warn(‘updateCharts: skip record date invalid — “’ + r.date + ‘”’, ‘updateCharts’, {id: r.id});
+}
 });
-const c1=document.getElementById(‘chartBar’).getContext(‘2d’);
-if(myBarChart) myBarChart.destroy();
-myBarChart=new Chart(c1,{type:‘bar’,data:{
-labels:[‘Jan’,‘Feb’,‘Mar’,‘Apr’,‘Mei’,‘Jun’,‘Jul’,‘Agu’,‘Sep’,‘Okt’,‘Nov’,‘Des’],
-datasets:[{label:‘Reservasi’,data:barData,backgroundColor:’#2a9d8f’,borderRadius:6,borderSkipped:false}]
-},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
-} catch(e){ ErrorLog.error(e.message,‘updateCharts[bar]’,e.stack); }
+var c1 = document.getElementById(‘chartBar’).getContext(‘2d’);
+if (myBarChart) myBarChart.destroy();
+myBarChart = new Chart(c1, {
+type: ‘bar’,
+data: {
+labels: [‘Jan’,‘Feb’,‘Mar’,‘Apr’,‘Mei’,‘Jun’,‘Jul’,‘Agu’,‘Sep’,‘Okt’,‘Nov’,‘Des’],
+datasets: [{label:‘Reservasi’, data:barData, backgroundColor:’#2a9d8f’, borderRadius:6, borderSkipped:false}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {legend:{display:false}},
+scales: {y:{beginAtZero:true, ticks:{stepSize:1}}}
+}
+});
+} catch(e) { ErrorLog.error(e.message, ‘updateCharts[bar]’, e.stack); }
 
 try {
-const locMap={};
-reservationsCache.forEach(r=>{if(r.tempat)locMap[r.tempat]=(locMap[r.tempat]||0)+1;});
-const c2=document.getElementById(‘chartDoughnut’).getContext(‘2d’);
-if(myDoughnut) myDoughnut.destroy();
-if(Object.keys(locMap).length===0){
-// No data — don’t render empty doughnut, just skip
-ErrorLog.info(‘updateCharts[doughnut]: tidak ada data lokasi untuk ditampilkan’,‘updateCharts’);
+var locMap = {};
+reservationsCache.forEach(function(r) {
+if (r.tempat) locMap[r.tempat] = (locMap[r.tempat] || 0) + 1;
+});
+var c2 = document.getElementById(‘chartDoughnut’).getContext(‘2d’);
+if (myDoughnut) myDoughnut.destroy();
+if (!Object.keys(locMap).length) {
+ErrorLog.info(‘updateCharts[doughnut]: tidak ada data lokasi’, ‘updateCharts’);
 return;
 }
-myDoughnut=new Chart(c2,{type:‘doughnut’,data:{
-labels:Object.keys(locMap),
-datasets:[{data:Object.values(locMap),backgroundColor:[’#2a9d8f’,’#264653’,’#e9c46a’,’#e76f51’,’#10b981’,’#f59e0b’]}]
-},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:‘bottom’,labels:{font:{size:11},padding:10}}}}});
-} catch(e){ ErrorLog.error(e.message,‘updateCharts[doughnut]’,e.stack); }
+myDoughnut = new Chart(c2, {
+type: ‘doughnut’,
+data: {
+labels: Object.keys(locMap),
+datasets: [{data: Object.values(locMap), backgroundColor:[’#2a9d8f’,’#264653’,’#e9c46a’,’#e76f51’,’#10b981’,’#f59e0b’]}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {legend:{position:‘bottom’, labels:{font:{size:11}, padding:10}}}
+}
+});
+} catch(e) { ErrorLog.error(e.message, ‘updateCharts[doughnut]’, e.stack); }
 }
 
 // ============================================================
 //  MASTER DATA ACTIONS
 // ============================================================
-async function addMenu(){
-const {value:name}=await Swal.fire({title:‘Nama Menu Baru’,input:‘text’,showCancelButton:true});
-if(!name) return;
-const {value:price}=await Swal.fire({title:`Harga "${name}"`,input:‘number’,showCancelButton:true});
-if(name&&price){
-await safe(‘addMenu’, async()=>{
-await db.collection(‘menus’).doc(name).set({price:parseInt(price)});
-Swal.fire({icon:‘success’,title:‘Ditambahkan!’,timer:1000,showConfirmButton:false});
-},{name, price});
+async function addMenu() {
+var r1 = await Swal.fire({title:‘Nama Menu Baru’, input:‘text’, showCancelButton:true, inputValidator: function(v) { if (!v) return ‘Nama tidak boleh kosong’; }});
+if (!r1.value) return;
+var r2 = await Swal.fire({title:‘Harga “’ + r1.value + ‘”’, input:‘number’, showCancelButton:true, inputValidator: function(v) { if (!v || v <= 0) return ‘Harga harus lebih dari 0’; }});
+if (r2.value) {
+await safe(‘addMenu’, async function() {
+await db.collection(‘menus’).doc(r1.value).set({price: parseInt(r2.value)});
+Swal.fire({icon:‘success’, title:‘Ditambahkan!’, timer:1000, showConfirmButton:false});
+}, {name: r1.value, price: r2.value});
 }
 }
 
-async function editMenuPrice(name,cur){
-const {value:p}=await Swal.fire({title:`Edit Harga: ${name}`,input:‘number’,inputValue:cur,showCancelButton:true,confirmButtonText:‘Simpan’});
-if(p!==undefined&&p!==null&&p!==’’){
-await safe(‘editMenuPrice’, async()=>{
-await db.collection(‘menus’).doc(name).update({price:parseInt(p)});
-Swal.fire({icon:‘success’,title:‘Diperbarui!’,timer:900,showConfirmButton:false});
-},{name, oldPrice:cur, newPrice:p});
+async function editMenuPrice(name, cur) {
+var result = await Swal.fire({title:’Edit Harga: ’ + name, input:‘number’, inputValue:cur, showCancelButton:true, confirmButtonText:‘Simpan’});
+if (result.value !== undefined && result.value !== null && result.value !== ‘’) {
+await safe(‘editMenuPrice’, async function() {
+await db.collection(‘menus’).doc(name).update({price: parseInt(result.value)});
+Swal.fire({icon:‘success’, title:‘Diperbarui!’, timer:900, showConfirmButton:false});
+}, {name: name, oldPrice: cur, newPrice: result.value});
 }
 }
 
-async function addLocation(){
-const {value:name}=await Swal.fire({title:‘Nama Lokasi’,input:‘text’,showCancelButton:true});
-if(!name) return;
-const {value:cap}=await Swal.fire({title:‘Kapasitas (pax)’,input:‘number’,showCancelButton:true});
-if(name&&cap){
-await safe(‘addLocation’, async()=>{
-await db.collection(‘locations’).add({name,capacity:parseInt(cap)});
-Swal.fire({icon:‘success’,title:‘Ditambahkan!’,timer:1000,showConfirmButton:false});
-},{name, capacity:cap});
+async function addLocation() {
+var r1 = await Swal.fire({title:‘Nama Lokasi’, input:‘text’, showCancelButton:true, inputValidator: function(v) { if (!v) return ‘Nama tidak boleh kosong’; }});
+if (!r1.value) return;
+var r2 = await Swal.fire({title:‘Kapasitas (pax)’, input:‘number’, showCancelButton:true, inputValidator: function(v) { if (!v || v <= 0) return ‘Kapasitas harus lebih dari 0’; }});
+if (r2.value) {
+await safe(‘addLocation’, async function() {
+await db.collection(‘locations’).add({name: r1.value, capacity: parseInt(r2.value)});
+Swal.fire({icon:‘success’, title:‘Ditambahkan!’, timer:1000, showConfirmButton:false});
+}, {name: r1.value, capacity: r2.value});
 }
 }
 
-function deleteDoc(col,id){
-Swal.fire({title:‘Hapus?’,icon:‘warning’,showCancelButton:true,confirmButtonColor:‘var(–danger)’,confirmButtonText:‘Hapus’})
-.then(r=>{
-if(r.isConfirmed){
-safe(‘deleteDoc’, ()=>db.collection(col).doc(id).delete(), {collection:col, docId:id})
-.catch(()=>{}); // error sudah dicatat di safe()
+function deleteDoc(col, id) {
+Swal.fire({title:‘Hapus?’, icon:‘warning’, showCancelButton:true, confirmButtonColor:’#e76f51’, confirmButtonText:‘Hapus’, cancelButtonText:‘Batal’})
+.then(function(r) {
+if (r.isConfirmed) {
+safe(‘deleteDoc’, function() { return db.collection(col).doc(id).delete(); }, {collection: col, docId: id})
+.catch(function() {});
 }
 });
 }
@@ -1459,29 +1587,30 @@ safe(‘deleteDoc’, ()=>db.collection(col).doc(id).delete(), {collection:col, 
 // ============================================================
 //  UI
 // ============================================================
-function switchTab(tabId,el){
+function switchTab(tabId, el) {
 try {
-document.querySelectorAll(’.section’).forEach(s=>s.classList.remove(‘active’));
-document.getElementById(‘tab-’+tabId).classList.add(‘active’);
-document.querySelectorAll(’.nav-item’).forEach(n=>n.classList.remove(‘active’));
-if(el) el.classList.add(‘active’);
-if(window.innerWidth<768) closeSidebar();
-} catch(e){ ErrorLog.error(e.message,‘switchTab’,e.stack,{tabId}); }
+document.querySelectorAll(’.section’).forEach(function(s) { s.classList.remove(‘active’); });
+document.getElementById(‘tab-’ + tabId).classList.add(‘active’);
+document.querySelectorAll(’.nav-item’).forEach(function(n) { n.classList.remove(‘active’); });
+if (el) el.classList.add(‘active’);
+if (window.innerWidth < 768) closeSidebar();
+} catch(e) { ErrorLog.error(e.message, ‘switchTab’, e.stack, {tabId: tabId}); }
 }
-function toggleSidebar(){
+
+function toggleSidebar() {
 document.getElementById(‘sidebar’).classList.toggle(‘open’);
 document.getElementById(‘mobile-overlay’).classList.toggle(‘show’);
 }
-function closeSidebar(){
+function closeSidebar() {
 document.getElementById(‘sidebar’).classList.remove(‘open’);
 document.getElementById(‘mobile-overlay’).classList.remove(‘show’);
 }
 
 // ============================================================
-//  ERROR HANDLER — log startup info
+//  STARTUP LOG
 // ============================================================
-ErrorLog.info(`Dashboard dimuat — ${new Date().toLocaleString('id-ID')}`, ‘init’);
-ErrorLog.info(`User Agent: ${navigator.userAgent.substring(0,80)}`, ‘init’);
+ErrorLog.info(’Dashboard dimuat — ’ + new Date().toLocaleString(‘id-ID’), ‘init’);
+ErrorLog.info(’User Agent: ’ + navigator.userAgent.substring(0, 80), ‘init’);
 </script>
 
 </body>

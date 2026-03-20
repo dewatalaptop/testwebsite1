@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Admin Dashboard — Dolan Sawah</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+  <style>
+    :root {
+      --primary: #2a9d8f;
+      --primary-dark: #21867a;
+      --primary-light: #e6f7f5;
+      --secondary: #1a2f2b;
+      --accent: #e9c46a;
+      --danger: #e76f51;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --bg: #f0f4f3;
+      --card: #ffffff;
+      --txt: #1a2e2b;
+      --muted: #6b7c79;
+      --border: #e2ece9;
+      --sidebar-w: 268px;
+      --sh-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --sh-md: 0 4px 14px rgba(0,0,0,.08);
+      --sh-lg: 0 12px 32px rgba(0,0,0,.12);
+      --radius: 13px;
+    }
+    *{box-sizing:border-box;outline:none;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--txt);display:flex;height:100vh;overflow:hidden;}
+    ::-webkit-scrollbar{width:5px;height:5px;}
+    ::-webkit-scrollbar-thumb{background:#b8d0cc;border-radius:10px;}
+
+    /* LOGIN */
+    #login-overlay{position:fixed;inset:0;background:linear-gradient(145deg,#1a2f2b 0%,var(--primary) 100%);z-index:9999;display:flex;justify-content:center;align-items:center;}
+    .login-box{background:#fff;padding:48px 40px;border-radius:20px;width:90%;max-width:420px;box-shadow:var(--sh-lg);text-align:center;animation:loginPop .4s cubic-bezier(.34,1.56,.64,1);}
+    @keyframes loginPop{from{opacity:0;transform:scale(.9) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .login-logo{width:60px;height:60px;background:var(--primary-light);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto 18px;}
+    .login-box h2{color:var(--secondary);font-size:1.45rem;font-weight:800;margin-bottom:5px;}
+    .login-box p{color:var(--muted);font-size:.88rem;margin-bottom:26px;}
+    .login-box input{width:100%;padding:13px 16px;margin:6px 0;border:1.5px solid var(--border);border-radius:10px;font-size:.95rem;font-family:inherit;transition:border-color .2s;}
+    .login-box input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(42,157,143,.12);}
+    .btn-login{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:12px;transition:all .2s;font-family:inherit;}
+    .btn-login:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(42,157,143,.3);}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:var(--secondary);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:100;transition:transform .3s cubic-bezier(.4,0,.2,1);}
+    .brand{padding:26px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.07);}
+    .brand-icon{width:40px;height:40px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;flex-shrink:0;}
+    .brand-name{font-size:1.05rem;font-weight:800;color:#fff;}
+    .brand-sub{font-size:.7rem;color:rgba(255,255,255,.38);}
+    .nav-menu{flex:1;padding:14px 10px;overflow-y:auto;}
+    .nav-label{font-size:.67rem;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:1.3px;text-transform:uppercase;padding:10px 12px 5px;}
+    .nav-item{display:flex;align-items:center;gap:11px;padding:10px 13px;color:rgba(255,255,255,.55);border-radius:10px;margin-bottom:2px;cursor:pointer;font-weight:500;font-size:.88rem;transition:all .18s;}
+    .nav-icon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:.82rem;flex-shrink:0;}
+    .nav-item:hover{color:#fff;background:rgba(255,255,255,.08);}
+    .nav-item.active{color:#fff;background:var(--primary);}
+    .nav-item.active .nav-icon{background:rgba(255,255,255,.18);}
+    .badge{margin-left:auto;background:var(--danger);color:#fff;padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:700;animation:badgePulse 2s infinite;}
+    @keyframes badgePulse{0%,100%{opacity:1;}50%{opacity:.65;}}
+    .sidebar-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,.07);}
+    .btn-logout{width:100%;padding:11px;background:rgba(231,111,81,.14);color:#f4a896;border:1px solid rgba(231,111,81,.2);border-radius:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;font-size:.88rem;transition:all .2s;}
+    .btn-logout:hover{background:rgba(231,111,81,.25);color:#f87060;}
+
+    /* MAIN */
+    .main-content{flex:1;margin-left:var(--sidebar-w);padding:30px;overflow-y:auto;height:100vh;display:none;}
+    #mobile-toggle{display:none;position:fixed;top:16px;left:16px;z-index:2001;background:var(--secondary);color:#fff;border:none;width:44px;height:44px;border-radius:10px;cursor:pointer;box-shadow:var(--sh-md);}
+    .mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);}
+      .sidebar.open{transform:translateX(0);box-shadow:10px 0 40px rgba(0,0,0,.3);}
+      .mobile-overlay.show{display:block;}
+      .main-content{margin-left:0;padding:74px 16px 20px;}
+      #mobile-toggle{display:flex;align-items:center;justify-content:center;}
+    }
+
+    /* LAYOUT */
+    .section{display:none;animation:fadeUp .28s ease;}
+    .section.active{display:block;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+    .card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--sh-sm);}
+    .page-header{margin-bottom:26px;}
+    .page-header h2{font-size:1.55rem;font-weight:800;}
+    .page-header p{color:var(--muted);font-size:.88rem;margin-top:4px;}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px;flex-wrap:wrap;}
+    .toolbar h2{font-size:1.45rem;font-weight:800;}
+    .btn-refresh{padding:9px 16px;background:#fff;color:var(--primary);border:1.5px solid var(--border);border-radius:9px;font-weight:700;cursor:pointer;font-family:inherit;font-size:.82rem;display:flex;align-items:center;gap:7px;transition:all .18s;box-shadow:var(--sh-sm);}
+    .btn-refresh:hover{border-color:var(--primary);background:var(--primary-light);}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:15px;margin-bottom:24px;}
+    .stat-card{background:#fff;padding:20px;border-radius:var(--radius);border:1px solid var(--border);display:flex;align-items:center;gap:16px;transition:all .2s;box-shadow:var(--sh-sm);}
+    .stat-card:hover{box-shadow:var(--sh-md);transform:translateY(-2px);}
+    .stat-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .stat-info h4{font-size:.74rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+    .stat-info .value{font-size:1.75rem;font-weight:800;line-height:1.2;}
+
+    /* ===== SEARCH ENGINE ===== */
+    .search-shell{position:relative;margin-bottom:10px;}
+    .search-shell .s-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.88rem;pointer-events:none;transition:color .2s;}
+    .search-shell.focused .s-icon{color:var(--primary);}
+    #search-input{width:100%;padding:13px 110px 13px 43px;border:1.5px solid var(--border);border-radius:12px;font-size:.95rem;font-family:inherit;color:var(--txt);background:#fff;transition:all .2s;box-shadow:var(--sh-sm);}
+    #search-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(42,157,143,.1);}
+    #search-input::placeholder{color:#a8b8b5;}
+    .s-hint{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;gap:4px;align-items:center;}
+    .kbd{background:#f1f5f4;border:1px solid #d9e4e1;border-radius:5px;padding:2px 6px;font-size:.67rem;font-weight:600;color:#7a9490;}
+    .s-clear{background:none;border:none;cursor:pointer;color:#aaa;font-size:.75rem;padding:3px 5px;display:none;transition:color .15s;}
+    .s-clear:hover{color:var(--danger);}
+
+    /* Suggestions */
+    #suggest-box{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:var(--sh-lg);z-index:500;overflow:hidden;display:none;}
+    #suggest-box.show{display:block;}
+    .sg-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);padding:9px 14px 4px;background:#f8faf9;display:flex;justify-content:space-between;align-items:center;}
+    .sg-label button{background:none;border:none;font-size:.7rem;color:var(--danger);cursor:pointer;}
+    .sg-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-size:.87rem;transition:background .12s;border-bottom:1px solid #f5f5f5;}
+    .sg-item:last-child{border-bottom:none;}
+    .sg-item:hover,.sg-item.kactive{background:var(--primary-light);}
+    .sg-item i{width:14px;color:var(--muted);font-size:.78rem;flex-shrink:0;}
+    .sg-meta{font-size:.73rem;color:var(--muted);margin-left:auto;}
+
+    /* Search info */
+    .s-info{display:none;background:var(--primary-light);border:1px solid #c4e8e4;border-radius:8px;padding:8px 14px;font-size:.82rem;color:var(--primary-dark);margin-bottom:16px;align-items:center;gap:8px;}
+    .s-info.on{display:flex;}
+
+    /* INBOX CARDS */
+    .request-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px;}
+    .request-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--sh-sm);overflow:hidden;transition:all .2s;border-top:4px solid var(--warning);}
+    .request-card:hover{box-shadow:var(--sh-md);transform:translateY(-2px);}
+    .rc-body{padding:18px 20px;}
+    .rc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+    .rc-name{font-size:1.03rem;font-weight:700;color:var(--secondary);cursor:pointer;border-bottom:1px dashed transparent;transition:all .15s;display:inline-block;}
+    .rc-name:hover{color:var(--primary);border-bottom-color:var(--primary);}
+    .rc-phone{font-size:.8rem;color:var(--primary);margin-top:2px;font-weight:500;}
+    .rc-tags{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+    .rc-via{background:#f3f4f6;padding:2px 9px;border-radius:20px;font-size:.7rem;color:#777;font-weight:600;}
+    .rc-score{background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:700;}
+    .rc-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:.82rem;color:#555;padding:12px 0;border-top:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;margin-bottom:13px;}
+    .rc-mi{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;transition:background .14s;cursor:pointer;}
+    .rc-mi:hover{background:var(--primary-light);color:var(--primary);}
+    .rc-mi i{width:13px;color:var(--primary);font-size:.78rem;}
+    .rc-dbox{background:#f9faf9;border-radius:9px;padding:11px;margin-bottom:12px;}
+    .rc-dlabel{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--primary-dark);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+    .rc-note{background:#fff;border:1px solid #e8eded;border-radius:6px;padding:7px 11px;font-size:.83rem;color:#444;font-style:italic;}
+    .menu-tbl{width:100%;border-collapse:collapse;font-size:.82rem;}
+    .menu-tbl td{padding:4px 2px;border-bottom:1px dashed #eee;}
+    .menu-tbl tr:last-child td{border-bottom:none;}
+    .rc-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:13px 18px;background:#f8faf9;border-top:1px solid var(--border);}
+    .rc-full{grid-column:1/-1;}
+    .ra{padding:9px 6px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;transition:all .18s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;}
+    .ra-wa{background:#dcfce7;color:#16a34a;}.ra-wa:hover{background:#25D366;color:#fff;}
+    .ra-edit{background:#fef9ec;color:#b45309;}.ra-edit:hover{background:var(--accent);color:#92400e;}
+    .ra-rej{background:#fee2e2;color:var(--danger);}.ra-rej:hover{background:var(--danger);color:#fff;}
+    .ra-app{background:var(--primary-light);color:var(--primary-dark);}.ra-app:hover{background:var(--primary);color:#fff;}
+    mark{background:#fef08a;color:inherit;border-radius:2px;padding:0 1px;}
+
+    /* Empty state */
+    .empty{text-align:center;padding:55px 20px;color:var(--muted);grid-column:1/-1;}
+    .empty i{font-size:2.8rem;opacity:.25;display:block;margin-bottom:14px;}
+    .empty p{font-size:.95rem;font-weight:600;color:#aaa;}
+    .empty small{font-size:.82rem;}
+
+    /* CALENDAR */
+    .cal-nav{display:flex;align-items:center;gap:10px;}
+    .cal-btn{background:var(--primary-light);border:none;color:var(--primary-dark);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:.82rem;transition:all .18s;}
+    .cal-btn:hover{background:var(--primary);color:#fff;}
+    .cal-lbl{font-weight:800;font-size:.95rem;min-width:155px;text-align:center;}
+    .cal-headers{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.72rem;font-weight:700;color:var(--muted);padding:10px 0 6px;letter-spacing:.4px;}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+    .cal-day{aspect-ratio:1;border:1.5px solid var(--border);border-radius:9px;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer;position:relative;font-weight:600;font-size:.85rem;transition:all .14s;}
+    .cal-day:hover{border-color:var(--primary);background:var(--primary-light);}
+    .cal-day.today{background:#fff7ed;border-color:var(--warning);color:var(--warning);font-weight:800;}
+    .cal-day.selected{background:var(--primary);color:#fff;border-color:var(--primary);}
+    .cal-dots{position:absolute;bottom:4px;display:flex;gap:2px;}
+    .cal-dot{width:5px;height:5px;background:var(--primary);border-radius:50%;}
+    .cal-day.selected .cal-dot{background:rgba(255,255,255,.65);}
+
+    /* RES ITEM */
+    .res-item{background:#fff;padding:14px 17px;border-radius:10px;margin-bottom:9px;border-left:4px solid var(--primary);display:flex;justify-content:space-between;align-items:center;box-shadow:var(--sh-sm);transition:box-shadow .15s;}
+    .res-item:hover{box-shadow:var(--sh-md);}
+
+    /* DATA MASTER */
+    .master-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;}
+    .master-item{padding:12px 16px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;font-size:.88rem;}
+    .master-item:last-child{border-bottom:none;}
+    .m-acts{display:flex;gap:6px;}
+    .bico{background:none;border:none;cursor:pointer;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .14s;font-size:.8rem;}
+    .bico.d{color:var(--danger);}.bico.d:hover{background:#fee2e2;}
+    .bico.e{color:#b45309;}.bico.e:hover{background:#fef9ec;}
+    .btn-add{padding:6px 13px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:inherit;font-size:.8rem;transition:all .18s;}
+    .btn-add:hover{background:var(--primary-dark);}
+
+    /* ANALYSIS */
+    .an-grid{display:grid;grid-template-columns:2fr 1fr;gap:18px;}
+    @media(max-width:900px){.an-grid{grid-template-columns:1fr;}}
+    .chart-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:22px;box-shadow:var(--sh-sm);}
+    .chart-box{position:relative;height:290px;}
+
+    /* MENU CHECKLIST in Swal */
+    .menu-cl{max-height:210px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:4px;}
+    .mc-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;transition:background .12s;}
+    .mc-item:hover{background:#f8faf9;}
+    .mc-item input[type=checkbox]{width:15px;height:15px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;}
+    .mc-item label{flex:1;cursor:pointer;font-size:.87rem;}
+    .mc-qty{width:52px;padding:4px 7px;border:1px solid #ddd;border-radius:6px;font-size:.82rem;text-align:center;font-family:inherit;}
+    .mc-price{font-size:.74rem;color:var(--success);min-width:68px;text-align:right;}
+  </style>
+
+</head>
+<body>
+
+<!-- LOGIN -->
+
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo"><i class="fas fa-seedling" style="color:var(--primary);"></i></div>
+    <h2>Dolan Sawah</h2>
+    <p>Admin Intelligence Dashboard</p>
+    <input type="email" id="email" placeholder="Email Admin" onkeydown="if(event.key==='Enter')password.focus()">
+    <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter')handleLogin()">
+    <button class="btn-login" onclick="handleLogin()"><i class="fas fa-arrow-right-to-bracket"></i> Masuk</button>
+  </div>
+</div>
+
+<button id="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+
+<div class="mobile-overlay" id="mobile-overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-icon"><i class="fas fa-seedling"></i></div>
+    <div><div class="brand-name">Dolan Sawah</div><div class="brand-sub">Intelligence Dashboard</div></div>
+  </div>
+  <div class="nav-menu">
+    <div class="nav-label">Menu Utama</div>
+    <div class="nav-item active" onclick="switchTab('dashboard',this)"><div class="nav-icon"><i class="fas fa-gauge-high"></i></div>Overview</div>
+    <div class="nav-item" onclick="switchTab('inbox',this)"><div class="nav-icon"><i class="fas fa-inbox"></i></div>Permintaan<span class="badge" id="sidebar-badge" style="display:none;">0</span></div>
+    <div class="nav-item" onclick="switchTab('calendar',this)"><div class="nav-icon"><i class="far fa-calendar-alt"></i></div>Kalender</div>
+    <div class="nav-label" style="margin-top:10px;">Kelola</div>
+    <div class="nav-item" onclick="switchTab('data',this)"><div class="nav-icon"><i class="fas fa-database"></i></div>Data Master</div>
+    <div class="nav-item" onclick="switchTab('analysis',this)"><div class="nav-icon"><i class="fas fa-chart-bar"></i></div>Analisis</div>
+  </div>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="handleLogout()"><i class="fas fa-right-from-bracket"></i> Logout</button></div>
+</div>
+
+<!-- MAIN -->
+
+<div class="main-content" id="main-content">
+
+  <!-- DASHBOARD -->
+
+  <div id="tab-dashboard" class="section active">
+    <div class="page-header"><h2>Overview</h2><p id="date-display"></p></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:#e0f2fe;color:#0284c7;"><i class="fas fa-users"></i></div><div class="stat-info"><h4>Tamu Hari Ini</h4><div class="value" id="stat-today-pax">0</div></div></div>
+      <div class="stat-card" style="cursor:pointer;" onclick="switchTab('inbox',document.querySelectorAll('.nav-item')[1])"><div class="stat-icon" style="background:#ffedd5;color:#c2410c;"><i class="fas fa-inbox"></i></div><div class="stat-info"><h4>Pending Request</h4><div class="value" id="stat-pending">0</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#dcfce7;color:#15803d;"><i class="fas fa-calendar-check"></i></div><div class="stat-info"><h4>Reservasi Bulan Ini</h4><div class="value" id="stat-month-total">0</div></div></div>
+    </div>
+    <div class="card" style="padding:22px;"><h3 style="font-weight:700;font-size:.95rem;margin-bottom:14px;">Reservasi Terbaru</h3><div id="recent-list"></div></div>
+  </div>
+
+  <!-- INBOX -->
+
+  <div id="tab-inbox" class="section">
+    <div class="toolbar">
+      <h2>Inbox Permintaan</h2>
+      <button class="btn-refresh" onclick="forceRefresh()"><i class="fas fa-rotate-right"></i> Refresh</button>
+    </div>
+    <div class="search-shell" id="search-shell">
+      <i class="fas fa-magnifying-glass s-icon"></i>
+      <input type="text" id="search-input" autocomplete="off"
+        placeholder="Cari nama, tanggal, tempat, jumlah... (tekan / untuk fokus)"
+        oninput="handleSearch(this.value)"
+        onfocus="onSearchFocus()"
+        onblur="onSearchBlur()"
+        onkeydown="onSearchKeydown(event)">
+      <div class="s-hint">
+        <button class="s-clear" id="s-clear" onclick="clearSearch()"><i class="fas fa-times"></i></button>
+        <span class="kbd">/</span><span class="kbd">ESC</span>
+      </div>
+      <div id="suggest-box"></div>
+    </div>
+    <div class="s-info" id="s-info"></div>
+    <div id="inbox-container" class="request-grid"></div>
+  </div>
+
+  <!-- CALENDAR -->
+
+  <div id="tab-calendar" class="section">
+    <div class="toolbar">
+      <h2>Kalender Reservasi</h2>
+      <div class="cal-nav">
+        <button class="cal-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+        <div class="cal-lbl" id="cal-month-year"></div>
+        <button class="cal-btn" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+    <div class="card" style="padding:18px;margin-bottom:18px;">
+      <div class="cal-headers"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div>
+      <div id="calendar-grid" class="cal-grid"></div>
+    </div>
+    <div class="card" style="padding:22px;">
+      <h3 style="font-weight:700;font-size:.95rem;margin-bottom:14px;">Detail: <span id="selected-date-text" style="color:var(--primary);">Pilih tanggal</span></h3>
+      <div id="day-detail-list"></div>
+    </div>
+  </div>
+
+  <!-- DATA MASTER -->
+
+  <div id="tab-data" class="section">
+    <div class="page-header"><h2>Data Master</h2><p>Kelola menu dan lokasi reservasi</p></div>
+    <div class="master-grid">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:17px 18px;border-bottom:1px solid var(--border);">
+          <h3 style="font-weight:700;font-size:.92rem;">Daftar Menu</h3>
+          <button class="btn-add" onclick="addMenu()"><i class="fas fa-plus"></i> Tambah</button>
+        </div>
+        <div id="master-menu-list"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:17px 18px;border-bottom:1px solid var(--border);">
+          <h3 style="font-weight:700;font-size:.92rem;">Daftar Lokasi</h3>
+          <button class="btn-add" onclick="addLocation()"><i class="fas fa-plus"></i> Tambah</button>
+        </div>
+        <div id="master-location-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYSIS -->
+
+  <div id="tab-analysis" class="section">
+    <div class="page-header"><h2>Analisis Bisnis</h2><p>Statistik dan tren reservasi</p></div>
+    <div class="an-grid">
+      <div class="chart-card">
+        <h3 style="font-weight:700;font-size:.92rem;margin-bottom:18px;">Reservasi per Bulan <span style="color:var(--muted);font-weight:500;" id="chart-year-lbl"></span></h3>
+        <div class="chart-box"><canvas id="chartBar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3 style="font-weight:700;font-size:.92rem;margin-bottom:18px;">Lokasi Favorit</h3>
+        <div class="chart-box"><canvas id="chartDoughnut"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  FIREBASE
+// ============================================================
+firebase.initializeApp({
+  apiKey:"AIzaSyA_c1tU70FM84Qi_f_aSaQ-YVLo_18lCkI",
+  authDomain:"reservasi-dolan-sawah.firebaseapp.com",
+  projectId:"reservasi-dolan-sawah",
+  storageBucket:"reservasi-dolan-sawah.appspot.com",
+  messagingSenderId:"213151400721",
+  appId:"1:213151400721:web:e51b0d8cdd24206cf682b0"
+});
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// ============================================================
+//  STATE — 3-LAYER ARCHITECTURE
+// ============================================================
+let unsubReq,unsubRes,unsubMenus,unsubLoc;
+let requestsCache  = [];   // L1: raw Firebase
+let filteredReqs   = [];   // L2: scored + filtered
+// L3: renderInbox(filteredReqs)
+
+let reservationsCache = [];
+let globalMenuPrices  = {};
+let globalMenuList    = [];
+
+let currentMonth = new Date().getMonth();
+let currentYear  = new Date().getFullYear();
+let myBarChart = null, myDoughnut = null;
+
+let currentQuery = '';
+let searchTmt    = null;
+let suggestIdx   = -1;
+
+// ============================================================
+//  UTILS
+// ============================================================
+const fmtIDR = n => new Intl.NumberFormat('id-ID').format(n||0);
+const todayStr = () => new Date().toLocaleDateString('sv-SE');
+const esc = s => String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ============================================================
+//  SEARCH HISTORY
+// ============================================================
+function getHistory(){ try{return JSON.parse(localStorage.getItem('ds_sh')||'[]');}catch{return[];} }
+function pushHistory(q){
+  if(!q||q.length<2) return;
+  let h=getHistory().filter(x=>x!==q);
+  h.unshift(q); h=h.slice(0,8);
+  localStorage.setItem('ds_sh',JSON.stringify(h));
+}
+function clearHistory(){ localStorage.removeItem('ds_sh'); renderSuggest(''); }
+
+// ============================================================
+//  SEARCH ENGINE — INDEX + FUZZY + SCORING + INTENT
+// ============================================================
+function buildIdx(r){
+  return [r.nama,r.nomorHp,r.date,r.jam,r.tempat,r.jumlah,r.note,r.catatan,r.pesan,r.tambahan,
+    (r.menus||[]).map(m=>m.name).join(' ')].filter(Boolean).join(' ').toLowerCase();
+}
+
+function fuzzy(text,kw){
+  if(text.includes(kw)) return true;
+  let t=0,k=0;
+  while(t<text.length&&k<kw.length){if(text[t]===kw[k])k++;t++;}
+  return k===kw.length;
+}
+
+const MONTHS_ID = {januari:1,februari:2,maret:3,april:4,mei:5,juni:6,juli:7,agustus:8,september:9,oktober:10,november:11,desember:12};
+
+function parseIntent(q){
+  const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+  return {
+    tokens,
+    numbers:  tokens.filter(t=>/^\d+$/.test(t)),
+    textKws:  tokens.filter(t=>!/^\d+$/.test(t)),
+    months:   tokens.filter(t=>MONTHS_ID[t])
+  };
+}
+
+function scoreOne(r, intent){
+  const idx  = r._idx;
+  const nama = (r.nama||'').toLowerCase();
+  let score  = 0;
+
+  intent.textKws.forEach(k=>{
+    if(nama.startsWith(k))                          score += 6;
+    else if(nama.includes(k))                       score += 4;
+    if((r.tempat||'').toLowerCase().includes(k))    score += 3;
+    if(idx.includes(k))                             score += 1;
+    if(fuzzy(idx,k))                                score += 0.4;
+  });
+
+  // number → jumlah orang intent
+  intent.numbers.forEach(n=>{
+    if(String(r.jumlah)===n)  score += 5;
+    if(idx.includes(n))       score += 0.5;
+  });
+
+  // month name → date intent
+  intent.months.forEach(m=>{
+    const pad = String(MONTHS_ID[m]).padStart(2,'0');
+    if((r.date||'').includes(`-${pad}-`)) score += 5;
+  });
+
+  return score;
+}
+
+function performSearch(query){
+  currentQuery = query;
+  const q = query.trim();
+
+  if(!q){
+    filteredReqs = [...requestsCache];
+  } else {
+    const intent = parseIntent(q);
+    filteredReqs = requestsCache
+      .map(r=>({...r, _score: scoreOne(r, intent)}))
+      .filter(r=>r._score>0)
+      .sort((a,b)=>b._score-a._score);
+  }
+
+  updateInfoBar(q);
+  renderInbox(filteredReqs);
+}
+
+// debounced handler
+function handleSearch(v){
+  document.getElementById('s-clear').style.display = v?'block':'none';
+  renderSuggest(v);
+  clearTimeout(searchTmt);
+  searchTmt = setTimeout(()=>{
+    performSearch(v);
+    if(v.length>=2) pushHistory(v);
+  }, 180);
+}
+
+function clearSearch(){
+  const inp = document.getElementById('search-input');
+  inp.value = '';
+  document.getElementById('s-clear').style.display = 'none';
+  hideSuggest();
+  performSearch('');
+  inp.focus();
+}
+
+function updateInfoBar(q){
+  const bar = document.getElementById('s-info');
+  if(q){ bar.classList.add('on'); bar.innerHTML=`<i class="fas fa-filter"></i> Menampilkan <b>${filteredReqs.length}</b> dari <b>${requestsCache.length}</b> request untuk "<b>${esc(q)}</b>"`; }
+  else { bar.classList.remove('on'); }
+}
+
+// ============================================================
+//  AUTO-SUGGEST
+// ============================================================
+function renderSuggest(v){
+  const box = document.getElementById('suggest-box');
+  const q   = v.trim().toLowerCase();
+  let html  = '';
+
+  const hist = getHistory().filter(h=>!q||h.toLowerCase().includes(q));
+  if(!q && hist.length){
+    html += `<div class="sg-label">Riwayat <button onclick="clearHistory()">Hapus</button></div>`;
+    hist.slice(0,4).forEach((h,i)=>{
+      html += `<div class="sg-item" data-si="${i}" onclick="pickSuggest('${esc(h)}')"><i class="fas fa-clock"></i><span>${esc(h)}</span></div>`;
+    });
+  }
+
+  if(q.length>=1){
+    const nm = requestsCache.filter(r=>(r.nama||'').toLowerCase().includes(q)).slice(0,5);
+    if(nm.length){
+      html += `<div class="sg-label">Nama Tamu</div>`;
+      nm.forEach((r,i)=>{
+        html += `<div class="sg-item" data-si="${hist.length+i}" onclick="pickSuggest('${esc(r.nama)}')">
+          <i class="fas fa-user"></i><span>${highlight(esc(r.nama),q)}</span>
+          <span class="sg-meta">${r.date}</span></div>`;
+      });
+    }
+    // date fragment
+    const dt = requestsCache.filter(r=>(r.date||'').includes(q)).slice(0,3);
+    if(dt.length && /^\d{4}-\d{2}/.test(q)){
+      html += `<div class="sg-label">Tanggal</div>`;
+      dt.forEach((r,i)=>{
+        html += `<div class="sg-item" data-si="${hist.length+5+i}" onclick="pickSuggest('${esc(r.date)}')">
+          <i class="fas fa-calendar-day"></i><span>${esc(r.date)} — ${esc(r.nama)}</span></div>`;
+      });
+    }
+  }
+
+  if(!html){ box.classList.remove('show'); return; }
+  box.innerHTML = html;
+  box.classList.add('show');
+  suggestIdx = -1;
+}
+
+function hideSuggest(){ document.getElementById('suggest-box').classList.remove('show'); suggestIdx=-1; }
+function pickSuggest(v){
+  const inp = document.getElementById('search-input');
+  inp.value = v;
+  hideSuggest();
+  document.getElementById('s-clear').style.display = 'block';
+  performSearch(v);
+  pushHistory(v);
+}
+function onSearchFocus(){ document.getElementById('search-shell').classList.add('focused'); renderSuggest(document.getElementById('search-input').value); }
+function onSearchBlur(){ document.getElementById('search-shell').classList.remove('focused'); setTimeout(hideSuggest,180); }
+
+function onSearchKeydown(e){
+  const box   = document.getElementById('suggest-box');
+  const items = box.querySelectorAll('.sg-item');
+  if(e.key==='ArrowDown'){ e.preventDefault(); suggestIdx=Math.min(suggestIdx+1,items.length-1); hlSuggest(items); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); suggestIdx=Math.max(suggestIdx-1,0); hlSuggest(items); }
+  else if(e.key==='Enter' && suggestIdx>=0 && items[suggestIdx]) items[suggestIdx].click();
+}
+function hlSuggest(items){ items.forEach((el,i)=>el.classList.toggle('kactive',i===suggestIdx)); if(items[suggestIdx]) items[suggestIdx].scrollIntoView({block:'nearest'}); }
+
+// Global keyboard shortcuts
+document.addEventListener('keydown', e=>{
+  const inp = document.getElementById('search-input');
+  if(!inp) return;
+  if(e.key==='/' && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA'){
+    e.preventDefault();
+    switchTab('inbox', document.querySelectorAll('.nav-item')[1]);
+    setTimeout(()=>{ inp.focus(); inp.select(); },60);
+  }
+  if(e.key==='Escape'){ if(document.activeElement===inp){ clearSearch(); inp.blur(); } hideSuggest(); }
+});
+
+// ============================================================
+//  HIGHLIGHT
+// ============================================================
+function highlight(text, q){
+  if(!q||!text) return text||'';
+  const parts = String(q).trim().split(/\s+/).filter(Boolean).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  if(!parts.length) return text;
+  return text.replace(new RegExp(`(${parts.join('|')})`, 'gi'), '<mark>$1</mark>');
+}
+
+// ============================================================
+//  AUTH
+// ============================================================
+auth.onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById('login-overlay').style.display='none';
+    document.getElementById('main-content').style.display='block';
+    initApp();
+  } else {
+    document.getElementById('login-overlay').style.display='flex';
+    document.getElementById('main-content').style.display='none';
+    stopAll();
+  }
+});
+
+async function handleLogin(){
+  const e=document.getElementById('email').value, p=document.getElementById('password').value;
+  if(!e||!p) return Swal.fire('Perhatian','Email & password wajib diisi.','warning');
+  try{ await auth.signInWithEmailAndPassword(e,p); }
+  catch(err){ Swal.fire('Login Gagal',err.message,'error'); }
+}
+function handleLogout(){
+  Swal.fire({title:'Yakin logout?',icon:'question',showCancelButton:true,confirmButtonText:'Logout'})
+    .then(r=>{ if(r.isConfirmed) auth.signOut(); });
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+function initApp(){
+  document.getElementById('date-display').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  stopAll(); listenMasterData(); listenRequests(); listenReservations();
+}
+function stopAll(){ [unsubReq,unsubRes,unsubMenus,unsubLoc].forEach(u=>u&&u()); }
+function forceRefresh(){ Swal.fire({title:'Refreshing...',timer:700,didOpen:()=>Swal.showLoading()}); initApp(); }
+
+// ============================================================
+//  MASTER DATA
+// ============================================================
+function listenMasterData(){
+  unsubMenus = db.collection('menus').onSnapshot(snap=>{
+    globalMenuPrices={}; globalMenuList=[];
+    const list=document.getElementById('master-menu-list');
+    list.innerHTML='';
+    snap.forEach(doc=>{
+      const d=doc.data();
+      globalMenuPrices[doc.id]=d.price||0;
+      globalMenuList.push({id:doc.id,price:d.price||0});
+      list.innerHTML+=`<div class="master-item">
+        <div><div style="font-weight:600;">${esc(doc.id)}</div><div style="font-size:.78rem;color:var(--success);">Rp ${fmtIDR(d.price)}</div></div>
+        <div class="m-acts">
+          <button class="bico e" onclick="editMenuPrice('${esc(doc.id)}',${d.price})"><i class="fas fa-pen"></i></button>
+          <button class="bico d" onclick="deleteDoc('menus','${doc.id}')"><i class="fas fa-trash"></i></button>
+        </div></div>`;
+    });
+    if(snap.empty) list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada menu</div>';
+  });
+
+  unsubLoc = db.collection('locations').onSnapshot(snap=>{
+    const list=document.getElementById('master-location-list');
+    list.innerHTML='';
+    snap.forEach(doc=>{
+      const d=doc.data();
+      list.innerHTML+=`<div class="master-item">
+        <div><div style="font-weight:600;">${esc(d.name)}</div><div style="font-size:.78rem;color:var(--muted);">${d.capacity} pax</div></div>
+        <div class="m-acts"><button class="bico d" onclick="deleteDoc('locations','${doc.id}')"><i class="fas fa-trash"></i></button></div>
+      </div>`;
+    });
+    if(snap.empty) list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada lokasi</div>';
+  });
+}
+
+// ============================================================
+//  REQUESTS
+// ============================================================
+function listenRequests(){
+  unsubReq = db.collection('reservation_requests').orderBy('createdAt','desc').onSnapshot(snap=>{
+    requestsCache = snap.docs.map(d=>{
+      const r={id:d.id,...d.data()};
+      r._idx=buildIdx(r);
+      return r;
+    });
+    performSearch(currentQuery);
+    document.getElementById('stat-pending').textContent=requestsCache.length;
+    const badge=document.getElementById('sidebar-badge');
+    badge.textContent=requestsCache.length;
+    badge.style.display=requestsCache.length?'inline-block':'none';
+  });
+}
+
+// ============================================================
+//  RENDER INBOX — L3
+// ============================================================
+function renderInbox(data=requestsCache){
+  const cont=document.getElementById('inbox-container');
+  const q=currentQuery;
+
+  if(!data.length){
+    cont.innerHTML=`<div class="empty">
+      <i class="fas fa-inbox"></i>
+      <p>${q?'Tidak ada hasil pencarian':'Inbox kosong'}</p>
+      <small>${q?'Coba kata kunci lain atau tekan ESC':'Semua permintaan sudah diproses'}</small>
+    </div>`;
+    return;
+  }
+
+  cont.innerHTML=data.map(r=>{
+    const note=r.note||r.catatan||r.pesan||r.tambahan||'-';
+    const scoreTag=q&&r._score?`<span class="rc-score">★ ${r._score.toFixed(1)}</span>`:'';
+
+    let menuRows='<tr><td colspan="3" style="color:#aaa;font-style:italic;font-size:.78rem;">Tidak ada menu tambahan</td></tr>';
+    if(r.menus&&r.menus.length){
+      menuRows=r.menus.map(m=>{
+        const price=globalMenuPrices[m.name]||0;
+        return `<tr>
+          <td>${highlight(esc(m.name),q)}</td>
+          <td style="text-align:center;color:var(--primary);font-weight:700;">x${m.quantity}</td>
+          <td style="text-align:right;color:var(--success);">Rp ${fmtIDR(price*m.quantity)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    return `<div class="request-card">
+      <div class="rc-body">
+        <div class="rc-header">
+          <div>
+            <div class="rc-name" onclick="quickEdit('${r.id}','nama','${esc(r.nama)}')" title="Klik untuk edit nama">${highlight(esc(r.nama),q)}</div>
+            <div class="rc-phone"><i class="fab fa-whatsapp"></i> ${highlight(esc(r.nomorHp||'-'),q)}</div>
+          </div>
+          <div class="rc-tags">${scoreTag}<span class="rc-via">${esc(r.via||'Web')}</span></div>
+        </div>
+
+        <div class="rc-meta">
+          <div class="rc-mi" onclick="quickEdit('${r.id}','date','${esc(r.date)}')" title="Edit tanggal"><i class="fas fa-calendar-day"></i>${highlight(esc(r.date),q)}</div>
+          <div class="rc-mi" onclick="quickEdit('${r.id}','jam','${esc(r.jam)}')" title="Edit jam"><i class="fas fa-clock"></i>${highlight(esc(r.jam),q)}</div>
+          <div class="rc-mi" onclick="quickEdit('${r.id}','jumlah','${r.jumlah}')" title="Edit jumlah"><i class="fas fa-users"></i>${r.jumlah} Orang</div>
+          <div class="rc-mi" onclick="quickEdit('${r.id}','tempat','${esc(r.tempat)}')" title="Edit tempat"><i class="fas fa-location-dot"></i>${highlight(esc(r.tempat),q)}</div>
+        </div>
+
+        <div class="rc-dbox">
+          <div class="rc-dlabel"><i class="fas fa-note-sticky"></i>Catatan</div>
+          <div class="rc-note">"${highlight(esc(note),q)}"</div>
+        </div>
+
+        <div class="rc-dbox" style="margin-bottom:0;">
+          <div class="rc-dlabel"><i class="fas fa-utensils"></i>Menu Tambahan</div>
+          <table class="menu-tbl">${menuRows}</table>
+        </div>
+      </div>
+
+      <div class="rc-actions">
+        <button class="ra ra-wa"  onclick="prepareChat('${r.id}')"><i class="fab fa-whatsapp"></i> WA</button>
+        <button class="ra ra-edit" onclick="editRequest('${r.id}')"><i class="fas fa-pen"></i> Edit</button>
+        <button class="ra ra-rej"  onclick="rejectRequest('${r.id}','${esc(r.nama)}')"><i class="fas fa-times"></i> Tolak</button>
+        <button class="ra ra-app rc-full" onclick="approveRequest('${r.id}')"><i class="fas fa-check"></i> Terima & Approve</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  QUICK INLINE EDIT
+// ============================================================
+async function quickEdit(id,field,cur){
+  const labels={nama:'Nama Tamu',date:'Tanggal',jam:'Jam',jumlah:'Jumlah Orang',tempat:'Tempat'};
+  const types={date:'date',jumlah:'number'};
+  const {value}=await Swal.fire({
+    title:`Edit ${labels[field]||field}`,input:types[field]||'text',inputValue:cur||'',
+    showCancelButton:true,confirmButtonText:'Simpan',confirmButtonColor:'var(--primary)',
+    inputValidator:v=>{if(!v)return 'Nilai tidak boleh kosong';}
+  });
+  if(value!==undefined&&value!==null){
+    await db.collection('reservation_requests').doc(id).update({[field]:value});
+    Swal.fire({icon:'success',title:'Diperbarui!',timer:900,showConfirmButton:false});
+  }
+}
+
+// ============================================================
+//  FULL EDIT  (semua field + menu checklist UI)
+// ============================================================
+async function editRequest(id){
+  const r=requestsCache.find(x=>x.id===id);
+  if(!r) return;
+
+  const menuHtml=globalMenuList.length
+    ? globalMenuList.map(m=>{
+        const ex=(r.menus||[]).find(x=>x.name===m.id);
+        const chk=ex?'checked':'';
+        const qty=ex?ex.quantity:1;
+        return `<div class="mc-item">
+          <input type="checkbox" id="mc_${esc(m.id)}" ${chk} onchange="toggleQty('${esc(m.id)}')">
+          <label for="mc_${esc(m.id)}">${esc(m.id)}</label>
+          <input type="number" id="mq_${esc(m.id)}" class="mc-qty" value="${qty}" min="1" style="${chk?'':'opacity:.3;pointer-events:none;'}">
+          <span class="mc-price">Rp ${fmtIDR(m.price)}</span>
+        </div>`;
+      }).join('')
+    : '<p style="color:#aaa;font-size:.82rem;padding:8px;">Belum ada menu di Data Master</p>';
+
+  const {value:form}=await Swal.fire({
+    title:'<strong>Edit Reservasi</strong>',width:560,
+    html:`<style>.swal2-popup .swal2-input{margin:3px 0;font-family:inherit;font-size:.87rem;}</style>
+
+```
+  <div style="text-align:left;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nama Tamu</div><input id="ef-nama" class="swal2-input" value="${esc(r.nama||'')}" style="width:100%;"></div>
+      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nomor HP</div><input id="ef-hp" class="swal2-input" value="${esc(r.nomorHp||'')}" style="width:100%;"></div>
+      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Tanggal</div><input id="ef-date" type="date" class="swal2-input" value="${r.date||''}" style="width:100%;"></div>
+      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Jam</div><input id="ef-jam" class="swal2-input" value="${esc(r.jam||'')}" style="width:100%;"></div>
+      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Jumlah Orang</div><input id="ef-jml" type="number" class="swal2-input" value="${r.jumlah||''}" style="width:100%;"></div>
+      <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Tempat</div><input id="ef-tpt" class="swal2-input" value="${esc(r.tempat||'')}" style="width:100%;"></div>
+    </div>
+    <div style="margin-bottom:8px;"><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Catatan</div><input id="ef-note" class="swal2-input" value="${esc(r.note||r.catatan||r.pesan||r.tambahan||'')}" style="width:100%;"></div>
+    <div><div style="font-size:.73rem;font-weight:700;color:#888;margin-bottom:6px;"><i class="fas fa-utensils"></i> Menu Tambahan</div><div class="menu-cl">${menuHtml}</div></div>
+  </div>`,
+showCancelButton:true,confirmButtonText:'Simpan',cancelButtonText:'Batal',confirmButtonColor:'var(--primary)',
+preConfirm:()=>{
+  const nama=document.getElementById('ef-nama').value.trim();
+  if(!nama) return Swal.showValidationMessage('Nama wajib diisi');
+  const menus=[];
+  globalMenuList.forEach(m=>{
+    const cb=document.getElementById(`mc_${m.id}`);
+    const qEl=document.getElementById(`mq_${m.id}`);
+    if(cb&&cb.checked&&qEl) menus.push({name:m.id,quantity:parseInt(qEl.value)||1});
+  });
+  return {
+    nama,
+    nomorHp:document.getElementById('ef-hp').value.trim(),
+    date:document.getElementById('ef-date').value,
+    jam:document.getElementById('ef-jam').value.trim(),
+    jumlah:document.getElementById('ef-jml').value,
+    tempat:document.getElementById('ef-tpt').value.trim(),
+    note:document.getElementById('ef-note').value.trim(),
+    menus
+  };
+}
+```
+
+});
+
+if(form){
+try{
+await db.collection(‘reservation_requests’).doc(id).update(form);
+Swal.fire({icon:‘success’,title:‘Tersimpan!’,timer:1200,showConfirmButton:false});
+}catch(e){Swal.fire(‘Error’,e.message,‘error’);}
+}
+}
+
+function toggleQty(mid){
+const cb=document.getElementById(`mc_${mid}`);
+const qEl=document.getElementById(`mq_${mid}`);
+if(!cb||!qEl) return;
+qEl.style.opacity=cb.checked?‘1’:’.3’;
+qEl.style.pointerEvents=cb.checked?‘auto’:‘none’;
+}
+
+// ============================================================
+//  REJECT
+// ============================================================
+async function rejectRequest(id,nama){
+const r=await Swal.fire({title:‘Tolak Permintaan?’,html:`Permintaan dari <b>${esc(nama)}</b> akan dihapus.`,icon:‘warning’,showCancelButton:true,confirmButtonColor:‘var(–danger)’,confirmButtonText:‘Ya, Tolak’,cancelButtonText:‘Batal’});
+if(r.isConfirmed){
+await db.collection(‘reservation_requests’).doc(id).delete();
+Swal.fire({icon:‘info’,title:‘Ditolak’,timer:1000,showConfirmButton:false});
+}
+}
+
+// ============================================================
+//  WHATSAPP
+// ============================================================
+function prepareChat(reqId){
+const r=requestsCache.find(x=>x.id===reqId);
+if(!r) return;
+let tot=0,details=’’;
+(r.menus||[]).forEach(m=>{
+const price=globalMenuPrices[m.name]||0;
+const sub=price*m.quantity; tot+=sub;
+details+=`- ${m.name} (${m.quantity}x) : Rp ${fmtIDR(sub)}\n`;
+});
+const ppn=Math.round(tot*.1), total=tot+ppn, dp=Math.round(total*.5);
+const note=r.note||r.catatan||r.pesan||r.tambahan||’’;
+const msg=`Halo Kak *${r.nama}* 👋,\nTerima kasih telah melakukan reservasi di *Dolan Sawah*.\n\n`+
+`Berikut detail pesanan Anda:\n🗓 Tanggal: ${r.date}\n⏰ Jam: ${r.jam}\n👥 Jumlah: ${r.jumlah} Orang\n📍 Tempat: ${r.tempat}\n`+
+(note?`📝 Note: ${note}\n`:’’)+
+`\n*Rincian Pesanan:*\n${details||'- Belum ada menu -\n'}\n`+
+`----------------------------------\nSubtotal    : Rp ${fmtIDR(tot)}\nPPN (10%) : Rp ${fmtIDR(ppn)}\n*Total         : Rp ${fmtIDR(total)}*\n\n`+
+`----------------------------------\nMohon DP (50%) sebesar:\n👉 *Rp ${fmtIDR(dp)}*\n\n`+
+`Transfer ke:\n✅ *BRI* 185301000258568\na.n *CV Dolan Sawah*\n\nKirimkan bukti transfer untuk kami proses ✅. Terima kasih! 🙏`;
+let phone=(r.nomorHp||’’).replace(/\D/g,’’);
+if(phone.startsWith(‘0’)) phone=‘62’+phone.slice(1);
+window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,’_blank’);
+}
+
+// ============================================================
+//  APPROVE
+// ============================================================
+async function approveRequest(id){
+const r=requestsCache.find(x=>x.id===id);
+if(!r) return;
+const {value:form}=await Swal.fire({
+title:’<strong>Setujui Reservasi</strong>’,
+html:`<p style="color:#666;margin-bottom:14px;font-size:.88rem;">Untuk <b>${esc(r.nama)}</b> — ${r.date} ${r.jam}</p> <div style="text-align:left;font-size:.73rem;font-weight:700;color:#888;margin-bottom:3px;">Nominal DP (Rp)</div> <input id="sw-dp" type="number" class="swal2-input" placeholder="Masukkan nominal"> <div style="text-align:left;font-size:.73rem;font-weight:700;color:#888;margin:8px 0 3px;">Metode Pembayaran</div> <select id="sw-pay" class="swal2-input"><option>Transfer BRI</option><option>QRIS</option><option>Cash</option></select>`,
+showCancelButton:true,confirmButtonText:‘Approve & Simpan’,cancelButtonText:‘Batal’,confirmButtonColor:‘var(–primary)’,
+preConfirm:()=>{
+const dp=document.getElementById(‘sw-dp’).value;
+if(!dp||dp<=0) return Swal.showValidationMessage(‘DP wajib diisi’);
+return{dp:parseInt(dp),pay:document.getElementById(‘sw-pay’).value};
+}
+});
+if(form){
+try{
+const data={…r,status:‘approved’,dp:form.dp,tipeDp:form.pay,approvedAt:firebase.firestore.FieldValue.serverTimestamp()};
+delete data.id; delete data._idx; delete data._score;
+await db.collection(‘reservations’).add(data);
+await db.collection(‘reservation_requests’).doc(id).delete();
+window.open(`https://dewatalaptop.github.io/reservasids?autoOpen=true&date=${r.date}&search=${encodeURIComponent(r.nama)}`,’_blank’);
+Swal.fire({icon:‘success’,title:‘Berhasil!’,timer:1800,showConfirmButton:false});
+}catch(e){Swal.fire(‘Error’,e.message,‘error’);}
+}
+}
+
+// ============================================================
+//  RESERVATIONS + DASHBOARD
+// ============================================================
+function listenReservations(){
+unsubRes=db.collection(‘reservations’).onSnapshot(snap=>{
+reservationsCache=snap.docs.map(d=>({id:d.id,…d.data()}));
+renderDashboard(); renderCalendar(); updateCharts();
+});
+}
+
+function renderDashboard(){
+const today=todayStr();
+const todayPax=reservationsCache.filter(x=>x.date===today).reduce((s,x)=>s+(parseInt(x.jumlah)||0),0);
+document.getElementById(‘stat-today-pax’).textContent=todayPax;
+const now=new Date();
+document.getElementById(‘stat-month-total’).textContent=reservationsCache.filter(x=>{
+const d=new Date(x.date); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+}).length;
+
+const sorted=[…reservationsCache].sort((a,b)=>(b.approvedAt?.seconds||0)-(a.approvedAt?.seconds||0)).slice(0,6);
+const list=document.getElementById(‘recent-list’);
+list.innerHTML=sorted.length?sorted.map(r=>` <div class="res-item"> <div><b>${esc(r.nama)}</b><div style="font-size:.78rem;color:var(--muted);margin-top:2px;">${r.date} · ${r.jam} · ${esc(r.tempat)}</div></div> <span style="background:var(--primary-light);color:var(--primary-dark);padding:3px 11px;border-radius:20px;font-size:.78rem;font-weight:700;">${r.jumlah} pax</span> </div>`).join(’’):’<p style="color:#aaa;text-align:center;padding:18px 0;font-size:.88rem;">Belum ada reservasi</p>’;
+}
+
+// ============================================================
+//  CALENDAR
+// ============================================================
+function renderCalendar(){
+const grid=document.getElementById(‘calendar-grid’);
+grid.innerHTML=’’;
+const MNAMES=[‘Januari’,‘Februari’,‘Maret’,‘April’,‘Mei’,‘Juni’,‘Juli’,‘Agustus’,‘September’,‘Oktober’,‘November’,‘Desember’];
+document.getElementById(‘cal-month-year’).textContent=`${MNAMES[currentMonth]} ${currentYear}`;
+const firstDay=new Date(currentYear,currentMonth,1).getDay();
+const days=new Date(currentYear,currentMonth+1,0).getDate();
+const today=todayStr();
+for(let i=0;i<firstDay;i++) grid.innerHTML+=`<div></div>`;
+for(let d=1;d<=days;d++){
+const ds=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const cnt=reservationsCache.filter(x=>x.date===ds).length;
+const dots=cnt?`<div class="cal-dots">${'<span class="cal-dot"></span>'.repeat(Math.min(cnt,3))}</div>`:’’;
+grid.innerHTML+=`<div class="cal-day ${ds===today?'today':''}" onclick="showDateDetail('${ds}',this)">${d}${dots}</div>`;
+}
+}
+
+function showDateDetail(date,el){
+document.querySelectorAll(’.cal-day’).forEach(d=>d.classList.remove(‘selected’));
+el?.classList.add(‘selected’);
+const fmt=new Date(date+‘T00:00:00’).toLocaleDateString(‘id-ID’,{weekday:‘long’,day:‘numeric’,month:‘long’,year:‘numeric’});
+document.getElementById(‘selected-date-text’).textContent=fmt;
+const filtered=reservationsCache.filter(x=>x.date===date);
+const list=document.getElementById(‘day-detail-list’);
+list.innerHTML=filtered.length?filtered.map(r=>` <div class="res-item"> <div><b>${r.jam} — ${esc(r.nama)}</b><div style="font-size:.78rem;color:var(--muted);margin-top:2px;">${esc(r.tempat)} · ${r.jumlah} pax</div></div> <button style="background:#dcfce7;color:#16a34a;border:none;border-radius:8px;padding:6px 13px;cursor:pointer;font-weight:700;font-size:.78rem;" onclick="window.open('https://wa.me/${(r.nomorHp||'').replace(/\D/g,'')}')"><i class="fab fa-whatsapp"></i> WA</button> </div>`).join(’’):’<p style="color:#aaa;padding:16px 0;font-size:.88rem;">Tidak ada reservasi.</p>’;
+}
+
+function changeMonth(dir){
+currentMonth+=dir;
+if(currentMonth<0){currentMonth=11;currentYear–;}
+if(currentMonth>11){currentMonth=0;currentYear++;}
+renderCalendar();
+}
+
+// ============================================================
+//  CHARTS
+// ============================================================
+function updateCharts(){
+document.getElementById(‘chart-year-lbl’).textContent=currentYear;
+const barData=Array(12).fill(0);
+reservationsCache.forEach(r=>{const d=new Date(r.date);if(d.getFullYear()===currentYear)barData[d.getMonth()]++;});
+const c1=document.getElementById(‘chartBar’).getContext(‘2d’);
+if(myBarChart) myBarChart.destroy();
+myBarChart=new Chart(c1,{type:‘bar’,data:{
+labels:[‘Jan’,‘Feb’,‘Mar’,‘Apr’,‘Mei’,‘Jun’,‘Jul’,‘Agu’,‘Sep’,‘Okt’,‘Nov’,‘Des’],
+datasets:[{label:‘Reservasi’,data:barData,backgroundColor:’#2a9d8f’,borderRadius:6,borderSkipped:false}]
+},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+const locMap={};
+reservationsCache.forEach(r=>{if(r.tempat)locMap[r.tempat]=(locMap[r.tempat]||0)+1;});
+const c2=document.getElementById(‘chartDoughnut’).getContext(‘2d’);
+if(myDoughnut) myDoughnut.destroy();
+myDoughnut=new Chart(c2,{type:‘doughnut’,data:{
+labels:Object.keys(locMap),
+datasets:[{data:Object.values(locMap),backgroundColor:[’#2a9d8f’,’#264653’,’#e9c46a’,’#e76f51’,’#10b981’,’#f59e0b’]}]
+},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:‘bottom’,labels:{font:{size:11},padding:10}}}}});
+}
+
+// ============================================================
+//  MASTER DATA ACTIONS
+// ============================================================
+async function addMenu(){
+const {value:name}=await Swal.fire({title:‘Nama Menu Baru’,input:‘text’,showCancelButton:true});
+if(!name) return;
+const {value:price}=await Swal.fire({title:`Harga "${name}"`,input:‘number’,showCancelButton:true});
+if(name&&price){await db.collection(‘menus’).doc(name).set({price:parseInt(price)});Swal.fire({icon:‘success’,title:‘Ditambahkan!’,timer:1000,showConfirmButton:false});}
+}
+async function editMenuPrice(name,cur){
+const {value:p}=await Swal.fire({title:`Edit Harga: ${name}`,input:‘number’,inputValue:cur,showCancelButton:true,confirmButtonText:‘Simpan’});
+if(p!==undefined&&p!==null&&p!==’’){await db.collection(‘menus’).doc(name).update({price:parseInt(p)});Swal.fire({icon:‘success’,title:‘Diperbarui!’,timer:900,showConfirmButton:false});}
+}
+async function addLocation(){
+const {value:name}=await Swal.fire({title:‘Nama Lokasi’,input:‘text’,showCancelButton:true});
+if(!name) return;
+const {value:cap}=await Swal.fire({title:‘Kapasitas (pax)’,input:‘number’,showCancelButton:true});
+if(name&&cap){await db.collection(‘locations’).add({name,capacity:parseInt(cap)});Swal.fire({icon:‘success’,title:‘Ditambahkan!’,timer:1000,showConfirmButton:false});}
+}
+function deleteDoc(col,id){
+Swal.fire({title:‘Hapus?’,icon:‘warning’,showCancelButton:true,confirmButtonColor:‘var(–danger)’,confirmButtonText:‘Hapus’})
+.then(r=>{if(r.isConfirmed) db.collection(col).doc(id).delete();});
+}
+
+// ============================================================
+//  UI
+// ============================================================
+function switchTab(tabId,el){
+document.querySelectorAll(’.section’).forEach(s=>s.classList.remove(‘active’));
+document.getElementById(‘tab-’+tabId).classList.add(‘active’);
+document.querySelectorAll(’.nav-item’).forEach(n=>n.classList.remove(‘active’));
+if(el) el.classList.add(‘active’);
+if(window.innerWidth<768) closeSidebar();
+}
+function toggleSidebar(){
+document.getElementById(‘sidebar’).classList.toggle(‘open’);
+document.getElementById(‘mobile-overlay’).classList.toggle(‘show’);
+}
+function closeSidebar(){
+document.getElementById(‘sidebar’).classList.remove(‘open’);
+document.getElementById(‘mobile-overlay’).classList.remove(‘show’);
+}
+</script>
+
+</body>
+</html>

@@ -212,6 +212,94 @@
     .mc-item label{flex:1;cursor:pointer;font-size:.87rem;}
     .mc-qty{width:52px;padding:4px 7px;border:1px solid #ddd;border-radius:6px;font-size:.82rem;text-align:center;font-family:inherit;}
     .mc-price{font-size:.74rem;color:var(--success);min-width:68px;text-align:right;}
+
+    /* ===== ERROR HANDLER SYSTEM ===== */
+    /* Toast — bottom right */
+    #err-toast{
+      position:fixed;bottom:24px;right:24px;z-index:99999;
+      display:flex;flex-direction:column;gap:8px;pointer-events:none;
+      max-width:380px;
+    }
+    .err-toast-item{
+      background:#1e1e1e;color:#fff;border-radius:12px;padding:14px 16px;
+      box-shadow:0 8px 28px rgba(0,0,0,.35);pointer-events:all;
+      display:flex;align-items:flex-start;gap:12px;
+      animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);
+      border-left:4px solid var(--danger);
+    }
+    @keyframes toastIn{from{opacity:0;transform:translateX(60px);}to{opacity:1;transform:translateX(0);}}
+    @keyframes toastOut{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(60px);}}
+    .err-toast-icon{font-size:1rem;color:#ff6b6b;flex-shrink:0;margin-top:1px;}
+    .err-toast-body{flex:1;min-width:0;}
+    .err-toast-title{font-weight:700;font-size:.82rem;color:#ff6b6b;margin-bottom:3px;}
+    .err-toast-msg{font-size:.78rem;color:#ccc;line-height:1.4;word-break:break-word;}
+    .err-toast-loc{font-size:.7rem;color:#888;margin-top:4px;font-family:monospace;}
+    .err-toast-actions{display:flex;gap:6px;margin-top:8px;}
+    .err-toast-btn{padding:4px 10px;border:none;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+    .err-toast-copy{background:#2a9d8f;color:#fff;}.err-toast-copy:hover{background:#21867a;}
+    .err-toast-detail{background:#333;color:#ccc;}.err-toast-detail:hover{background:#444;}
+    .err-toast-close{background:none;border:none;color:#666;font-size:.8rem;cursor:pointer;padding:2px;margin-left:auto;flex-shrink:0;}
+    .err-toast-close:hover{color:#fff;}
+
+    /* Error Log Panel */
+    #err-panel{
+      position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.6);
+      display:none;align-items:center;justify-content:center;padding:20px;
+    }
+    #err-panel.show{display:flex;}
+    .err-panel-box{
+      background:#0f1923;border-radius:16px;width:100%;max-width:680px;max-height:88vh;
+      display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6);
+      border:1px solid #2a3a4a;overflow:hidden;
+    }
+    .err-panel-head{
+      padding:18px 22px;border-bottom:1px solid #1e2e3e;
+      display:flex;align-items:center;gap:12px;
+    }
+    .err-panel-head h3{color:#ff6b6b;font-size:1rem;font-weight:700;flex:1;}
+    .err-panel-tabs{display:flex;gap:2px;background:#0a1018;border-radius:8px;padding:3px;}
+    .err-tab{padding:5px 14px;border:none;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;color:#888;background:none;transition:all .15s;}
+    .err-tab.active{background:#1e2e3e;color:#fff;}
+    .err-panel-close{background:none;border:none;color:#666;font-size:1rem;cursor:pointer;padding:4px;}
+    .err-panel-close:hover{color:#fff;}
+    .err-panel-body{flex:1;overflow-y:auto;padding:16px 22px;}
+    .err-log-item{
+      background:#0a1018;border-radius:10px;padding:14px 16px;margin-bottom:10px;
+      border-left:3px solid var(--danger);
+    }
+    .err-log-item.warn{border-left-color:var(--warning);}
+    .err-log-item.info{border-left-color:var(--primary);}
+    .err-log-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+    .err-log-badge{display:flex;align-items:center;gap:7px;}
+    .err-log-type{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:2px 8px;border-radius:20px;}
+    .err-log-type.error{background:rgba(231,111,81,.2);color:#ff8060;}
+    .err-log-type.warn{background:rgba(245,158,11,.2);color:#fbbf24;}
+    .err-log-type.info{background:rgba(42,157,143,.2);color:#34d399;}
+    .err-log-fn{font-size:.73rem;font-family:monospace;color:#60a5fa;background:#1e3050;padding:2px 8px;border-radius:4px;}
+    .err-log-time{font-size:.7rem;color:#4a5568;white-space:nowrap;}
+    .err-log-message{font-size:.82rem;color:#e2e8f0;line-height:1.5;word-break:break-word;margin-bottom:6px;}
+    .err-log-stack{font-size:.72rem;font-family:monospace;color:#6b7280;background:#070d14;border-radius:6px;padding:8px 12px;white-space:pre-wrap;word-break:break-word;max-height:120px;overflow-y:auto;display:none;}
+    .err-log-stack.show{display:block;}
+    .err-log-actions{display:flex;gap:6px;margin-top:8px;}
+    .elb{padding:4px 10px;border:none;border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;}
+    .elb-copy{background:#2a9d8f;color:#fff;}.elb-copy:hover{background:#21867a;}
+    .elb-stack{background:#1e2e3e;color:#94a3b8;}.elb-stack:hover{background:#2a3a4e;}
+    .err-panel-foot{padding:14px 22px;border-top:1px solid #1e2e3e;display:flex;gap:8px;align-items:center;}
+    .err-panel-foot span{font-size:.78rem;color:#4a5568;flex:1;}
+    .epf-btn{padding:7px 16px;border:none;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;transition:all .15s;}
+    .epf-copy-all{background:#2a9d8f;color:#fff;}.epf-copy-all:hover{background:#21867a;}
+    .epf-clear{background:#1e2e3e;color:#94a3b8;}.epf-clear:hover{background:#2a3a4e;}
+
+    /* Error nav button */
+    #err-nav-btn{
+      position:fixed;bottom:24px;left:24px;z-index:9999;
+      background:#1e1e1e;color:#ff6b6b;border:1px solid #333;
+      border-radius:10px;padding:8px 14px;font-size:.75rem;font-weight:700;
+      cursor:pointer;font-family:inherit;display:none;align-items:center;gap:7px;
+      box-shadow:var(--sh-md);transition:all .2s;
+    }
+    #err-nav-btn:hover{background:#2a1515;border-color:#ff6b6b;}
+    #err-nav-btn .err-count{background:var(--danger);color:#fff;border-radius:20px;padding:1px 7px;font-size:.68rem;}
   </style>
 
 </head>
@@ -354,6 +442,42 @@
   </div>
 </div>
 
+<!-- ERROR TOAST CONTAINER -->
+
+<div id="err-toast"></div>
+
+<!-- ERROR NAV BUTTON -->
+
+<button id="err-nav-btn" onclick="showErrPanel()">
+  <i class="fas fa-bug"></i> Error Log <span class="err-count" id="err-count">0</span>
+</button>
+
+<!-- ERROR LOG PANEL -->
+
+<div id="err-panel">
+  <div class="err-panel-box">
+    <div class="err-panel-head">
+      <i class="fas fa-bug" style="color:#ff6b6b;font-size:1.1rem;"></i>
+      <h3>Error Log — Dolan Sawah</h3>
+      <div class="err-panel-tabs">
+        <button class="err-tab active" onclick="filterErrLog('all',this)">Semua</button>
+        <button class="err-tab" onclick="filterErrLog('error',this)">Error</button>
+        <button class="err-tab" onclick="filterErrLog('warn',this)">Warning</button>
+        <button class="err-tab" onclick="filterErrLog('info',this)">Info</button>
+      </div>
+      <button class="err-panel-close" onclick="hideErrPanel()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="err-panel-body" id="err-panel-body">
+      <p style="color:#4a5568;text-align:center;padding:30px 0;font-size:.88rem;">Belum ada log error</p>
+    </div>
+    <div class="err-panel-foot">
+      <span id="err-panel-count">0 entri</span>
+      <button class="epf-btn epf-copy-all" onclick="copyAllErrors()"><i class="fas fa-copy"></i> Copy Semua</button>
+      <button class="epf-btn epf-clear" onclick="clearErrors()"><i class="fas fa-trash"></i> Hapus Log</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 //  FIREBASE
@@ -368,6 +492,243 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 const auth = firebase.auth();
+
+// ============================================================
+//  ERROR HANDLER SYSTEM
+// ============================================================
+const ErrorLog = (() => {
+  let entries = [];
+  let currentFilter = 'all';
+
+  // Format timestamp
+  const ts = () => new Date().toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const tsDate = () => new Date().toLocaleString('id-ID');
+
+  // Detect calling function name from stack
+  function getCallerFn(stack) {
+    if (!stack) return 'unknown';
+    const lines = stack.split('\n');
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      // skip internal error handler frames
+      if (line.includes('ErrorLog') || line.includes('logError') || line.includes('window.onerror') || line.includes('unhandledrejection')) continue;
+      const match = line.match(/at\s+([\w$.]+)\s*\(/);
+      if (match && match[1] !== 'anonymous') return match[1];
+      const matchAnon = line.match(/at\s+(.+?):\d+:\d+/);
+      if (matchAnon) return matchAnon[1].split('/').pop();
+    }
+    return 'anonymous';
+  }
+
+  function add(type, message, fnName, stack, extra) {
+    const entry = {
+      id: Date.now() + Math.random(),
+      type,       // 'error' | 'warn' | 'info'
+      message: String(message),
+      fn: fnName || 'unknown',
+      stack: stack || '',
+      extra: extra || null,
+      time: ts(),
+      timeDate: tsDate()
+    };
+    entries.unshift(entry);
+    if (entries.length > 100) entries = entries.slice(0, 100); // cap at 100
+
+    updateNavBtn();
+    renderPanel();
+    if (type === 'error') showToast(entry);
+    return entry;
+  }
+
+  function updateNavBtn() {
+    const btn = document.getElementById('err-nav-btn');
+    const cnt = document.getElementById('err-count');
+    const errorCount = entries.filter(e => e.type === 'error').length;
+    if (btn) {
+      btn.style.display = entries.length ? 'flex' : 'none';
+      if (cnt) cnt.textContent = entries.length;
+    }
+  }
+
+  function renderPanel() {
+    const body = document.getElementById('err-panel-body');
+    const countEl = document.getElementById('err-panel-count');
+    if (!body) return;
+
+    const filtered = currentFilter === 'all' ? entries : entries.filter(e => e.type === currentFilter);
+    if (countEl) countEl.textContent = `${filtered.length} entri${filtered.length !== entries.length ? ` (total ${entries.length})` : ''}`;
+
+    if (!filtered.length) {
+      body.innerHTML = '<p style="color:#4a5568;text-align:center;padding:30px 0;font-size:.88rem;">Tidak ada log untuk filter ini</p>';
+      return;
+    }
+
+    body.innerHTML = filtered.map(e => {
+      const stackId = 'stk_' + e.id.toString().replace('.','');
+      const stackHtml = e.stack
+        ? `<div class="err-log-stack" id="${stackId}">${escHtml(e.stack)}</div>
+           <button class="elb elb-stack" onclick="toggleStack('${stackId}')"><i class="fas fa-code"></i> Stack Trace</button>`
+        : '';
+
+      return `<div class="err-log-item ${e.type}">
+        <div class="err-log-meta">
+          <div class="err-log-badge">
+            <span class="err-log-type ${e.type}">${e.type.toUpperCase()}</span>
+            <span class="err-log-fn"><i class="fas fa-at" style="font-size:.65rem;"></i> ${escHtml(e.fn)}</span>
+          </div>
+          <span class="err-log-time">${e.time}</span>
+        </div>
+        <div class="err-log-message">${escHtml(e.message)}</div>
+        ${e.extra ? `<div style="font-size:.73rem;color:#60a5fa;font-family:monospace;margin-bottom:4px;">Context: ${escHtml(JSON.stringify(e.extra))}</div>` : ''}
+        ${stackHtml}
+        <div class="err-log-actions">
+          <button class="elb elb-copy" onclick="copyEntry(${JSON.stringify(e.id)})"><i class="fas fa-copy"></i> Copy</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function showToast(entry) {
+    const container = document.getElementById('err-toast');
+    if (!container) return;
+
+    const toastId = 'toast_' + entry.id.toString().replace('.','');
+    const el = document.createElement('div');
+    el.className = 'err-toast-item';
+    el.id = toastId;
+    el.innerHTML = `
+      <i class="fas fa-circle-exclamation err-toast-icon"></i>
+      <div class="err-toast-body">
+        <div class="err-toast-title">ERROR — ${escHtml(entry.fn)}</div>
+        <div class="err-toast-msg">${escHtml(entry.message.substring(0, 120))}${entry.message.length > 120 ? '...' : ''}</div>
+        <div class="err-toast-loc">${entry.time}</div>
+        <div class="err-toast-actions">
+          <button class="err-toast-btn err-toast-copy" onclick="copyEntry(${JSON.stringify(entry.id)})"><i class="fas fa-copy"></i> Copy Error</button>
+          <button class="err-toast-btn err-toast-detail" onclick="showErrPanel()"><i class="fas fa-list"></i> Detail</button>
+        </div>
+      </div>
+      <button class="err-toast-close" onclick="dismissToast('${toastId}')"><i class="fas fa-times"></i></button>`;
+
+    container.appendChild(el);
+
+    // Auto dismiss after 8s
+    setTimeout(() => dismissToast(toastId), 8000);
+  }
+
+  // Public API
+  return {
+    error(message, fnName, stack, extra) { return add('error', message, fnName, stack, extra); },
+    warn(message, fnName, extra)         { return add('warn', message, fnName, '', extra); },
+    info(message, fnName, extra)         { return add('info', message, fnName, '', extra); },
+    getEntries()  { return entries; },
+    getFiltered() { return currentFilter==='all' ? entries : entries.filter(e=>e.type===currentFilter); },
+    setFilter(f)  { currentFilter=f; renderPanel(); },
+    clear()       { entries=[]; currentFilter='all'; updateNavBtn(); renderPanel(); },
+    getCallerFn,
+    renderPanel,
+    getAllAsText() {
+      return entries.map(e =>
+        `[${ e.timeDate }] [${e.type.toUpperCase()}] @ ${e.fn}\n` +
+        `Message: ${e.message}\n` +
+        (e.extra ? `Context: ${JSON.stringify(e.extra)}\n` : '') +
+        (e.stack ? `Stack:\n${e.stack}\n` : '') +
+        `---`
+      ).join('\n\n');
+    }
+  };
+})();
+
+// Helper untuk escape HTML dalam error log
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ── Global error catchers ──
+window.onerror = function(msg, src, line, col, err) {
+  const fn = err ? ErrorLog.getCallerFn(err.stack) : 'window';
+  ErrorLog.error(
+    `${msg} (${src.split('/').pop()}:${line}:${col})`,
+    fn,
+    err ? err.stack : '',
+    null
+  );
+  return false;
+};
+
+window.addEventListener('unhandledrejection', e => {
+  const reason = e.reason;
+  const msg    = reason?.message || String(reason) || 'Unhandled Promise Rejection';
+  const stack  = reason?.stack   || '';
+  const fn     = ErrorLog.getCallerFn(stack) || 'Promise';
+  ErrorLog.error(`[Promise] ${msg}`, fn, stack, null);
+});
+
+// ── Error Panel UI functions ──
+function showErrPanel()  { document.getElementById('err-panel').classList.add('show'); }
+function hideErrPanel()  { document.getElementById('err-panel').classList.remove('show'); }
+function dismissToast(id){ const el=document.getElementById(id); if(el){el.style.animation='toastOut .25s ease forwards';setTimeout(()=>el.remove(),250);} }
+function toggleStack(id) { const el=document.getElementById(id); if(el) el.classList.toggle('show'); }
+
+function filterErrLog(type, btn) {
+  ErrorLog.setFilter(type);
+  document.querySelectorAll('.err-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function copyEntry(id) {
+  const entry = ErrorLog.getEntries().find(e => e.id === id);
+  if (!entry) return;
+  const text =
+    `=== DOLAN SAWAH ERROR REPORT ===\n` +
+    `Time     : ${entry.timeDate}\n` +
+    `Type     : ${entry.type.toUpperCase()}\n` +
+    `Function : ${entry.fn}\n` +
+    `Message  : ${entry.message}\n` +
+    (entry.extra ? `Context  : ${JSON.stringify(entry.extra)}\n` : '') +
+    (entry.stack ? `\nStack Trace:\n${entry.stack}\n` : '') +
+    `================================`;
+  navigator.clipboard.writeText(text).then(() => {
+    Swal.fire({icon:'success',title:'Disalin!',text:'Error report siap dikirim.',timer:1500,showConfirmButton:false});
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    Swal.fire({icon:'success',title:'Disalin!',timer:1200,showConfirmButton:false});
+  });
+}
+
+function copyAllErrors() {
+  const text = `=== DOLAN SAWAH — FULL ERROR LOG ===\nDiekspor: ${new Date().toLocaleString('id-ID')}\n\n` + ErrorLog.getAllAsText();
+  navigator.clipboard.writeText(text).then(() => {
+    Swal.fire({icon:'success',title:'Semua log disalin!',text:`${ErrorLog.getEntries().length} entri telah disalin.`,timer:1800,showConfirmButton:false});
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    Swal.fire({icon:'success',title:'Disalin!',timer:1200,showConfirmButton:false});
+  });
+}
+
+function clearErrors() {
+  Swal.fire({title:'Hapus semua log?',icon:'question',showCancelButton:true,confirmButtonText:'Hapus',confirmButtonColor:'var(--danger)'})
+    .then(r => { if(r.isConfirmed) { ErrorLog.clear(); hideErrPanel(); } });
+}
+
+// Close panel on backdrop click
+document.getElementById('err-panel').addEventListener('click', function(e) {
+  if (e.target === this) hideErrPanel();
+});
+
+// ── Wrapped safe executor — pakai ini untuk semua operasi critical ──
+async function safe(fnName, fn, extra) {
+  try {
+    return await fn();
+  } catch(e) {
+    ErrorLog.error(e.message || String(e), fnName, e.stack, extra || null);
+    throw e; // re-throw supaya caller bisa handle juga
+  }
+}
 
 // ============================================================
 //  STATE — 3-LAYER ARCHITECTURE
@@ -612,7 +973,10 @@ async function handleLogin(){
   const e=document.getElementById('email').value, p=document.getElementById('password').value;
   if(!e||!p) return Swal.fire('Perhatian','Email & password wajib diisi.','warning');
   try{ await auth.signInWithEmailAndPassword(e,p); }
-  catch(err){ Swal.fire('Login Gagal',err.message,'error'); }
+  catch(err){
+    ErrorLog.error(err.message,'handleLogin',err.stack,{email:e});
+    Swal.fire('Login Gagal',err.message,'error');
+  }
 }
 function handleLogout(){
   Swal.fire({title:'Yakin logout?',icon:'question',showCancelButton:true,confirmButtonText:'Logout'})
@@ -634,35 +998,39 @@ function forceRefresh(){ Swal.fire({title:'Refreshing...',timer:700,didOpen:()=>
 // ============================================================
 function listenMasterData(){
   unsubMenus = db.collection('menus').onSnapshot(snap=>{
-    globalMenuPrices={}; globalMenuList=[];
-    const list=document.getElementById('master-menu-list');
-    list.innerHTML='';
-    snap.forEach(doc=>{
-      const d=doc.data();
-      globalMenuPrices[doc.id]=d.price||0;
-      globalMenuList.push({id:doc.id,price:d.price||0});
-      list.innerHTML+=`<div class="master-item">
-        <div><div style="font-weight:600;">${esc(doc.id)}</div><div style="font-size:.78rem;color:var(--success);">Rp ${fmtIDR(d.price)}</div></div>
-        <div class="m-acts">
-          <button class="bico e" onclick="editMenuPrice('${esc(doc.id)}',${d.price})"><i class="fas fa-pen"></i></button>
-          <button class="bico d" onclick="deleteDoc('menus','${doc.id}')"><i class="fas fa-trash"></i></button>
-        </div></div>`;
-    });
-    if(snap.empty) list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada menu</div>';
-  });
+    try {
+      globalMenuPrices={}; globalMenuList=[];
+      const list=document.getElementById('master-menu-list');
+      list.innerHTML='';
+      snap.forEach(doc=>{
+        const d=doc.data();
+        globalMenuPrices[doc.id]=d.price||0;
+        globalMenuList.push({id:doc.id,price:d.price||0});
+        list.innerHTML+=`<div class="master-item">
+          <div><div style="font-weight:600;">${esc(doc.id)}</div><div style="font-size:.78rem;color:var(--success);">Rp ${fmtIDR(d.price)}</div></div>
+          <div class="m-acts">
+            <button class="bico e" onclick="editMenuPrice('${esc(doc.id)}',${d.price})"><i class="fas fa-pen"></i></button>
+            <button class="bico d" onclick="deleteDoc('menus','${doc.id}')"><i class="fas fa-trash"></i></button>
+          </div></div>`;
+      });
+      if(snap.empty) list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada menu</div>';
+    } catch(e) { ErrorLog.error(e.message,'listenMasterData[menus]',e.stack); }
+  }, err => { ErrorLog.error(err.message,'listenMasterData[menus:snapshot]',err.stack); });
 
   unsubLoc = db.collection('locations').onSnapshot(snap=>{
-    const list=document.getElementById('master-location-list');
-    list.innerHTML='';
-    snap.forEach(doc=>{
-      const d=doc.data();
-      list.innerHTML+=`<div class="master-item">
-        <div><div style="font-weight:600;">${esc(d.name)}</div><div style="font-size:.78rem;color:var(--muted);">${d.capacity} pax</div></div>
-        <div class="m-acts"><button class="bico d" onclick="deleteDoc('locations','${doc.id}')"><i class="fas fa-trash"></i></button></div>
-      </div>`;
-    });
-    if(snap.empty) list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada lokasi</div>';
-  });
+    try {
+      const list=document.getElementById('master-location-list');
+      list.innerHTML='';
+      snap.forEach(doc=>{
+        const d=doc.data();
+        list.innerHTML+=`<div class="master-item">
+          <div><div style="font-weight:600;">${esc(d.name)}</div><div style="font-size:.78rem;color:var(--muted);">${d.capacity} pax</div></div>
+          <div class="m-acts"><button class="bico d" onclick="deleteDoc('locations','${doc.id}')"><i class="fas fa-trash"></i></button></div>
+        </div>`;
+      });
+      if(snap.empty) list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:.82rem;">Belum ada lokasi</div>';
+    } catch(e) { ErrorLog.error(e.message,'listenMasterData[locations]',e.stack); }
+  }, err => { ErrorLog.error(err.message,'listenMasterData[locations:snapshot]',err.stack); });
 }
 
 // ============================================================
@@ -670,17 +1038,19 @@ function listenMasterData(){
 // ============================================================
 function listenRequests(){
   unsubReq = db.collection('reservation_requests').orderBy('createdAt','desc').onSnapshot(snap=>{
-    requestsCache = snap.docs.map(d=>{
-      const r={id:d.id,...d.data()};
-      r._idx=buildIdx(r);
-      return r;
-    });
-    performSearch(currentQuery);
-    document.getElementById('stat-pending').textContent=requestsCache.length;
-    const badge=document.getElementById('sidebar-badge');
-    badge.textContent=requestsCache.length;
-    badge.style.display=requestsCache.length?'inline-block':'none';
-  });
+    try {
+      requestsCache = snap.docs.map(d=>{
+        const r={id:d.id,...d.data()};
+        r._idx=buildIdx(r);
+        return r;
+      });
+      performSearch(currentQuery);
+      document.getElementById('stat-pending').textContent=requestsCache.length;
+      const badge=document.getElementById('sidebar-badge');
+      badge.textContent=requestsCache.length;
+      badge.style.display=requestsCache.length?'inline-block':'none';
+    } catch(e) { ErrorLog.error(e.message,'listenRequests[snapshot]',e.stack); }
+  }, err => { ErrorLog.error(err.message,'listenRequests[snapshot:error]',err.stack,{hint:'Cek Firestore rules atau index'}); });
 }
 
 // ============================================================
@@ -690,67 +1060,72 @@ function renderInbox(data=requestsCache){
   const cont=document.getElementById('inbox-container');
   const q=currentQuery;
 
-  if(!data.length){
-    cont.innerHTML=`<div class="empty">
-      <i class="fas fa-inbox"></i>
-      <p>${q?'Tidak ada hasil pencarian':'Inbox kosong'}</p>
-      <small>${q?'Coba kata kunci lain atau tekan ESC':'Semua permintaan sudah diproses'}</small>
-    </div>`;
-    return;
-  }
-
-  cont.innerHTML=data.map(r=>{
-    const note=r.note||r.catatan||r.pesan||r.tambahan||'-';
-    const scoreTag=q&&r._score?`<span class="rc-score">★ ${r._score.toFixed(1)}</span>`:'';
-
-    let menuRows='<tr><td colspan="3" style="color:#aaa;font-style:italic;font-size:.78rem;">Tidak ada menu tambahan</td></tr>';
-    if(r.menus&&r.menus.length){
-      menuRows=r.menus.map(m=>{
-        const price=globalMenuPrices[m.name]||0;
-        return `<tr>
-          <td>${highlight(esc(m.name),q)}</td>
-          <td style="text-align:center;color:var(--primary);font-weight:700;">x${m.quantity}</td>
-          <td style="text-align:right;color:var(--success);">Rp ${fmtIDR(price*m.quantity)}</td>
-        </tr>`;
-      }).join('');
+  try {
+    if(!data.length){
+      cont.innerHTML=`<div class="empty">
+        <i class="fas fa-inbox"></i>
+        <p>${q?'Tidak ada hasil pencarian':'Inbox kosong'}</p>
+        <small>${q?'Coba kata kunci lain atau tekan ESC':'Semua permintaan sudah diproses'}</small>
+      </div>`;
+      return;
     }
 
-    return `<div class="request-card">
-      <div class="rc-body">
-        <div class="rc-header">
-          <div>
-            <div class="rc-name" onclick="quickEdit('${r.id}','nama','${esc(r.nama)}')" title="Klik untuk edit nama">${highlight(esc(r.nama),q)}</div>
-            <div class="rc-phone"><i class="fab fa-whatsapp"></i> ${highlight(esc(r.nomorHp||'-'),q)}</div>
+    cont.innerHTML=data.map(r=>{
+      const note=r.note||r.catatan||r.pesan||r.tambahan||'-';
+      const scoreTag=q&&r._score?`<span class="rc-score">★ ${r._score.toFixed(1)}</span>`:'';
+
+      let menuRows='<tr><td colspan="3" style="color:#aaa;font-style:italic;font-size:.78rem;">Tidak ada menu tambahan</td></tr>';
+      if(r.menus&&r.menus.length){
+        menuRows=r.menus.map(m=>{
+          const price=globalMenuPrices[m.name]||0;
+          return `<tr>
+            <td>${highlight(esc(m.name),q)}</td>
+            <td style="text-align:center;color:var(--primary);font-weight:700;">x${m.quantity}</td>
+            <td style="text-align:right;color:var(--success);">Rp ${fmtIDR(price*m.quantity)}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      return `<div class="request-card">
+        <div class="rc-body">
+          <div class="rc-header">
+            <div>
+              <div class="rc-name" onclick="quickEdit('${r.id}','nama','${esc(r.nama)}')" title="Klik untuk edit nama">${highlight(esc(r.nama),q)}</div>
+              <div class="rc-phone"><i class="fab fa-whatsapp"></i> ${highlight(esc(r.nomorHp||'-'),q)}</div>
+            </div>
+            <div class="rc-tags">${scoreTag}<span class="rc-via">${esc(r.via||'Web')}</span></div>
           </div>
-          <div class="rc-tags">${scoreTag}<span class="rc-via">${esc(r.via||'Web')}</span></div>
+
+          <div class="rc-meta">
+            <div class="rc-mi" onclick="quickEdit('${r.id}','date','${esc(r.date)}')" title="Edit tanggal"><i class="fas fa-calendar-day"></i>${highlight(esc(r.date),q)}</div>
+            <div class="rc-mi" onclick="quickEdit('${r.id}','jam','${esc(r.jam)}')" title="Edit jam"><i class="fas fa-clock"></i>${highlight(esc(r.jam),q)}</div>
+            <div class="rc-mi" onclick="quickEdit('${r.id}','jumlah','${r.jumlah}')" title="Edit jumlah"><i class="fas fa-users"></i>${r.jumlah} Orang</div>
+            <div class="rc-mi" onclick="quickEdit('${r.id}','tempat','${esc(r.tempat)}')" title="Edit tempat"><i class="fas fa-location-dot"></i>${highlight(esc(r.tempat),q)}</div>
+          </div>
+
+          <div class="rc-dbox">
+            <div class="rc-dlabel"><i class="fas fa-note-sticky"></i>Catatan</div>
+            <div class="rc-note">"${highlight(esc(note),q)}"</div>
+          </div>
+
+          <div class="rc-dbox" style="margin-bottom:0;">
+            <div class="rc-dlabel"><i class="fas fa-utensils"></i>Menu Tambahan</div>
+            <table class="menu-tbl">${menuRows}</table>
+          </div>
         </div>
 
-        <div class="rc-meta">
-          <div class="rc-mi" onclick="quickEdit('${r.id}','date','${esc(r.date)}')" title="Edit tanggal"><i class="fas fa-calendar-day"></i>${highlight(esc(r.date),q)}</div>
-          <div class="rc-mi" onclick="quickEdit('${r.id}','jam','${esc(r.jam)}')" title="Edit jam"><i class="fas fa-clock"></i>${highlight(esc(r.jam),q)}</div>
-          <div class="rc-mi" onclick="quickEdit('${r.id}','jumlah','${r.jumlah}')" title="Edit jumlah"><i class="fas fa-users"></i>${r.jumlah} Orang</div>
-          <div class="rc-mi" onclick="quickEdit('${r.id}','tempat','${esc(r.tempat)}')" title="Edit tempat"><i class="fas fa-location-dot"></i>${highlight(esc(r.tempat),q)}</div>
+        <div class="rc-actions">
+          <button class="ra ra-wa"  onclick="prepareChat('${r.id}')"><i class="fab fa-whatsapp"></i> WA</button>
+          <button class="ra ra-edit" onclick="editRequest('${r.id}')"><i class="fas fa-pen"></i> Edit</button>
+          <button class="ra ra-rej"  onclick="rejectRequest('${r.id}','${esc(r.nama)}')"><i class="fas fa-times"></i> Tolak</button>
+          <button class="ra ra-app rc-full" onclick="approveRequest('${r.id}')"><i class="fas fa-check"></i> Terima & Approve</button>
         </div>
-
-        <div class="rc-dbox">
-          <div class="rc-dlabel"><i class="fas fa-note-sticky"></i>Catatan</div>
-          <div class="rc-note">"${highlight(esc(note),q)}"</div>
-        </div>
-
-        <div class="rc-dbox" style="margin-bottom:0;">
-          <div class="rc-dlabel"><i class="fas fa-utensils"></i>Menu Tambahan</div>
-          <table class="menu-tbl">${menuRows}</table>
-        </div>
-      </div>
-
-      <div class="rc-actions">
-        <button class="ra ra-wa"  onclick="prepareChat('${r.id}')"><i class="fab fa-whatsapp"></i> WA</button>
-        <button class="ra ra-edit" onclick="editRequest('${r.id}')"><i class="fas fa-pen"></i> Edit</button>
-        <button class="ra ra-rej"  onclick="rejectRequest('${r.id}','${esc(r.nama)}')"><i class="fas fa-times"></i> Tolak</button>
-        <button class="ra ra-app rc-full" onclick="approveRequest('${r.id}')"><i class="fas fa-check"></i> Terima & Approve</button>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    }).join('');
+  } catch(e) {
+    ErrorLog.error(e.message, 'renderInbox', e.stack, {dataCount: data.length, query: q});
+    cont.innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation" style="color:var(--danger);opacity:1;"></i><p style="color:var(--danger);">Gagal render inbox</p><small>${escHtml(e.message)}</small></div>`;
+  }
 }
 
 // ============================================================
@@ -765,8 +1140,10 @@ async function quickEdit(id,field,cur){
     inputValidator:v=>{if(!v)return 'Nilai tidak boleh kosong';}
   });
   if(value!==undefined&&value!==null){
-    await db.collection('reservation_requests').doc(id).update({[field]:value});
-    Swal.fire({icon:'success',title:'Diperbarui!',timer:900,showConfirmButton:false});
+    await safe('quickEdit', async () => {
+      await db.collection('reservation_requests').doc(id).update({[field]:value});
+      Swal.fire({icon:'success',title:'Diperbarui!',timer:900,showConfirmButton:false});
+    }, {id, field, value});
   }
 }
 
@@ -834,10 +1211,10 @@ preConfirm:()=>{
 });
 
 if(form){
-try{
+await safe(‘editRequest’, async () => {
 await db.collection(‘reservation_requests’).doc(id).update(form);
 Swal.fire({icon:‘success’,title:‘Tersimpan!’,timer:1200,showConfirmButton:false});
-}catch(e){Swal.fire(‘Error’,e.message,‘error’);}
+}, {id, fields: Object.keys(form)});
 }
 }
 
@@ -855,8 +1232,10 @@ qEl.style.pointerEvents=cb.checked?‘auto’:‘none’;
 async function rejectRequest(id,nama){
 const r=await Swal.fire({title:‘Tolak Permintaan?’,html:`Permintaan dari <b>${esc(nama)}</b> akan dihapus.`,icon:‘warning’,showCancelButton:true,confirmButtonColor:‘var(–danger)’,confirmButtonText:‘Ya, Tolak’,cancelButtonText:‘Batal’});
 if(r.isConfirmed){
+await safe(‘rejectRequest’, async () => {
 await db.collection(‘reservation_requests’).doc(id).delete();
 Swal.fire({icon:‘info’,title:‘Ditolak’,timer:1000,showConfirmButton:false});
+}, {id, nama});
 }
 }
 
@@ -864,8 +1243,9 @@ Swal.fire({icon:‘info’,title:‘Ditolak’,timer:1000,showConfirmButton:fals
 //  WHATSAPP
 // ============================================================
 function prepareChat(reqId){
+try {
 const r=requestsCache.find(x=>x.id===reqId);
-if(!r) return;
+if(!r){ ErrorLog.warn(`prepareChat: ID "${reqId}" tidak ditemukan di cache`,‘prepareChat’,{reqId}); return; }
 let tot=0,details=’’;
 (r.menus||[]).forEach(m=>{
 const price=globalMenuPrices[m.name]||0;
@@ -882,8 +1262,13 @@ const msg=`Halo Kak *${r.nama}* 👋,\nTerima kasih telah melakukan reservasi di
 `----------------------------------\nMohon DP (50%) sebesar:\n👉 *Rp ${fmtIDR(dp)}*\n\n`+
 `Transfer ke:\n✅ *BRI* 185301000258568\na.n *CV Dolan Sawah*\n\nKirimkan bukti transfer untuk kami proses ✅. Terima kasih! 🙏`;
 let phone=(r.nomorHp||’’).replace(/\D/g,’’);
+if(!phone){ ErrorLog.warn(‘Nomor HP kosong’,‘prepareChat’,{nama:r.nama,id:reqId}); }
 if(phone.startsWith(‘0’)) phone=‘62’+phone.slice(1);
 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,’_blank’);
+} catch(e) {
+ErrorLog.error(e.message,‘prepareChat’,e.stack,{reqId});
+Swal.fire(‘Error’,’Gagal membuka WhatsApp: ’+e.message,‘error’);
+}
 }
 
 // ============================================================
@@ -903,14 +1288,14 @@ return{dp:parseInt(dp),pay:document.getElementById(‘sw-pay’).value};
 }
 });
 if(form){
-try{
+await safe(‘approveRequest’, async () => {
 const data={…r,status:‘approved’,dp:form.dp,tipeDp:form.pay,approvedAt:firebase.firestore.FieldValue.serverTimestamp()};
 delete data.id; delete data._idx; delete data._score;
 await db.collection(‘reservations’).add(data);
 await db.collection(‘reservation_requests’).doc(id).delete();
 window.open(`https://dewatalaptop.github.io/reservasids?autoOpen=true&date=${r.date}&search=${encodeURIComponent(r.nama)}`,’_blank’);
 Swal.fire({icon:‘success’,title:‘Berhasil!’,timer:1800,showConfirmButton:false});
-}catch(e){Swal.fire(‘Error’,e.message,‘error’);}
+}, {id, nama:r.nama, dp:form.dp});
 }
 }
 
@@ -919,12 +1304,15 @@ Swal.fire({icon:‘success’,title:‘Berhasil!’,timer:1800,showConfirmButton
 // ============================================================
 function listenReservations(){
 unsubRes=db.collection(‘reservations’).onSnapshot(snap=>{
+try {
 reservationsCache=snap.docs.map(d=>({id:d.id,…d.data()}));
 renderDashboard(); renderCalendar(); updateCharts();
-});
+} catch(e) { ErrorLog.error(e.message,‘listenReservations[render]’,e.stack); }
+}, err => { ErrorLog.error(err.message,‘listenReservations[snapshot]’,err.stack,{hint:‘Cek Firestore rules’}); });
 }
 
 function renderDashboard(){
+try {
 const today=todayStr();
 const todayPax=reservationsCache.filter(x=>x.date===today).reduce((s,x)=>s+(parseInt(x.jumlah)||0),0);
 document.getElementById(‘stat-today-pax’).textContent=todayPax;
@@ -933,9 +1321,17 @@ document.getElementById(‘stat-month-total’).textContent=reservationsCache.fi
 const d=new Date(x.date); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
 }).length;
 
-const sorted=[…reservationsCache].sort((a,b)=>(b.approvedAt?.seconds||0)-(a.approvedAt?.seconds||0)).slice(0,6);
-const list=document.getElementById(‘recent-list’);
-list.innerHTML=sorted.length?sorted.map(r=>` <div class="res-item"> <div><b>${esc(r.nama)}</b><div style="font-size:.78rem;color:var(--muted);margin-top:2px;">${r.date} · ${r.jam} · ${esc(r.tempat)}</div></div> <span style="background:var(--primary-light);color:var(--primary-dark);padding:3px 11px;border-radius:20px;font-size:.78rem;font-weight:700;">${r.jumlah} pax</span> </div>`).join(’’):’<p style="color:#aaa;text-align:center;padding:18px 0;font-size:.88rem;">Belum ada reservasi</p>’;
+```
+const sorted=[...reservationsCache].sort((a,b)=>(b.approvedAt?.seconds||0)-(a.approvedAt?.seconds||0)).slice(0,6);
+const list=document.getElementById('recent-list');
+list.innerHTML=sorted.length?sorted.map(r=>`
+  <div class="res-item">
+    <div><b>${esc(r.nama)}</b><div style="font-size:.78rem;color:var(--muted);margin-top:2px;">${r.date} · ${r.jam} · ${esc(r.tempat)}</div></div>
+    <span style="background:var(--primary-light);color:var(--primary-dark);padding:3px 11px;border-radius:20px;font-size:.78rem;font-weight:700;">${r.jumlah} pax</span>
+  </div>`).join(''):'<p style="color:#aaa;text-align:center;padding:18px 0;font-size:.88rem;">Belum ada reservasi</p>';
+```
+
+} catch(e) { ErrorLog.error(e.message,‘renderDashboard’,e.stack); }
 }
 
 // ============================================================
@@ -979,24 +1375,38 @@ renderCalendar();
 //  CHARTS
 // ============================================================
 function updateCharts(){
+try {
 document.getElementById(‘chart-year-lbl’).textContent=currentYear;
 const barData=Array(12).fill(0);
-reservationsCache.forEach(r=>{const d=new Date(r.date);if(d.getFullYear()===currentYear)barData[d.getMonth()]++;});
+reservationsCache.forEach(r=>{
+try {
+const d=new Date(r.date);
+if(d.getFullYear()===currentYear) barData[d.getMonth()]++;
+} catch(e){ ErrorLog.warn(`updateCharts: skip record dengan date invalid — "${r.date}"`,‘updateCharts’,{id:r.id}); }
+});
 const c1=document.getElementById(‘chartBar’).getContext(‘2d’);
 if(myBarChart) myBarChart.destroy();
 myBarChart=new Chart(c1,{type:‘bar’,data:{
 labels:[‘Jan’,‘Feb’,‘Mar’,‘Apr’,‘Mei’,‘Jun’,‘Jul’,‘Agu’,‘Sep’,‘Okt’,‘Nov’,‘Des’],
 datasets:[{label:‘Reservasi’,data:barData,backgroundColor:’#2a9d8f’,borderRadius:6,borderSkipped:false}]
 },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+} catch(e){ ErrorLog.error(e.message,‘updateCharts[bar]’,e.stack); }
 
+try {
 const locMap={};
 reservationsCache.forEach(r=>{if(r.tempat)locMap[r.tempat]=(locMap[r.tempat]||0)+1;});
 const c2=document.getElementById(‘chartDoughnut’).getContext(‘2d’);
 if(myDoughnut) myDoughnut.destroy();
+if(Object.keys(locMap).length===0){
+// No data — don’t render empty doughnut, just skip
+ErrorLog.info(‘updateCharts[doughnut]: tidak ada data lokasi untuk ditampilkan’,‘updateCharts’);
+return;
+}
 myDoughnut=new Chart(c2,{type:‘doughnut’,data:{
 labels:Object.keys(locMap),
 datasets:[{data:Object.values(locMap),backgroundColor:[’#2a9d8f’,’#264653’,’#e9c46a’,’#e76f51’,’#10b981’,’#f59e0b’]}]
 },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:‘bottom’,labels:{font:{size:11},padding:10}}}}});
+} catch(e){ ErrorLog.error(e.message,‘updateCharts[doughnut]’,e.stack); }
 }
 
 // ============================================================
@@ -1006,32 +1416,57 @@ async function addMenu(){
 const {value:name}=await Swal.fire({title:‘Nama Menu Baru’,input:‘text’,showCancelButton:true});
 if(!name) return;
 const {value:price}=await Swal.fire({title:`Harga "${name}"`,input:‘number’,showCancelButton:true});
-if(name&&price){await db.collection(‘menus’).doc(name).set({price:parseInt(price)});Swal.fire({icon:‘success’,title:‘Ditambahkan!’,timer:1000,showConfirmButton:false});}
+if(name&&price){
+await safe(‘addMenu’, async()=>{
+await db.collection(‘menus’).doc(name).set({price:parseInt(price)});
+Swal.fire({icon:‘success’,title:‘Ditambahkan!’,timer:1000,showConfirmButton:false});
+},{name, price});
 }
+}
+
 async function editMenuPrice(name,cur){
 const {value:p}=await Swal.fire({title:`Edit Harga: ${name}`,input:‘number’,inputValue:cur,showCancelButton:true,confirmButtonText:‘Simpan’});
-if(p!==undefined&&p!==null&&p!==’’){await db.collection(‘menus’).doc(name).update({price:parseInt(p)});Swal.fire({icon:‘success’,title:‘Diperbarui!’,timer:900,showConfirmButton:false});}
+if(p!==undefined&&p!==null&&p!==’’){
+await safe(‘editMenuPrice’, async()=>{
+await db.collection(‘menus’).doc(name).update({price:parseInt(p)});
+Swal.fire({icon:‘success’,title:‘Diperbarui!’,timer:900,showConfirmButton:false});
+},{name, oldPrice:cur, newPrice:p});
 }
+}
+
 async function addLocation(){
 const {value:name}=await Swal.fire({title:‘Nama Lokasi’,input:‘text’,showCancelButton:true});
 if(!name) return;
 const {value:cap}=await Swal.fire({title:‘Kapasitas (pax)’,input:‘number’,showCancelButton:true});
-if(name&&cap){await db.collection(‘locations’).add({name,capacity:parseInt(cap)});Swal.fire({icon:‘success’,title:‘Ditambahkan!’,timer:1000,showConfirmButton:false});}
+if(name&&cap){
+await safe(‘addLocation’, async()=>{
+await db.collection(‘locations’).add({name,capacity:parseInt(cap)});
+Swal.fire({icon:‘success’,title:‘Ditambahkan!’,timer:1000,showConfirmButton:false});
+},{name, capacity:cap});
 }
+}
+
 function deleteDoc(col,id){
 Swal.fire({title:‘Hapus?’,icon:‘warning’,showCancelButton:true,confirmButtonColor:‘var(–danger)’,confirmButtonText:‘Hapus’})
-.then(r=>{if(r.isConfirmed) db.collection(col).doc(id).delete();});
+.then(r=>{
+if(r.isConfirmed){
+safe(‘deleteDoc’, ()=>db.collection(col).doc(id).delete(), {collection:col, docId:id})
+.catch(()=>{}); // error sudah dicatat di safe()
+}
+});
 }
 
 // ============================================================
 //  UI
 // ============================================================
 function switchTab(tabId,el){
+try {
 document.querySelectorAll(’.section’).forEach(s=>s.classList.remove(‘active’));
 document.getElementById(‘tab-’+tabId).classList.add(‘active’);
 document.querySelectorAll(’.nav-item’).forEach(n=>n.classList.remove(‘active’));
 if(el) el.classList.add(‘active’);
 if(window.innerWidth<768) closeSidebar();
+} catch(e){ ErrorLog.error(e.message,‘switchTab’,e.stack,{tabId}); }
 }
 function toggleSidebar(){
 document.getElementById(‘sidebar’).classList.toggle(‘open’);
@@ -1041,6 +1476,12 @@ function closeSidebar(){
 document.getElementById(‘sidebar’).classList.remove(‘open’);
 document.getElementById(‘mobile-overlay’).classList.remove(‘show’);
 }
+
+// ============================================================
+//  ERROR HANDLER — log startup info
+// ============================================================
+ErrorLog.info(`Dashboard dimuat — ${new Date().toLocaleString('id-ID')}`, ‘init’);
+ErrorLog.info(`User Agent: ${navigator.userAgent.substring(0,80)}`, ‘init’);
 </script>
 
 </body>

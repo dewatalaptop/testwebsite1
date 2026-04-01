@@ -49,17 +49,20 @@
 
   .photo {
     width: 100%;
-    aspect-ratio: 1/1;
+    height: 220px;
     background: #ccc;
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* FIX: tidak merusak rasio */
   }
 
   .right {
@@ -92,8 +95,12 @@
     margin-left: 15px;
   }
 
-  .info p {
-    margin: 5px 0;
+  .editable {
+    outline: none;
+  }
+
+  .editable:focus {
+    background: #fff3cd;
   }
 
   @media print {
@@ -120,19 +127,17 @@
     </div>
 
     <h2>Kontak</h2>
-    <div class="info">
-      <p>📞 083842516644</p>
-      <p>📧 nanaaniayz18@gmail.com</p>
-      <p>📍 Ngentak, Tingkir, Salatiga</p>
-    </div>
+    <p class="editable" contenteditable>📞 083842516644</p>
+    <p class="editable" contenteditable>📧 nanaaniayz18@gmail.com</p>
+    <p class="editable" contenteditable>📍 Ngentak, Tingkir, Salatiga</p>
 
     <h2>Data Diri</h2>
-    <p>27 Juni 1989</p>
-    <p>36 Tahun</p>
-    <p>WNI</p>
+    <p class="editable" contenteditable>27 Juni 1989</p>
+    <p class="editable" contenteditable>36 Tahun</p>
+    <p class="editable" contenteditable>WNI</p>
 
     <h2>Keahlian</h2>
-    <ul>
+    <ul contenteditable class="editable">
       <li>Teliti dan fokus pada detail</li>
       <li>Cepat belajar</li>
       <li>Sabar dan disiplin</li>
@@ -141,26 +146,26 @@
     </ul>
 
     <h2>Kesiapan</h2>
-    <ul>
+    <ul contenteditable class="editable">
       <li>Siap kerja shift</li>
       <li>Siap pekerjaan detail</li>
       <li>Siap kerja target</li>
     </ul>
 
     <h2>Data Tambahan</h2>
-    <p>Tinggi: 157 cm</p>
-    <p>Berat: 54 kg</p>
-    <p>SKCK: Pernah ada (siap diurus kembali)</p>
+    <p class="editable" contenteditable>Tinggi: 157 cm</p>
+    <p class="editable" contenteditable>Berat: 54 kg</p>
+    <p class="editable" contenteditable>SKCK: Pernah ada (siap diurus kembali)</p>
 
   </div>
 
   <!-- RIGHT -->
   <div class="right">
 
-    <h1>LISA KARNUSI</h1>
+    <h1 class="editable" contenteditable>LISA KARNUSI</h1>
 
     <h2>Profil</h2>
-    <p>
+    <p class="editable" contenteditable>
       Pekerja berpengalaman di bidang produksi dan pelayanan, terbiasa bekerja dengan target,
       teliti, sabar, dan disiplin. Siap bekerja dalam sistem shift serta memiliki komitmen
       untuk bekerja jangka panjang dan mengikuti seluruh SOP perusahaan.
@@ -168,41 +173,42 @@
 
     <h2>Pengalaman Kerja</h2>
 
-    <p><strong>Operator Produksi — SCI</strong> (2022–2023)</p>
-    <ul>
-      <li>Bekerja di bagian produksi</li>
-      <li>Mengerjakan target 10 barcode/jam</li>
-      <li>Terbiasa sistem kerja shift dan target</li>
-      <li>Menjaga ketelitian dalam proses produksi</li>
-    </ul>
+    <div contenteditable class="editable">
+      <p><strong>Operator Produksi — SCI</strong> (2022–2023)</p>
+      <ul>
+        <li>Bekerja di bagian produksi</li>
+        <li>Mengerjakan target 10 barcode/jam</li>
+        <li>Terbiasa sistem kerja shift dan target</li>
+        <li>Menjaga ketelitian dalam proses produksi</li>
+      </ul>
 
-    <p><strong>Bagian Dapur — Dolan Sawah</strong> (2024–2026)</p>
-    <ul>
-      <li>Membantu operasional dapur</li>
-      <li>Menjaga kebersihan dan kerapihan area kerja</li>
-      <li>Bekerja dalam tim dan mengikuti alur kerja harian</li>
-    </ul>
+      <p><strong>Bagian Dapur — Dolan Sawah</strong> (2024–2026)</p>
+      <ul>
+        <li>Membantu operasional dapur</li>
+        <li>Menjaga kebersihan area kerja</li>
+        <li>Bekerja dalam tim</li>
+      </ul>
 
-    <p><strong>Greeter — Panarama</strong> (2026–Sekarang)</p>
-    <ul>
-      <li>Menyambut dan mengarahkan customer</li>
-      <li>Memberikan informasi kepada pengunjung</li>
-      <li>Menjaga pelayanan yang ramah dan cepat</li>
-    </ul>
+      <p><strong>Greeter — Panarama</strong> (2026–Sekarang)</p>
+      <ul>
+        <li>Menyambut dan mengarahkan customer</li>
+        <li>Memberikan informasi</li>
+        <li>Pelayanan ramah dan cepat</li>
+      </ul>
 
-    <p><strong>Kasir — Starsteak</strong> (2014–2016)</p>
-    <ul>
-      <li>Melayani transaksi pelanggan</li>
-      <li>Membuat laporan keuangan harian</li>
-      <li>Membantu pelayanan customer</li>
-    </ul>
+      <p><strong>Kasir — Starsteak</strong> (2014–2016)</p>
+      <ul>
+        <li>Transaksi pelanggan</li>
+        <li>Laporan harian</li>
+        <li>Pelayanan customer</li>
+      </ul>
+    </div>
 
   </div>
 
 </div>
 
 <script>
-  // Load foto dari localStorage
   window.onload = function() {
     const saved = localStorage.getItem("cvPhoto");
     if (saved) {

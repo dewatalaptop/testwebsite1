@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surat Lamaran Kerja</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    padding: 20px;
+  }
+
+  .controls {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  button {
+    padding: 10px 15px;
+    border: none;
+    background: #1f2d3d;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .paper {
+    max-width: 800px;
+    margin: auto;
+    background: white;
+    padding: 40px;
+    line-height: 1.6;
+  }
+
+  .editable:focus {
+    background: #fff3cd;
+    outline: none;
+  }
+
+  .right {
+    text-align: right;
+  }
+
+  @media print {
+    .controls { display: none; }
+    body { background: white; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+  <button onclick="downloadPDF()">Download PDF</button>
+</div>
+
+<div class="paper" id="lamaran">
+
+  <div class="right editable" contenteditable>
+    Salatiga, [isi tanggal hari ini]
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Kepada Yth.<br>
+    HRD PT Waleta Asia Jaya<br>
+    di Tempat
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Dengan hormat,
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Saya yang bertanda tangan di bawah ini:
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Nama : Lisa Karnusi<br>
+    Tempat/Tanggal Lahir : Salatiga, 27 Juni 1989<br>
+    Alamat : Ngentak, Tingkir, Salatiga<br>
+    No. HP : 083842516644<br>
+    Email : nanaaniayz18@gmail.com
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Dengan ini saya mengajukan lamaran pekerjaan untuk posisi yang tersedia di perusahaan Bapak/Ibu pimpin.
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Saya memiliki pengalaman kerja di bidang produksi sebagai Operator di SCI, dimana saya terbiasa bekerja dengan target hingga 10 barcode per jam serta mengikuti sistem kerja shift. Selain itu, saya juga memiliki pengalaman di bidang pelayanan dan operasional dapur, sehingga saya terbiasa bekerja secara teliti, disiplin, dan dalam tim.
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Saya adalah pribadi yang sabar, cepat belajar, serta memiliki komitmen untuk bekerja secara jangka panjang dan mengikuti seluruh SOP perusahaan.
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Sebagai bahan pertimbangan, saya lampirkan CV dan dokumen pendukung lainnya. Saya berharap dapat diberikan kesempatan untuk mengikuti proses seleksi dan wawancara.
+  </div>
+
+  <br>
+
+  <div class="editable" contenteditable>
+    Demikian surat lamaran ini saya buat dengan sebenar-benarnya. Atas perhatian Bapak/Ibu, saya ucapkan terima kasih.
+  </div>
+
+  <br><br>
+
+  <div class="editable" contenteditable>
+    Hormat saya,
+    <br><br><br>
+    Lisa Karnusi
+  </div>
+
+</div>
+
+<script>
+function downloadPDF() {
+  const element = document.getElementById("lamaran");
+  html2pdf().from(element).save("Surat-Lamaran-Lisa-Karnusi.pdf");
+}
+</script>
+
+</body>
+</html>

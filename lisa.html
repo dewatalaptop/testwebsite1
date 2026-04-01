@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Lisa Karnusi</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #eef2f7;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .controls {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  button, input {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  button {
+    background: #1f2d3d;
+    color: white;
+  }
+
+  .cv {
+    max-width: 800px;
+    margin: auto;
+    background: white;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+  }
+
+  .left {
+    background: #1f2d3d;
+    color: white;
+    padding: 25px;
+  }
+
+  .photo {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background: #ccc;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .right {
+    padding: 30px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 26px;
+    color: #1f2d3d;
+  }
+
+  h2 {
+    font-size: 14px;
+    margin-top: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+  }
+
+  .left h2 {
+    border-color: #fff;
+  }
+
+  p, li {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  ul {
+    margin-left: 15px;
+  }
+
+  .info p {
+    margin: 5px 0;
+  }
+
+  @media print {
+    .controls { display: none; }
+    body { background: white; padding: 0; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+  <input type="file" accept="image/*" onchange="uploadPhoto(event)">
+  <button onclick="downloadPDF()">Download PDF</button>
+</div>
+
+<div class="cv" id="cv">
+
+  <!-- LEFT -->
+  <div class="left">
+
+    <div class="photo">
+      <img id="photoPreview">
+    </div>
+
+    <h2>Kontak</h2>
+    <div class="info">
+      <p>📞 083842516644</p>
+      <p>📧 nanaaniayz18@gmail.com</p>
+      <p>📍 Ngentak, Tingkir, Salatiga</p>
+    </div>
+
+    <h2>Data Diri</h2>
+    <p>27 Juni 1989</p>
+    <p>36 Tahun</p>
+    <p>WNI</p>
+
+    <h2>Keahlian</h2>
+    <ul>
+      <li>Teliti dan fokus pada detail</li>
+      <li>Cepat belajar</li>
+      <li>Sabar dan disiplin</li>
+      <li>Kerja tim & individu</li>
+      <li>Terbiasa target produksi</li>
+    </ul>
+
+    <h2>Kesiapan</h2>
+    <ul>
+      <li>Siap kerja shift</li>
+      <li>Siap pekerjaan detail</li>
+      <li>Siap kerja target</li>
+    </ul>
+
+    <h2>Data Tambahan</h2>
+    <p>Tinggi: 157 cm</p>
+    <p>Berat: 54 kg</p>
+    <p>SKCK: Pernah ada (siap diurus kembali)</p>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+
+    <h1>LISA KARNUSI</h1>
+
+    <h2>Profil</h2>
+    <p>
+      Pekerja berpengalaman di bidang produksi dan pelayanan, terbiasa bekerja dengan target,
+      teliti, sabar, dan disiplin. Siap bekerja dalam sistem shift serta memiliki komitmen
+      untuk bekerja jangka panjang dan mengikuti seluruh SOP perusahaan.
+    </p>
+
+    <h2>Pengalaman Kerja</h2>
+
+    <p><strong>Operator Produksi — SCI</strong> (2022–2023)</p>
+    <ul>
+      <li>Bekerja di bagian produksi</li>
+      <li>Mengerjakan target 10 barcode/jam</li>
+      <li>Terbiasa sistem kerja shift dan target</li>
+      <li>Menjaga ketelitian dalam proses produksi</li>
+    </ul>
+
+    <p><strong>Bagian Dapur — Dolan Sawah</strong> (2024–2026)</p>
+    <ul>
+      <li>Membantu operasional dapur</li>
+      <li>Menjaga kebersihan dan kerapihan area kerja</li>
+      <li>Bekerja dalam tim dan mengikuti alur kerja harian</li>
+    </ul>
+
+    <p><strong>Greeter — Panarama</strong> (2026–Sekarang)</p>
+    <ul>
+      <li>Menyambut dan mengarahkan customer</li>
+      <li>Memberikan informasi kepada pengunjung</li>
+      <li>Menjaga pelayanan yang ramah dan cepat</li>
+    </ul>
+
+    <p><strong>Kasir — Starsteak</strong> (2014–2016)</p>
+    <ul>
+      <li>Melayani transaksi pelanggan</li>
+      <li>Membuat laporan keuangan harian</li>
+      <li>Membantu pelayanan customer</li>
+    </ul>
+
+  </div>
+
+</div>
+
+<script>
+  // Load foto dari localStorage
+  window.onload = function() {
+    const saved = localStorage.getItem("cvPhoto");
+    if (saved) {
+      document.getElementById("photoPreview").src = saved;
+    }
+  }
+
+  function uploadPhoto(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const base64 = e.target.result;
+      document.getElementById("photoPreview").src = base64;
+      localStorage.setItem("cvPhoto", base64);
+    }
+
+    reader.readAsDataURL(file);
+  }
+
+  function downloadPDF() {
+    const element = document.getElementById("cv");
+    html2pdf().from(element).save("CV-Lisa-Karnusi.pdf");
+  }
+</script>
+
+</body>
+</html>

@@ -18,7 +18,12 @@
   --nav:62px;
 }
 
-*{box-sizing:border-box;margin:0;padding:0}
+/* RESET */
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
 body{
   font-family:sans-serif;
@@ -26,13 +31,14 @@ body{
   color:var(--text);
 }
 
+/* APP CONTAINER */
 #app{
   max-width:480px;
   margin:auto;
   min-height:100vh;
 }
 
-/* NAV */
+/* NAVIGATION */
 #bnav{
   position:fixed;
   bottom:0;
@@ -42,6 +48,7 @@ body{
   background:var(--bg2);
   display:flex;
   border-top:1px solid var(--border);
+  z-index:10;
 }
 
 .nb{
@@ -59,8 +66,9 @@ body{
 /* TAB */
 .tab{
   display:none;
-  padding:10px 10px 80px;
+  padding:12px 12px 80px;
 }
+
 .tab.active{
   display:block;
 }
@@ -81,6 +89,7 @@ body{
   border:1px solid var(--border);
   background:#00000020;
   color:var(--text);
+  margin-top:6px;
 }
 
 /* BUTTON */
@@ -91,7 +100,42 @@ body{
   background:var(--acc);
   color:#000;
   font-weight:bold;
-  margin-top:6px;
+  margin-top:8px;
+  width:100%;
+}
+
+/* SMALL BUTTON */
+.btn-sm{
+  padding:6px;
+  font-size:11px;
+}
+
+/* FLEX */
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+}
+
+/* TITLE */
+h2{
+  margin-bottom:10px;
+}
+
+/* TEXT SMALL */
+small{
+  color:var(--text2);
+}
+
+/* TAG BUTTON */
+.tag{
+  background:var(--acc);
+  color:#000;
+  border:none;
+  border-radius:6px;
+  padding:5px 8px;
+  font-size:11px;
 }
 </style>
 </head>
@@ -99,6 +143,9 @@ body{
 <body>
 <div id="app">
 
+<!-- =========================
+     NAVIGATION
+========================= -->
 <nav id="bnav">
   <button class="nb active" onclick="goTab('belanja',this)">Belanja</button>
   <button class="nb" onclick="goTab('penjualan',this)">Jual</button>
@@ -106,2203 +153,79 @@ body{
   <button class="nb" onclick="goTab('admin',this)">Admin</button>
 </nav>
 
+<!-- =========================
+     TAB BELANJA
+========================= -->
 <div id="tab-belanja" class="tab active">
   <h2>Belanja</h2>
-  <textarea id="bulk" class="inp"></textarea>
+
+  <textarea id="bulk" class="inp" placeholder="Contoh:
+ayam 5 kg
+cabai 2
+minyak 1 liter"></textarea>
+
   <button class="btn" onclick="process()">Tambah</button>
+
+  <!-- FAVORITE -->
+  <div id="favorite-wrap"></div>
+
+  <!-- LIST -->
   <div id="list"></div>
 </div>
 
+<!-- =========================
+     TAB PENJUALAN
+========================= -->
 <div id="tab-penjualan" class="tab">
   <h2>Penjualan</h2>
-  <textarea id="sale" class="inp"></textarea>
+
+  <textarea id="sale" class="inp" placeholder="Contoh:
+ayam geprek 5 100000"></textarea>
+
   <button class="btn" onclick="processSale()">Tambah</button>
+
   <div id="sale-list"></div>
 </div>
 
+<!-- =========================
+     TAB DASHBOARD
+========================= -->
 <div id="tab-dashboard" class="tab">
   <h2>Dashboard</h2>
   <div id="dash"></div>
 </div>
 
+<!-- =========================
+     TAB ADMIN
+========================= -->
 <div id="tab-admin" class="tab">
   <h2>Admin</h2>
-  <input id="new-cat" class="inp">
-  <button class="btn" onclick="addCat()">Tambah Kategori</button>
+
+  <!-- CATEGORY -->
+  <div class="card">
+    <b>Kategori</b>
+    <input id="new-cat" class="inp" placeholder="Tambah kategori">
+    <button class="btn" onclick="addCat()">Tambah</button>
+  </div>
+
   <div id="cats"></div>
+
+  <!-- MASTER -->
+  <div id="master-wrap"></div>
+
+  <!-- UNKNOWN -->
+  <div id="unknown-wrap"></div>
+
+  <!-- TOOLS -->
+  <div id="tools-wrap"></div>
 </div>
 
+<!-- =========================
+     SCRIPT START
+========================= -->
 <script>
 /* ================================
-   NAVIGATION (WAJIB ADA)
-================================ */
-function goTab(tab, el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
-
-  document.getElementById('tab-' + tab).classList.add('active');
-  el.classList.add('active');
-
-  if(tab === 'dashboard' && typeof renderDashboard === 'function'){
-    renderDashboard();
-  }
-}
-
-/* ================================
-   STORAGE LAYER
-================================ */
-const DB_KEY = {
-  categories: 'ds_categories',
-  purchases: 'ds_purchases',
-  sales: 'ds_sales',
-  items: 'ds_items'
-};
-
-const db = {
-  get(key, def = []) {
-    try {
-      const v = localStorage.getItem(key);
-      return v ? JSON.parse(v) : def;
-    } catch {
-      return def;
-    }
-  },
-  set(key, val) {
-    localStorage.setItem(key, JSON.stringify(val));
-  }
-};
-
-/* ================================
-   DEFAULT CATEGORY (REQUESTED)
-================================ */
-function seedCategories() {
-  if (!localStorage.getItem(DB_KEY.categories)) {
-    db.set(DB_KEY.categories, [
-      "Keringan",
-      "Ayam potong",
-      "Ayam kampung",
-      "Belanja Pusat",
-      "Sayur",
-      "Lainnya"
-    ]);
-  }
-}
-
-/* ================================
-   INIT BASE DATA
-================================ */
-function initData() {
-  seedCategories();
-
-  if (!localStorage.getItem(DB_KEY.purchases)) {
-    db.set(DB_KEY.purchases, []);
-  }
-
-  if (!localStorage.getItem(DB_KEY.sales)) {
-    db.set(DB_KEY.sales, []);
-  }
-
-  if (!localStorage.getItem(DB_KEY.items)) {
-    db.set(DB_KEY.items, []);
-  }
-}
-
-/* ================================
-   CATEGORY RENDER
-================================ */
-function renderCats() {
-  const cats = db.get(DB_KEY.categories);
-  const el = document.getElementById("cats");
-
-  el.innerHTML = cats.map((c, i) => `
-    <div class="card">
-      ${c}
-      <button onclick="renameCat(${i})">✏️</button>
-      <button onclick="deleteCat(${i})">🗑</button>
-    </div>
-  `).join("");
-}
-
-/* ================================
-   ADD CATEGORY
-================================ */
-function addCat() {
-  const input = document.getElementById("new-cat");
-  const val = input.value.trim();
-
-  if (!val) return;
-
-  const cats = db.get(DB_KEY.categories);
-
-  if (cats.includes(val)) {
-    alert("Kategori sudah ada");
-    return;
-  }
-
-  cats.push(val);
-  db.set(DB_KEY.categories, cats);
-
-  input.value = "";
-  renderCats();
-}
-
-/* ================================
-   RENAME CATEGORY
-================================ */
-function renameCat(index) {
-  const cats = db.get(DB_KEY.categories);
-  const oldName = cats[index];
-
-  const newName = prompt("Rename kategori:", oldName);
-  if (!newName) return;
-
-  cats[index] = newName;
-  db.set(DB_KEY.categories, cats);
-
-  let items = db.get(DB_KEY.items);
-  items = items.map(it => {
-    if (it.category === oldName) {
-      it.category = newName;
-    }
-    return it;
-  });
-
-  db.set(DB_KEY.items, items);
-
-  renderCats();
-}
-
-/* ================================
-   DELETE CATEGORY (SAFE)
-================================ */
-function deleteCat(index) {
-  const cats = db.get(DB_KEY.categories);
-  const name = cats[index];
-
-  if (!confirm("Hapus kategori: " + name + "?")) return;
-
-  cats.splice(index, 1);
-  db.set(DB_KEY.categories, cats);
-
-  let items = db.get(DB_KEY.items);
-  items = items.map(it => {
-    if (it.category === name) {
-      it.category = "Lainnya";
-    }
-    return it;
-  });
-
-  db.set(DB_KEY.items, items);
-
-  renderCats();
-}
-
-/* ================================
-   INIT
-================================ */
-initData();
-renderCats();
-/* ================================
-   UTIL NORMALIZE
-================================ */
-function normalize(text) {
-  return (text || "")
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, " ");
-}
-
-/* ================================
-   WORD → NUMBER
-================================ */
-const WORD_NUM = {
-  satu:1, dua:2, tiga:3, empat:4, lima:5,
-  enam:6, tujuh:7, delapan:8, sembilan:9, sepuluh:10
-};
-
-function wordToNumber(word){
-  return WORD_NUM[word] || null;
-}
-
-/* ================================
-   PARSER FLEXIBLE
-================================ */
-function parseInput(line){
-  line = normalize(line);
-  if (!line) return null;
-
-  let m;
-
-  // ayam 5 kg
-  m = line.match(/^(.+?)\s+([\d,.]+)\s*([a-zA-Z]*)$/);
-  if (m) {
-    return {
-      name: normalize(m[1]),
-      qty: parseFloat(m[2].replace(",", ".")) || 1,
-      unit: m[3] || "pcs"
-    };
-  }
-
-  // 5 kg ayam
-  m = line.match(/^([\d,.]+)\s*([a-zA-Z]*)\s+(.+)$/);
-  if (m) {
-    return {
-      name: normalize(m[3]),
-      qty: parseFloat(m[1]) || 1,
-      unit: m[2] || "pcs"
-    };
-  }
-
-  // ayam x5
-  m = line.match(/^(.+?)\s*x\s*([\d,.]+)$/);
-  if (m) {
-    return {
-      name: normalize(m[1]),
-      qty: parseFloat(m[2]) || 1,
-      unit: "pcs"
-    };
-  }
-
-  // ayam 5
-  m = line.match(/^(.+?)\s+([\d,.]+)$/);
-  if (m) {
-    return {
-      name: normalize(m[1]),
-      qty: parseFloat(m[2]) || 1,
-      unit: "pcs"
-    };
-  }
-
-  // ayam lima kg
-  m = line.match(/^(.+?)\s+(satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh)\s*([a-zA-Z]*)$/);
-  if (m) {
-    return {
-      name: normalize(m[1]),
-      qty: wordToNumber(m[2]) || 1,
-      unit: m[3] || "pcs"
-    };
-  }
-
-  // fallback
-  return {
-    name: line,
-    qty: 1,
-    unit: "pcs",
-    unknown: true
-  };
-}
-
-/* ================================
-   DEBUG (OPTIONAL)
-================================ */
-function debugParse(){
-  const txt = document.getElementById("bulk").value;
-  const lines = txt.split("\n");
-
-  console.log("=== PARSE RESULT ===");
-  lines.forEach(l=>{
-    console.log(parseInput(l));
-  });
-}
-/* ================================
-   AUTO CATEGORY (SMART BASIC)
-================================ */
-function autoCategory(name){
-  name = normalize(name);
-
-  if (name.includes("ayam kampung")) return "Ayam kampung";
-  if (name.includes("ayam")) return "Ayam potong";
-  if (name.includes("cabai") || name.includes("sayur") || name.includes("tomat")) return "Sayur";
-  if (name.includes("kering") || name.includes("kerupuk")) return "Keringan";
-
-  return "Lainnya";
-}
-
-/* ================================
-   PROCESS BELANJA
-================================ */
-function process(){
-  const text = document.getElementById("bulk").value;
-  const lines = text.split("\n").filter(l => l.trim());
-
-  if (!lines.length) {
-    alert("Input kosong");
-    return;
-  }
-
-  let data = db.get(DB_KEY.purchases);
-
-  lines.forEach(line => {
-    const p = parseInput(line);
-    if (!p) return;
-
-    const cat = autoCategory(p.name);
-
-    data.push({
-      id: Date.now() + Math.random(),
-      name: p.name,
-      qty: p.qty,
-      unit: p.unit,
-      category: cat,
-      date: new Date().toISOString()
-    });
-  });
-
-  db.set(DB_KEY.purchases, data);
-
-  document.getElementById("bulk").value = "";
-
-  renderList();
-}
-
-/* ================================
-   GROUP BY CATEGORY
-================================ */
-function groupByCategory(items){
-  const map = {};
-  items.forEach(it => {
-    if (!map[it.category]) map[it.category] = [];
-    map[it.category].push(it);
-  });
-  return map;
-}
-
-/* ================================
-   DELETE ITEM
-================================ */
-function deleteItem(id){
-  let data = db.get(DB_KEY.purchases);
-  data = data.filter(d => d.id !== id);
-  db.set(DB_KEY.purchases, data);
-  renderList();
-}
-
-/* ================================
-   RENDER BELANJA
-================================ */
-function renderList(){
-  const data = db.get(DB_KEY.purchases);
-
-  const el = document.getElementById("list");
-
-  if (!data.length){
-    el.innerHTML = "<p>Belum ada data</p>";
-    return;
-  }
-
-  const grouped = groupByCategory(data);
-
-  let html = "";
-
-  Object.keys(grouped).forEach(cat => {
-    html += `<div class="card"><b>${cat}</b>`;
-
-    grouped[cat].forEach(it => {
-      html += `
-        <div style="display:flex;justify-content:space-between;margin-top:5px">
-          <span>${it.name} (${it.qty}${it.unit})</span>
-          <button onclick="deleteItem(${it.id})">✕</button>
-        </div>
-      `;
-    });
-
-    html += `</div>`;
-  });
-
-  el.innerHTML = html;
-}
-
-/* ================================
-   INIT RENDER BELANJA
-================================ */
-renderList();
-/* ================================
-   PARSE PENJUALAN
-================================ */
-function parseSale(line){
-  line = normalize(line);
-  if (!line) return null;
-
-  const parts = line.split(" ");
-
-  if (parts.length < 3) {
-    return { error: true };
-  }
-
-  const revenue = parseFloat(parts.pop());
-  const qty = parseInt(parts.pop());
-  const name = parts.join(" ");
-
-  if (isNaN(qty) || isNaN(revenue)) {
-    return { error: true };
-  }
-
-  return {
-    name,
-    qty,
-    revenue
-  };
-}
-
-/* ================================
-   PROCESS PENJUALAN
-================================ */
-function processSale(){
-  const text = document.getElementById("sale").value;
-  const lines = text.split("\n").filter(l => l.trim());
-
-  if (!lines.length) {
-    alert("Input kosong");
-    return;
-  }
-
-  let data = db.get(DB_KEY.sales);
-
-  lines.forEach(line => {
-    const p = parseSale(line);
-    if (!p || p.error) return;
-
-    data.push({
-      id: Date.now() + Math.random(),
-      name: p.name,
-      qty: p.qty,
-      revenue: p.revenue,
-      date: new Date().toISOString()
-    });
-  });
-
-  db.set(DB_KEY.sales, data);
-
-  document.getElementById("sale").value = "";
-
-  renderSales();
-}
-
-/* ================================
-   GROUP SALES
-================================ */
-function groupSales(data){
-  const map = {};
-
-  data.forEach(s => {
-    if (!map[s.name]) {
-      map[s.name] = {
-        name: s.name,
-        qty: 0,
-        revenue: 0
-      };
-    }
-
-    map[s.name].qty += s.qty;
-    map[s.name].revenue += s.revenue;
-  });
-
-  return Object.values(map);
-}
-
-/* ================================
-   FORMAT RUPIAH
-================================ */
-function formatRp(n){
-  return "Rp " + Number(n || 0).toLocaleString("id-ID");
-}
-
-/* ================================
-   RENDER SALES
-================================ */
-function renderSales(){
-  const data = db.get(DB_KEY.sales);
-  const today = new Date().toISOString().slice(0,10);
-
-  const todaySales = data.filter(s => s.date.startsWith(today));
-
-  const el = document.getElementById("sale-list");
-
-  if (!todaySales.length){
-    el.innerHTML = "<p>Belum ada penjualan</p>";
-    return;
-  }
-
-  const grouped = groupSales(todaySales);
-
-  const totalRevenue = grouped.reduce((sum, g) => sum + g.revenue, 0);
-
-  let html = `
-    <div class="card">
-      <b>Total Revenue: ${formatRp(totalRevenue)}</b>
-    </div>
-  `;
-
-  grouped.forEach(g => {
-    html += `
-      <div class="card">
-        <div style="display:flex;justify-content:space-between">
-          <b>${g.name}</b>
-          <span>${formatRp(g.revenue)}</span>
-        </div>
-        <small>${g.qty} porsi</small>
-      </div>
-    `;
-  });
-
-  el.innerHTML = html;
-}
-
-/* ================================
-   INIT RENDER PENJUALAN
-================================ */
-renderSales();
-/* ================================
-   COST ESTIMATION (SIMPLE)
-================================ */
-/*
-  Karena kita belum punya resep detail,
-  kita pakai pendekatan sederhana:
-
-  cost = persentase dari revenue
-  default: 60% (bisa kamu ubah nanti)
-*/
-
-function estimateCost(revenue){
-  return revenue * 0.6;
-}
-
-/* ================================
-   CALCULATE PROFIT
-================================ */
-function calculateProfit(data){
-  return data.map(s => {
-    const cost = estimateCost(s.revenue);
-    const profit = s.revenue - cost;
-    const margin = s.revenue ? (profit / s.revenue * 100) : 0;
-
-    return {
-      ...s,
-      cost,
-      profit,
-      margin
-    };
-  });
-}
-
-/* ================================
-   RENDER SALES WITH PROFIT
-================================ */
-function renderSales(){
-  const data = db.get(DB_KEY.sales);
-  const today = new Date().toISOString().slice(0,10);
-
-  const todaySales = data.filter(s => s.date.startsWith(today));
-
-  const el = document.getElementById("sale-list");
-
-  if (!todaySales.length){
-    el.innerHTML = "<p>Belum ada penjualan</p>";
-    return;
-  }
-
-  const enriched = calculateProfit(todaySales);
-  const grouped = groupSales(enriched);
-
-  const totalRevenue = grouped.reduce((s,g)=>s+g.revenue,0);
-  const totalProfit = grouped.reduce((s,g)=>s+(g.revenue - estimateCost(g.revenue)),0);
-
-  let html = `
-    <div class="card">
-      <b>Revenue: ${formatRp(totalRevenue)}</b><br>
-      <b>Profit: ${formatRp(totalProfit)}</b>
-    </div>
-  `;
-
-  grouped.forEach(g => {
-    const cost = estimateCost(g.revenue);
-    const profit = g.revenue - cost;
-    const margin = g.revenue ? Math.round(profit / g.revenue * 100) : 0;
-
-    html += `
-      <div class="card">
-        <div style="display:flex;justify-content:space-between">
-          <b>${g.name}</b>
-          <span>${formatRp(g.revenue)}</span>
-        </div>
-        <small>
-          ${g.qty} porsi · 
-          Profit: ${formatRp(profit)} · 
-          ${margin}%
-        </small>
-      </div>
-    `;
-  });
-
-  el.innerHTML = html;
-}
-/* ================================
-   STOCK CALCULATION
-================================ */
-
-/*
-  Konsep:
-  - Belanja = stok masuk
-  - Penjualan = stok keluar (approx)
-*/
-
-/* ================================
-   HITUNG STOK MASUK
-================================ */
-function getStockIn(){
-  const purchases = db.get(DB_KEY.purchases);
-  const map = {};
-
-  purchases.forEach(p => {
-    const key = p.name;
-
-    if (!map[key]) {
-      map[key] = 0;
-    }
-
-    map[key] += p.qty;
-  });
-
-  return map;
-}
-
-/* ================================
-   HITUNG STOK KELUAR (ESTIMASI)
-================================ */
-/*
-  Karena belum ada resep,
-  kita pakai pendekatan sederhana:
-
-  1 menu = 1 unit bahan utama (sementara)
-*/
-function getStockOut(){
-  const sales = db.get(DB_KEY.sales);
-  const map = {};
-
-  sales.forEach(s => {
-    const key = s.name;
-
-    if (!map[key]) {
-      map[key] = 0;
-    }
-
-    map[key] += s.qty;
-  });
-
-  return map;
-}
-
-/* ================================
-   HITUNG STOK FINAL
-================================ */
-function getFinalStock(){
-  const stockIn = getStockIn();
-  const stockOut = getStockOut();
-
-  const allKeys = new Set([
-    ...Object.keys(stockIn),
-    ...Object.keys(stockOut)
-  ]);
-
-  const result = {};
-
-  allKeys.forEach(k => {
-    const masuk = stockIn[k] || 0;
-    const keluar = stockOut[k] || 0;
-
-    result[k] = masuk - keluar;
-  });
-
-  return result;
-}
-
-/* ================================
-   STOCK ALERT
-================================ */
-function getStockAlerts(){
-  const stock = getFinalStock();
-  const alerts = [];
-
-  Object.entries(stock).forEach(([name, qty]) => {
-    if (qty <= 0) {
-      alerts.push({
-        type: "danger",
-        msg: `${name} habis`
-      });
-    } else if (qty < 3) {
-      alerts.push({
-        type: "warning",
-        msg: `${name} hampir habis (${qty})`
-      });
-    }
-  });
-
-  return alerts;
-}
-/* ================================
-   DASHBOARD RENDER
-================================ */
-function renderDashboard(){
-
-  const purchases = db.get(DB_KEY.purchases);
-  const sales = db.get(DB_KEY.sales);
-
-  const today = new Date().toISOString().slice(0,10);
-
-  const todaySales = sales.filter(s => s.date.startsWith(today));
-  const todayPurchases = purchases.filter(p => p.date.startsWith(today));
-
-  const totalRevenue = todaySales.reduce((s, r) => s + r.revenue, 0);
-  const totalCost = totalRevenue * 0.6;
-  const totalProfit = totalRevenue - totalCost;
-
-  const stock = getFinalStock();
-  const alerts = getStockAlerts();
-
-  const el = document.getElementById("dash");
-
-  let html = "";
-
-  /* SUMMARY */
-  html += `
-    <div class="card">
-      <b>Revenue: ${formatRp(totalRevenue)}</b><br>
-      <b>Profit: ${formatRp(totalProfit)}</b><br>
-      <small>${todaySales.length} transaksi</small>
-    </div>
-  `;
-
-  /* STOCK */
-  html += `<div class="card"><b>Stok Saat Ini</b>`;
-
-  Object.entries(stock).forEach(([name, qty])=>{
-    html += `<div>${name}: ${qty}</div>`;
-  });
-
-  html += `</div>`;
-
-  /* ALERT */
-  if (alerts.length){
-    html += `<div class="card"><b>Alert</b>`;
-    alerts.forEach(a=>{
-      html += `<div>${a.msg}</div>`;
-    });
-    html += `</div>`;
-  }
-
-  /* PURCHASE INFO */
-  html += `
-    <div class="card">
-      <b>Belanja Hari Ini</b><br>
-      <small>${todayPurchases.length} item</small>
-    </div>
-  `;
-
-  el.innerHTML = html;
-}
-/* ================================
-   SMART ALERT ENGINE
-================================ */
-
-function generateSmartAlerts(){
-
-  const purchases = db.get(DB_KEY.purchases);
-  const sales = db.get(DB_KEY.sales);
-
-  const alerts = [];
-
-  /* ============================
-     1. MENU PALING LAKU
-  ============================ */
-  const menuMap = {};
-
-  sales.forEach(s => {
-    if (!menuMap[s.name]) {
-      menuMap[s.name] = 0;
-    }
-    menuMap[s.name] += s.qty;
-  });
-
-  const topMenu = Object.entries(menuMap)
-    .sort((a,b)=>b[1]-a[1])[0];
-
-  if (topMenu){
-    alerts.push({
-      type:"info",
-      msg:`🔥 Menu terlaris: ${topMenu[0]} (${topMenu[1]} porsi)`
-    });
-  }
-
-  /* ============================
-     2. KATEGORI DOMINAN
-  ============================ */
-  const catMap = {};
-
-  purchases.forEach(p => {
-    if (!catMap[p.category]) {
-      catMap[p.category] = 0;
-    }
-    catMap[p.category]++;
-  });
-
-  const topCat = Object.entries(catMap)
-    .sort((a,b)=>b[1]-a[1])[0];
-
-  if (topCat){
-    alerts.push({
-      type:"info",
-      msg:`📦 Kategori dominan: ${topCat[0]} (${topCat[1]} item)`
-    });
-  }
-
-  /* ============================
-     3. MENU KURANG LAKU
-  ============================ */
-  const lowMenu = Object.entries(menuMap)
-    .filter(([k,v])=>v < 3);
-
-  if (lowMenu.length){
-    alerts.push({
-      type:"warning",
-      msg:`⚠ Menu kurang laku: ${lowMenu.slice(0,2).map(m=>m[0]).join(", ")}`
-    });
-  }
-
-  /* ============================
-     4. BELANJA TERLALU BANYAK
-  ============================ */
-  if (purchases.length > 20){
-    alerts.push({
-      type:"warning",
-      msg:`⚠ Belanja hari ini cukup banyak (${purchases.length} item)`
-    });
-  }
-
-  /* ============================
-     5. TIDAK ADA PENJUALAN
-  ============================ */
-  if (sales.length === 0 && purchases.length > 0){
-    alerts.push({
-      type:"danger",
-      msg:`❗ Sudah belanja tapi belum ada penjualan`
-    });
-  }
-
-  return alerts;
-}
-
-/* ================================
-   UPDATE DASHBOARD ALERT
-================================ */
-
-function renderDashboard(){
-
-  const purchases = db.get(DB_KEY.purchases);
-  const sales = db.get(DB_KEY.sales);
-
-  const today = new Date().toISOString().slice(0,10);
-
-  const todaySales = sales.filter(s => s.date.startsWith(today));
-  const todayPurchases = purchases.filter(p => p.date.startsWith(today));
-
-  const totalRevenue = todaySales.reduce((s, r) => s + r.revenue, 0);
-  const totalCost = totalRevenue * 0.6;
-  const totalProfit = totalRevenue - totalCost;
-
-  const stock = getFinalStock();
-  const stockAlerts = getStockAlerts();
-  const smartAlerts = generateSmartAlerts();
-
-  const el = document.getElementById("dash");
-
-  let html = "";
-
-  /* SUMMARY */
-  html += `
-    <div class="card">
-      <b>Revenue: ${formatRp(totalRevenue)}</b><br>
-      <b>Profit: ${formatRp(totalProfit)}</b>
-    </div>
-  `;
-
-  /* STOCK */
-  html += `<div class="card"><b>Stok</b>`;
-  Object.entries(stock).forEach(([name, qty])=>{
-    html += `<div>${name}: ${qty}</div>`;
-  });
-  html += `</div>`;
-
-  /* ALERT */
-  const allAlerts = [...stockAlerts, ...smartAlerts];
-
-  if (allAlerts.length){
-    html += `<div class="card"><b>Insight</b>`;
-    allAlerts.forEach(a=>{
-      html += `<div>${a.msg}</div>`;
-    });
-    html += `</div>`;
-  }
-
-  /* PURCHASE */
-  html += `
-    <div class="card">
-      <b>Belanja Hari Ini</b><br>
-      <small>${todayPurchases.length} item</small>
-    </div>
-  `;
-
-  el.innerHTML = html;
-}
-/* ================================
-   MERGE BELANJA (ANTI DUPLIKAT)
-================================ */
-function mergePurchases(data){
-  const map = {};
-
-  data.forEach(p => {
-    const key = p.name + "_" + p.unit;
-
-    if (!map[key]) {
-      map[key] = { ...p };
-    } else {
-      map[key].qty += p.qty;
-    }
-  });
-
-  return Object.values(map);
-}
-
-/* ================================
-   MERGE PENJUALAN (ANTI DUPLIKAT)
-================================ */
-function mergeSales(data){
-  const map = {};
-
-  data.forEach(s => {
-    const key = s.name;
-
-    if (!map[key]) {
-      map[key] = { ...s };
-    } else {
-      map[key].qty += s.qty;
-      map[key].revenue += s.revenue;
-    }
-  });
-
-  return Object.values(map);
-}
-
-/* ================================
-   CLEAN DATA (RUN AFTER INPUT)
-================================ */
-function cleanData(){
-
-  /* CLEAN BELANJA */
-  let purchases = db.get(DB_KEY.purchases);
-  purchases = mergePurchases(purchases);
-  db.set(DB_KEY.purchases, purchases);
-
-  /* CLEAN SALES */
-  let sales = db.get(DB_KEY.sales);
-  sales = mergeSales(sales);
-  db.set(DB_KEY.sales, sales);
-
-}
-
-/* ================================
-   AUTO CLEAN HOOK
-================================ */
-
-/* Override process belanja */
-const _oldProcess = process;
-process = function(){
-  _oldProcess();
-  cleanData();
-  renderList();
-};
-
-/* Override process penjualan */
-const _oldSale = processSale;
-processSale = function(){
-  _oldSale();
-  cleanData();
-  renderSales();
-};
-/* ================================
-   EXPORT DATA (DOWNLOAD JSON)
-================================ */
-function exportData(){
-
-  const data = {
-    categories: db.get(DB_KEY.categories),
-    purchases: db.get(DB_KEY.purchases),
-    sales: db.get(DB_KEY.sales),
-    items: db.get(DB_KEY.items)
-  };
-
-  const blob = new Blob(
-    [JSON.stringify(data, null, 2)],
-    { type: "application/json" }
-  );
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "dolan-sawah-backup.json";
-  a.click();
-
-  URL.revokeObjectURL(url);
-
-  alert("Data berhasil di-export");
-}
-
-/* ================================
-   IMPORT DATA (UPLOAD JSON)
-================================ */
-function importData(event){
-
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = function(e){
-    try{
-      const data = JSON.parse(e.target.result);
-
-      if (!confirm("Import akan menimpa semua data. Lanjut?")) return;
-
-      if (data.categories) db.set(DB_KEY.categories, data.categories);
-      if (data.purchases) db.set(DB_KEY.purchases, data.purchases);
-      if (data.sales) db.set(DB_KEY.sales, data.sales);
-      if (data.items) db.set(DB_KEY.items, data.items);
-
-      alert("Import berhasil");
-
-      renderCats();
-      renderList();
-      renderSales();
-      renderDashboard();
-
-    }catch(err){
-      alert("File tidak valid");
-    }
-  };
-
-  reader.readAsText(file);
-}
-
-/* ================================
-   TRIGGER IMPORT FILE
-================================ */
-function triggerImport(){
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".json";
-  input.onchange = importData;
-  input.click();
-}
-/* ================================
-   AUTO FOCUS FLOW
-================================ */
-function setupAutoFocus(){
-
-  const bulk = document.getElementById("bulk");
-  const sale = document.getElementById("sale");
-
-  /* Enter untuk tambah belanja */
-  bulk.addEventListener("keydown", function(e){
-    if (e.key === "Enter" && e.ctrlKey){
-      e.preventDefault();
-      process();
-    }
-  });
-
-  /* Enter untuk tambah penjualan */
-  sale.addEventListener("keydown", function(e){
-    if (e.key === "Enter" && e.ctrlKey){
-      e.preventDefault();
-      processSale();
-    }
-  });
-}
-
-/* ================================
-   AUTO SCROLL (SETELAH TAMBAH)
-================================ */
-function scrollToBottom(){
-  window.scrollTo({
-    top: document.body.scrollHeight,
-    behavior: "smooth"
-  });
-}
-
-/* ================================
-   PATCH PROCESS (UX UPGRADE)
-================================ */
-const _oldProcess2 = process;
-process = function(){
-  _oldProcess2();
-  scrollToBottom();
-};
-
-const _oldSale2 = processSale;
-processSale = function(){
-  _oldSale2();
-  scrollToBottom();
-};
-
-/* ================================
-   QUICK CLEAR INPUT
-================================ */
-function clearInput(id){
-  const el = document.getElementById(id);
-  el.value = "";
-  el.focus();
-}
-
-/* ================================
-   DOUBLE CLICK CLEAR
-================================ */
-function setupQuickClear(){
-
-  const bulk = document.getElementById("bulk");
-  const sale = document.getElementById("sale");
-
-  bulk.addEventListener("dblclick", ()=>{
-    if (confirm("Kosongkan input belanja?")){
-      clearInput("bulk");
-    }
-  });
-
-  sale.addEventListener("dblclick", ()=>{
-    if (confirm("Kosongkan input penjualan?")){
-      clearInput("sale");
-    }
-  });
-}
-
-/* ================================
-   INIT UX
-================================ */
-setTimeout(()=>{
-  setupAutoFocus();
-  setupQuickClear();
-}, 300);
-/* ================================
-   TRACK USAGE (FREQUENCY)
-================================ */
-function trackUsage(type, name){
-  const key = "usage_" + type;
-  let data = db.get(key, {});
-
-  name = normalize(name);
-
-  data[name] = (data[name] || 0) + 1;
-
-  db.set(key, data);
-}
-
-/* ================================
-   GET TOP ITEMS
-================================ */
-function getTopItems(type, limit = 5){
-  const data = db.get("usage_" + type, {});
-
-  return Object.entries(data)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0, limit)
-    .map(x=>x[0]);
-}
-
-/* ================================
-   PATCH PROCESS (TRACK BELANJA)
-================================ */
-const _oldProcess3 = process;
-process = function(){
-  const text = document.getElementById("bulk").value;
-
-  text.split("\n").forEach(line=>{
-    const p = parseInput(line);
-    if (p) trackUsage("item", p.name);
-  });
-
-  _oldProcess3();
-};
-
-/* ================================
-   PATCH PROCESS SALE (TRACK MENU)
-================================ */
-const _oldSale3 = processSale;
-processSale = function(){
-
-  const text = document.getElementById("sale").value;
-
-  text.split("\n").forEach(line=>{
-    const p = parseSale(line);
-    if (p && !p.error) trackUsage("menu", p.name);
-  });
-
-  _oldSale3();
-};
-
-/* ================================
-   RENDER FAVORITES
-================================ */
-function renderFavorites(){
-
-  const favs = getTopItems("item", 6);
-
-  if (!favs.length) return;
-
-  const el = document.getElementById("tab-belanja");
-
-  const html = `
-    <div class="card">
-      <b>⚡ Favorit</b>
-      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:5px">
-        ${favs.map(f=>`
-          <button class="btn" style="font-size:11px;padding:6px"
-            onclick="quickAdd('${f}')">${f}</button>
-        `).join("")}
-      </div>
-    </div>
-  `;
-
-  el.insertAdjacentHTML("afterbegin", html);
-}
-
-/* ================================
-   QUICK ADD
-================================ */
-function quickAdd(name){
-  const el = document.getElementById("bulk");
-
-  el.value += (el.value ? "\n" : "") + name + " 1";
-
-  el.focus();
-}
-
-/* ================================
-   INIT FAVORITES
-================================ */
-setTimeout(()=>{
-  renderFavorites();
-}, 500);
-/* ================================
-   UNKNOWN STORAGE KEY
-================================ */
-DB_KEY.unknown_items = 'ds_unknown_items';
-DB_KEY.unknown_menu = 'ds_unknown_menu';
-
-/* ================================
-   ADD UNKNOWN ITEM
-================================ */
-function addUnknownItem(name){
-  name = normalize(name);
-
-  let data = db.get(DB_KEY.unknown_items);
-
-  if (data.find(x => x === name)) return;
-
-  data.push(name);
-  db.set(DB_KEY.unknown_items, data);
-}
-
-/* ================================
-   ADD UNKNOWN MENU
-================================ */
-function addUnknownMenu(name){
-  name = normalize(name);
-
-  let data = db.get(DB_KEY.unknown_menu);
-
-  if (data.find(x => x === name)) return;
-
-  data.push(name);
-  db.set(DB_KEY.unknown_menu, data);
-}
-
-/* ================================
-   PATCH BELANJA (DETECT UNKNOWN)
-================================ */
-const _oldProcess4 = process;
-process = function(){
-
-  const text = document.getElementById("bulk").value;
-
-  text.split("\n").forEach(line=>{
-    const p = parseInput(line);
-    if (!p) return;
-
-    /* belum ada di master */
-    const items = db.get(DB_KEY.items);
-
-    const found = items.find(i => i.name === p.name);
-
-    if (!found){
-      addUnknownItem(p.name);
-    }
-  });
-
-  _oldProcess4();
-};
-
-/* ================================
-   PATCH PENJUALAN (DETECT UNKNOWN)
-================================ */
-const _oldSale4 = processSale;
-processSale = function(){
-
-  const text = document.getElementById("sale").value;
-
-  text.split("\n").forEach(line=>{
-    const p = parseSale(line);
-    if (!p || p.error) return;
-
-    const menus = db.get(DB_KEY.items);
-
-    const found = menus.find(m => m.name === p.name);
-
-    if (!found){
-      addUnknownMenu(p.name);
-    }
-  });
-
-  _oldSale4();
-};
-
-/* ================================
-   RENDER UNKNOWN IN ADMIN
-================================ */
-function renderUnknown(){
-
-  const unkItems = db.get(DB_KEY.unknown_items);
-  const unkMenu = db.get(DB_KEY.unknown_menu);
-
-  const el = document.getElementById("tab-admin");
-
-  let html = `<div class="card"><b>❓ Unknown Items</b>`;
-
-  unkItems.forEach(name=>{
-    html += `
-      <div style="display:flex;justify-content:space-between">
-        <span>${name}</span>
-        <button onclick="convertItem('${name}')">✔</button>
-      </div>
-    `;
-  });
-
-  html += `</div>`;
-
-  html += `<div class="card"><b>❓ Unknown Menu</b>`;
-
-  unkMenu.forEach(name=>{
-    html += `
-      <div style="display:flex;justify-content:space-between">
-        <span>${name}</span>
-        <button onclick="convertMenu('${name}')">✔</button>
-      </div>
-    `;
-  });
-
-  html += `</div>`;
-
-  el.insertAdjacentHTML("beforeend", html);
-}
-
-/* ================================
-   CONVERT TO MASTER
-================================ */
-function convertItem(name){
-  let items = db.get(DB_KEY.items);
-
-  items.push({
-    name: name,
-    category: "Lainnya"
-  });
-
-  db.set(DB_KEY.items, items);
-
-  let unk = db.get(DB_KEY.unknown_items);
-  unk = unk.filter(x=>x!==name);
-  db.set(DB_KEY.unknown_items, unk);
-
-  alert("Item masuk master");
-  location.reload();
-}
-
-function convertMenu(name){
-  let items = db.get(DB_KEY.items);
-
-  items.push({
-    name: name,
-    category: "Menu"
-  });
-
-  db.set(DB_KEY.items, items);
-
-  let unk = db.get(DB_KEY.unknown_menu);
-  unk = unk.filter(x=>x!==name);
-  db.set(DB_KEY.unknown_menu, unk);
-
-  alert("Menu masuk master");
-  location.reload();
-}
-
-/* ================================
-   INIT UNKNOWN
-================================ */
-setTimeout(()=>{
-  renderUnknown();
-}, 600);
-/* ================================
-   RENDER MASTER ITEMS
-================================ */
-function renderMasterItems(){
-
-  const items = db.get(DB_KEY.items);
-  const cats = db.get(DB_KEY.categories);
-
-  const el = document.getElementById("tab-admin");
-
-  let html = `<div class="card"><b>📦 Master Items</b>`;
-
-  if (!items.length){
-    html += `<p style="margin-top:8px">Belum ada data</p>`;
-  }
-
-  items.forEach((it, i)=>{
-    html += `
-      <div style="margin-top:6px;padding:6px;border:1px solid var(--border)">
-        <div style="display:flex;justify-content:space-between">
-          <b>${it.name}</b>
-          <button onclick="deleteMasterItem(${i})">🗑</button>
-        </div>
-
-        <div style="margin-top:5px">
-          <select onchange="changeCategory(${i}, this.value)">
-            ${cats.map(c=>`
-              <option value="${c}" ${it.category===c?'selected':''}>${c}</option>
-            `).join("")}
-          </select>
-        </div>
-      </div>
-    `;
-  });
-
-  html += `</div>`;
-
-  el.insertAdjacentHTML("beforeend", html);
-}
-
-/* ================================
-   DELETE MASTER ITEM
-================================ */
-function deleteMasterItem(index){
-
-  let items = db.get(DB_KEY.items);
-
-  if (!confirm("Hapus item ini?")) return;
-
-  items.splice(index,1);
-  db.set(DB_KEY.items, items);
-
-  alert("Item dihapus");
-  location.reload();
-}
-
-/* ================================
-   CHANGE CATEGORY
-================================ */
-function changeCategory(index, newCat){
-
-  let items = db.get(DB_KEY.items);
-
-  items[index].category = newCat;
-
-  db.set(DB_KEY.items, items);
-
-  alert("Kategori diupdate");
-}
-
-/* ================================
-   ADD MASTER ITEM MANUAL
-================================ */
-function addMasterItem(){
-
-  const name = prompt("Nama item:");
-  if (!name) return;
-
-  const cats = db.get(DB_KEY.categories);
-
-  const category = prompt("Kategori:\n" + cats.join(", "), cats[0]);
-
-  let items = db.get(DB_KEY.items);
-
-  items.push({
-    name: normalize(name),
-    category: category || "Lainnya"
-  });
-
-  db.set(DB_KEY.items, items);
-
-  alert("Item ditambahkan");
-  location.reload();
-}
-
-/* ================================
-   BUTTON ADD MASTER
-================================ */
-function renderAddMasterButton(){
-
-  const el = document.getElementById("tab-admin");
-
-  const html = `
-    <div class="card">
-      <button class="btn" onclick="addMasterItem()">＋ Tambah Master Item</button>
-    </div>
-  `;
-
-  el.insertAdjacentHTML("beforeend", html);
-}
-
-/* ================================
-   INIT MASTER SYSTEM
-================================ */
-setTimeout(()=>{
-  renderAddMasterButton();
-  renderMasterItems();
-}, 800);
-/* ================================
-   GET TODAY DATA
-================================ */
-function getTodayStr(){
-  return new Date().toISOString().slice(0,10);
-}
-
-/* ================================
-   DAILY SUMMARY
-================================ */
-function getDailySummary(){
-
-  const today = getTodayStr();
-
-  const purchases = db.get(DB_KEY.purchases)
-    .filter(p => p.date.startsWith(today));
-
-  const sales = db.get(DB_KEY.sales)
-    .filter(s => s.date.startsWith(today));
-
-  const totalPurchase = purchases.reduce((s,p)=>s+p.qty,0);
-  const totalRevenue = sales.reduce((s,p)=>s+p.revenue,0);
-
-  return {
-    purchases,
-    sales,
-    totalPurchase,
-    totalRevenue
-  };
-}
-
-/* ================================
-   TOP ITEMS (BELANJA)
-================================ */
-function getTopPurchased(){
-
-  const data = db.get(DB_KEY.purchases);
-
-  const map = {};
-
-  data.forEach(p=>{
-    if (!map[p.name]){
-      map[p.name] = 0;
-    }
-    map[p.name] += p.qty;
-  });
-
-  return Object.entries(map)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5);
-}
-
-/* ================================
-   TOP MENU (PENJUALAN)
-================================ */
-function getTopMenu(){
-
-  const data = db.get(DB_KEY.sales);
-
-  const map = {};
-
-  data.forEach(s=>{
-    if (!map[s.name]){
-      map[s.name] = 0;
-    }
-    map[s.name] += s.revenue;
-  });
-
-  return Object.entries(map)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5);
-}
-
-/* ================================
-   SMART ALERT SYSTEM
-================================ */
-function generateSmartAlert(summary){
-
-  const alerts = [];
-
-  if (summary.totalRevenue === 0 && summary.purchases.length > 0){
-    alerts.push("⚠ Sudah belanja tapi belum ada penjualan");
-  }
-
-  if (summary.totalRevenue > 1000000){
-    alerts.push("🔥 Revenue tinggi hari ini!");
-  }
-
-  if (summary.totalPurchase > 50){
-    alerts.push("📦 Pembelian besar — cek stok");
-  }
-
-  return alerts;
-}
-
-/* ================================
-   RENDER ADVANCED DASHBOARD
-================================ */
-function renderDashboard(){
-
-  const el = document.getElementById("dash");
-
-  const summary = getDailySummary();
-
-  const topItems = getTopPurchased();
-  const topMenu = getTopMenu();
-  const alerts = generateSmartAlert(summary);
-
-  let html = "";
-
-  /* SUMMARY */
-  html += `
-    <div class="card">
-      <b>📊 Hari Ini</b>
-      <p>Belanja: ${summary.totalPurchase}</p>
-      <p>Revenue: ${formatRp(summary.totalRevenue)}</p>
-    </div>
-  `;
-
-  /* ALERT */
-  if (alerts.length){
-    html += `
-      <div class="card">
-        <b>⚠ Insight</b>
-        ${alerts.map(a=>`<p>${a}</p>`).join("")}
-      </div>
-    `;
-  }
-
-  /* TOP BELANJA */
-  html += `
-    <div class="card">
-      <b>📦 Top Belanja</b>
-      ${topItems.map(i=>`
-        <div>${i[0]} (${i[1]})</div>
-      `).join("")}
-    </div>
-  `;
-
-  /* TOP MENU */
-  html += `
-    <div class="card">
-      <b>🔥 Top Menu</b>
-      ${topMenu.map(i=>`
-        <div>${i[0]} (${formatRp(i[1])})</div>
-      `).join("")}
-    </div>
-  `;
-
-  el.innerHTML = html;
-}
-
-/* ================================
-   AUTO REFRESH DASHBOARD
-================================ */
-setInterval(()=>{
-  if (document.getElementById("tab-dashboard").classList.contains("active")){
-    renderDashboard();
-  }
-}, 3000);
-/* ================================
-   GLOBAL FILTER STATE
-================================ */
-let DASH_FILTER = "today"; // today | week
-
-/* ================================
-   GET DATE RANGE
-================================ */
-function getDateRange(){
-
-  const now = new Date();
-
-  if (DASH_FILTER === "today"){
-    return [now.toISOString().slice(0,10)];
-  }
-
-  if (DASH_FILTER === "week"){
-    const days = [];
-    for (let i=0;i<7;i++){
-      const d = new Date();
-      d.setDate(now.getDate() - i);
-      days.push(d.toISOString().slice(0,10));
-    }
-    return days;
-  }
-
-  return [];
-}
-
-/* ================================
-   FILTER DATA BY RANGE
-================================ */
-function filterByDate(data){
-
-  const dates = getDateRange();
-
-  return data.filter(d => {
-    return dates.some(date => d.date.startsWith(date));
-  });
-}
-
-/* ================================
-   UPDATE SUMMARY (FILTERED)
-================================ */
-function getSummaryFiltered(){
-
-  const purchases = filterByDate(db.get(DB_KEY.purchases));
-  const sales = filterByDate(db.get(DB_KEY.sales));
-
-  return {
-    purchases,
-    sales,
-    totalPurchase: purchases.reduce((s,p)=>s+p.qty,0),
-    totalRevenue: sales.reduce((s,s2)=>s+s2.revenue,0)
-  };
-}
-
-/* ================================
-   FILTER BUTTON UI
-================================ */
-function renderFilterUI(){
-
-  const el = document.getElementById("dash");
-
-  const html = `
-    <div class="card">
-      <b>Filter</b><br><br>
-      <button class="btn" onclick="setFilter('today')">Hari Ini</button>
-      <button class="btn" onclick="setFilter('week')">7 Hari</button>
-    </div>
-  `;
-
-  el.insertAdjacentHTML("afterbegin", html);
-}
-
-/* ================================
-   SET FILTER
-================================ */
-function setFilter(type){
-  DASH_FILTER = type;
-  renderDashboard();
-}
-
-/* ================================
-   PATCH DASHBOARD (FILTERED)
-================================ */
-const _oldRenderDash = renderDashboard;
-
-renderDashboard = function(){
-
-  const el = document.getElementById("dash");
-
-  el.innerHTML = ""; // reset
-
-  renderFilterUI();
-
-  const summary = getSummaryFiltered();
-
-  const topItems = getTopPurchased();
-  const topMenu = getTopMenu();
-  const alerts = generateSmartAlert(summary);
-
-  let html = "";
-
-  html += `
-    <div class="card">
-      <b>📊 ${DASH_FILTER === 'today' ? 'Hari Ini' : '7 Hari'}</b>
-      <p>Belanja: ${summary.totalPurchase}</p>
-      <p>Revenue: ${formatRp(summary.totalRevenue)}</p>
-    </div>
-  `;
-
-  if (alerts.length){
-    html += `
-      <div class="card">
-        <b>⚠ Insight</b>
-        ${alerts.map(a=>`<p>${a}</p>`).join("")}
-      </div>
-    `;
-  }
-
-  html += `
-    <div class="card">
-      <b>📦 Top Belanja</b>
-      ${topItems.map(i=>`<div>${i[0]} (${i[1]})</div>`).join("")}
-    </div>
-  `;
-
-  html += `
-    <div class="card">
-      <b>🔥 Top Menu</b>
-      ${topMenu.map(i=>`<div>${i[0]} (${formatRp(i[1])})</div>`).join("")}
-    </div>
-  `;
-
-  el.innerHTML += html;
-};
-/* ================================
-   EDIT BELANJA
-================================ */
-function editPurchase(id){
-
-  let data = db.get(DB_KEY.purchases);
-  const item = data.find(d => d.id == id);
-
-  if (!item) return;
-
-  const newQty = prompt("Edit qty:", item.qty);
-  if (newQty === null) return;
-
-  item.qty = parseFloat(newQty) || item.qty;
-
-  db.set(DB_KEY.purchases, data);
-
-  renderList();
-  renderDashboard();
-}
-
-/* ================================
-   PATCH RENDER BELANJA (ADD EDIT)
-================================ */
-const _oldRenderList = renderList;
-
-renderList = function(){
-
-  _oldRenderList();
-
-  /* inject edit button */
-  const data = db.get(DB_KEY.purchases);
-
-  data.forEach(d=>{
-    const btn = document.querySelector(`button[onclick="deleteItem(${d.id})"]`);
-
-    if (btn && !btn.parentElement.querySelector(".edit-btn")){
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "✏️";
-      editBtn.className = "edit-btn";
-      editBtn.onclick = ()=>editPurchase(d.id);
-
-      btn.parentElement.insertBefore(editBtn, btn);
-    }
-  });
-};
-
-/* ================================
-   EDIT PENJUALAN
-================================ */
-function editSale(id){
-
-  let data = db.get(DB_KEY.sales);
-  const item = data.find(d => d.id == id);
-
-  if (!item) return;
-
-  const newQty = prompt("Edit qty:", item.qty);
-  if (newQty === null) return;
-
-  const newRev = prompt("Edit revenue:", item.revenue);
-  if (newRev === null) return;
-
-  item.qty = parseFloat(newQty) || item.qty;
-  item.revenue = parseFloat(newRev) || item.revenue;
-
-  db.set(DB_KEY.sales, data);
-
-  renderSales();
-  renderDashboard();
-}
-
-/* ================================
-   PATCH RENDER SALES (ADD EDIT)
-================================ */
-const _oldRenderSales = renderSales;
-
-renderSales = function(){
-
-  _oldRenderSales();
-
-  const data = db.get(DB_KEY.sales);
-  const today = new Date().toISOString().slice(0,10);
-
-  data.filter(s=>s.date.startsWith(today))
-    .forEach(d=>{
-
-      const nodes = document.querySelectorAll("#sale-list .card");
-
-      nodes.forEach(card=>{
-        if (card.innerHTML.includes(d.name) && !card.querySelector(".edit-sale")){
-          const btn = document.createElement("button");
-          btn.textContent = "✏️";
-          btn.className = "edit-sale";
-          btn.onclick = ()=>editSale(d.id);
-
-          card.appendChild(btn);
-        }
-      });
-
-    });
-};
-/* ================================
-   DOUBLE CONFIRM RESET
-================================ */
-function resetAllData(){
-
-  const step1 = confirm("⚠ Reset semua data?");
-  if (!step1) return;
-
-  const code = prompt("Ketik 'RESET' untuk konfirmasi:");
-
-  if (code !== "RESET"){
-    alert("Dibatalkan");
-    return;
-  }
-
-  /* CLEAR STORAGE */
-  Object.values(DB_KEY).forEach(key=>{
-    localStorage.removeItem(key);
-  });
-
-  alert("Data berhasil dihapus");
-
-  location.reload();
-}
-
-/* ================================
-   RESET PER TYPE
-================================ */
-function resetPurchases(){
-  if (!confirm("Hapus semua data belanja?")) return;
-
-  db.set(DB_KEY.purchases, []);
-  renderList();
-  renderDashboard();
-}
-
-function resetSales(){
-  if (!confirm("Hapus semua data penjualan?")) return;
-
-  db.set(DB_KEY.sales, []);
-  renderSales();
-  renderDashboard();
-}
-
-/* ================================
-   AUTO BACKUP BEFORE RESET
-================================ */
-function safeReset(){
-
-  if (!confirm("Backup dulu sebelum reset?")) return;
-
-  exportData(); // dari part 11
-
-  setTimeout(()=>{
-    resetAllData();
-  }, 500);
-}
-
-/* ================================
-   RENDER RESET UI (ADMIN)
-================================ */
-function renderResetUI(){
-
-  const el = document.getElementById("tab-admin");
-
-  const html = `
-    <div class="card">
-      <b>⚠ Reset & Safety</b><br><br>
-
-      <button class="btn" onclick="safeReset()">💾 Backup + Reset</button><br><br>
-
-      <button class="btn" onclick="resetPurchases()">Hapus Belanja</button><br><br>
-
-      <button class="btn" onclick="resetSales()">Hapus Penjualan</button><br><br>
-
-      <button class="btn" style="background:red;color:white"
-        onclick="resetAllData()">RESET TOTAL</button>
-    </div>
-  `;
-
-  el.insertAdjacentHTML("beforeend", html);
-}
-
-/* ================================
-   INIT RESET UI
-================================ */
-setTimeout(()=>{
-  renderResetUI();
-}, 900);
-/* ================================
-   SIMPLE CACHE (PERFORMANCE)
-================================ */
-const CACHE = {};
-
-function cacheGet(key, fn){
-  if (CACHE[key]) return CACHE[key];
-  const val = fn();
-  CACHE[key] = val;
-  return val;
-}
-
-function clearCache(){
-  for (let k in CACHE){
-    delete CACHE[k];
-  }
-}
-
-/* ================================
-   PATCH DB SET (AUTO CLEAR CACHE)
-================================ */
-const _oldSet = db.set;
-db.set = function(key, val){
-  _oldSet(key, val);
-  clearCache();
-};
-
-/* ================================
-   DEBOUNCE RENDER
-================================ */
-function debounce(fn, delay=200){
-  let t;
-  return function(){
-    clearTimeout(t);
-    t = setTimeout(()=>fn.apply(this, arguments), delay);
-  };
-}
-
-/* ================================
-   SMOOTH RENDER PATCH
-================================ */
-renderList = debounce(renderList, 100);
-renderSales = debounce(renderSales, 100);
-renderDashboard = debounce(renderDashboard, 150);
-
-/* ================================
-   SAFE RENDER WRAPPER
-================================ */
-function safeRender(fn){
-  try{
-    fn();
-  }catch(e){
-    console.error("Render error:", e);
-  }
-}
-
-/* ================================
-   GLOBAL RENDER SAFE
-================================ */
-const _r1 = renderList;
-renderList = ()=>safeRender(_r1);
-
-const _r2 = renderSales;
-renderSales = ()=>safeRender(_r2);
-
-const _r3 = renderDashboard;
-renderDashboard = ()=>safeRender(_r3);
-
-/* ================================
-   AUTO TRIM STORAGE (PREVENT BLOAT)
-================================ */
-function trimData(){
-
-  let purchases = db.get(DB_KEY.purchases);
-  let sales = db.get(DB_KEY.sales);
-
-  /* keep last 30 days only */
-  const limitDate = new Date();
-  limitDate.setDate(limitDate.getDate() - 30);
-
-  const limitStr = limitDate.toISOString();
-
-  purchases = purchases.filter(p => p.date >= limitStr);
-  sales = sales.filter(s => s.date >= limitStr);
-
-  db.set(DB_KEY.purchases, purchases);
-  db.set(DB_KEY.sales, sales);
-}
-
-/* run trim once per load */
-setTimeout(()=>{
-  trimData();
-}, 2000);
-
-/* ================================
-   AUTO SAVE SCROLL POSITION
-================================ */
-window.addEventListener("scroll", ()=>{
-  localStorage.setItem("scrollY", window.scrollY);
-});
-
-window.addEventListener("load", ()=>{
-  const y = localStorage.getItem("scrollY");
-  if (y){
-    window.scrollTo(0, parseInt(y));
-  }
-});
-
-/* ================================
-   FINAL INIT MESSAGE
-================================ */
-setTimeout(()=>{
-  console.log("🔥 Dolan Sawah Ops PRO READY");
-}, 1000);
-</script>
-
-<script id="final-init">
-
-/* ================================
-   GLOBAL INIT (SATU PINTU)
-================================ */
-function initApp(){
-
-  try{
-    /* render awal */
-    renderCats();
-    renderList();
-    renderSales();
-    renderDashboard();
-
-    console.log("✅ App initialized");
-
-  }catch(e){
-    console.error("Init error:", e);
-  }
-
-}
-
-/* ================================
-   TAB NAVIGATION (SAFE)
+   NAVIGATION (SINGLE SOURCE)
 ================================ */
 function goTab(tab, el){
 
@@ -2318,24 +241,1255 @@ function goTab(tab, el){
   el.classList.add("active");
 
   /* lazy render */
-  if (tab === "dashboard") renderDashboard();
-  if (tab === "penjualan") renderSales();
   if (tab === "belanja") renderList();
-  if (tab === "admin") renderCats();
+  if (tab === "penjualan") renderSales();
+  if (tab === "dashboard") renderDashboard();
+  if (tab === "admin") renderAdmin();
 }
 
 /* ================================
-   FIRST LOAD (NO DUPLICATE INIT)
+   STORAGE LAYER (SAFE)
 ================================ */
-if (!window.__APP_INIT__){
-  window.__APP_INIT__ = true;
+const DB_KEY = {
+  categories: 'ds_categories',
+  purchases: 'ds_purchases',
+  sales: 'ds_sales',
+  items: 'ds_items',
+  usage_item: 'ds_usage_item',
+  usage_menu: 'ds_usage_menu',
+  unknown_items: 'ds_unknown_items',
+  unknown_menu: 'ds_unknown_menu'
+};
 
-  document.addEventListener("DOMContentLoaded", ()=>{
-    initApp();
+const db = {
+  get(key, def = []){
+    try{
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : def;
+    }catch{
+      return def;
+    }
+  },
+  set(key, val){
+    localStorage.setItem(key, JSON.stringify(val));
+  }
+};
+
+/* ================================
+   INIT DATA (ONCE)
+================================ */
+function initData(){
+
+  if (!localStorage.getItem(DB_KEY.categories)){
+    db.set(DB_KEY.categories, [
+      "Keringan",
+      "Ayam potong",
+      "Ayam kampung",
+      "Belanja Pusat",
+      "Sayur",
+      "Lainnya"
+    ]);
+  }
+
+  if (!localStorage.getItem(DB_KEY.purchases)){
+    db.set(DB_KEY.purchases, []);
+  }
+
+  if (!localStorage.getItem(DB_KEY.sales)){
+    db.set(DB_KEY.sales, []);
+  }
+
+  if (!localStorage.getItem(DB_KEY.items)){
+    db.set(DB_KEY.items, []);
+  }
+
+  if (!localStorage.getItem(DB_KEY.usage_item)){
+    db.set(DB_KEY.usage_item, {});
+  }
+
+  if (!localStorage.getItem(DB_KEY.usage_menu)){
+    db.set(DB_KEY.usage_menu, {});
+  }
+
+  if (!localStorage.getItem(DB_KEY.unknown_items)){
+    db.set(DB_KEY.unknown_items, []);
+  }
+
+  if (!localStorage.getItem(DB_KEY.unknown_menu)){
+    db.set(DB_KEY.unknown_menu, []);
+  }
+}
+
+/* ================================
+   UTIL
+================================ */
+function normalize(text){
+  return (text || "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g," ");
+}
+
+function formatRp(n){
+  return "Rp " + Number(n || 0).toLocaleString("id-ID");
+}
+
+function uid(){
+  return Date.now() + Math.random();
+}
+
+/* ================================
+   CATEGORY SYSTEM
+================================ */
+function getCategories(){
+  return db.get(DB_KEY.categories);
+}
+
+function renderCats(){
+
+  const cats = getCategories();
+  const el = document.getElementById("cats");
+
+  el.innerHTML = cats.map((c,i)=>`
+    <div class="card row">
+      <span>${c}</span>
+      <div>
+        <button class="btn-sm" onclick="renameCat(${i})">✏️</button>
+        <button class="btn-sm" onclick="deleteCat(${i})">🗑</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function addCat(){
+  const input = document.getElementById("new-cat");
+  const val = input.value.trim();
+
+  if (!val) return;
+
+  const cats = getCategories();
+
+  if (cats.includes(val)){
+    alert("Kategori sudah ada");
+    return;
+  }
+
+  cats.push(val);
+  db.set(DB_KEY.categories, cats);
+
+  input.value = "";
+  renderCats();
+}
+
+function renameCat(index){
+
+  const cats = getCategories();
+  const oldName = cats[index];
+
+  const newName = prompt("Rename kategori:", oldName);
+  if (!newName) return;
+
+  cats[index] = newName;
+  db.set(DB_KEY.categories, cats);
+
+  /* update item */
+  let items = db.get(DB_KEY.items);
+  items = items.map(it=>{
+    if (it.category === oldName){
+      it.category = newName;
+    }
+    return it;
+  });
+
+  db.set(DB_KEY.items, items);
+
+  renderCats();
+}
+
+function deleteCat(index){
+
+  const cats = getCategories();
+  const name = cats[index];
+
+  if (!confirm("Hapus kategori: " + name + "?")) return;
+
+  cats.splice(index,1);
+  db.set(DB_KEY.categories, cats);
+
+  /* fallback */
+  let items = db.get(DB_KEY.items);
+  items = items.map(it=>{
+    if (it.category === name){
+      it.category = "Lainnya";
+    }
+    return it;
+  });
+
+  db.set(DB_KEY.items, items);
+
+  renderCats();
+}
+
+/* ================================
+   USAGE TRACKING (FAVORITE BASE)
+================================ */
+function trackUsage(type, name){
+
+  const key = type === "menu" ? DB_KEY.usage_menu : DB_KEY.usage_item;
+  let data = db.get(key, {});
+
+  name = normalize(name);
+
+  data[name] = (data[name] || 0) + 1;
+
+  db.set(key, data);
+}
+
+function getTopUsage(type, limit=5){
+
+  const key = type === "menu" ? DB_KEY.usage_menu : DB_KEY.usage_item;
+  const data = db.get(key, {});
+
+  return Object.entries(data)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,limit)
+    .map(x=>x[0]);
+}
+
+/* ================================
+   UNKNOWN SYSTEM
+================================ */
+function addUnknown(type, name){
+
+  const key = type === "menu" ? DB_KEY.unknown_menu : DB_KEY.unknown_items;
+  let data = db.get(key);
+
+  name = normalize(name);
+
+  if (data.includes(name)) return;
+
+  data.push(name);
+  db.set(key, data);
+}
+
+/* ================================
+   GLOBAL INIT
+================================ */
+function initApp(){
+
+  initData();
+
+  renderCats();
+  renderList();
+  renderSales();
+  renderDashboard();
+  renderAdmin();
+
+  console.log("✅ CORE READY");
+}
+
+/* ================================
+   START APP
+================================ */
+document.addEventListener("DOMContentLoaded", ()=>{
+  initApp();
+});
+/* ================================
+   WORD → NUMBER
+================================ */
+const WORD_NUM = {
+  satu:1, dua:2, tiga:3, empat:4, lima:5,
+  enam:6, tujuh:7, delapan:8, sembilan:9, sepuluh:10
+};
+
+function wordToNumber(word){
+  return WORD_NUM[word] || null;
+}
+
+/* ================================
+   PARSER BELANJA (FLEXIBLE)
+================================ */
+function parseInput(line){
+
+  line = normalize(line);
+  if (!line) return null;
+
+  let m;
+
+  // ayam 5 kg
+  m = line.match(/^(.+?)\s+([\d,.]+)\s*([a-zA-Z]*)$/);
+  if (m){
+    return {
+      name: normalize(m[1]),
+      qty: parseFloat(m[2].replace(",", ".")) || 1,
+      unit: m[3] || "pcs"
+    };
+  }
+
+  // 5 kg ayam
+  m = line.match(/^([\d,.]+)\s*([a-zA-Z]*)\s+(.+)$/);
+  if (m){
+    return {
+      name: normalize(m[3]),
+      qty: parseFloat(m[1]) || 1,
+      unit: m[2] || "pcs"
+    };
+  }
+
+  // ayam x5
+  m = line.match(/^(.+?)\s*x\s*([\d,.]+)$/);
+  if (m){
+    return {
+      name: normalize(m[1]),
+      qty: parseFloat(m[2]) || 1,
+      unit: "pcs"
+    };
+  }
+
+  // ayam lima kg
+  m = line.match(/^(.+?)\s+(satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh)\s*([a-zA-Z]*)$/);
+  if (m){
+    return {
+      name: normalize(m[1]),
+      qty: wordToNumber(m[2]) || 1,
+      unit: m[3] || "pcs"
+    };
+  }
+
+  // ayam 5
+  m = line.match(/^(.+?)\s+([\d,.]+)$/);
+  if (m){
+    return {
+      name: normalize(m[1]),
+      qty: parseFloat(m[2]) || 1,
+      unit: "pcs"
+    };
+  }
+
+  // fallback
+  return {
+    name: line,
+    qty: 1,
+    unit: "pcs",
+    unknown: true
+  };
+}
+
+/* ================================
+   AUTO CATEGORY
+================================ */
+function autoCategory(name){
+
+  name = normalize(name);
+
+  if (name.includes("ayam kampung")) return "Ayam kampung";
+  if (name.includes("ayam")) return "Ayam potong";
+  if (name.includes("cabai") || name.includes("sayur") || name.includes("tomat")) return "Sayur";
+  if (name.includes("kering") || name.includes("kerupuk")) return "Keringan";
+
+  return "Lainnya";
+}
+
+/* ================================
+   PROCESS BELANJA (CLEAN FLOW)
+================================ */
+function process(){
+
+  const text = document.getElementById("bulk").value;
+  const lines = text.split("\n").filter(l => l.trim());
+
+  if (!lines.length){
+    alert("Input kosong");
+    return;
+  }
+
+  let purchases = db.get(DB_KEY.purchases);
+  const master = db.get(DB_KEY.items);
+
+  lines.forEach(line=>{
+
+    const p = parseInput(line);
+    if (!p) return;
+
+    /* tracking */
+    trackUsage("item", p.name);
+
+    /* unknown detection */
+    const found = master.find(i=>i.name === p.name);
+    if (!found){
+      addUnknown("item", p.name);
+    }
+
+    purchases.push({
+      id: uid(),
+      name: p.name,
+      qty: p.qty,
+      unit: p.unit,
+      category: autoCategory(p.name),
+      date: new Date().toISOString()
+    });
+
+  });
+
+  db.set(DB_KEY.purchases, purchases);
+
+  document.getElementById("bulk").value = "";
+
+  renderList();
+}
+
+/* ================================
+   GROUP BELANJA
+================================ */
+function groupByCategory(items){
+
+  const map = {};
+
+  items.forEach(it=>{
+    if (!map[it.category]) map[it.category] = [];
+    map[it.category].push(it);
+  });
+
+  return map;
+}
+
+/* ================================
+   DELETE BELANJA
+================================ */
+function deleteItem(id){
+
+  let data = db.get(DB_KEY.purchases);
+  data = data.filter(d => d.id !== id);
+
+  db.set(DB_KEY.purchases, data);
+
+  renderList();
+}
+
+/* ================================
+   EDIT BELANJA
+================================ */
+function editPurchase(id){
+
+  let data = db.get(DB_KEY.purchases);
+  const item = data.find(d=>d.id===id);
+  if (!item) return;
+
+  const qty = prompt("Edit qty:", item.qty);
+  if (qty === null) return;
+
+  item.qty = parseFloat(qty) || item.qty;
+
+  db.set(DB_KEY.purchases, data);
+
+  renderList();
+}
+
+/* ================================
+   RENDER BELANJA
+================================ */
+function renderList(){
+
+  const data = db.get(DB_KEY.purchases);
+  const el = document.getElementById("list");
+
+  if (!data.length){
+    el.innerHTML = "<p>Belum ada data</p>";
+    return;
+  }
+
+  const grouped = groupByCategory(data);
+
+  let html = "";
+
+  Object.keys(grouped).forEach(cat=>{
+
+    html += `<div class="card"><b>${cat}</b>`;
+
+    grouped[cat].forEach(it=>{
+      html += `
+        <div class="row" style="margin-top:6px">
+          <span>${it.name} (${it.qty}${it.unit})</span>
+          <div>
+            <button class="btn-sm" onclick="editPurchase('${it.id}')">✏️</button>
+            <button class="btn-sm" onclick="deleteItem('${it.id}')">✕</button>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+/* ================================
+   PARSE PENJUALAN
+================================ */
+function parseSale(line){
+
+  line = normalize(line);
+  if (!line) return null;
+
+  const parts = line.split(" ");
+
+  if (parts.length < 3){
+    return { error:true };
+  }
+
+  const revenue = parseFloat(parts.pop());
+  const qty = parseInt(parts.pop());
+  const name = parts.join(" ");
+
+  if (isNaN(qty) || isNaN(revenue)){
+    return { error:true };
+  }
+
+  return { name, qty, revenue };
+}
+
+/* ================================
+   PROCESS PENJUALAN (CLEAN)
+================================ */
+function processSale(){
+
+  const text = document.getElementById("sale").value;
+  const lines = text.split("\n").filter(l=>l.trim());
+
+  if (!lines.length){
+    alert("Input kosong");
+    return;
+  }
+
+  let sales = db.get(DB_KEY.sales);
+  const master = db.get(DB_KEY.items);
+
+  lines.forEach(line=>{
+
+    const p = parseSale(line);
+    if (!p || p.error) return;
+
+    /* tracking */
+    trackUsage("menu", p.name);
+
+    /* unknown */
+    const found = master.find(i=>i.name === p.name);
+    if (!found){
+      addUnknown("menu", p.name);
+    }
+
+    sales.push({
+      id: uid(),
+      name: p.name,
+      qty: p.qty,
+      revenue: p.revenue,
+      date: new Date().toISOString()
+    });
+
+  });
+
+  db.set(DB_KEY.sales, sales);
+
+  document.getElementById("sale").value = "";
+
+  renderSales();
+}
+
+/* ================================
+   GROUP SALES
+================================ */
+function groupSales(data){
+
+  const map = {};
+
+  data.forEach(s=>{
+    if (!map[s.name]){
+      map[s.name] = { name:s.name, qty:0, revenue:0 };
+    }
+
+    map[s.name].qty += s.qty;
+    map[s.name].revenue += s.revenue;
+  });
+
+  return Object.values(map);
+}
+
+/* ================================
+   RENDER SALES (WITH PROFIT)
+================================ */
+function renderSales(){
+
+  const data = db.get(DB_KEY.sales);
+  const today = new Date().toISOString().slice(0,10);
+
+  const todaySales = data.filter(s=>s.date.startsWith(today));
+
+  const el = document.getElementById("sale-list");
+
+  if (!todaySales.length){
+    el.innerHTML = "<p>Belum ada penjualan</p>";
+    return;
+  }
+
+  const grouped = groupSales(todaySales);
+
+  const totalRevenue = grouped.reduce((s,g)=>s+g.revenue,0);
+  const totalProfit = totalRevenue * 0.4;
+
+  let html = `
+    <div class="card">
+      <b>Revenue: ${formatRp(totalRevenue)}</b><br>
+      <b>Profit: ${formatRp(totalProfit)}</b>
+    </div>
+  `;
+
+  grouped.forEach(g=>{
+    const profit = g.revenue * 0.4;
+    const margin = Math.round((profit/g.revenue)*100);
+
+    html += `
+      <div class="card">
+        <div class="row">
+          <b>${g.name}</b>
+          <span>${formatRp(g.revenue)}</span>
+        </div>
+        <small>
+          ${g.qty} porsi · Profit: ${formatRp(profit)} · ${margin}%
+        </small>
+      </div>
+    `;
+  });
+
+  el.innerHTML = html;
+}
+/* ================================
+   STOCK CALCULATION
+================================ */
+function getStockIn(){
+
+  const purchases = db.get(DB_KEY.purchases);
+  const map = {};
+
+  purchases.forEach(p=>{
+    if (!map[p.name]) map[p.name] = 0;
+    map[p.name] += p.qty;
+  });
+
+  return map;
+}
+
+function getStockOut(){
+
+  const sales = db.get(DB_KEY.sales);
+  const map = {};
+
+  sales.forEach(s=>{
+    if (!map[s.name]) map[s.name] = 0;
+    map[s.name] += s.qty;
+  });
+
+  return map;
+}
+
+function getFinalStock(){
+
+  const inMap = getStockIn();
+  const outMap = getStockOut();
+
+  const keys = new Set([
+    ...Object.keys(inMap),
+    ...Object.keys(outMap)
+  ]);
+
+  const result = {};
+
+  keys.forEach(k=>{
+    result[k] = (inMap[k] || 0) - (outMap[k] || 0);
+  });
+
+  return result;
+}
+
+/* ================================
+   STOCK ALERT
+================================ */
+function getStockAlerts(){
+
+  const stock = getFinalStock();
+  const alerts = [];
+
+  Object.entries(stock).forEach(([name, qty])=>{
+    if (qty <= 0){
+      alerts.push(`❗ ${name} habis`);
+    } else if (qty < 3){
+      alerts.push(`⚠ ${name} hampir habis (${qty})`);
+    }
+  });
+
+  return alerts;
+}
+
+/* ================================
+   TOP DATA
+================================ */
+function getTopPurchased(){
+
+  const data = db.get(DB_KEY.purchases);
+  const map = {};
+
+  data.forEach(p=>{
+    if (!map[p.name]) map[p.name] = 0;
+    map[p.name] += p.qty;
+  });
+
+  return Object.entries(map)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5);
+}
+
+function getTopMenu(){
+
+  const data = db.get(DB_KEY.sales);
+  const map = {};
+
+  data.forEach(s=>{
+    if (!map[s.name]) map[s.name] = 0;
+    map[s.name] += s.revenue;
+  });
+
+  return Object.entries(map)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5);
+}
+
+/* ================================
+   SMART ALERT
+================================ */
+function generateInsights(){
+
+  const purchases = db.get(DB_KEY.purchases);
+  const sales = db.get(DB_KEY.sales);
+
+  const insights = [];
+
+  /* menu terlaris */
+  const menuMap = {};
+  sales.forEach(s=>{
+    if (!menuMap[s.name]) menuMap[s.name]=0;
+    menuMap[s.name]+=s.qty;
+  });
+
+  const topMenu = Object.entries(menuMap)
+    .sort((a,b)=>b[1]-a[1])[0];
+
+  if (topMenu){
+    insights.push(`🔥 Terlaris: ${topMenu[0]} (${topMenu[1]})`);
+  }
+
+  /* kategori dominan */
+  const catMap = {};
+  purchases.forEach(p=>{
+    if (!catMap[p.category]) catMap[p.category]=0;
+    catMap[p.category]++;
+  });
+
+  const topCat = Object.entries(catMap)
+    .sort((a,b)=>b[1]-a[1])[0];
+
+  if (topCat){
+    insights.push(`📦 Dominan: ${topCat[0]}`);
+  }
+
+  /* tidak ada penjualan */
+  if (sales.length === 0 && purchases.length > 0){
+    insights.push("⚠ Sudah belanja tapi belum ada penjualan");
+  }
+
+  return insights;
+}
+
+/* ================================
+   FILTER SYSTEM
+================================ */
+let DASH_FILTER = "today";
+
+function getDateRange(){
+
+  const now = new Date();
+
+  if (DASH_FILTER === "today"){
+    return [now.toISOString().slice(0,10)];
+  }
+
+  if (DASH_FILTER === "week"){
+    const arr = [];
+    for (let i=0;i<7;i++){
+      const d = new Date();
+      d.setDate(now.getDate()-i);
+      arr.push(d.toISOString().slice(0,10));
+    }
+    return arr;
+  }
+
+  return [];
+}
+
+function filterData(data){
+
+  const dates = getDateRange();
+
+  return data.filter(d=>{
+    return dates.some(date => d.date.startsWith(date));
   });
 }
 
-</script>
+/* ================================
+   RENDER DASHBOARD (FINAL)
+================================ */
+function renderDashboard(){
 
+  const el = document.getElementById("dash");
+
+  const purchases = filterData(db.get(DB_KEY.purchases));
+  const sales = filterData(db.get(DB_KEY.sales));
+
+  const totalRevenue = sales.reduce((s,x)=>s+x.revenue,0);
+  const totalProfit = totalRevenue * 0.4;
+
+  const stock = getFinalStock();
+  const stockAlerts = getStockAlerts();
+  const insights = generateInsights();
+
+  const topItems = getTopPurchased();
+  const topMenu = getTopMenu();
+
+  let html = "";
+
+  /* FILTER */
+  html += `
+    <div class="card">
+      <b>Filter</b><br><br>
+      <button class="btn-sm" onclick="setDashFilter('today')">Hari Ini</button>
+      <button class="btn-sm" onclick="setDashFilter('week')">7 Hari</button>
+    </div>
+  `;
+
+  /* SUMMARY */
+  html += `
+    <div class="card">
+      <b>Revenue: ${formatRp(totalRevenue)}</b><br>
+      <b>Profit: ${formatRp(totalProfit)}</b>
+    </div>
+  `;
+
+  /* STOCK */
+  html += `<div class="card"><b>Stok</b>`;
+  Object.entries(stock).forEach(([n,q])=>{
+    html += `<div>${n}: ${q}</div>`;
+  });
+  html += `</div>`;
+
+  /* ALERT */
+  const allAlerts = [...stockAlerts, ...insights];
+  if (allAlerts.length){
+    html += `<div class="card"><b>Insight</b>`;
+    allAlerts.forEach(a=>{
+      html += `<div>${a}</div>`;
+    });
+    html += `</div>`;
+  }
+
+  /* TOP BELANJA */
+  html += `
+    <div class="card">
+      <b>Top Belanja</b>
+      ${topItems.map(i=>`<div>${i[0]} (${i[1]})</div>`).join("")}
+    </div>
+  `;
+
+  /* TOP MENU */
+  html += `
+    <div class="card">
+      <b>Top Menu</b>
+      ${topMenu.map(i=>`<div>${i[0]} (${formatRp(i[1])})</div>`).join("")}
+    </div>
+  `;
+
+  el.innerHTML = html;
+}
+
+/* ================================
+   SET FILTER
+================================ */
+function setDashFilter(type){
+  DASH_FILTER = type;
+  renderDashboard();
+}
+/* ================================
+   FAVORITE (SMART INPUT)
+================================ */
+function renderFavorites(){
+
+  const favs = getTopUsage("item", 6);
+  const wrap = document.getElementById("favorite-wrap");
+
+  if (!favs.length){
+    wrap.innerHTML = "";
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="card">
+      <b>⚡ Favorit</b>
+      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:5px">
+        ${favs.map(f=>`
+          <button class="tag" onclick="quickAdd('${f}')">${f}</button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function quickAdd(name){
+  const el = document.getElementById("bulk");
+  el.value += (el.value ? "\n" : "") + name + " 1";
+  el.focus();
+}
+
+/* ================================
+   UNKNOWN → MASTER
+================================ */
+function renderUnknown(){
+
+  const items = db.get(DB_KEY.unknown_items);
+  const menus = db.get(DB_KEY.unknown_menu);
+
+  const el = document.getElementById("unknown-wrap");
+
+  let html = "";
+
+  if (items.length){
+    html += `<div class="card"><b>Unknown Items</b>`;
+    items.forEach(n=>{
+      html += `
+        <div class="row">
+          <span>${n}</span>
+          <button class="btn-sm" onclick="convertItem('${n}')">✔</button>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  if (menus.length){
+    html += `<div class="card"><b>Unknown Menu</b>`;
+    menus.forEach(n=>{
+      html += `
+        <div class="row">
+          <span>${n}</span>
+          <button class="btn-sm" onclick="convertMenu('${n}')">✔</button>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function convertItem(name){
+
+  let items = db.get(DB_KEY.items);
+
+  items.push({
+    name: name,
+    category: "Lainnya"
+  });
+
+  db.set(DB_KEY.items, items);
+
+  let unk = db.get(DB_KEY.unknown_items).filter(x=>x!==name);
+  db.set(DB_KEY.unknown_items, unk);
+
+  renderAdmin();
+}
+
+function convertMenu(name){
+
+  let items = db.get(DB_KEY.items);
+
+  items.push({
+    name: name,
+    category: "Menu"
+  });
+
+  db.set(DB_KEY.items, items);
+
+  let unk = db.get(DB_KEY.unknown_menu).filter(x=>x!==name);
+  db.set(DB_KEY.unknown_menu, unk);
+
+  renderAdmin();
+}
+
+/* ================================
+   MASTER ITEM
+================================ */
+function renderMaster(){
+
+  const items = db.get(DB_KEY.items);
+  const cats = getCategories();
+  const el = document.getElementById("master-wrap");
+
+  let html = `<div class="card"><b>Master Items</b>`;
+
+  if (!items.length){
+    html += `<p>Belum ada</p>`;
+  }
+
+  items.forEach((it,i)=>{
+    html += `
+      <div style="margin-top:6px">
+        <div class="row">
+          <b>${it.name}</b>
+          <button class="btn-sm" onclick="deleteMaster(${i})">🗑</button>
+        </div>
+        <select onchange="changeMasterCat(${i}, this.value)">
+          ${cats.map(c=>`
+            <option value="${c}" ${it.category===c?'selected':''}>${c}</option>
+          `).join("")}
+        </select>
+      </div>
+    `;
+  });
+
+  html += `</div>
+  <div class="card">
+    <button class="btn" onclick="addMaster()">＋ Tambah Item</button>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+function addMaster(){
+
+  const name = prompt("Nama item:");
+  if (!name) return;
+
+  const cats = getCategories();
+  const cat = prompt("Kategori:", cats[0]);
+
+  let items = db.get(DB_KEY.items);
+
+  items.push({
+    name: normalize(name),
+    category: cat || "Lainnya"
+  });
+
+  db.set(DB_KEY.items, items);
+
+  renderAdmin();
+}
+
+function deleteMaster(i){
+
+  if (!confirm("Hapus item?")) return;
+
+  let items = db.get(DB_KEY.items);
+  items.splice(i,1);
+
+  db.set(DB_KEY.items, items);
+
+  renderAdmin();
+}
+
+function changeMasterCat(i, cat){
+
+  let items = db.get(DB_KEY.items);
+  items[i].category = cat;
+
+  db.set(DB_KEY.items, items);
+}
+
+/* ================================
+   TOOLS (EXPORT / RESET)
+================================ */
+function renderTools(){
+
+  const el = document.getElementById("tools-wrap");
+
+  el.innerHTML = `
+    <div class="card">
+      <b>Tools</b><br><br>
+
+      <button class="btn" onclick="exportData()">Export Data</button>
+      <button class="btn" onclick="triggerImport()">Import Data</button>
+
+      <button class="btn" onclick="resetPurchases()">Reset Belanja</button>
+      <button class="btn" onclick="resetSales()">Reset Penjualan</button>
+
+      <button class="btn" style="background:red;color:#fff"
+        onclick="resetAll()">RESET TOTAL</button>
+    </div>
+  `;
+}
+
+/* ================================
+   EXPORT / IMPORT
+================================ */
+function exportData(){
+
+  const data = {
+    categories: db.get(DB_KEY.categories),
+    purchases: db.get(DB_KEY.purchases),
+    sales: db.get(DB_KEY.sales),
+    items: db.get(DB_KEY.items)
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(data,null,2)],
+    {type:"application/json"}
+  );
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "backup.json";
+  a.click();
+}
+
+function triggerImport(){
+
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+
+  input.onchange = function(e){
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(ev){
+
+      try{
+        const data = JSON.parse(ev.target.result);
+
+        if (!confirm("Timpa data lama?")) return;
+
+        if (data.categories) db.set(DB_KEY.categories,data.categories);
+        if (data.purchases) db.set(DB_KEY.purchases,data.purchases);
+        if (data.sales) db.set(DB_KEY.sales,data.sales);
+        if (data.items) db.set(DB_KEY.items,data.items);
+
+        location.reload();
+
+      }catch{
+        alert("File error");
+      }
+
+    };
+
+    reader.readAsText(file);
+  };
+
+  input.click();
+}
+
+/* ================================
+   RESET
+================================ */
+function resetPurchases(){
+  if (!confirm("Reset belanja?")) return;
+  db.set(DB_KEY.purchases, []);
+  renderList();
+}
+
+function resetSales(){
+  if (!confirm("Reset penjualan?")) return;
+  db.set(DB_KEY.sales, []);
+  renderSales();
+}
+
+function resetAll(){
+
+  if (!confirm("Reset semua data?")) return;
+
+  const code = prompt("Ketik RESET:");
+  if (code !== "RESET") return;
+
+  Object.values(DB_KEY).forEach(k=>{
+    localStorage.removeItem(k);
+  });
+
+  location.reload();
+}
+
+/* ================================
+   ADMIN RENDER (CENTRAL)
+================================ */
+function renderAdmin(){
+
+  renderCats();
+  renderMaster();
+  renderUnknown();
+  renderTools();
+}
+
+/* ================================
+   UX ENHANCEMENT
+================================ */
+function setupUX(){
+
+  const bulk = document.getElementById("bulk");
+  const sale = document.getElementById("sale");
+
+  bulk.addEventListener("keydown", e=>{
+    if (e.ctrlKey && e.key === "Enter"){
+      process();
+    }
+  });
+
+  sale.addEventListener("keydown", e=>{
+    if (e.ctrlKey && e.key === "Enter"){
+      processSale();
+    }
+  });
+}
+
+/* ================================
+   PERFORMANCE (LIGHT)
+================================ */
+function trimOldData(){
+
+  const limit = new Date();
+  limit.setDate(limit.getDate()-30);
+
+  let p = db.get(DB_KEY.purchases).filter(x=>x.date >= limit.toISOString());
+  let s = db.get(DB_KEY.sales).filter(x=>x.date >= limit.toISOString());
+
+  db.set(DB_KEY.purchases, p);
+  db.set(DB_KEY.sales, s);
+}
+
+/* ================================
+   FINAL INIT EXTENSION
+================================ */
+(function(){
+
+  const oldInit = initApp;
+
+  initApp = function(){
+    oldInit();
+
+    renderFavorites();
+    setupUX();
+    trimOldData();
+
+    console.log("🔥 APP FULL READY");
+  };
+
+})();
+</script>
 </body>
 </html>

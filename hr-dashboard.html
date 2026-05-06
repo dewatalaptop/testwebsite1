@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Naruna HR</title>
+<title>Naruna Contract Monitor</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,263 +18,161 @@
 }
 
 :root{
+  --bg:#0f1118;
+  --bg2:#171b25;
+  --card:#1d2230;
+  --card2:#252b3d;
 
-  --bg:#0f172a;
-  --bg2:#111827;
-  --card:#182235;
-  --card2:#1f2c44;
+  --border:#31384f;
 
-  --line:#2b3954;
+  --text:#edf1ff;
+  --text2:#b8c0dd;
+  --text3:#7f89ad;
 
-  --text:#f8fafc;
-  --text2:#cbd5e1;
-  --text3:#94a3b8;
+  --accent:#7c6cff;
+  --accent2:#6d5df6;
 
-  --primary:#7c3aed;
-  --primary2:#8b5cf6;
-
-  --danger:#ef4444;
-  --success:#22c55e;
-  --warning:#f59e0b;
-
-  --shadow:
-    0 10px 40px rgba(0,0,0,.35);
+  --green:#22c55e;
+  --yellow:#eab308;
+  --red:#ef4444;
 
   --radius:18px;
+  --shadow:0 10px 30px rgba(0,0,0,0.35);
 }
 
-html,
 body{
-  height:100%;
   font-family:'Inter',sans-serif;
   background:
-    linear-gradient(
-      180deg,
-      #0b1120,
-      #111827
-    );
+    radial-gradient(circle at top left,#232a42 0%,transparent 30%),
+    radial-gradient(circle at bottom right,#1b2440 0%,transparent 30%),
+    var(--bg);
+
   color:var(--text);
+  min-height:100vh;
 }
 
-body{
-  overflow:hidden;
+button,
+input{
+  font-family:'Inter',sans-serif;
 }
 
-/* APP */
-
-.app{
-  display:flex;
-  height:100vh;
-}
-
-/* SIDEBAR */
-
-.sidebar{
-  width:280px;
-  background:rgba(17,24,39,.92);
-  border-right:1px solid var(--line);
-
-  display:flex;
-  flex-direction:column;
-
-  backdrop-filter:blur(18px);
-}
-
-.logo{
-  padding:24px;
-  border-bottom:1px solid var(--line);
-}
-
-.logo h1{
-  font-size:22px;
-  font-weight:800;
-}
-
-.logo p{
-  margin-top:4px;
-  color:var(--text3);
-  font-size:13px;
-}
-
-.sidebar-top{
-  padding:20px;
-}
-
-.btn{
-  border:none;
-  cursor:pointer;
-
-  background:var(--primary);
-  color:white;
-
-  padding:12px 16px;
-
-  border-radius:14px;
-
-  font-weight:600;
-  font-size:14px;
-
-  transition:.2s;
-}
-
-.btn:hover{
-  background:var(--primary2);
-}
-
-.btn-full{
-  width:100%;
-}
-
-.outlet-list{
-  flex:1;
-  overflow:auto;
-  padding:0 14px 20px;
-}
-
-.outlet-item{
-  background:transparent;
-  border:1px solid transparent;
-
-  padding:16px;
-  border-radius:16px;
-
-  margin-bottom:10px;
-
-  cursor:pointer;
-
-  transition:.2s;
-}
-
-.outlet-item:hover{
-  background:rgba(255,255,255,.04);
-}
-
-.outlet-item.active{
-  background:
-    linear-gradient(
-      135deg,
-      rgba(124,58,237,.18),
-      rgba(124,58,237,.08)
-    );
-
-  border-color:
-    rgba(139,92,246,.35);
-}
-
-.outlet-name{
-  font-size:15px;
-  font-weight:700;
-}
-
-.outlet-sub{
-  margin-top:6px;
-  color:var(--text3);
-  font-size:12px;
-}
-
-/* MAIN */
-
-.main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
+.hidden{
+  display:none !important;
 }
 
 /* TOPBAR */
 
 .topbar{
-  height:80px;
+  position:sticky;
+  top:0;
+  z-index:100;
+
+  backdrop-filter:blur(14px);
+
+  background:rgba(15,17,24,0.88);
+
+  border-bottom:1px solid rgba(255,255,255,0.05);
+
+  padding:16px 20px;
 
   display:flex;
   align-items:center;
   justify-content:space-between;
-
-  padding:0 24px;
-
-  border-bottom:1px solid var(--line);
-
-  background:rgba(15,23,42,.72);
-
-  backdrop-filter:blur(18px);
 }
 
-.topbar h2{
-  font-size:24px;
-  font-weight:800;
-}
-
-.topbar p{
-  margin-top:4px;
-  color:var(--text3);
-  font-size:13px;
-}
-
-.topbar-actions{
+.brand{
   display:flex;
   align-items:center;
   gap:12px;
 }
 
-/* NOTIFICATION */
+.logo{
+  width:44px;
+  height:44px;
+
+  border-radius:14px;
+
+  background:linear-gradient(
+    135deg,
+    var(--accent),
+    #9d91ff
+  );
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:20px;
+  font-weight:800;
+}
+
+.brand-title{
+  font-size:20px;
+  font-weight:800;
+}
+
+.brand-sub{
+  font-size:12px;
+  color:var(--text3);
+  margin-top:2px;
+}
 
 .notif-btn{
   position:relative;
+
+  background:var(--card);
+  border:1px solid var(--border);
 
   width:52px;
   height:52px;
 
   border-radius:16px;
 
-  background:rgba(255,255,255,.04);
-
-  border:1px solid var(--line);
-
   display:flex;
   align-items:center;
   justify-content:center;
 
+  font-size:22px;
+
   cursor:pointer;
 
-  font-size:20px;
-
-  transition:.2s;
+  transition:0.2s;
 }
 
 .notif-btn:hover{
-  background:rgba(255,255,255,.08);
+  transform:translateY(-2px);
+  background:var(--card2);
 }
 
-.notif-badge{
+.notif-count{
   position:absolute;
 
   top:-6px;
   right:-6px;
 
-  min-width:24px;
-  height:24px;
+  background:var(--red);
+  color:#fff;
 
-  padding:0 6px;
+  min-width:22px;
+  height:22px;
 
   border-radius:999px;
-
-  background:var(--danger);
-
-  color:white;
 
   display:flex;
   align-items:center;
   justify-content:center;
 
   font-size:11px;
-  font-weight:800;
+  font-weight:700;
+
+  padding:0 6px;
 }
 
-/* CONTENT */
+/* WRAPPER */
 
-.content{
-  flex:1;
-  overflow:auto;
+.wrapper{
+  max-width:1400px;
+  margin:auto;
   padding:24px;
 }
 
@@ -284,894 +182,860 @@ body{
   background:
     linear-gradient(
       135deg,
-      #7c3aed,
-      #4f46e5
+      rgba(124,108,255,0.25),
+      rgba(124,108,255,0.05)
     );
 
-  border-radius:28px;
+  border:1px solid rgba(124,108,255,0.18);
 
-  padding:30px;
+  border-radius:30px;
 
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-
-  gap:20px;
+  padding:32px;
 
   margin-bottom:24px;
 
-  box-shadow:var(--shadow);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
 }
 
-.hero h3{
-  font-size:28px;
+.hero h1{
+  font-size:34px;
   font-weight:800;
+  line-height:1.15;
 }
 
 .hero p{
+  color:var(--text2);
   margin-top:10px;
-  color:rgba(255,255,255,.85);
-  line-height:1.6;
+  max-width:700px;
 }
 
-.hero-icon{
-  font-size:70px;
+.hero-badge{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);
+
+  padding:14px 18px;
+
+  border-radius:18px;
+
+  font-size:14px;
 }
 
-/* CARD */
+/* ACTIONS */
 
-.card{
-  background:rgba(24,34,53,.92);
+.actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:24px;
+}
 
-  border:1px solid var(--line);
+.btn{
+  border:none;
+  cursor:pointer;
 
-  border-radius:24px;
+  border-radius:16px;
+
+  padding:14px 18px;
+
+  font-weight:600;
+
+  transition:0.2s;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+}
+
+.btn-primary{
+  background:linear-gradient(
+    135deg,
+    var(--accent),
+    var(--accent2)
+  );
+
+  color:#fff;
+}
+
+.btn-secondary{
+  background:var(--card);
+  color:var(--text);
+
+  border:1px solid var(--border);
+}
+
+/* OUTLETS */
+
+.outlet-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+}
+
+.outlet-card{
+  background:rgba(29,34,48,0.88);
+
+  border:1px solid rgba(255,255,255,0.05);
+
+  border-radius:28px;
 
   padding:22px;
 
   box-shadow:var(--shadow);
+
+  transition:0.2s;
 }
 
-.card-header{
+.outlet-card:hover{
+  transform:translateY(-4px);
+}
+
+.outlet-top{
   display:flex;
-  align-items:center;
   justify-content:space-between;
-
-  margin-bottom:20px;
+  gap:12px;
 }
 
-.card-title{
-  font-size:18px;
-  font-weight:800;
+.outlet-name{
+  font-size:20px;
+  font-weight:700;
 }
 
-/* EMPLOYEE */
+.outlet-total{
+  color:var(--text3);
+  font-size:13px;
+  margin-top:6px;
+}
+
+.outlet-actions{
+  display:flex;
+  gap:8px;
+}
+
+.icon-btn{
+  width:40px;
+  height:40px;
+
+  border:none;
+  cursor:pointer;
+
+  border-radius:12px;
+
+  background:var(--card2);
+  color:var(--text);
+
+  transition:0.2s;
+}
+
+.icon-btn:hover{
+  background:var(--accent);
+}
 
 .employee-list{
+  margin-top:20px;
+
   display:flex;
   flex-direction:column;
-  gap:14px;
+  gap:12px;
 }
 
-.employee-card{
-  background:rgba(255,255,255,.03);
+.employee-item{
+  background:rgba(255,255,255,0.03);
 
-  border:1px solid rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,0.05);
 
   border-radius:18px;
 
-  padding:18px;
-
-  transition:.2s;
-}
-
-.employee-card:hover{
-  transform:translateY(-2px);
-}
-
-.employee-top{
-  display:flex;
-  justify-content:space-between;
-  gap:14px;
+  padding:16px;
 }
 
 .employee-name{
-  font-size:18px;
-  font-weight:800;
+  font-size:16px;
+  font-weight:700;
 }
 
 .employee-phone{
-  margin-top:6px;
-  color:var(--text3);
   font-size:13px;
+  color:var(--text3);
+  margin-top:4px;
 }
 
 .employee-salary{
-  font-size:15px;
-  font-weight:700;
-  color:#a78bfa;
+  margin-top:10px;
+  color:#9fd6ff;
+  font-weight:600;
 }
 
-.employee-grid{
-  margin-top:18px;
+.contract-box{
+  margin-top:14px;
 
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:14px;
-}
-
-.info-box{
-  background:rgba(255,255,255,.03);
+  padding:12px;
 
   border-radius:14px;
 
-  padding:12px;
+  background:rgba(255,255,255,0.03);
 }
 
-.info-label{
-  color:var(--text3);
-  font-size:11px;
+.contract-dates{
+  font-size:13px;
+  color:var(--text2);
+  line-height:1.6;
 }
 
-.info-value{
-  margin-top:5px;
-  font-size:14px;
+.contract-status{
+  margin-top:10px;
+
+  display:inline-flex;
+  align-items:center;
+
+  padding:7px 12px;
+
+  border-radius:999px;
+
+  font-size:12px;
   font-weight:700;
 }
 
-.employee-actions{
-  margin-top:18px;
+.status-safe{
+  background:rgba(34,197,94,0.15);
+  color:var(--green);
+}
 
+.status-warning{
+  background:rgba(234,179,8,0.15);
+  color:var(--yellow);
+}
+
+.status-danger{
+  background:rgba(239,68,68,0.15);
+  color:var(--red);
+}
+
+.employee-actions{
   display:flex;
   gap:10px;
-}
-
-.btn-secondary{
-  background:rgba(255,255,255,.06);
-}
-
-.btn-danger{
-  background:rgba(239,68,68,.18);
-}
-
-/* EMPTY */
-
-.empty{
-  text-align:center;
-  padding:70px 20px;
-}
-
-.empty-icon{
-  font-size:60px;
-}
-
-.empty h3{
-  margin-top:18px;
-  font-size:22px;
-}
-
-.empty p{
-  margin-top:8px;
-  color:var(--text3);
+  margin-top:14px;
 }
 
 /* MODAL */
 
-.modal-overlay{
+.modal-wrap{
   position:fixed;
   inset:0;
 
-  background:rgba(0,0,0,.6);
+  background:rgba(0,0,0,0.65);
 
-  display:none;
+  display:flex;
   align-items:center;
   justify-content:center;
 
   padding:20px;
 
   z-index:999;
-}
 
-.modal-overlay.show{
-  display:flex;
+  backdrop-filter:blur(5px);
 }
 
 .modal{
   width:100%;
-  max-width:520px;
+  max-width:560px;
 
-  background:#182235;
+  background:var(--bg2);
 
-  border:1px solid var(--line);
+  border:1px solid var(--border);
 
   border-radius:28px;
 
   overflow:hidden;
-
-  box-shadow:var(--shadow);
 }
 
 .modal-header{
-  padding:24px;
+  padding:22px 24px;
 
-  border-bottom:1px solid var(--line);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-.modal-header h3{
+.modal-title{
   font-size:22px;
+  font-weight:800;
 }
 
 .modal-body{
   padding:24px;
 }
 
+.form-group{
+  margin-bottom:18px;
+}
+
+.label{
+  display:block;
+  margin-bottom:8px;
+
+  font-size:13px;
+  color:var(--text2);
+}
+
+.input{
+  width:100%;
+
+  background:var(--card);
+
+  border:1px solid var(--border);
+
+  color:var(--text);
+
+  border-radius:16px;
+
+  padding:14px 16px;
+
+  outline:none;
+}
+
+.input:focus{
+  border-color:var(--accent);
+}
+
 .modal-footer{
   padding:24px;
-
-  border-top:1px solid var(--line);
 
   display:flex;
   gap:12px;
   justify-content:flex-end;
 }
 
-/* FORM */
+/* NOTIFICATION PANEL */
 
-.form-group{
-  margin-bottom:18px;
+.notification-panel{
+  position:fixed;
+
+  top:90px;
+  right:20px;
+
+  width:380px;
+  max-height:70vh;
+
+  overflow:auto;
+
+  background:var(--bg2);
+
+  border:1px solid var(--border);
+
+  border-radius:24px;
+
+  box-shadow:var(--shadow);
+
+  z-index:998;
+
+  padding:18px;
 }
 
-.form-label{
-  display:block;
-
-  margin-bottom:8px;
-
-  font-size:13px;
-  font-weight:700;
+.notification-title{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:16px;
 }
 
-.input{
-  width:100%;
+.notif-item{
+  background:rgba(255,255,255,0.04);
 
-  background:#0f172a;
+  border:1px solid rgba(255,255,255,0.05);
 
-  border:1px solid #334155;
-
-  color:white;
-
-  padding:14px;
-
-  border-radius:14px;
-
-  font-size:14px;
-}
-
-.input:focus{
-  outline:none;
-  border-color:#8b5cf6;
-}
-
-/* CONTRACT ALERT */
-
-.alert-item{
-  background:rgba(239,68,68,.12);
-
-  border:1px solid rgba(239,68,68,.22);
-
-  border-radius:16px;
+  border-radius:18px;
 
   padding:16px;
 
   margin-bottom:12px;
 }
 
-.alert-name{
-  font-weight:800;
+.notif-item:last-child{
+  margin-bottom:0;
 }
 
-.alert-sub{
-  margin-top:6px;
-  color:#fecaca;
+.notif-name{
+  font-weight:700;
+}
+
+.notif-outlet{
+  color:var(--text3);
   font-size:13px;
+  margin-top:4px;
 }
 
-/* MOBILE */
+.notif-expire{
+  margin-top:10px;
 
-@media(max-width:900px){
+  color:var(--yellow);
 
-  .app{
-    flex-direction:column;
-  }
+  font-size:13px;
+  font-weight:700;
+}
 
-  .sidebar{
-    width:100%;
-    height:auto;
-    border-right:none;
-    border-bottom:1px solid var(--line);
-  }
+.empty{
+  text-align:center;
+  color:var(--text3);
+  padding:30px;
+}
 
-  .outlet-list{
-    display:flex;
-    overflow:auto;
-    gap:10px;
-    padding:14px;
-  }
+@media(max-width:768px){
 
-  .outlet-item{
-    min-width:220px;
-    margin-bottom:0;
-  }
-
-  .topbar{
-    padding:0 16px;
-  }
-
-  .content{
+  .wrapper{
     padding:16px;
   }
 
   .hero{
-    flex-direction:column;
-    text-align:center;
+    padding:24px;
   }
 
-  .employee-grid{
-    grid-template-columns:1fr;
+  .hero h1{
+    font-size:26px;
+  }
+
+  .notification-panel{
+    width:calc(100vw - 32px);
+    right:16px;
   }
 
 }
 
 </style>
 </head>
-
 <body>
 
-<div class="app">
+<div class="topbar">
 
-  <!-- SIDEBAR -->
-
-  <aside class="sidebar">
+  <div class="brand">
 
     <div class="logo">
-      <h1>🏢 Naruna HR</h1>
-      <p>Monitoring kontrak karyawan</p>
+      🧾
     </div>
 
-    <div class="sidebar-top">
-      <button
-        class="btn btn-full"
-        onclick="openOutletModal()"
-      >
-        + Tambah Outlet
-      </button>
+    <div>
+      <div class="brand-title">
+        Naruna Contract Monitor
+      </div>
+
+      <div class="brand-sub">
+        Monitoring kontrak karyawan seluruh outlet
+      </div>
     </div>
+
+  </div>
+
+  <button
+    class="notif-btn"
+    id="notifBtn"
+  >
+    🔔
 
     <div
-      class="outlet-list"
-      id="outletList"
-    ></div>
-
-  </aside>
-
-  <!-- MAIN -->
-
-  <main class="main">
-
-    <!-- TOPBAR -->
-
-    <div class="topbar">
-
-      <div>
-        <h2 id="pageTitle">
-          Dashboard
-        </h2>
-
-        <p>
-          Kelola kontrak kerja seluruh outlet
-        </p>
-      </div>
-
-      <div class="topbar-actions">
-
-        <div
-          class="notif-btn"
-          onclick="openReminderModal()"
-        >
-          🔔
-
-          <div
-            class="notif-badge"
-            id="notifBadge"
-            style="display:none"
-          >
-            0
-          </div>
-
-        </div>
-
-        <button
-          class="btn"
-          onclick="openEmployeeModal()"
-        >
-          + Karyawan
-        </button>
-
-      </div>
-
+      class="notif-count hidden"
+      id="notifCount"
+    >
+      0
     </div>
 
-    <!-- CONTENT -->
-
-    <div class="content">
-
-      <div class="hero">
-
-        <div>
-          <h3>
-            Sistem Monitoring Kontrak
-          </h3>
-
-          <p>
-            Pantau masa kontrak seluruh
-            karyawan secara otomatis,
-            urut per outlet dan alfabet.
-          </p>
-        </div>
-
-        <div class="hero-icon">
-          📋
-        </div>
-
-      </div>
-
-      <div class="card">
-
-        <div class="card-header">
-
-          <div class="card-title">
-            Daftar Karyawan
-          </div>
-
-        </div>
-
-        <div
-          class="employee-list"
-          id="employeeList"
-        ></div>
-
-      </div>
-
-    </div>
-
-  </main>
+  </button>
 
 </div>
 
-<!-- MODAL OUTLET -->
+<div class="wrapper">
 
-<div
-  class="modal-overlay"
-  id="outletModal"
->
+  <div class="hero">
 
-  <div class="modal">
+    <div>
 
-    <div class="modal-header">
-      <h3>Tambah Outlet</h3>
-    </div>
+      <h1>
+        Monitoring Kontrak Karyawan
+        Jadi Lebih Mudah
+      </h1>
 
-    <div class="modal-body">
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Nama Outlet
-        </label>
-
-        <input
-          type="text"
-          id="outletName"
-          class="input"
-          placeholder="Contoh: Outlet Semarang"
-        >
-
-      </div>
+      <p>
+        Tambahkan outlet, kelola karyawan,
+        dan dapatkan notifikasi otomatis
+        saat kontrak hampir habis.
+      </p>
 
     </div>
 
-    <div class="modal-footer">
-
-      <button
-        class="btn btn-secondary"
-        onclick="closeModal('outletModal')"
-      >
-        Batal
-      </button>
-
-      <button
-        class="btn"
-        onclick="saveOutlet()"
-      >
-        Simpan
-      </button>
-
+    <div class="hero-badge">
+      Data tersimpan aman di device menggunakan IndexedDB
     </div>
 
   </div>
 
-</div>
+  <div class="actions">
 
-<!-- MODAL EMPLOYEE -->
+    <button
+      class="btn btn-primary"
+      id="addOutletBtn"
+    >
+      ➕ Tambah Outlet
+    </button>
 
-<div
-  class="modal-overlay"
-  id="employeeModal"
->
+    <button
+      class="btn btn-secondary"
+      id="exportBtn"
+    >
+      💾 Backup Data
+    </button>
 
-  <div class="modal">
+    <button
+      class="btn btn-secondary"
+      id="importBtn"
+    >
+      📂 Restore Data
+    </button>
 
-    <div class="modal-header">
-      <h3>Tambah Karyawan</h3>
-    </div>
-
-    <div class="modal-body">
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Nama
-        </label>
-
-        <input
-          type="text"
-          id="employeeName"
-          class="input"
-        >
-
-      </div>
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Nomor HP
-        </label>
-
-        <input
-          type="text"
-          id="employeePhone"
-          class="input"
-        >
-
-      </div>
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Gaji Pokok
-        </label>
-
-        <input
-          type="number"
-          id="employeeSalary"
-          class="input"
-        >
-
-      </div>
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Start Kontrak
-        </label>
-
-        <input
-          type="date"
-          id="employeeStart"
-          class="input"
-        >
-
-      </div>
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Akhir Kontrak
-        </label>
-
-        <input
-          type="date"
-          id="employeeEnd"
-          class="input"
-        >
-
-      </div>
-
-    </div>
-
-    <div class="modal-footer">
-
-      <button
-        class="btn btn-secondary"
-        onclick="closeModal('employeeModal')"
-      >
-        Batal
-      </button>
-
-      <button
-        class="btn"
-        onclick="saveEmployee()"
-      >
-        Simpan
-      </button>
-
-    </div>
+    <input
+      type="file"
+      id="importFile"
+      class="hidden"
+      accept=".json"
+    >
 
   </div>
 
+  <div
+    class="outlet-grid"
+    id="outletGrid"
+  ></div>
+
 </div>
 
-<!-- MODAL REMINDER -->
+<!-- MODAL -->
 
 <div
-  class="modal-overlay"
-  id="reminderModal"
+  class="modal-wrap hidden"
+  id="modalWrap"
 >
 
   <div class="modal">
 
     <div class="modal-header">
-      <h3>Kontrak Akan Habis</h3>
+
+      <div
+        class="modal-title"
+        id="modalTitle"
+      >
+      </div>
+
+      <button
+        class="icon-btn"
+        id="closeModal"
+      >
+        ✕
+      </button>
+
     </div>
 
     <div
       class="modal-body"
-      id="reminderList"
-    ></div>
+      id="modalBody"
+    >
+    </div>
 
     <div class="modal-footer">
 
       <button
-        class="btn"
-        onclick="closeModal('reminderModal')"
+        class="btn btn-secondary"
+        id="cancelModal"
       >
-        Tutup
+        Batal
+      </button>
+
+      <button
+        class="btn btn-primary"
+        id="saveModal"
+      >
+        Simpan
       </button>
 
     </div>
 
   </div>
+
+</div>
+
+<!-- NOTIFICATION -->
+
+<div
+  class="notification-panel hidden"
+  id="notifPanel"
+>
+
+  <div class="notification-title">
+    Kontrak Akan Berakhir
+  </div>
+
+  <div id="notifList"></div>
 
 </div>
 
 <script>
 
-/* STORAGE */
+/* =====================================================
+INDEXED DB
+===================================================== */
 
-const DB_KEY =
-  'naruna_hr_simple_v1';
+const DB_NAME = 'naruna_contract_monitor';
+const STORE_NAME = 'app_data';
 
-/* STATE */
+let db = null;
 
-let state = {
-  outlets:[],
-  employees:[]
-};
+function openDB(){
 
-let selectedOutletId = null;
+  return new Promise((resolve,reject)=>{
 
-/* LOAD */
+    const request =
+      indexedDB.open(DB_NAME,1);
 
-function loadData(){
+    request.onupgradeneeded = e=>{
 
-  const data =
-    localStorage.getItem(DB_KEY);
+      db = e.target.result;
 
-  if(data){
+      if(
+        !db.objectStoreNames.contains(
+          STORE_NAME
+        )
+      ){
 
-    state = JSON.parse(data);
+        db.createObjectStore(
+          STORE_NAME,
+          { keyPath:'key' }
+        );
 
-  }
+      }
+
+    };
+
+    request.onsuccess = e=>{
+
+      db = e.target.result;
+      resolve();
+
+    };
+
+    request.onerror = e=>{
+
+      reject(e);
+
+    };
+
+  });
 
 }
 
-/* SAVE */
+function saveData(data){
 
-function saveData(){
+  return new Promise((resolve,reject)=>{
 
-  localStorage.setItem(
-    DB_KEY,
-    JSON.stringify(state)
+    const tx =
+      db.transaction(
+        STORE_NAME,
+        'readwrite'
+      );
+
+    const store =
+      tx.objectStore(STORE_NAME);
+
+    store.put({
+      key:'main',
+      value:data
+    });
+
+    tx.oncomplete = ()=>resolve();
+
+    tx.onerror = err=>reject(err);
+
+  });
+
+}
+
+function loadData(){
+
+  return new Promise((resolve,reject)=>{
+
+    const tx =
+      db.transaction(
+        STORE_NAME,
+        'readonly'
+      );
+
+    const store =
+      tx.objectStore(STORE_NAME);
+
+    const req =
+      store.get('main');
+
+    req.onsuccess = ()=>{
+
+      resolve(
+        req.result
+          ? req.result.value
+          : {
+              outlets:[]
+            }
+      );
+
+    };
+
+    req.onerror = err=>reject(err);
+
+  });
+
+}
+
+/* =====================================================
+STATE
+===================================================== */
+
+let state = {
+  outlets:[]
+};
+
+/* =====================================================
+ELEMENTS
+===================================================== */
+
+const outletGrid =
+  document.getElementById(
+    'outletGrid'
+  );
+
+const modalWrap =
+  document.getElementById(
+    'modalWrap'
+  );
+
+const modalTitle =
+  document.getElementById(
+    'modalTitle'
+  );
+
+const modalBody =
+  document.getElementById(
+    'modalBody'
+  );
+
+const saveModal =
+  document.getElementById(
+    'saveModal'
+  );
+
+const notifBtn =
+  document.getElementById(
+    'notifBtn'
+  );
+
+const notifPanel =
+  document.getElementById(
+    'notifPanel'
+  );
+
+const notifCount =
+  document.getElementById(
+    'notifCount'
+  );
+
+const notifList =
+  document.getElementById(
+    'notifList'
+  );
+
+/* =====================================================
+HELPERS
+===================================================== */
+
+function id(){
+
+  return (
+    Date.now() +
+    Math.random()
+      .toString(36)
+      .slice(2,7)
   );
 
 }
 
-/* MODAL */
+function formatDate(date){
 
-function openModal(id){
-
-  document
-    .getElementById(id)
-    .classList
-    .add('show');
-
-}
-
-function closeModal(id){
-
-  document
-    .getElementById(id)
-    .classList
-    .remove('show');
-
-}
-
-function openOutletModal(){
-
-  openModal('outletModal');
-
-}
-
-function openEmployeeModal(){
-
-  if(!selectedOutletId){
-
-    alert(
-      'Pilih outlet terlebih dahulu'
+  return new Date(date)
+    .toLocaleDateString(
+      'id-ID'
     );
 
-    return;
+}
 
-  }
+function currency(num){
 
-  openModal('employeeModal');
+  return new Intl.NumberFormat(
+    'id-ID',
+    {
+      style:'currency',
+      currency:'IDR',
+      maximumFractionDigits:0
+    }
+  ).format(num || 0);
 
 }
 
-function openReminderModal(){
+function daysLeft(date){
 
-  renderReminder();
+  const now = new Date();
 
-  openModal('reminderModal');
+  now.setHours(0,0,0,0);
+
+  const end = new Date(date);
+
+  end.setHours(0,0,0,0);
+
+  return Math.ceil(
+    (
+      end - now
+    ) / (1000*60*60*24)
+  );
 
 }
 
-/* OUTLET */
+/* =====================================================
+SAVE
+===================================================== */
 
-function saveOutlet(){
+async function persist(){
 
-  const name =
-    document
-      .getElementById(
-        'outletName'
-      )
-      .value
-      .trim();
+  await saveData(state);
 
-  if(!name){
+}
 
-    alert('Nama outlet wajib');
+/* =====================================================
+RENDER
+===================================================== */
 
-    return;
-
-  }
-
-  state.outlets.push({
-    id:Date.now().toString(),
-    name
-  });
-
-  saveData();
+function render(){
 
   renderOutlets();
-
-  closeModal('outletModal');
-
-  document
-    .getElementById(
-      'outletName'
-    )
-    .value='';
+  renderNotifications();
 
 }
-
-/* EMPLOYEE */
-
-function saveEmployee(){
-
-  const employee = {
-
-    id:Date.now().toString(),
-
-    outletId:selectedOutletId,
-
-    name:
-      document
-        .getElementById(
-          'employeeName'
-        )
-        .value
-        .trim(),
-
-    phone:
-      document
-        .getElementById(
-          'employeePhone'
-        )
-        .value
-        .trim(),
-
-    salary:
-      document
-        .getElementById(
-          'employeeSalary'
-        )
-        .value,
-
-    contractStart:
-      document
-        .getElementById(
-          'employeeStart'
-        )
-        .value,
-
-    contractEnd:
-      document
-        .getElementById(
-          'employeeEnd'
-        )
-        .value
-
-  };
-
-  if(
-    !employee.name ||
-    !employee.contractEnd
-  ){
-
-    alert(
-      'Lengkapi data karyawan'
-    );
-
-    return;
-
-  }
-
-  state.employees.push(employee);
-
-  saveData();
-
-  renderEmployees();
-
-  updateReminder();
-
-  closeModal('employeeModal');
-
-}
-
-/* RENDER OUTLET */
 
 function renderOutlets(){
 
-  const list =
-    document
-      .getElementById(
-        'outletList'
-      );
-
-  list.innerHTML='';
+  outletGrid.innerHTML = '';
 
   if(
-    state.outlets.length === 0
+    !state.outlets.length
   ){
 
-    list.innerHTML=`
-      <div
-        style="
-          color:#94a3b8;
-          padding:20px;
-          font-size:13px;
-        "
-      >
+    outletGrid.innerHTML = `
+      <div class="empty">
         Belum ada outlet
       </div>
     `;
@@ -1186,306 +1050,251 @@ function renderOutlets(){
     )
     .forEach(outlet=>{
 
-      const total =
-        state.employees.filter(
-          e=>e.outletId===outlet.id
-        ).length;
-
       const div =
-        document.createElement(
-          'div'
-        );
+        document.createElement('div');
 
       div.className =
-        `
-        outlet-item
-        ${
-          selectedOutletId===
-          outlet.id
-          ? 'active'
-          : ''
-        }
-        `;
+        'outlet-card';
 
-      div.innerHTML=`
-        <div class="outlet-name">
-          ${outlet.name}
+      const employees =
+        outlet.employees || [];
+
+      div.innerHTML = `
+        <div class="outlet-top">
+
+          <div>
+
+            <div class="outlet-name">
+              ${outlet.name}
+            </div>
+
+            <div class="outlet-total">
+              ${employees.length}
+              karyawan
+            </div>
+
+          </div>
+
+          <div class="outlet-actions">
+
+            <button
+              class="icon-btn"
+              onclick="editOutlet('${outlet.id}')"
+            >
+              ✏️
+            </button>
+
+            <button
+              class="icon-btn"
+              onclick="removeOutlet('${outlet.id}')"
+            >
+              🗑️
+            </button>
+
+          </div>
+
         </div>
 
-        <div class="outlet-sub">
-          ${total} karyawan
+        <div class="employee-list">
+
+          ${
+            employees.length
+            ? employees
+              .sort((a,b)=>
+                a.name.localeCompare(b.name)
+              )
+              .map(emp=>{
+
+                const left =
+                  daysLeft(emp.end);
+
+                let status =
+                  'Aman';
+
+                let statusClass =
+                  'status-safe';
+
+                if(
+                  left <= 30 &&
+                  left >= 0
+                ){
+
+                  status =
+                    `Habis ${left} hari lagi`;
+
+                  statusClass =
+                    'status-warning';
+
+                }
+
+                if(left < 0){
+
+                  status =
+                    'Kontrak Habis';
+
+                  statusClass =
+                    'status-danger';
+
+                }
+
+                return `
+                  <div class="employee-item">
+
+                    <div class="employee-name">
+                      ${emp.name}
+                    </div>
+
+                    <div class="employee-phone">
+                      ${emp.phone}
+                    </div>
+
+                    <div class="employee-salary">
+                      ${currency(emp.salary)}
+                    </div>
+
+                    <div class="contract-box">
+
+                      <div class="contract-dates">
+                        Mulai:
+                        ${formatDate(emp.start)}
+                        <br>
+                        Berakhir:
+                        ${formatDate(emp.end)}
+                      </div>
+
+                      <div class="
+                        contract-status
+                        ${statusClass}
+                      ">
+                        ${status}
+                      </div>
+
+                    </div>
+
+                    <div class="employee-actions">
+
+                      <button
+                        class="btn btn-secondary"
+                        onclick="editEmployee(
+                          '${outlet.id}',
+                          '${emp.id}'
+                        )"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        class="btn btn-secondary"
+                        onclick="removeEmployee(
+                          '${outlet.id}',
+                          '${emp.id}'
+                        )"
+                      >
+                        Hapus
+                      </button>
+
+                    </div>
+
+                  </div>
+                `;
+
+              }).join('')
+            : `
+              <div class="empty">
+                Belum ada karyawan
+              </div>
+            `
+          }
+
+        </div>
+
+        <div style="margin-top:18px">
+
+          <button
+            class="btn btn-primary"
+            onclick="openEmployeeModal(
+              '${outlet.id}'
+            )"
+          >
+            ➕ Tambah Karyawan
+          </button>
+
         </div>
       `;
 
-      div.onclick=()=>{
-
-        selectedOutletId =
-          outlet.id;
-
-        renderOutlets();
-
-        renderEmployees();
-
-      };
-
-      list.appendChild(div);
+      outletGrid.appendChild(div);
 
     });
 
 }
 
-/* RENDER EMPLOYEE */
+/* =====================================================
+NOTIFICATION
+===================================================== */
 
-function renderEmployees(){
+function renderNotifications(){
 
-  const container =
-    document
-      .getElementById(
-        'employeeList'
-      );
+  let list = [];
 
-  if(!selectedOutletId){
+  state.outlets.forEach(outlet=>{
 
-    container.innerHTML=`
-      <div class="empty">
+    (
+      outlet.employees || []
+    ).forEach(emp=>{
 
-        <div class="empty-icon">
-          🏢
-        </div>
+      const left =
+        daysLeft(emp.end);
 
-        <h3>
-          Pilih Outlet
-        </h3>
+      if(
+        left >= 0 &&
+        left <= 30
+      ){
 
-        <p>
-          Pilih outlet untuk melihat
-          data karyawan
-        </p>
-
-      </div>
-    `;
-
-    return;
-
-  }
-
-  const employees =
-    state.employees
-      .filter(
-        e=>
-          e.outletId===
-          selectedOutletId
-      )
-      .sort((a,b)=>
-        a.name.localeCompare(b.name)
-      );
-
-  if(employees.length===0){
-
-    container.innerHTML=`
-      <div class="empty">
-
-        <div class="empty-icon">
-          👤
-        </div>
-
-        <h3>
-          Belum Ada Karyawan
-        </h3>
-
-        <p>
-          Tambahkan karyawan pertama
-        </p>
-
-      </div>
-    `;
-
-    return;
-
-  }
-
-  container.innerHTML='';
-
-  employees.forEach(emp=>{
-
-    const card =
-      document.createElement(
-        'div'
-      );
-
-    card.className='employee-card';
-
-    card.innerHTML=`
-
-      <div class="employee-top">
-
-        <div>
-
-          <div class="employee-name">
-            ${emp.name}
-          </div>
-
-          <div class="employee-phone">
-            ${emp.phone || '-'}
-          </div>
-
-        </div>
-
-        <div class="employee-salary">
-          Rp ${Number(emp.salary)
-            .toLocaleString('id-ID')}
-        </div>
-
-      </div>
-
-      <div class="employee-grid">
-
-        <div class="info-box">
-
-          <div class="info-label">
-            START KONTRAK
-          </div>
-
-          <div class="info-value">
-            ${formatDate(
-              emp.contractStart
-            )}
-          </div>
-
-        </div>
-
-        <div class="info-box">
-
-          <div class="info-label">
-            AKHIR KONTRAK
-          </div>
-
-          <div class="info-value">
-            ${formatDate(
-              emp.contractEnd
-            )}
-          </div>
-
-        </div>
-
-      </div>
-
-    `;
-
-    container.appendChild(card);
-
-  });
-
-}
-
-/* REMINDER */
-
-function updateReminder(){
-
-  const badge =
-    document
-      .getElementById(
-        'notifBadge'
-      );
-
-  const reminder =
-    getReminderEmployees();
-
-  if(reminder.length>0){
-
-    badge.style.display='flex';
-
-    badge.textContent =
-      reminder.length;
-
-  }else{
-
-    badge.style.display='none';
-
-  }
-
-}
-
-function getReminderEmployees(){
-
-  return state.employees
-    .filter(emp=>{
-
-      const today =
-        new Date();
-
-      const end =
-        new Date(
-          emp.contractEnd
-        );
-
-      const diff =
-        Math.ceil(
-          (
-            end - today
-          ) /
-          (
-            1000*60*60*24
-          )
-        );
-
-      return diff <= 30;
-
-    })
-    .sort((a,b)=>{
-
-      const outletA =
-        getOutletName(
-          a.outletId
-        );
-
-      const outletB =
-        getOutletName(
-          b.outletId
-        );
-
-      if(outletA!==outletB){
-
-        return outletA
-          .localeCompare(outletB);
+        list.push({
+          outlet:outlet.name,
+          employee:emp.name,
+          end:emp.end,
+          left
+        });
 
       }
 
-      return a.name
-        .localeCompare(b.name);
-
     });
 
-}
+  });
 
-function renderReminder(){
+  list.sort((a,b)=>{
 
-  const container =
-    document
-      .getElementById(
-        'reminderList'
-      );
+    if(
+      a.outlet !== b.outlet
+    ){
 
-  const reminder =
-    getReminderEmployees();
+      return a.outlet
+        .localeCompare(b.outlet);
 
-  if(reminder.length===0){
+    }
 
-    container.innerHTML=`
+    return a.employee
+      .localeCompare(b.employee);
+
+  });
+
+  notifCount.textContent =
+    list.length;
+
+  notifCount.classList.toggle(
+    'hidden',
+    !list.length
+  );
+
+  notifList.innerHTML = '';
+
+  if(!list.length){
+
+    notifList.innerHTML = `
       <div class="empty">
-
-        <div class="empty-icon">
-          ✅
-        </div>
-
-        <h3>
-          Tidak Ada Reminder
-        </h3>
-
-        <p>
-          Semua kontrak masih aman
-        </p>
-
+        Tidak ada kontrak
+        yang akan habis
       </div>
     `;
 
@@ -1493,98 +1302,651 @@ function renderReminder(){
 
   }
 
-  container.innerHTML='';
+  list.forEach(item=>{
 
-  reminder.forEach(emp=>{
+    notifList.innerHTML += `
+      <div class="notif-item">
 
-    const days =
-      getRemainingDays(
-        emp.contractEnd
-      );
-
-    container.innerHTML += `
-
-      <div class="alert-item">
-
-        <div class="alert-name">
-          ${emp.name}
+        <div class="notif-name">
+          ${item.employee}
         </div>
 
-        <div class="alert-sub">
+        <div class="notif-outlet">
+          ${item.outlet}
+        </div>
 
-          ${getOutletName(
-            emp.outletId
-          )}
-
-          •
-
-          Kontrak habis
-          ${days} hari lagi
-
+        <div class="notif-expire">
+          Berakhir dalam
+          ${item.left} hari
         </div>
 
       </div>
-
     `;
 
   });
 
 }
 
-/* HELPERS */
+notifBtn.onclick = ()=>{
 
-function getOutletName(id){
+  notifPanel.classList.toggle(
+    'hidden'
+  );
+
+};
+
+/* =====================================================
+OUTLET
+===================================================== */
+
+document
+  .getElementById(
+    'addOutletBtn'
+  )
+  .onclick = ()=>{
+
+    modalWrap.classList.remove(
+      'hidden'
+    );
+
+    modalTitle.innerHTML =
+      'Tambah Outlet';
+
+    modalBody.innerHTML = `
+      <div class="form-group">
+
+        <label class="label">
+          Nama Outlet
+        </label>
+
+        <input
+          type="text"
+          id="outletName"
+          class="input"
+          placeholder="Contoh: Naruna Semarang"
+        >
+
+      </div>
+    `;
+
+    saveModal.onclick =
+      async ()=>{
+
+        const name =
+          document
+            .getElementById(
+              'outletName'
+            )
+            .value.trim();
+
+        if(!name){
+
+          alert(
+            'Nama outlet wajib diisi'
+          );
+
+          return;
+
+        }
+
+        state.outlets.push({
+          id:id(),
+          name,
+          employees:[]
+        });
+
+        await persist();
+
+        render();
+
+        closeModal();
+
+      };
+
+  };
+
+async function removeOutlet(idOutlet){
+
+  if(
+    !confirm(
+      'Hapus outlet beserta seluruh karyawan?'
+    )
+  ) return;
+
+  state.outlets =
+    state.outlets.filter(
+      o=>o.id !== idOutlet
+    );
+
+  await persist();
+
+  render();
+
+}
+
+function editOutlet(idOutlet){
 
   const outlet =
     state.outlets.find(
-      o=>o.id===id
+      o=>o.id === idOutlet
     );
 
-  return outlet
-    ? outlet.name
-    : '-';
+  if(!outlet) return;
+
+  modalWrap.classList.remove(
+    'hidden'
+  );
+
+  modalTitle.innerHTML =
+    'Edit Outlet';
+
+  modalBody.innerHTML = `
+    <div class="form-group">
+
+      <label class="label">
+        Nama Outlet
+      </label>
+
+      <input
+        type="text"
+        id="outletName"
+        class="input"
+        value="${outlet.name}"
+      >
+
+    </div>
+  `;
+
+  saveModal.onclick =
+    async ()=>{
+
+      const name =
+        document
+          .getElementById(
+            'outletName'
+          )
+          .value.trim();
+
+      if(!name){
+
+        alert(
+          'Nama outlet wajib diisi'
+        );
+
+        return;
+
+      }
+
+      outlet.name = name;
+
+      await persist();
+
+      render();
+
+      closeModal();
+
+    };
 
 }
 
-function formatDate(date){
+/* =====================================================
+EMPLOYEE
+===================================================== */
 
-  if(!date) return '-';
+function openEmployeeModal(
+  outletId
+){
 
-  return new Date(date)
-    .toLocaleDateString(
-      'id-ID'
+  const outlet =
+    state.outlets.find(
+      o=>o.id === outletId
     );
+
+  if(!outlet) return;
+
+  modalWrap.classList.remove(
+    'hidden'
+  );
+
+  modalTitle.innerHTML =
+    'Tambah Karyawan';
+
+  modalBody.innerHTML = `
+    <div class="form-group">
+      <label class="label">
+        Nama
+      </label>
+
+      <input
+        type="text"
+        id="empName"
+        class="input"
+      >
+    </div>
+
+    <div class="form-group">
+      <label class="label">
+        Nomor HP
+      </label>
+
+      <input
+        type="text"
+        id="empPhone"
+        class="input"
+      >
+    </div>
+
+    <div class="form-group">
+      <label class="label">
+        Gaji Pokok
+      </label>
+
+      <input
+        type="number"
+        id="empSalary"
+        class="input"
+      >
+    </div>
+
+    <div class="form-group">
+      <label class="label">
+        Start Kontrak
+      </label>
+
+      <input
+        type="date"
+        id="empStart"
+        class="input"
+      >
+    </div>
+
+    <div class="form-group">
+      <label class="label">
+        Akhir Kontrak
+      </label>
+
+      <input
+        type="date"
+        id="empEnd"
+        class="input"
+      >
+    </div>
+  `;
+
+  saveModal.onclick =
+    async ()=>{
+
+      const start =
+        document
+          .getElementById(
+            'empStart'
+          )
+          .value;
+
+      const end =
+        document
+          .getElementById(
+            'empEnd'
+          )
+          .value;
+
+      if(
+        new Date(end) <
+        new Date(start)
+      ){
+
+        alert(
+          'Tanggal akhir kontrak tidak valid'
+        );
+
+        return;
+
+      }
+
+      outlet.employees.push({
+
+        id:id(),
+
+        name:
+          document
+            .getElementById(
+              'empName'
+            )
+            .value,
+
+        phone:
+          document
+            .getElementById(
+              'empPhone'
+            )
+            .value,
+
+        salary:
+          Number(
+            document
+              .getElementById(
+                'empSalary'
+              )
+              .value
+          ),
+
+        start,
+        end
+
+      });
+
+      await persist();
+
+      render();
+
+      closeModal();
+
+    };
 
 }
 
-function getRemainingDays(date){
+function editEmployee(
+  outletId,
+  empId
+){
 
-  const today =
-    new Date();
+  const outlet =
+    state.outlets.find(
+      o=>o.id === outletId
+    );
 
-  const end =
-    new Date(date);
+  if(!outlet) return;
 
-  return Math.ceil(
-    (
-      end - today
-    ) /
-    (
-      1000*60*60*24
+  const emp =
+    outlet.employees.find(
+      e=>e.id === empId
+    );
+
+  if(!emp) return;
+
+  modalWrap.classList.remove(
+    'hidden'
+  );
+
+  modalTitle.innerHTML =
+    'Edit Karyawan';
+
+  modalBody.innerHTML = `
+    <div class="form-group">
+      <label class="label">
+        Nama
+      </label>
+
+      <input
+        type="text"
+        id="empName"
+        class="input"
+        value="${emp.name}"
+      >
+    </div>
+
+    <div class="form-group">
+      <label class="label">
+        Nomor HP
+      </label>
+
+      <input
+        type="text"
+        id="empPhone"
+        class="input"
+        value="${emp.phone}"
+      >
+    </div>
+
+    <div class="form-group">
+      <label class="label">
+        Gaji Pokok
+      </label>
+
+      <input
+        type="number"
+        id="empSalary"
+        class="input"
+        value="${emp.salary}"
+      >
+    </div>
+
+    <div class="form-group">
+      <label class="label">
+        Start Kontrak
+      </label>
+
+      <input
+        type="date"
+        id="empStart"
+        class="input"
+        value="${emp.start}"
+      >
+    </div>
+
+    <div class="form-group">
+      <label class="label">
+        Akhir Kontrak
+      </label>
+
+      <input
+        type="date"
+        id="empEnd"
+        class="input"
+        value="${emp.end}"
+      >
+    </div>
+  `;
+
+  saveModal.onclick =
+    async ()=>{
+
+      const start =
+        document
+          .getElementById(
+            'empStart'
+          )
+          .value;
+
+      const end =
+        document
+          .getElementById(
+            'empEnd'
+          )
+          .value;
+
+      if(
+        new Date(end) <
+        new Date(start)
+      ){
+
+        alert(
+          'Tanggal akhir kontrak tidak valid'
+        );
+
+        return;
+
+      }
+
+      emp.name =
+        document
+          .getElementById(
+            'empName'
+          )
+          .value;
+
+      emp.phone =
+        document
+          .getElementById(
+            'empPhone'
+          )
+          .value;
+
+      emp.salary =
+        Number(
+          document
+            .getElementById(
+              'empSalary'
+            )
+            .value
+        );
+
+      emp.start = start;
+      emp.end = end;
+
+      await persist();
+
+      render();
+
+      closeModal();
+
+    };
+
+}
+
+async function removeEmployee(
+  outletId,
+  empId
+){
+
+  if(
+    !confirm(
+      'Hapus karyawan ini?'
     )
+  ) return;
+
+  const outlet =
+    state.outlets.find(
+      o=>o.id === outletId
+    );
+
+  outlet.employees =
+    outlet.employees.filter(
+      e=>e.id !== empId
+    );
+
+  await persist();
+
+  render();
+
+}
+
+/* =====================================================
+EXPORT IMPORT
+===================================================== */
+
+document
+  .getElementById(
+    'exportBtn'
+  )
+  .onclick = ()=>{
+
+    const blob =
+      new Blob(
+        [
+          JSON.stringify(
+            state,
+            null,
+            2
+          )
+        ],
+        {
+          type:'application/json'
+        }
+      );
+
+    const a =
+      document.createElement('a');
+
+    a.href =
+      URL.createObjectURL(blob);
+
+    a.download =
+      'naruna-backup.json';
+
+    a.click();
+
+  };
+
+document
+  .getElementById(
+    'importBtn'
+  )
+  .onclick = ()=>{
+
+    document
+      .getElementById(
+        'importFile'
+      )
+      .click();
+
+  };
+
+document
+  .getElementById(
+    'importFile'
+  )
+  .addEventListener(
+    'change',
+    async e=>{
+
+      const file =
+        e.target.files[0];
+
+      if(!file) return;
+
+      const text =
+        await file.text();
+
+      state =
+        JSON.parse(text);
+
+      await persist();
+
+      render();
+
+    }
+  );
+
+/* =====================================================
+MODAL CLOSE
+===================================================== */
+
+function closeModal(){
+
+  modalWrap.classList.add(
+    'hidden'
   );
 
 }
 
-/* INIT */
+document
+  .getElementById(
+    'closeModal'
+  )
+  .onclick = closeModal;
 
-loadData();
+document
+  .getElementById(
+    'cancelModal'
+  )
+  .onclick = closeModal;
 
-renderOutlets();
+/* =====================================================
+INIT
+===================================================== */
 
-renderEmployees();
+async function init(){
 
-updateReminder();
+  await openDB();
+
+  state = await loadData();
+
+  render();
+
+}
+
+init();
 
 </script>
 

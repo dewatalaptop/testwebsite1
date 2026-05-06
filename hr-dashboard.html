@@ -4,703 +4,815 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Naruna HR</title>
+<title>Naruna HR Suite</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Epilogue:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
-/* ─────────────────────────────────────────
+/* =======================================
    TOKENS
-───────────────────────────────────────── */
-:root{
-  --ink:#0a0a0f;
-  --ink2:#16161f;
-  --ink3:#1e1e2a;
-  --line:#2a2a38;
-  --line2:#343448;
-  --gold:#c9a84c;
-  --gold2:#e8c96a;
-  --cream:#f5f0e8;
-  --fog:#8b8ba0;
-  --fog2:#5e5e72;
-  --danger:#e05555;
-  --warn:#d4943a;
-  --ok:#4aaa7a;
-  --r:14px;
-  --sh:0 0 0 1px var(--line);
+======================================= */
+:root {
+  --bg: #f4f5f9;
+  --surface: #ffffff;
+  --surface2: #f0f2f7;
+  --surface3: #e8ebf4;
+  --text: #14161d;
+  --text2: #5b6170;
+  --text3: #9aa0b0;
+  --line: #e2e6f0;
+  --line2: #cdd3e2;
+  --gold: #b8893c;
+  --gold2: #d4a855;
+  --gold-bg: rgba(184,137,60,.08);
+  --gold-border: rgba(184,137,60,.2);
+  --danger: #d94f4f;
+  --danger-bg: rgba(217,79,79,.07);
+  --danger-border: rgba(217,79,79,.18);
+  --warn: #c97a2a;
+  --warn-bg: rgba(201,122,42,.07);
+  --warn-border: rgba(201,122,42,.18);
+  --ok: #3a9e6a;
+  --ok-bg: rgba(58,158,106,.07);
+  --ok-border: rgba(58,158,106,.18);
+  --blue: #3b6fd4;
+  --r: 14px;
+  --r2: 20px;
+  --shadow: 0 2px 12px rgba(20,22,30,.06), 0 1px 3px rgba(20,22,30,.04);
+  --shadow2: 0 8px 32px rgba(20,22,30,.10), 0 2px 8px rgba(20,22,30,.05);
+  --sidebar-w: 68px;
+  --sidebar-w-exp: 232px;
 }
-/* ─────────────────────────────────────────
-   RESET & BASE
-───────────────────────────────────────── */
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{
-  font-family:'Epilogue',sans-serif;
-  background:var(--ink);
-  color:var(--cream);
-  min-height:100vh;
-  overflow-x:hidden;
-}
-button,input,select,textarea{font-family:'Epilogue',sans-serif;}
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:var(--ink);}
-::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px;}
-::selection{background:rgba(201,168,76,.25);color:var(--cream);}
 
-/* ─────────────────────────────────────────
+/* =======================================
+RESET
+======================================= */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+font-family: ‘DM Sans’, sans-serif;
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+overflow-x: hidden;
+font-size: 14px;
+line-height: 1.5;
+}
+button, input, select, textarea { font-family: inherit; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(–line2); border-radius: 2px; }
+::selection { background: var(–gold-bg); color: var(–text); }
+a { color: inherit; text-decoration: none; }
+
+/* =======================================
 LAYOUT
-───────────────────────────────────────── */
-.shell{display:flex;min-height:100vh;}
+======================================= */
+.shell { display:flex; min-height:100vh; }
 
-/* ─────────────────────────────────────────
+/* =======================================
 SIDEBAR
-───────────────────────────────────────── */
-.sidebar{
-width:72px;
-background:var(–ink2);
-border-right:1px solid var(–line);
-position:fixed;top:0;left:0;bottom:0;
-display:flex;flex-direction:column;
-align-items:center;
-padding:24px 0 20px;
-z-index:300;
-transition:width .35s cubic-bezier(.4,0,.2,1);
-overflow:hidden;
+======================================= */
+.sidebar {
+width: var(–sidebar-w);
+background: var(–text);
+position: fixed; top:0; left:0; bottom:0;
+display: flex; flex-direction:column; align-items:center;
+padding: 20px 0;
+z-index: 300;
+transition: width .32s cubic-bezier(.4,0,.2,1);
+overflow: hidden;
 }
-.sidebar.expanded{ width:240px; align-items:flex-start; padding:24px 0 20px; }
+.sidebar.expanded { width: var(–sidebar-w-exp); align-items: flex-start; }
 
-.sidebar-logo{
-width:40px;height:40px;min-width:40px;
-background:linear-gradient(135deg,var(–gold),var(–gold2));
-border-radius:10px;
-display:flex;align-items:center;justify-content:center;
-font-family:‘Playfair Display’,serif;
-font-weight:900;font-size:18px;color:var(–ink);
-margin:0 16px 32px;
-flex-shrink:0;
-cursor:pointer;
-transition:.2s;
-}
-.sidebar-logo:hover{transform:scale(1.05);}
-
-.sidebar-brand-text{
-margin-left:12px;
-opacity:0;
-transition:opacity .2s;
-white-space:nowrap;
-}
-.sidebar.expanded .sidebar-brand-text{ opacity:1; }
-.sidebar-brand-text strong{
-font-family:‘Playfair Display’,serif;
-font-size:16px;font-weight:700;
-display:block;line-height:1.1;
-}
-.sidebar-brand-text span{
-font-size:10px;letter-spacing:3px;
-text-transform:uppercase;color:var(–fog);
-}
-.brand-row{display:flex;align-items:center;padding:0 16px;margin-bottom:32px;}
-
-.nav{
-display:flex;flex-direction:column;
-gap:2px;width:100%;padding:0 10px;
-}
-.nav-item{
-display:flex;align-items:center;
-gap:12px;padding:11px 13px;
-border-radius:10px;
-cursor:pointer;border:none;background:transparent;
-color:var(–fog);font-size:13px;font-weight:500;
-text-align:left;width:100%;
-transition:.2s;
-white-space:nowrap;overflow:hidden;
-}
-.nav-item:hover{background:var(–ink3);color:var(–cream);}
-.nav-item.active{background:rgba(201,168,76,.12);color:var(–gold);}
-.nav-item .ni{
-width:20px;height:20px;min-width:20px;
-display:flex;align-items:center;justify-content:center;
-font-size:15px;
-}
-.nav-item span.label{
-opacity:0;transition:opacity .15s .1s;
-}
-.sidebar.expanded .nav-item span.label{opacity:1;}
-
-.sidebar-toggle{
-margin-top:auto;padding:0 10px;width:100%;
-}
-.toggle-btn{
-display:flex;align-items:center;gap:12px;
-padding:11px 13px;border-radius:10px;
-cursor:pointer;border:none;background:transparent;
-color:var(–fog2);font-size:13px;width:100%;
-transition:.2s;
-}
-.toggle-btn:hover{color:var(–fog);}
-.toggle-icon{transition:transform .35s;}
-.sidebar.expanded .toggle-icon{transform:rotate(180deg);}
-
-/* ─────────────────────────────────────────
-MAIN
-───────────────────────────────────────── */
-.main{
-margin-left:72px;
-flex:1;padding:0;
-transition:margin-left .35s cubic-bezier(.4,0,.2,1);
-min-width:0;
-}
-.sidebar.expanded ~ .main{ margin-left:240px; }
-
-/* ─────────────────────────────────────────
-TOPBAR
-───────────────────────────────────────── */
-.topbar{
-position:sticky;top:0;z-index:100;
-background:rgba(10,10,15,.85);
-backdrop-filter:blur(16px);
-border-bottom:1px solid var(–line);
-padding:0 32px;
-height:64px;
-display:flex;align-items:center;
-justify-content:space-between;gap:16px;
-}
-.topbar-left{display:flex;align-items:center;gap:16px;}
-.page-label{
-font-family:‘Playfair Display’,serif;
-font-size:20px;font-weight:700;
-}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-
-.search-box{
-display:flex;align-items:center;gap:8px;
-background:var(–ink2);
-border:1px solid var(–line);
-border-radius:10px;
-padding:8px 14px;width:240px;
-transition:.2s;
-}
-.search-box:focus-within{border-color:var(–gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
-.search-box svg{color:var(–fog2);flex-shrink:0;}
-.search-box input{
-border:none;background:none;outline:none;
-color:var(–cream);font-size:13px;width:100%;
-}
-.search-box input::placeholder{color:var(–fog2);}
-
-.save-status{
-font-size:11px;color:var(–fog2);
-display:flex;align-items:center;gap:5px;
-padding:6px 10px;border-radius:8px;
-background:var(–ink2);border:1px solid var(–line);
-white-space:nowrap;
-}
-.save-dot{
-width:6px;height:6px;border-radius:50%;
-background:var(–ok);transition:.3s;
-}
-.save-dot.saving{background:var(–warn);animation:pulse 1s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-
-/* ─────────────────────────────────────────
-CONTENT
-───────────────────────────────────────── */
-.content{padding:32px;}
-
-/* ─────────────────────────────────────────
-PAGE SYSTEM
-───────────────────────────────────────── */
-.page{display:none;animation:fadeUp .3s ease;}
-.page.active{display:block;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-
-/* ─────────────────────────────────────────
-SECTION HEADER
-───────────────────────────────────────── */
-.sec-head{
-display:flex;align-items:flex-start;
-justify-content:space-between;gap:16px;
-flex-wrap:wrap;margin-bottom:24px;
-}
-.sec-title{
-font-family:‘Playfair Display’,serif;
-font-size:28px;font-weight:800;line-height:1.1;
-}
-.sec-sub{font-size:13px;color:var(–fog);margin-top:4px;}
-.sec-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-
-/* ─────────────────────────────────────────
-STAT CARDS
-───────────────────────────────────────── */
-.stats-grid{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:16px;margin-bottom:32px;
-}
-@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:600px){.stats-grid{grid-template-columns:1fr 1fr;}}
-
-.stat{
-background:var(–ink2);
-border:1px solid var(–line);
-border-radius:var(–r);
-padding:22px 24px;
-position:relative;overflow:hidden;
-transition:.25s;
-}
-.stat:hover{border-color:var(–line2);transform:translateY(-2px);}
-.stat::after{
-content:’’;position:absolute;
-bottom:-20px;right:-20px;
-width:80px;height:80px;
-border-radius:50%;
-background:var(–stat-glow,var(–gold));
-opacity:.05;
-transition:opacity .3s;
-}
-.stat:hover::after{opacity:.1;}
-.stat-n{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(–fog);margin-bottom:12px;}
-.stat-v{
-font-family:‘Playfair Display’,serif;
-font-size:32px;font-weight:800;line-height:1;
-}
-.stat-v.gold{color:var(–gold);}
-.stat-v.warn{color:var(–warn);}
-.stat-v.sm{font-size:20px;}
-.stat-trend{
-font-size:11px;color:var(–fog2);
-margin-top:8px;
-}
-
-/* ─────────────────────────────────────────
-FILTER BAR
-───────────────────────────────────────── */
-.filter-bar{
-display:flex;align-items:center;gap:8px;
-flex-wrap:wrap;margin-bottom:20px;
-padding:12px 16px;
-background:var(–ink2);
-border:1px solid var(–line);
-border-radius:var(–r);
-}
-.filter-bar-label{
-font-size:11px;font-weight:600;
-letter-spacing:.8px;text-transform:uppercase;
-color:var(–fog2);margin-right:4px;
-flex-shrink:0;
-}
-.filter-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
-.chip{
-display:inline-flex;align-items:center;gap:5px;
-padding:5px 11px;border-radius:999px;
-font-size:12px;font-weight:600;
-cursor:pointer;border:1px solid var(–line2);
-background:var(–ink3);color:var(–fog);
-transition:.18s;white-space:nowrap;
-}
-.chip:hover{border-color:var(–line2);color:var(–cream);}
-.chip.active{
-background:rgba(201,168,76,.1);
-border-color:rgba(201,168,76,.35);
-color:var(–gold);
-}
-.chip .chip-x{
-display:none;font-size:10px;
-color:var(–gold);margin-left:2px;
-}
-.chip.active .chip-x{display:inline;}
-.filter-divider{width:1px;height:20px;background:var(–line);flex-shrink:0;}
-.filter-select{
-background:var(–ink3);border:1px solid var(–line2);
-border-radius:8px;padding:5px 10px;
-color:var(–fog);font-size:12px;font-weight:600;
-cursor:pointer;outline:none;
-transition:.18s;
-}
-.filter-select:focus{border-color:var(–gold);}
-.filter-select option{background:var(–ink2);}
-.filter-clear{
-margin-left:auto;font-size:11px;
-color:var(–fog2);cursor:pointer;
-background:none;border:none;
-display:flex;align-items:center;gap:4px;
-transition:.2s;padding:4px 8px;border-radius:6px;
-}
-.filter-clear:hover{color:var(–cream);background:var(–ink3);}
-
-/* ─────────────────────────────────────────
-COMPANY GRID
-───────────────────────────────────────── */
-.co-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-gap:16px;
-}
-.co-card{
-background:var(–ink2);
-border:1px solid var(–line);
-border-radius:18px;padding:22px;
-transition:.25s;cursor:default;
-position:relative;overflow:hidden;
-}
-.co-card::before{
-content:’’;
-position:absolute;top:0;left:0;right:0;height:2px;
-background:linear-gradient(90deg,transparent,var(–gold),transparent);
-opacity:0;transition:.3s;
-}
-.co-card:hover{border-color:var(–line2);transform:translateY(-3px);}
-.co-card:hover::before{opacity:1;}
-.co-name{
-font-family:‘Playfair Display’,serif;
-font-size:17px;font-weight:700;
-margin-bottom:4px;
-}
-.co-loc{font-size:12px;color:var(–fog);margin-bottom:10px;display:flex;align-items:center;gap:4px;}
-.co-desc{
-font-size:12px;color:var(–fog2);line-height:1.6;
-margin-bottom:14px;
-display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-min-height:38px;
-}
-.co-footer{
-display:flex;align-items:center;
-justify-content:space-between;gap:8px;
-padding-top:14px;border-top:1px solid var(–line);
-}
-.co-stat-pill{
-display:flex;align-items:center;gap:6px;
-font-size:12px;font-weight:600;
-cursor:pointer;
-padding:5px 10px;border-radius:999px;
-transition:.18s;
-}
-.co-stat-pill.ok{
-background:rgba(74,170,122,.1);
-color:var(–ok);border:1px solid rgba(74,170,122,.2);
-}
-.co-stat-pill.ok:hover{background:rgba(74,170,122,.18);}
-.co-stat-pill.warn{
-background:rgba(212,148,58,.1);
-color:var(–warn);border:1px solid rgba(212,148,58,.2);
-}
-.co-stat-pill.warn:hover{background:rgba(212,148,58,.18);}
-.co-btns{display:flex;gap:6px;}
-
-/* ─────────────────────────────────────────
-TABLE
-───────────────────────────────────────── */
-.table-wrap{
-background:var(–ink2);
-border:1px solid var(–line);
-border-radius:18px;overflow:hidden;
-}
-.table-scroll{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead tr{border-bottom:1px solid var(–line);}
-th{
-padding:12px 16px;
-font-size:10px;font-weight:700;
-letter-spacing:.8px;text-transform:uppercase;
-color:var(–fog2);text-align:left;
-white-space:nowrap;background:rgba(0,0,0,.2);
-cursor:pointer;user-select:none;
-transition:.15s;
-}
-th:hover{color:var(–fog);}
-th .sort-icon{margin-left:4px;opacity:.4;font-size:9px;}
-th.sorted .sort-icon{opacity:1;color:var(–gold);}
-td{
-padding:13px 16px;
-border-bottom:1px solid rgba(42,42,56,.6);
-font-size:13px;vertical-align:middle;
-transition:.15s;
-}
-tr:last-child td{border-bottom:none;}
-tr:hover td{background:rgba(255,255,255,.02);}
-.td-name{font-weight:600;}
-.td-muted{color:var(–fog);}
-.td-dim{color:var(–fog2);font-size:12px;}
-
-/* ─────────────────────────────────────────
-BADGE / STATUS
-───────────────────────────────────────── */
-.badge{
-display:inline-flex;align-items:center;gap:4px;
-padding:4px 10px;border-radius:999px;
-font-size:11px;font-weight:700;white-space:nowrap;
-}
-.b-ok{background:rgba(74,170,122,.1);color:var(–ok);}
-.b-warn{background:rgba(212,148,58,.12);color:var(–warn);}
-.b-danger{background:rgba(224,85,85,.1);color:var(–danger);}
-.b-dim{background:rgba(139,139,160,.1);color:var(–fog);}
-
-/* ─────────────────────────────────────────
-BUTTONS
-───────────────────────────────────────── */
-.btn{
-display:inline-flex;align-items:center;gap:7px;
-padding:9px 16px;border-radius:10px;
-font-size:13px;font-weight:600;
-cursor:pointer;border:none;
-transition:.2s;white-space:nowrap;
-font-family:‘Epilogue’,sans-serif;
-}
-.btn:active{transform:scale(.97);}
-.btn-gold{
-background:linear-gradient(135deg,var(–gold),var(–gold2));
-color:var(–ink);
-}
-.btn-gold:hover{opacity:.9;box-shadow:0 4px 20px rgba(201,168,76,.3);}
-.btn-ghost{
-background:var(–ink3);color:var(–cream);
-border:1px solid var(–line2);
-}
-.btn-ghost:hover{border-color:var(–line2);background:var(–line);}
-.btn-danger{
-background:rgba(224,85,85,.1);
-color:var(–danger);
-border:1px solid rgba(224,85,85,.2);
-}
-.btn-danger:hover{background:rgba(224,85,85,.18);}
-.btn-sm{padding:6px 11px;font-size:12px;border-radius:8px;}
-.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:8px;}
-
-/* ─────────────────────────────────────────
-EMPTY STATE
-───────────────────────────────────────── */
-.empty{
-padding:64px 20px;text-align:center;
-}
-.empty-glyph{
-font-size:36px;margin-bottom:14px;
-opacity:.4;
-}
-.empty-title{
-font-family:‘Playfair Display’,serif;
-font-size:20px;font-weight:700;
-margin-bottom:6px;color:var(–fog);
-}
-.empty-sub{font-size:13px;color:var(–fog2);}
-
-/* ─────────────────────────────────────────
-MODAL
-───────────────────────────────────────── */
-.modal-bg{
-position:fixed;inset:0;
-background:rgba(0,0,0,.75);
-display:none;align-items:center;justify-content:center;
-padding:20px;z-index:1000;
-backdrop-filter:blur(6px);
-}
-.modal-bg.show{display:flex;}
-.modal{
-width:100%;max-width:600px;
-background:var(–ink2);
-border:1px solid var(–line2);
-border-radius:22px;padding:30px;
-max-height:90vh;overflow-y:auto;
-animation:modalIn .25s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes modalIn{from{opacity:0;transform:scale(.94)translateY(10px);}to{opacity:1;transform:scale(1)translateY(0);}}
-.modal-head{
-display:flex;justify-content:space-between;
-align-items:center;margin-bottom:26px;
-}
-.modal-title{
-font-family:‘Playfair Display’,serif;
-font-size:22px;font-weight:800;
-}
-.modal-close{
-width:34px;height:34px;border:none;
-background:var(–ink3);border-radius:9px;
-cursor:pointer;color:var(–fog);
-display:flex;align-items:center;justify-content:center;
-font-size:14px;transition:.2s;
-}
-.modal-close:hover{background:var(–line2);color:var(–cream);}
-
-/* ─────────────────────────────────────────
-FORM
-───────────────────────────────────────── */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.fg-full{grid-column:1/-1;}
-.fg{display:flex;flex-direction:column;gap:6px;}
-.fg label{font-size:12px;font-weight:600;letter-spacing:.4px;color:var(–fog);}
-.fi{
-background:var(–ink3);
-border:1px solid var(–line2);
-border-radius:10px;
-padding:10px 13px;
-color:var(–cream);font-size:13px;
-outline:none;transition:.2s;
--webkit-appearance:none;
+.brand-row {
+display: flex; align-items:center; gap:12px;
+padding: 0 14px; margin-bottom:28px;
 width:100%;
 }
-.fi:focus{border-color:var(–gold);box-shadow:0 0 0 3px rgba(201,168,76,.08);}
-.fi option{background:var(–ink2);}
-textarea.fi{resize:vertical;min-height:80px;}
-.form-footer{margin-top:20px;display:flex;gap:10px;justify-content:flex-end;}
+.sidebar-logo {
+width:40px; height:40px; min-width:40px;
+background: linear-gradient(135deg, var(–gold), var(–gold2));
+border-radius: 11px;
+display:flex; align-items:center; justify-content:center;
+font-family: ‘Cormorant Garamond’, serif;
+font-weight:700; font-size:20px; color: var(–text);
+cursor:pointer; flex-shrink:0;
+transition: .2s;
+}
+.sidebar-logo:hover { opacity:.85; }
+.sidebar-brand {
+opacity:0; transition:opacity .18s;
+white-space:nowrap; overflow:hidden;
+}
+.sidebar.expanded .sidebar-brand { opacity:1; }
+.sidebar-brand strong {
+font-family:‘Cormorant Garamond’,serif;
+font-size:17px; font-weight:700; color:#fff;
+display:block; line-height:1.1;
+}
+.sidebar-brand span {
+font-size:10px; letter-spacing:2.5px; text-transform:uppercase;
+color:rgba(255,255,255,.35);
+}
 
-/* ─────────────────────────────────────────
-TOAST
-───────────────────────────────────────── */
-#toasts{
-position:fixed;bottom:24px;right:24px;
-display:flex;flex-direction:column-reverse;gap:8px;
-z-index:9999;pointer-events:none;
+.nav { display:flex; flex-direction:column; gap:2px; width:100%; padding:0 8px; flex:1; }
+.nav-item {
+display:flex; align-items:center; gap:11px;
+padding:10px 12px; border-radius:10px;
+cursor:pointer; border:none; background:transparent;
+color:rgba(255,255,255,.45); font-size:13px; font-weight:500;
+text-align:left; width:100%;
+transition:.18s; white-space:nowrap; overflow:hidden;
 }
-.toast{
-display:flex;align-items:center;gap:10px;
-background:var(–ink3);
-border:1px solid var(–line2);
-border-radius:12px;padding:12px 16px;
-font-size:13px;font-weight:500;
-box-shadow:0 12px 32px rgba(0,0,0,.5);
-animation:tIn .3s cubic-bezier(.34,1.56,.64,1);
-pointer-events:all;min-width:220px;max-width:340px;
-}
-.toast.leaving{animation:tOut .25s ease forwards;}
-@keyframes tIn{from{opacity:0;transform:translateX(20px)scale(.95);}to{opacity:1;transform:translateX(0)scale(1);}}
-@keyframes tOut{to{opacity:0;transform:translateX(16px)scale(.95);}}
-.toast-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.t-ok .toast-dot{background:var(–ok);}
-.t-warn .toast-dot{background:var(–warn);}
-.t-err .toast-dot{background:var(–danger);}
-.t-info .toast-dot{background:var(–gold);}
+.nav-item:hover { background:rgba(255,255,255,.07); color:rgba(255,255,255,.8); }
+.nav-item.active { background:rgba(184,137,60,.18); color: var(–gold2); }
+.nav-item .ni { width:20px; height:20px; min-width:20px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.nav-item .label { opacity:0; transition:opacity .12s .08s; font-size:13px; }
+.sidebar.expanded .nav-item .label { opacity:1; }
 
-/* ─────────────────────────────────────────
-EXPORT PAGE
-───────────────────────────────────────── */
-.export-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-gap:16px;max-width:800px;
+.sidebar-bottom { padding:0 8px; width:100%; }
+.toggle-btn {
+display:flex; align-items:center; gap:11px;
+padding:10px 12px; border-radius:10px;
+cursor:pointer; border:none; background:transparent;
+color:rgba(255,255,255,.3); font-size:13px; width:100%;
+transition:.18s;
 }
-.export-card{
-background:var(–ink2);border:1px solid var(–line);
-border-radius:18px;padding:24px;
-transition:.25s;
-}
-.export-card:hover{border-color:var(–line2);transform:translateY(-2px);}
-.export-icon{font-size:28px;margin-bottom:12px;}
-.export-title{
-font-family:‘Playfair Display’,serif;
-font-size:16px;font-weight:700;margin-bottom:6px;
-}
-.export-desc{font-size:12px;color:var(–fog);line-height:1.6;margin-bottom:16px;}
+.toggle-btn:hover { color:rgba(255,255,255,.55); }
+.toggle-icon { transition:transform .32s; font-size:14px; min-width:20px; text-align:center; }
+.sidebar.expanded .toggle-icon { transform:rotate(180deg); }
+.toggle-lbl { opacity:0; transition:opacity .12s .08s; }
+.sidebar.expanded .toggle-lbl { opacity:1; }
 
-/* ─────────────────────────────────────────
-STORAGE INFO
-───────────────────────────────────────── */
-.storage-info{
-background:var(–ink2);border:1px solid var(–line);
-border-radius:18px;padding:24px;
+/* =======================================
+MAIN
+======================================= */
+.main {
+margin-left: var(–sidebar-w);
+flex:1; min-width:0;
+transition: margin-left .32s cubic-bezier(.4,0,.2,1);
+display:flex; flex-direction:column; min-height:100vh;
+}
+.sidebar.expanded ~ .main { margin-left: var(–sidebar-w-exp); }
+
+/* =======================================
+TOPBAR
+======================================= */
+.topbar {
+position:sticky; top:0; z-index:100;
+background:rgba(244,245,249,.88);
+backdrop-filter:blur(18px);
+border-bottom:1px solid var(–line);
+padding:0 28px; height:60px;
+display:flex; align-items:center; justify-content:space-between; gap:16px;
+}
+.topbar-left { display:flex; align-items:center; gap:14px; }
+.page-label {
+font-family:‘Cormorant Garamond’,serif;
+font-size:20px; font-weight:700;
+}
+.topbar-right { display:flex; align-items:center; gap:8px; }
+
+.search-box {
+display:flex; align-items:center; gap:8px;
+background:var(–surface); border:1px solid var(–line);
+border-radius:10px; padding:7px 13px; width:220px;
+transition:.2s; box-shadow:var(–shadow);
+}
+.search-box:focus-within { border-color:var(–gold); box-shadow:0 0 0 3px var(–gold-bg); }
+.search-box input { border:none; background:none; outline:none; color:var(–text); font-size:13px; width:100%; }
+.search-box input::placeholder { color:var(–text3); }
+
+.search-hint {
+font-size:10px; color:var(–text3); background:var(–surface2);
+border:1px solid var(–line); border-radius:5px;
+padding:2px 5px; white-space:nowrap; flex-shrink:0;
+}
+
+.clock-display {
+font-size:12px; color:var(–text2); font-weight:500;
+padding:6px 12px; background:var(–surface); border:1px solid var(–line);
+border-radius:9px; white-space:nowrap; box-shadow:var(–shadow);
+}
+
+.notif-btn {
+position:relative; width:36px; height:36px;
+background:var(–surface); border:1px solid var(–line);
+border-radius:9px; cursor:pointer; display:flex;
+align-items:center; justify-content:center;
+font-size:16px; color:var(–text2); box-shadow:var(–shadow);
+transition:.2s;
+}
+.notif-btn:hover { border-color:var(–line2); color:var(–text); }
+.notif-badge {
+position:absolute; top:-4px; right:-4px;
+background:var(–danger); color:#fff;
+font-size:9px; font-weight:700;
+min-width:16px; height:16px;
+border-radius:99px; display:flex; align-items:center; justify-content:center;
+padding:0 3px; border:2px solid var(–bg);
+display:none;
+}
+.notif-badge.show { display:flex; }
+
+.save-dot-wrap {
+display:flex; align-items:center; gap:5px;
+font-size:11px; color:var(–text3);
+padding:6px 10px; background:var(–surface);
+border:1px solid var(–line); border-radius:9px;
+box-shadow:var(–shadow); white-space:nowrap;
+}
+.save-dot {
+width:6px; height:6px; border-radius:50%;
+background:var(–ok); transition:.3s;
+}
+.save-dot.saving { background:var(–warn); animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;}50%{opacity:.35;} }
+
+/* =======================================
+NOTIF DROPDOWN
+======================================= */
+.notif-dropdown {
+position:absolute; top:50px; right:24px;
+width:min(360px, calc(100vw - 20px));
+background:var(–surface);
+border:1px solid var(–line); border-radius:var(–r2);
+box-shadow:var(–shadow2); z-index:500;
+display:none; overflow:hidden;
+animation:dropIn .22s cubic-bezier(.34,1.56,.64,1);
+}
+.notif-dropdown.show { display:block; }
+@keyframes dropIn { from{opacity:0;transform:translateY(-8px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);} }
+.notif-header {
+padding:14px 18px 10px;
+border-bottom:1px solid var(–line);
+display:flex; align-items:center; justify-content:space-between;
+}
+.notif-header-title { font-size:13px; font-weight:700; }
+
+/* Notif summary pills */
+.notif-summary {
+display:flex; gap:6px; flex-wrap:wrap;
+padding:10px 18px 8px;
+border-bottom:1px solid var(–line);
+background:var(–surface2);
+}
+.notif-sum-pill {
+display:inline-flex; align-items:center; gap:4px;
+padding:3px 9px; border-radius:999px;
+font-size:11px; font-weight:700; border:1px solid;
+}
+.nsp-expired { background:var(–danger-bg); color:var(–danger); border-color:var(–danger-border); }
+.nsp-urgent { background:var(–warn-bg); color:var(–warn); border-color:var(–warn-border); }
+.nsp-safe { background:var(–ok-bg); color:var(–ok); border-color:var(–ok-border); }
+
+.notif-body { max-height:380px; overflow-y:auto; }
+.notif-section-title {
+font-size:10px; font-weight:700; letter-spacing:.8px;
+text-transform:uppercase; color:var(–text3);
+padding:10px 18px 4px; display:flex; align-items:center; gap:6px;
+}
+.notif-group { padding:4px 0; }
+.notif-group-name {
+font-size:10px; font-weight:700; letter-spacing:.8px;
+text-transform:uppercase; color:var(–text3);
+padding:4px 18px 2px;
+}
+.notif-item {
+display:flex; align-items:center; gap:12px;
+padding:8px 18px; transition:.15s; cursor:pointer;
+}
+.notif-item:hover { background:var(–surface2); }
+.notif-avatar {
+width:32px; height:32px; border-radius:99px;
+display:flex; align-items:center; justify-content:center;
+font-size:11px; font-weight:700; flex-shrink:0;
+}
+.notif-info { flex:1; min-width:0; }
+.notif-name { font-size:12px; font-weight:600; }
+.notif-days { font-size:11px; color:var(–text3); margin-top:1px; }
+.notif-item.expired .notif-avatar { background:var(–danger-bg); color:var(–danger); }
+.notif-item.danger .notif-avatar { background:var(–danger-bg); color:var(–danger); }
+.notif-item.urgent .notif-avatar { background:var(–warn-bg); color:var(–warn); }
+.notif-item.near .notif-avatar { background:var(–gold-bg); color:var(–gold); }
+.notif-empty { padding:24px 18px; text-align:center; color:var(–text3); font-size:13px; }
+
+/* =======================================
+CONTENT
+======================================= */
+.content { padding:28px; flex:1; }
+
+/* =======================================
+PAGES
+======================================= */
+.page { display:none; animation:fadeUp .25s ease; }
+.page.active { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);} }
+
+/* =======================================
+ALERT BANNER
+======================================= */
+.alert-banner {
+display:flex; align-items:center; justify-content:space-between; gap:12px;
+padding:14px 20px; border-radius:var(–r);
 margin-bottom:24px;
+border:1px solid;
 }
-.storage-row{
-display:flex;align-items:center;gap:12px;
-flex-wrap:wrap;
-}
-.storage-badge{
-display:inline-flex;align-items:center;gap:6px;
-padding:5px 12px;border-radius:999px;
-font-size:11px;font-weight:700;
-}
-.sb-opfs{background:rgba(74,170,122,.1);color:var(–ok);border:1px solid rgba(74,170,122,.2);}
-.sb-ls{background:rgba(201,168,76,.1);color:var(–gold);border:1px solid rgba(201,168,76,.2);}
+.alert-banner.danger { background:var(–danger-bg); border-color:var(–danger-border); }
+.alert-banner.warn { background:var(–warn-bg); border-color:var(–warn-border); }
+.alert-left { display:flex; align-items:center; gap:12px; }
+.alert-icon { font-size:20px; flex-shrink:0; }
+.alert-title { font-size:13px; font-weight:700; }
+.alert-sub { font-size:12px; color:var(–text2); margin-top:1px; }
+.alert-banner.danger .alert-title { color:var(–danger); }
+.alert-banner.warn .alert-title { color:var(–warn); }
 
-/* ─────────────────────────────────────────
-CONTRACTS PAGE
-───────────────────────────────────────── */
-.contract-row-danger td{background:rgba(224,85,85,.04);}
-.contract-row-warn td{background:rgba(212,148,58,.04);}
+/* =======================================
+SECTION HEADER
+======================================= */
+.sec-head {
+display:flex; align-items:flex-start; justify-content:space-between;
+gap:16px; flex-wrap:wrap; margin-bottom:20px;
+}
+.sec-title {
+font-family:‘Cormorant Garamond’,serif;
+font-size:26px; font-weight:700; line-height:1.1;
+}
+.sec-sub { font-size:13px; color:var(–text2); margin-top:3px; }
+.sec-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
-/* ─────────────────────────────────────────
-DIVIDER
-───────────────────────────────────────── */
-.divider{
-height:1px;background:var(–line);
-margin:28px 0;
+/* =======================================
+STATS GRID
+======================================= */
+.stats-grid {
+display:grid; grid-template-columns:repeat(4,1fr);
+gap:14px; margin-bottom:28px;
+}
+@media(max-width:1100px){ .stats-grid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:600px){ .stats-grid{grid-template-columns:1fr 1fr;} }
+
+.stat {
+background:var(–surface); border:1px solid var(–line);
+border-radius:var(–r2); padding:20px 22px;
+box-shadow:var(–shadow); transition:.22s;
+position:relative; overflow:hidden;
+}
+.stat:hover { transform:translateY(-2px); box-shadow:var(–shadow2); }
+.stat-accent {
+position:absolute; right:-12px; top:-12px;
+width:70px; height:70px; border-radius:50%;
+opacity:.08;
+}
+.stat-n { font-size:10px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(–text3); margin-bottom:10px; }
+.stat-v {
+font-family:‘Cormorant Garamond’,serif;
+font-size:34px; font-weight:700; line-height:1;
+}
+.stat-v.gold { color:var(–gold); }
+.stat-v.danger { color:var(–danger); }
+.stat-v.warn { color:var(–warn); }
+.stat-v.ok { color:var(–ok); }
+.stat-v.sm { font-size:20px; padding-top:7px; }
+.stat-trend { font-size:11px; color:var(–text3); margin-top:6px; }
+
+/* =======================================
+CONTRACT DISTRIBUTION BAR
+======================================= */
+.dist-card {
+background:var(–surface); border:1px solid var(–line);
+border-radius:var(–r2); padding:20px 22px;
+box-shadow:var(–shadow); margin-bottom:28px;
+}
+.dist-title { font-size:12px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(–text3); margin-bottom:14px; }
+.dist-bar {
+display:flex; height:8px; border-radius:999px; overflow:hidden; gap:2px;
+margin-bottom:12px;
+}
+.dist-seg { border-radius:999px; transition:flex .5s ease; }
+.dist-seg.ok { background:var(–ok); }
+.dist-seg.warn { background:var(–warn); }
+.dist-seg.danger { background:var(–danger); }
+.dist-seg.dim { background:var(–line2); }
+.dist-labels { display:flex; gap:18px; flex-wrap:wrap; }
+.dist-label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(–text2); }
+.dist-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* =======================================
+OUTLET GRID
+======================================= */
+.co-grid {
+display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+gap:14px;
+}
+.co-card {
+background:var(–surface); border:1px solid var(–line);
+border-radius:var(–r2); padding:20px;
+transition:.22s; box-shadow:var(–shadow);
+position:relative; overflow:hidden;
+}
+.co-card:hover { transform:translateY(-2px); box-shadow:var(–shadow2); border-color:var(–line2); }
+.co-card-top {
+display:flex; align-items:flex-start; justify-content:space-between;
+gap:8px; margin-bottom:8px;
+}
+.co-name {
+font-family:‘Cormorant Garamond’,serif;
+font-size:16px; font-weight:700;
+}
+.co-loc { font-size:11px; color:var(–text3); margin-bottom:10px; display:flex; align-items:center; gap:3px; }
+.co-desc {
+font-size:12px; color:var(–text2); line-height:1.6;
+margin-bottom:14px;
+display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+min-height:36px;
+}
+.co-footer {
+display:flex; align-items:center; justify-content:space-between; gap:8px;
+padding-top:12px; border-top:1px solid var(–line);
+}
+.co-pill {
+display:inline-flex; align-items:center; gap:5px;
+font-size:11px; font-weight:700;
+padding:4px 10px; border-radius:999px; cursor:pointer; transition:.15s;
+}
+.co-pill.ok { background:var(–ok-bg); color:var(–ok); border:1px solid var(–ok-border); }
+.co-pill.ok:hover { background:rgba(58,158,106,.13); }
+.co-pill.warn { background:var(–warn-bg); color:var(–warn); border:1px solid var(–warn-border); }
+.co-pill.warn:hover { background:rgba(201,122,42,.13); }
+.co-pill.danger { background:var(–danger-bg); color:var(–danger); border:1px solid var(–danger-border); }
+.co-btns { display:flex; gap:5px; }
+
+/* Onboarding empty state */
+.onboarding-empty {
+padding:48px 24px; text-align:center;
+border:2px dashed var(–line2); border-radius:var(–r2);
+grid-column:1/-1;
+}
+.ob-glyph { font-size:40px; margin-bottom:16px; }
+.ob-title {
+font-family:‘Cormorant Garamond’,serif;
+font-size:22px; font-weight:700; margin-bottom:6px;
+}
+.ob-sub { font-size:13px; color:var(–text2); margin-bottom:20px; line-height:1.6; }
+
+/* =======================================
+ACTIVITY FEED
+======================================= */
+.activity-card {
+background:var(–surface); border:1px solid var(–line);
+border-radius:var(–r2); padding:20px 22px;
+box-shadow:var(–shadow);
+}
+.activity-item {
+display:flex; align-items:center; gap:12px;
+padding:8px 0; border-bottom:1px solid var(–line);
+}
+.activity-item:last-child { border-bottom:none; }
+.act-icon {
+width:30px; height:30px; border-radius:8px;
+display:flex; align-items:center; justify-content:center;
+font-size:13px; flex-shrink:0;
+background:var(–surface2);
+}
+.act-text { font-size:12px; color:var(–text2); flex:1; }
+.act-text strong { color:var(–text); font-weight:600; }
+.act-time { font-size:11px; color:var(–text3); white-space:nowrap; }
+
+/* =======================================
+AVATAR
+======================================= */
+.avatar {
+width:32px; height:32px; border-radius:99px;
+display:inline-flex; align-items:center; justify-content:center;
+font-size:11px; font-weight:700;
+flex-shrink:0; background:var(–gold-bg); color:var(–gold);
 }
 
-/* ─────────────────────────────────────────
+/* =======================================
+TABLE
+======================================= */
+.table-wrap {
+background:var(–surface); border:1px solid var(–line);
+border-radius:var(–r2); overflow:hidden; box-shadow:var(–shadow);
+}
+.table-scroll { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+thead tr { border-bottom:1px solid var(–line); background:var(–surface2); }
+th {
+padding:11px 16px; font-size:10px; font-weight:700;
+letter-spacing:.7px; text-transform:uppercase; color:var(–text3);
+text-align:left; white-space:nowrap; cursor:pointer; user-select:none;
+transition:.15s;
+}
+th:hover { color:var(–text2); }
+td {
+padding:14px 16px; border-bottom:1px solid var(–line);
+font-size:13px; vertical-align:middle;
+}
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(–surface2); }
+.td-name { font-weight:600; display:flex; align-items:center; gap:10px; }
+.td-muted { color:var(–text2); }
+.td-dim { color:var(–text3); font-size:12px; }
+
+/* =======================================
+BADGE
+======================================= */
+.badge {
+display:inline-flex; align-items:center; gap:4px;
+padding:3px 9px; border-radius:999px;
+font-size:11px; font-weight:700; white-space:nowrap; border:1px solid;
+}
+.b-ok { background:var(–ok-bg); color:var(–ok); border-color:var(–ok-border); }
+.b-warn { background:var(–warn-bg); color:var(–warn); border-color:var(–warn-border); }
+.b-danger { background:var(–danger-bg); color:var(–danger); border-color:var(–danger-border); }
+.b-dim { background:var(–surface2); color:var(–text2); border-color:var(–line); }
+.b-gold { background:var(–gold-bg); color:var(–gold); border-color:var(–gold-border); }
+
+/* =======================================
+FILTER BAR
+======================================= */
+.filter-bar {
+display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+margin-bottom:16px; padding:10px 14px;
+background:var(–surface); border:1px solid var(–line);
+border-radius:var(–r); box-shadow:var(–shadow);
+}
+.filter-bar-label {
+font-size:10px; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+color:var(–text3); flex-shrink:0;
+}
+.filter-chips { display:flex; gap:6px; flex-wrap:wrap; flex:1; }
+.chip {
+display:inline-flex; align-items:center; gap:4px;
+padding:4px 10px; border-radius:999px;
+font-size:11px; font-weight:600; cursor:pointer;
+border:1px solid var(–line); background:var(–surface2); color:var(–text2);
+transition:.15s; white-space:nowrap;
+}
+.chip:hover { border-color:var(–line2); color:var(–text); }
+.chip.active { background:var(–gold-bg); border-color:var(–gold-border); color:var(–gold); }
+.chip-x { display:none; font-size:9px; }
+.chip.active .chip-x { display:inline; }
+.filter-divider { width:1px; height:18px; background:var(–line); flex-shrink:0; }
+.fi-select {
+background:var(–surface2); border:1px solid var(–line);
+border-radius:8px; padding:5px 10px;
+color:var(–text2); font-size:11px; font-weight:600;
+cursor:pointer; outline:none; transition:.18s;
+}
+.fi-select:focus { border-color:var(–gold); }
+.fi-select option { background:var(–surface); }
+.filter-clear {
+margin-left:auto; font-size:11px; color:var(–text3); cursor:pointer;
+background:none; border:none; display:flex; align-items:center; gap:4px;
+transition:.2s; padding:4px 8px; border-radius:7px;
+}
+.filter-clear:hover { color:var(–text); background:var(–surface2); }
+
+/* Quick filter chips */
+.qf-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.qf {
+display:inline-flex; align-items:center; gap:5px;
+padding:5px 12px; border-radius:999px;
+font-size:12px; font-weight:600; cursor:pointer;
+border:1px solid; transition:.15s;
+}
+.qf-count {
+display:inline-flex; align-items:center; justify-content:center;
+width:18px; height:18px; border-radius:50%;
+font-size:10px; font-weight:700;
+background:rgba(0,0,0,.12);
+}
+.qf.all { border-color:var(–line2); color:var(–text2); background:var(–surface); }
+.qf.all:hover, .qf.all.active { border-color:var(–text); color:var(–text); background:var(–surface); }
+.qf.expired { border-color:var(–danger-border); color:var(–danger); background:var(–danger-bg); }
+.qf.urgent7 { border-color:var(–danger-border); color:var(–danger); background:var(–danger-bg); }
+.qf.urgent30 { border-color:var(–warn-border); color:var(–warn); background:var(–warn-bg); }
+.qf.safe { border-color:var(–ok-border); color:var(–ok); background:var(–ok-bg); }
+
+/* =======================================
+BUTTONS
+======================================= */
+.btn {
+display:inline-flex; align-items:center; gap:7px;
+padding:8px 16px; border-radius:10px;
+font-size:13px; font-weight:600; cursor:pointer; border:none;
+transition:.18s; white-space:nowrap; font-family:inherit;
+}
+.btn:active { transform:scale(.97); }
+.btn-gold { background:linear-gradient(135deg,var(–gold),var(–gold2)); color:#fff; }
+.btn-gold:hover { opacity:.9; box-shadow:0 4px 16px var(–gold-border); }
+.btn-ghost { background:var(–surface); color:var(–text); border:1px solid var(–line); box-shadow:var(–shadow); }
+.btn-ghost:hover { border-color:var(–line2); background:var(–surface2); }
+.btn-danger { background:var(–danger-bg); color:var(–danger); border:1px solid var(–danger-border); }
+.btn-danger:hover { background:rgba(217,79,79,.13); }
+.btn-ok { background:var(–ok-bg); color:var(–ok); border:1px solid var(–ok-border); }
+.btn-ok:hover { background:rgba(58,158,106,.13); }
+.btn-sm { padding:5px 11px; font-size:12px; border-radius:8px; }
+.btn-icon { width:30px; height:30px; padding:0; justify-content:center; border-radius:8px; }
+
+/* =======================================
+EMPTY
+======================================= */
+.empty { padding:56px 20px; text-align:center; }
+.empty-glyph { font-size:32px; margin-bottom:12px; opacity:.35; }
+.empty-title { font-family:‘Cormorant Garamond’,serif; font-size:18px; font-weight:700; margin-bottom:5px; color:var(–text2); }
+.empty-sub { font-size:12px; color:var(–text3); }
+
+/* =======================================
+MODAL
+======================================= */
+.modal-bg {
+position:fixed; inset:0; background:rgba(20,22,30,.45);
+display:none; align-items:center; justify-content:center;
+padding:20px; z-index:1000; backdrop-filter:blur(6px);
+}
+.modal-bg.show { display:flex; }
+.modal {
+width:100%; max-width:580px;
+background:var(–surface); border:1px solid var(–line);
+border-radius:22px; padding:28px;
+max-height:92vh; overflow-y:auto;
+box-shadow:var(–shadow2);
+animation:modalIn .24s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.94) translateY(10px);}to{opacity:1;transform:none;} }
+.modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.modal-title { font-family:‘Cormorant Garamond’,serif; font-size:22px; font-weight:700; }
+.modal-close {
+width:32px; height:32px; border:none; background:var(–surface2);
+border-radius:9px; cursor:pointer; color:var(–text2);
+display:flex; align-items:center; justify-content:center; font-size:13px; transition:.18s;
+}
+.modal-close:hover { background:var(–line); color:var(–text); }
+
+/* =======================================
+FORM
+======================================= */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.fg-full { grid-column:1/-1; }
+.fg { display:flex; flex-direction:column; gap:5px; }
+.fg label { font-size:11px; font-weight:700; letter-spacing:.4px; color:var(–text3); text-transform:uppercase; }
+.fi {
+background:var(–surface2); border:1px solid var(–line);
+border-radius:10px; padding:9px 12px;
+color:var(–text); font-size:13px; outline:none;
+transition:.18s; -webkit-appearance:none; width:100%;
+}
+.fi:focus { border-color:var(–gold); box-shadow:0 0 0 3px var(–gold-bg); background:var(–surface); }
+.fi::placeholder { color:var(–text3); }
+.fi option { background:var(–surface); }
+textarea.fi { resize:vertical; min-height:72px; }
+.form-footer { margin-top:18px; display:flex; gap:8px; justify-content:flex-end; }
+
+/* Contract history */
+.contract-history {
+margin-top:14px; padding:12px; background:var(–surface2);
+border-radius:var(–r); border:1px solid var(–line);
+}
+.ch-title { font-size:10px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(–text3); margin-bottom:8px; }
+.ch-item {
+display:flex; align-items:center; gap:8px;
+font-size:12px; color:var(–text2); padding:4px 0;
+border-bottom:1px solid var(–line);
+}
+.ch-item:last-child { border-bottom:none; }
+.ch-item span { color:var(–text3); font-size:11px; margin-left:auto; }
+
+/* =======================================
+TOAST
+======================================= */
+#toasts {
+position:fixed; bottom:22px; right:22px;
+display:flex; flex-direction:column-reverse; gap:8px;
+z-index:9999; pointer-events:none;
+}
+.toast {
+display:flex; align-items:center; gap:10px;
+background:var(–text); border-radius:12px; padding:11px 16px;
+font-size:13px; font-weight:500; color:#fff;
+box-shadow:var(–shadow2);
+animation:tIn .28s cubic-bezier(.34,1.56,.64,1);
+pointer-events:all; min-width:200px; max-width:320px;
+}
+.toast.leaving { animation:tOut .22s ease forwards; }
+@keyframes tIn { from{opacity:0;transform:translateX(16px) scale(.96);}to{opacity:1;transform:none;} }
+@keyframes tOut { to{opacity:0;transform:translateX(12px) scale(.95);} }
+.toast-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.t-ok .toast-dot { background:var(–ok); }
+.t-warn .toast-dot { background:var(–warn); }
+.t-err .toast-dot { background:var(–danger); }
+.t-info .toast-dot { background:var(–gold); }
+
+/* =======================================
+EXPORT PAGE
+======================================= */
+.export-grid {
+display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:14px; max-width:760px;
+}
+.export-card {
+background:var(–surface); border:1px solid var(–line);
+border-radius:var(–r2); padding:22px; transition:.22s; box-shadow:var(–shadow);
+}
+.export-card:hover { transform:translateY(-2px); box-shadow:var(–shadow2); }
+.export-icon { font-size:26px; margin-bottom:10px; }
+.export-title { font-family:‘Cormorant Garamond’,serif; font-size:16px; font-weight:700; margin-bottom:5px; }
+.export-desc { font-size:12px; color:var(–text2); line-height:1.6; margin-bottom:14px; }
+
+.storage-info { background:var(–surface); border:1px solid var(–line); border-radius:var(–r2); padding:20px 22px; margin-bottom:22px; box-shadow:var(–shadow); }
+.storage-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; font-size:11px; font-weight:700; border:1px solid; }
+.sb-opfs { background:var(–ok-bg); color:var(–ok); border-color:var(–ok-border); }
+.sb-ls { background:var(–gold-bg); color:var(–gold); border-color:var(–gold-border); }
+
+/* =======================================
+CONTRACTS PAGE ROWS
+======================================= */
+.ct-expired td { background:var(–danger-bg) !important; }
+.ct-urgent td { background:var(–warn-bg) !important; }
+
+/* =======================================
 RESPONSIVE
-───────────────────────────────────────── */
-@media(max-width:900px){
-.main{margin-left:0!important;}
-.sidebar{
-transform:translateX(-100%);
-width:240px!important;align-items:flex-start!important;
+======================================= */
+@media(max-width:900px) {
+.main { margin-left:0 !important; }
+.sidebar { transform:translateX(-100%); width:var(–sidebar-w-exp) !important; align-items:flex-start !important; }
+.sidebar.mobile-open { transform:translateX(0); }
+.sidebar .nav-item .label { opacity:1 !important; }
+.sidebar .sidebar-brand { opacity:1 !important; }
+.topbar { padding:0 16px; }
+.content { padding:14px; }
+.mobile-menu-btn { display:flex !important; }
+.search-hint { display:none; }
+.clock-display { display:none; }
 }
-.sidebar.mobile-open{transform:translateX(0);}
-.sidebar .nav-item span.label{opacity:1!important;}
-.sidebar .sidebar-brand-text{opacity:1!important;}
-.topbar{padding:0 16px;}
-.content{padding:16px;}
-.mobile-menu-btn{display:flex!important;}
+.mobile-menu-btn {
+display:none; width:34px; height:34px;
+align-items:center; justify-content:center;
+background:var(–surface); border:1px solid var(–line);
+border-radius:9px; cursor:pointer; color:var(–text2); font-size:16px; box-shadow:var(–shadow);
 }
-.mobile-menu-btn{
-display:none;width:36px;height:36px;
-align-items:center;justify-content:center;
-background:var(–ink3);border:1px solid var(–line2);
-border-radius:9px;cursor:pointer;border:none;
-color:var(–fog);font-size:18px;
+@media(max-width:600px) {
+.form-grid { grid-template-columns:1fr !important; }
+.stats-grid { grid-template-columns:1fr 1fr !important; }
+.sec-title { font-size:22px; }
+.notif-dropdown { right:10px; }
 }
-@media(max-width:600px){
-.form-grid{grid-template-columns:1fr!important;}
-.stats-grid{grid-template-columns:1fr 1fr!important;}
-.sec-title{font-size:22px;}
-}
+
+/* =======================================
+DIVIDER & MISC
+======================================= */
+.divider { height:1px; background:var(–line); margin:24px 0; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:900px){ .two-col { grid-template-columns:1fr; } }
 </style>
 
 </head>
 <body>
-
 <div class="shell">
 
-<!-- ─────────────────────────────────────────
+<!-- ======================================
      SIDEBAR
-───────────────────────────────────────── -->
+====================================== -->
 
 <aside class="sidebar" id="sidebar">
   <div class="brand-row">
-    <div class="sidebar-logo" onclick="toggleSidebar()">N</div>
-    <div class="sidebar-brand-text">
+    <div class="sidebar-logo" onclick="toggleSidebar()" title="Toggle Sidebar">N</div>
+    <div class="sidebar-brand">
       <strong>Naruna</strong>
       <span>HR Suite</span>
     </div>
   </div>
-
   <nav class="nav">
     <button class="nav-item active" data-page="dashboard">
-      <span class="ni">◈</span><span class="label">Dashboard</span>
+      <span class="ni">&#9633;</span><span class="label">Dashboard</span>
     </button>
     <button class="nav-item" data-page="employees">
-      <span class="ni">◉</span><span class="label">Karyawan</span>
+      <span class="ni">&#9711;</span><span class="label">Karyawan</span>
     </button>
     <button class="nav-item" data-page="contracts">
-      <span class="ni">◷</span><span class="label">Kontrak</span>
+      <span class="ni">&#9201;</span><span class="label">Kontrak</span>
     </button>
     <button class="nav-item" data-page="export">
-      <span class="ni">↗</span><span class="label">Export & Import</span>
+      <span class="ni">&#8599;</span><span class="label">Export &amp; Import</span>
     </button>
   </nav>
-
-  <div class="sidebar-toggle">
+  <div class="sidebar-bottom">
     <button class="toggle-btn" onclick="toggleSidebar()">
-      <span class="toggle-icon ni">⟨</span>
-      <span class="label" style="opacity:0;transition:opacity .15s .1s">Ciutkan</span>
+      <span class="toggle-icon ni">&#10216;</span>
+      <span class="toggle-lbl">Ciutkan</span>
     </button>
   </div>
 </aside>
 
-<!-- ─────────────────────────────────────────
+<!-- ======================================
      MAIN
-───────────────────────────────────────── -->
+====================================== -->
 
 <div class="main">
 
@@ -708,15 +820,31 @@ color:var(–fog);font-size:18px;
 
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">☰</button>
+      <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">&#9776;</button>
       <div class="page-label" id="pageLabel">Dashboard</div>
     </div>
     <div class="topbar-right">
       <div class="search-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="searchInput" placeholder="Cari karyawan...">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Cari karyawan…">
+        <span class="search-hint">&#8984;K</span>
       </div>
-      <div class="save-status" id="saveStatus">
+      <div class="clock-display" id="clockDisplay">—</div>
+      <div style="position:relative">
+        <button class="notif-btn" id="notifBtn" onclick="toggleNotif()" title="Notifikasi Kontrak">
+          &#128276;
+          <span class="notif-badge" id="notifBadge">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <span class="notif-header-title">Kontrak Mendesak</span>
+            <button class="btn btn-sm btn-ghost" style="padding:3px 8px;font-size:11px" onclick="goPage('contracts');closeNotif()">Lihat Semua</button>
+          </div>
+          <div class="notif-summary" id="notifSummary"></div>
+          <div class="notif-body" id="notifBody"></div>
+        </div>
+      </div>
+      <div class="save-dot-wrap">
         <div class="save-dot" id="saveDot"></div>
         <span id="saveText">Tersimpan</span>
       </div>
@@ -728,76 +856,89 @@ color:var(–fog);font-size:18px;
   <div class="content">
 
 ```
-<!-- ─── PAGE: DASHBOARD ─── -->
+<!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
-
   <div class="sec-head">
     <div>
       <div class="sec-title">Dashboard HR</div>
-      <div class="sec-sub">Pemantau kontrak & karyawan Naruna Group</div>
+      <div class="sec-sub">Pemantau kontrak &amp; karyawan Naruna Group</div>
     </div>
     <div class="sec-actions">
-      <button class="btn btn-ghost btn-sm" onclick="goPage('employees')">Lihat Semua →</button>
+      <button class="btn btn-ghost btn-sm" onclick="goPage('employees')">Lihat Semua &rarr;</button>
       <button class="btn btn-gold" onclick="openAddEmployee()">+ Karyawan</button>
     </div>
   </div>
 
+  <div id="dashAlert" style="display:none"></div>
+
   <div class="stats-grid">
-    <div class="stat" style="--stat-glow:var(--gold)">
+    <div class="stat">
+      <div class="stat-accent" style="background:var(--gold)"></div>
       <div class="stat-n">Total Karyawan</div>
       <div class="stat-v gold" id="s-total">0</div>
-      <div class="stat-trend" id="s-total-sub">dari 0 perusahaan</div>
+      <div class="stat-trend" id="s-total-sub">dari 0 outlet</div>
     </div>
-    <div class="stat" style="--stat-glow:var(--warn)">
+    <div class="stat">
       <div class="stat-n">Kontrak Mendesak</div>
       <div class="stat-v" id="s-urgent">0</div>
       <div class="stat-trend">dalam 30 hari ke depan</div>
     </div>
-    <div class="stat" style="--stat-glow:var(--danger)">
+    <div class="stat">
       <div class="stat-n">Kontrak Expired</div>
       <div class="stat-v" id="s-expired">0</div>
       <div class="stat-trend">perlu tindakan segera</div>
     </div>
-    <div class="stat" style="--stat-glow:var(--ok)">
-      <div class="stat-n">Total Payroll</div>
-      <div class="stat-v sm" id="s-payroll">Rp 0</div>
+    <div class="stat">
+      <div class="stat-n">Total Payroll / Bulan</div>
+      <div class="stat-v sm gold" id="s-payroll">Rp 0</div>
       <div class="stat-trend" id="s-payroll-avg">rata-rata Rp 0</div>
     </div>
   </div>
 
-  <!-- Company section -->
-  <div class="sec-head">
-    <div>
-      <div class="sec-title" style="font-size:22px">Anak Usaha</div>
+  <div class="dist-card" id="distCard">
+    <div class="dist-title">Distribusi Status Kontrak</div>
+    <div class="dist-bar" id="distBar">
+      <div class="dist-seg dim" style="flex:1"></div>
     </div>
-    <div class="sec-actions">
-      <button class="btn btn-ghost btn-sm" id="addCompanyBtn">+ Perusahaan</button>
+    <div class="dist-labels" id="distLabels"></div>
+  </div>
+
+  <div class="two-col" style="margin-bottom:28px">
+    <div>
+      <div class="sec-head" style="margin-bottom:14px">
+        <div class="sec-title" style="font-size:20px">Outlet</div>
+        <button class="btn btn-ghost btn-sm" id="addOutletBtn">+ Outlet</button>
+      </div>
+      <div class="co-grid" id="coGrid"></div>
+    </div>
+    <div>
+      <div class="sec-head" style="margin-bottom:14px">
+        <div class="sec-title" style="font-size:20px">Aktivitas Terbaru</div>
+      </div>
+      <div class="activity-card" id="activityCard">
+        <div class="empty" style="padding:32px 0">
+          <div class="empty-glyph">&#128203;</div>
+          <div class="empty-title">Belum ada aktivitas</div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="co-grid" id="coGrid" style="margin-bottom:32px"></div>
 
-  <!-- Recent employees -->
-  <div class="sec-head">
-    <div>
-      <div class="sec-title" style="font-size:22px">Karyawan Terbaru</div>
-    </div>
+  <div class="sec-head" style="margin-bottom:14px">
+    <div class="sec-title" style="font-size:20px">Karyawan Prioritas Kontrak</div>
   </div>
   <div class="table-wrap"><div class="table-scroll">
-    <table id="tblRecent">
+    <table>
       <thead><tr>
-        <th data-col="name">Nama <span class="sort-icon">↕</span></th>
-        <th>Perusahaan</th><th>Jabatan</th><th>Tipe</th>
-        <th data-col="contract">Kontrak <span class="sort-icon">↕</span></th>
-        <th>Status</th>
-        <th data-col="salary">Gaji <span class="sort-icon">↕</span></th>
-        <th>Aksi</th>
+        <th>Nama</th><th>Outlet</th><th>Jabatan</th>
+        <th>Tipe</th><th>Kontrak Berakhir</th><th>Sisa</th><th>Status</th><th>Aksi</th>
       </tr></thead>
       <tbody id="tbodyRecent"></tbody>
     </table>
   </div></div>
 </div>
 
-<!-- ─── PAGE: EMPLOYEES ─── -->
+<!-- EMPLOYEES -->
 <div class="page" id="page-employees">
   <div class="sec-head">
     <div>
@@ -805,41 +946,42 @@ color:var(–fog);font-size:18px;
       <div class="sec-sub" id="empCount">0 karyawan</div>
     </div>
     <div class="sec-actions">
-      <button class="btn btn-ghost btn-sm" id="expExcelBtn">↓ Excel</button>
-      <button class="btn btn-ghost btn-sm" id="expPdfBtn">↓ PDF</button>
+      <button class="btn btn-ghost btn-sm" id="expExcelBtn">&#8595; Excel</button>
+      <button class="btn btn-ghost btn-sm" id="expPdfBtn">&#8595; PDF</button>
       <button class="btn btn-gold" onclick="openAddEmployee()">+ Tambah</button>
     </div>
   </div>
 
-  <!-- Filter bar -->
-  <div class="filter-bar" id="filterBar">
+  <div class="qf-bar" id="qfBar">
+    <div class="qf all active" data-qf="" onclick="setQf(this,'')">Semua <span class="qf-count" id="qfc-all">0</span></div>
+    <div class="qf expired" data-qf="expired" onclick="setQf(this,'expired')">&#9888; Expired <span class="qf-count" id="qfc-expired">0</span></div>
+    <div class="qf urgent7" data-qf="7" onclick="setQf(this,'7')">&#128308; &le; 7 Hari <span class="qf-count" id="qfc-7">0</span></div>
+    <div class="qf urgent30" data-qf="30" onclick="setQf(this,'30')">&#128992; &le; 30 Hari <span class="qf-count" id="qfc-30">0</span></div>
+    <div class="qf safe" data-qf="safe" onclick="setQf(this,'safe')">&#10003; Aman <span class="qf-count" id="qfc-safe">0</span></div>
+  </div>
+
+  <div class="filter-bar">
     <span class="filter-bar-label">Filter</span>
     <div class="filter-chips" id="filterCompanyChips"></div>
     <div class="filter-divider"></div>
-    <select class="filter-select" id="filterType">
+    <select class="fi-select" id="filterType">
       <option value="">Semua Tipe</option>
       <option>Tetap</option><option>Kontrak</option><option>Probation</option>
     </select>
-    <select class="filter-select" id="filterStatus">
-      <option value="">Semua Status</option>
-      <option value="safe">Aman</option>
-      <option value="urgent">Mendesak</option>
-      <option value="expired">Expired</option>
-    </select>
-    <select class="filter-select" id="sortBy">
+    <select class="fi-select" id="sortBy">
       <option value="name">Sort: Nama</option>
       <option value="contract">Sort: Kontrak</option>
-      <option value="salary_desc">Sort: Gaji ↓</option>
-      <option value="salary_asc">Sort: Gaji ↑</option>
-      <option value="company">Sort: Perusahaan</option>
+      <option value="salary_desc">Sort: Gaji &#8595;</option>
+      <option value="salary_asc">Sort: Gaji &#8593;</option>
+      <option value="company">Sort: Outlet</option>
     </select>
-    <button class="filter-clear" id="filterClearBtn">✕ Reset</button>
+    <button class="filter-clear" id="filterClearBtn">&#10005; Reset</button>
   </div>
 
   <div class="table-wrap"><div class="table-scroll">
     <table>
       <thead><tr>
-        <th>Nama</th><th>Perusahaan</th><th>Jabatan</th>
+        <th>Nama</th><th>Outlet</th><th>Jabatan</th>
         <th>Tipe</th><th>Kontrak</th><th>Status</th>
         <th>Gaji</th><th>Aksi</th>
       </tr></thead>
@@ -848,7 +990,7 @@ color:var(–fog);font-size:18px;
   </div></div>
 </div>
 
-<!-- ─── PAGE: CONTRACTS ─── -->
+<!-- CONTRACTS -->
 <div class="page" id="page-contracts">
   <div class="sec-head">
     <div>
@@ -856,10 +998,10 @@ color:var(–fog);font-size:18px;
       <div class="sec-sub">Karyawan dengan tanggal kontrak terdaftar</div>
     </div>
     <div class="sec-actions">
-      <select class="filter-select" id="ctFilterCo" style="font-size:13px;padding:8px 12px;">
-        <option value="">Semua Perusahaan</option>
+      <select class="fi-select" id="ctFilterCo" style="font-size:13px;padding:7px 12px">
+        <option value="">Semua Outlet</option>
       </select>
-      <select class="filter-select" id="ctFilterStatus" style="font-size:13px;padding:8px 12px;">
+      <select class="fi-select" id="ctFilterStatus" style="font-size:13px;padding:7px 12px">
         <option value="">Semua Status</option>
         <option value="expired">Expired</option>
         <option value="urgent">30 Hari</option>
@@ -870,57 +1012,54 @@ color:var(–fog);font-size:18px;
   <div class="table-wrap"><div class="table-scroll">
     <table>
       <thead><tr>
-        <th>Nama</th><th>Perusahaan</th><th>Jabatan</th>
+        <th>Nama</th><th>Outlet</th><th>Jabatan</th>
         <th>Tipe</th><th>Kontrak Berakhir</th>
-        <th>Sisa Hari</th><th>Status</th>
+        <th>Sisa Hari</th><th>Status</th><th>Aksi</th>
       </tr></thead>
       <tbody id="tbodyCt"></tbody>
     </table>
   </div></div>
 </div>
 
-<!-- ─── PAGE: EXPORT ─── -->
+<!-- EXPORT -->
 <div class="page" id="page-export">
   <div class="sec-head">
     <div>
-      <div class="sec-title">Export & Import</div>
+      <div class="sec-title">Export &amp; Import</div>
       <div class="sec-sub">Kelola backup dan restore data HR</div>
     </div>
   </div>
-
-  <!-- Storage info -->
   <div class="storage-info">
-    <div style="font-size:12px;color:var(--fog);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;">Penyimpanan Aktif</div>
-    <div class="storage-row">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Penyimpanan Aktif</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <span class="storage-badge" id="storageBadge">…</span>
-      <span style="font-size:13px;color:var(--fog)" id="storageDesc">Mendeteksi…</span>
+      <span style="font-size:13px;color:var(--text2)" id="storageDesc">Mendeteksi…</span>
     </div>
   </div>
-
   <div class="export-grid">
     <div class="export-card">
-      <div class="export-icon">📊</div>
+      <div class="export-icon">&#128202;</div>
       <div class="export-title">Excel</div>
-      <div class="export-desc">Export seluruh data karyawan ke format .xlsx, lengkap dengan semua kolom.</div>
+      <div class="export-desc">Export seluruh data karyawan ke format .xlsx dengan semua kolom.</div>
       <button class="btn btn-ghost" id="expExcel2">Export Excel</button>
     </div>
     <div class="export-card">
-      <div class="export-icon">📄</div>
+      <div class="export-icon">&#128196;</div>
       <div class="export-title">PDF Report</div>
-      <div class="export-desc">Cetak laporan karyawan dalam format PDF siap distribusi.</div>
+      <div class="export-desc">Cetak laporan karyawan dalam format PDF siap distribusi, lengkap dengan nomor halaman.</div>
       <button class="btn btn-ghost" id="expPdf2">Export PDF</button>
     </div>
     <div class="export-card">
-      <div class="export-icon">💾</div>
+      <div class="export-icon">&#128190;</div>
       <div class="export-title">JSON Backup</div>
-      <div class="export-desc">Backup semua data (perusahaan + karyawan) ke file .json.</div>
+      <div class="export-desc">Backup semua data (outlet + karyawan) ke file .json.</div>
       <button class="btn btn-ghost" id="expJson">Export JSON</button>
     </div>
     <div class="export-card">
-      <div class="export-icon">📥</div>
+      <div class="export-icon">&#128229;</div>
       <div class="export-title">Import JSON</div>
       <div class="export-desc">Restore data dari file backup .json yang sebelumnya diexport.</div>
-      <label class="btn btn-ghost" for="impJson" style="cursor:pointer">Import JSON</label>
+      <label class="btn btn-ghost" for="impJson" style="cursor:pointer;display:inline-flex">Import JSON</label>
       <input type="file" id="impJson" accept=".json" hidden>
     </div>
   </div>
@@ -935,23 +1074,23 @@ color:var(–fog);font-size:18px;
 
 <div id="toasts"></div>
 
-<!-- ─── MODAL: COMPANY ─── -->
+<!-- MODAL: OUTLET -->
 
 <div class="modal-bg" id="mCompany">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title" id="mCoTitle">Tambah Perusahaan</div>
-      <button class="modal-close" onclick="closeMo('mCompany')">✕</button>
+      <div class="modal-title" id="mCoTitle">Tambah Outlet</div>
+      <button class="modal-close" onclick="closeMo('mCompany')">&#10005;</button>
     </div>
     <input type="hidden" id="coEditId">
     <div class="form-grid">
       <div class="fg">
-        <label>Nama Perusahaan *</label>
-        <input class="fi" id="coName" placeholder="PT. Naruna …">
+        <label>Nama Outlet *</label>
+        <input class="fi" id="coName" placeholder="Outlet Semarang…">
       </div>
       <div class="fg">
         <label>Lokasi</label>
-        <input class="fi" id="coLoc" placeholder="Jakarta, Indonesia">
+        <input class="fi" id="coLoc" placeholder="Semarang, Jawa Tengah">
       </div>
       <div class="fg fg-full">
         <label>Deskripsi</label>
@@ -965,13 +1104,13 @@ color:var(–fog);font-size:18px;
   </div>
 </div>
 
-<!-- ─── MODAL: EMPLOYEE ─── -->
+<!-- MODAL: EMPLOYEE -->
 
 <div class="modal-bg" id="mEmployee">
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title" id="mEmpTitle">Tambah Karyawan</div>
-      <button class="modal-close" onclick="closeMo('mEmployee')">✕</button>
+      <button class="modal-close" onclick="closeMo('mEmployee')">&#10005;</button>
     </div>
     <input type="hidden" id="empEditId">
     <div class="form-grid">
@@ -980,7 +1119,7 @@ color:var(–fog);font-size:18px;
         <input class="fi" id="empName" placeholder="Nama karyawan">
       </div>
       <div class="fg">
-        <label>Perusahaan *</label>
+        <label>Outlet *</label>
         <select class="fi" id="empCo"></select>
       </div>
       <div class="fg">
@@ -1027,687 +1166,1093 @@ color:var(–fog);font-size:18px;
   </div>
 </div>
 
+<!-- MODAL: EXTEND CONTRACT -->
+
+<div class="modal-bg" id="mExtend">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title">Perpanjang Kontrak</div>
+      <button class="modal-close" onclick="closeMo('mExtend')">&#10005;</button>
+    </div>
+    <input type="hidden" id="extendEmpId">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:18px" id="extendInfo">—</p>
+    <div class="fg">
+      <label>Durasi Perpanjangan</label>
+      <select class="fi" id="extendDuration">
+        <option value="1">1 Bulan</option>
+        <option value="3">3 Bulan</option>
+        <option value="6" selected>6 Bulan</option>
+        <option value="12">12 Bulan</option>
+        <option value="24">24 Bulan</option>
+      </select>
+    </div>
+    <div style="margin-top:10px" class="fg">
+      <label>Atau pilih tanggal baru</label>
+      <input class="fi" type="date" id="extendDate">
+    </div>
+    <div id="extendHistory"></div>
+    <div class="form-footer">
+      <button class="btn btn-ghost" onclick="closeMo('mExtend')">Batal</button>
+      <button class="btn btn-ok" onclick="submitExtend()">&#10003; Perpanjang</button>
+    </div>
+  </div>
+</div>
+
 <script>
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    STATE
-═══════════════════════════════════════════════════ */
+========================================== */
 const S = {
-  meta:{ v:3, savedAt:0 },
-  companies:[],
-  employees:[]
+  meta: { v: 5, savedAt: 0 },
+  companies: [],
+  employees: [],
+  activity: []
 };
 
-// Active filter state
 const F = {
-  company: null,   // companyId or null
+  company: null,
   type: '',
-  status: '',
+  quickFilter: '',
   sort: 'name',
   search: ''
 };
 
-/* ═══════════════════════════════════════════════════
-   PERSISTENT STORAGE — OPFS + localStorage fallback
-═══════════════════════════════════════════════════ */
+/* ==========================================
+   STORAGE
+========================================== */
 let opfsAvailable = false;
 let opfsFile = null;
-const LS_KEY = 'naruna_hr_v3';
-const OPFS_FILENAME = 'naruna_hr.json';
+const LS_KEY = 'naruna_hr_v4';
+const OPFS_FILENAME = 'naruna_hr_v5.json';
 
-async function initStorage(){
-  // Detect OPFS support
-  if('storage' in navigator && 'getDirectory' in navigator.storage){
-    try{
+async function initStorage() {
+  if ('storage' in navigator && 'getDirectory' in navigator.storage) {
+    try {
       const root = await navigator.storage.getDirectory();
-      opfsFile = await root.getFileHandle(OPFS_FILENAME, { create:true });
+      opfsFile = await root.getFileHandle(OPFS_FILENAME, { create: true });
       opfsAvailable = true;
-      console.log('[Storage] OPFS available');
-    }catch(e){
-      console.warn('[Storage] OPFS init failed, using localStorage:', e);
-    }
+    } catch(e) { console.warn('[OPFS] init failed:', e); }
   }
   updateStorageBadge();
 }
 
-async function persistSave(){
+async function persistSave() {
   setSaveDot('saving');
   const raw = JSON.stringify(S, null, 2);
-  // Always save to localStorage as safety net
-  try{ localStorage.setItem(LS_KEY, raw); }
-  catch(e){ console.warn('localStorage save failed:', e); }
-  // Primary: OPFS
-  if(opfsAvailable && opfsFile){
-    try{
+  try { localStorage.setItem(LS_KEY, raw); } catch(e) {}
+  if (opfsAvailable && opfsFile) {
+    try {
       const w = await opfsFile.createWritable();
-      await w.write(raw);
-      await w.close();
-    }catch(e){ console.warn('[OPFS] write failed:', e); }
+      await w.write(raw); await w.close();
+    } catch(e) { console.warn('[OPFS] write failed:', e); }
   }
   S.meta.savedAt = Date.now();
   setSaveDot('ok');
 }
 
-async function persistLoad(){
+async function persistLoad() {
   let raw = null;
-  // Try OPFS first
-  if(opfsAvailable && opfsFile){
-    try{
+  if (opfsAvailable && opfsFile) {
+    try {
       const file = await opfsFile.getFile();
       raw = await file.text();
-      if(raw.trim()==='') raw = null;
-    }catch(e){ raw = null; }
+      if (!raw.trim()) raw = null;
+    } catch(e) { raw = null; }
   }
-  // Fallback to localStorage
-  if(!raw){
+  if (!raw) {
     raw = localStorage.getItem(LS_KEY)
+       || localStorage.getItem('naruna_hr_v3')
        || localStorage.getItem('naruna_hr_v2')
        || localStorage.getItem('naruna_hr');
   }
-  if(!raw) return;
-  try{
+  if (!raw) return;
+  try {
     const d = JSON.parse(raw);
-    if(typeof d !== 'object') return;
+    if (typeof d !== 'object') return;
     S.meta      = d.meta      || S.meta;
     S.companies = Array.isArray(d.companies) ? d.companies : [];
     S.employees = Array.isArray(d.employees) ? d.employees : [];
-  }catch(e){ console.error('Load parse error:', e); }
+    S.activity  = Array.isArray(d.activity)  ? d.activity  : [];
+  } catch(e) { console.error('Load parse error:', e); }
 }
 
-function setSaveDot(state){
+function setSaveDot(state) {
   const dot = document.getElementById('saveDot');
   const txt = document.getElementById('saveText');
-  dot.className = 'save-dot' + (state==='saving' ? ' saving' : '');
-  if(state==='ok') txt.textContent = 'Tersimpan';
-  if(state==='saving') txt.textContent = 'Menyimpan…';
+  dot.className = 'save-dot' + (state === 'saving' ? ' saving' : '');
+  txt.textContent = state === 'saving' ? 'Menyimpan…' : 'Tersimpan';
 }
 
-function updateStorageBadge(){
+function updateStorageBadge() {
   const el = document.getElementById('storageBadge');
   const desc = document.getElementById('storageDesc');
-  if(opfsAvailable){
+  if (!el) return;
+  if (opfsAvailable) {
     el.className = 'storage-badge sb-opfs';
-    el.textContent = '✓ OPFS — File System Perangkat';
-    desc.textContent = 'Data tersimpan permanen di storage perangkat via Origin Private File System. Tidak hilang meski browser di-refresh atau ditutup.';
+    el.textContent = '\u2713 OPFS \u2014 File System Perangkat';
+    desc.textContent = 'Data tersimpan permanen di storage perangkat via Origin Private File System.';
   } else {
     el.className = 'storage-badge sb-ls';
-    el.textContent = '◎ localStorage';
-    desc.textContent = 'OPFS tidak didukung browser ini. Data tersimpan di localStorage. Beberapa browser mungkin menghapus data ini jika storage dibersihkan.';
+    el.textContent = '\u25ce localStorage';
+    desc.textContent = 'OPFS tidak tersedia. Data tersimpan di localStorage browser.';
   }
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    UTILS
-═══════════════════════════════════════════════════ */
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const idr = n => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n||0);
-const fmtD = s => { if(!s) return '—'; const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; };
+========================================== */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const idr = n => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
+const fmtD = s => { if (!s) return '\u2014'; const [y, m, d] = s.split('-'); return d + '/' + m + '/' + y; };
+const initials = name => (name || '?').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
 
-function daysLeft(d){
-  if(!d) return null;
-  const t=new Date(); t.setHours(0,0,0,0);
-  const [y,m,dd]=d.split('-');
-  const e=new Date(+y,+m-1,+dd); e.setHours(0,0,0,0);
-  return Math.ceil((e-t)/86400000);
+const AVATAR_COLORS = [
+  ['#b8893c','#fff9ee'], ['#3a9e6a','#edf9f4'],
+  ['#3b6fd4','#eef3ff'], ['#9a4fd4','#f5eeff'],
+  ['#d44f4f','#ffeef0'], ['#4fb8c9','#eef9fc']
+];
+function avatarColor(name) {
+  let h = 0;
+  for (let i = 0; i < (name || '').length; i++) h = (h * 31 + (name || '').charCodeAt(i)) & 0xfffff;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
 
-function cStatus(d){
-  const n=daysLeft(d);
-  if(n===null)    return { label:'—',        cls:'b-dim',    key:'none' };
-  if(n<0)         return { label:'Expired',  cls:'b-danger', key:'expired' };
-  if(n===0)       return { label:'Hari ini', cls:'b-danger', key:'expired' };
-  if(n<=30)       return { label:n+' Hari',  cls:'b-warn',   key:'urgent' };
-  return                  { label:'Aman',    cls:'b-ok',     key:'safe' };
+function daysLeft(d) {
+  if (!d) return null;
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const parts = d.split('-');
+  const e = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  e.setHours(0, 0, 0, 0);
+  return Math.ceil((e - t) / 86400000);
 }
 
-function sortEmp(list, by){
-  return [...list].sort((a,b)=>{
-    if(by==='contract'){
-      const da=daysLeft(a.contract)??999999, db=daysLeft(b.contract)??999999;
-      return da-db;
+function cStatus(d) {
+  const n = daysLeft(d);
+  if (n === null)  return { label: '\u2014',      cls: 'b-dim',    key: 'none' };
+  if (n < 0)       return { label: 'Expired',     cls: 'b-danger', key: 'expired' };
+  if (n === 0)     return { label: 'Hari ini',    cls: 'b-danger', key: 'expired' };
+  if (n <= 7)      return { label: n + ' Hari',   cls: 'b-danger', key: 'urgent7' };
+  if (n <= 30)     return { label: n + ' Hari',   cls: 'b-warn',   key: 'urgent' };
+  return                   { label: 'Aman',       cls: 'b-ok',     key: 'safe' };
+}
+
+function coName(id) {
+  return S.companies.find(c => c.id === id)?.name || '\u2014';
+}
+
+function sortEmp(list, by) {
+  return [...list].sort((a, b) => {
+    if (by === 'contract') {
+      const da = daysLeft(a.contract) ?? 999999, db = daysLeft(b.contract) ?? 999999;
+      return da - db;
     }
-    if(by==='salary_desc') return (b.salary||0)-(a.salary||0);
-    if(by==='salary_asc')  return (a.salary||0)-(b.salary||0);
-    if(by==='company'){
-      const ca=coName(a.companyId), cb=coName(b.companyId);
-      return ca.localeCompare(cb);
-    }
-    return (a.name||'').localeCompare(b.name||'');
+    if (by === 'salary_desc') return (b.salary || 0) - (a.salary || 0);
+    if (by === 'salary_asc')  return (a.salary || 0) - (b.salary || 0);
+    if (by === 'company') return coName(a.companyId).localeCompare(coName(b.companyId));
+    return (a.name || '').localeCompare(b.name || '');
   });
 }
 
-function coName(id){
-  return S.companies.find(c=>c.id===id)?.name||'—';
+/* ==========================================
+   CLOCK
+========================================== */
+function updateClock() {
+  const now = new Date();
+  const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const el = document.getElementById('clockDisplay');
+  if (el) el.textContent = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear() + ' \u00b7 ' + hh + ':' + mm;
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
+   GLOBAL SEARCH SHORTCUT
+========================================== */
+window.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+    document.getElementById('searchInput').select();
+  }
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-bg.show').forEach(b => { closeMo(b.id); resetForms(); });
+    closeNotif();
+  }
+});
+
+/* ==========================================
    TOAST
-═══════════════════════════════════════════════════ */
-function toast(msg, type='ok'){
-  const c=document.getElementById('toasts');
-  const d=document.createElement('div');
-  d.className=`toast t-${type}`;
-  d.innerHTML=`<div class="toast-dot"></div><span>${esc(msg)}</span>`;
+========================================== */
+function toast(msg, type) {
+  type = type || 'ok';
+  const c = document.getElementById('toasts');
+  const d = document.createElement('div');
+  d.className = 'toast t-' + type;
+  d.innerHTML = '<div class="toast-dot"></div><span>' + esc(msg) + '</span>';
   c.appendChild(d);
-  setTimeout(()=>{
+  setTimeout(function() {
     d.classList.add('leaving');
-    setTimeout(()=>d.remove(), 280);
+    setTimeout(function() { d.remove(); }, 240);
   }, 2800);
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    MODAL
-═══════════════════════════════════════════════════ */
-function openMo(id){
-  document.getElementById(id).classList.add('show');
-  document.body.style.overflow='hidden';
-}
-function closeMo(id){
+========================================== */
+function openMo(id) { document.getElementById(id).classList.add('show'); document.body.style.overflow = 'hidden'; }
+function closeMo(id) {
   document.getElementById(id).classList.remove('show');
-  if(!document.querySelector('.modal-bg.show')) document.body.style.overflow='';
+  if (!document.querySelector('.modal-bg.show')) document.body.style.overflow = '';
 }
-document.querySelectorAll('.modal-bg').forEach(bg=>{
-  bg.addEventListener('click',e=>{ if(e.target===bg){ closeMo(bg.id); resetForms(); } });
-});
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ document.querySelectorAll('.modal-bg.show').forEach(b=>closeMo(b.id)); resetForms(); }
+document.querySelectorAll('.modal-bg').forEach(function(bg) {
+  bg.addEventListener('click', function(e) { if (e.target === bg) { closeMo(bg.id); resetForms(); } });
 });
 
-function resetForms(){
-  ['coEditId','coName','coLoc','coDesc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('mCoTitle').textContent='Tambah Perusahaan';
-  ['empEditId','empName','empPos','empStart','empEnd','empSalary','empPhone','empEmail','empNotes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  const et=document.getElementById('empType'); if(et) et.value='Tetap';
-  document.getElementById('mEmpTitle').textContent='Tambah Karyawan';
-}
-
-/* ═══════════════════════════════════════════════════
-   NAVIGATION
-═══════════════════════════════════════════════════ */
-const PAGE_LABELS = {
-  dashboard:'Dashboard',employees:'Karyawan',
-  contracts:'Monitor Kontrak',export:'Export & Import'
-};
-function goPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(b=>{
-    b.classList.toggle('active', b.dataset.page===id);
+function resetForms() {
+  ['coEditId','coName','coLoc','coDesc'].forEach(function(id) { const el = document.getElementById(id); if (el) el.value = ''; });
+  const mct = document.getElementById('mCoTitle'); if (mct) mct.textContent = 'Tambah Outlet';
+  ['empEditId','empName','empPos','empStart','empEnd','empSalary','empPhone','empEmail','empNotes'].forEach(function(id) {
+    const el = document.getElementById(id); if (el) el.value = '';
   });
-  document.getElementById('pageLabel').textContent = PAGE_LABELS[id]||id;
-  if(id==='contracts') renderContracts();
-  if(id==='employees') renderEmployees();
+  const et = document.getElementById('empType'); if (et) et.value = 'Tetap';
+  const met = document.getElementById('mEmpTitle'); if (met) met.textContent = 'Tambah Karyawan';
 }
-document.querySelectorAll('.nav-item[data-page]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
+
+/* ==========================================
+   NAVIGATION
+========================================== */
+const PAGE_LABELS = { dashboard: 'Dashboard', employees: 'Karyawan', contracts: 'Monitor Kontrak', export: 'Export & Import' };
+
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.toggle('active', b.dataset.page === id); });
+  const pl = document.getElementById('pageLabel'); if (pl) pl.textContent = PAGE_LABELS[id] || id;
+  if (id === 'contracts') renderContracts();
+  if (id === 'employees') renderEmployees();
+}
+
+document.querySelectorAll('.nav-item[data-page]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
     goPage(btn.dataset.page);
-    // close mobile sidebar
     document.getElementById('sidebar').classList.remove('mobile-open');
   });
 });
 
-/* ═══════════════════════════════════════════════════
-   SIDEBAR TOGGLE
-═══════════════════════════════════════════════════ */
+/* ==========================================
+   SIDEBAR
+========================================== */
 let sidebarExpanded = false;
-function toggleSidebar(){
+function toggleSidebar() {
   sidebarExpanded = !sidebarExpanded;
-  const sb = document.getElementById('sidebar');
-  sb.classList.toggle('expanded', sidebarExpanded);
-  // show label on toggle button
-  const tl = sb.querySelector('.toggle-btn .label');
-  if(tl) tl.style.opacity = sidebarExpanded ? '1' : '0';
+  document.getElementById('sidebar').classList.toggle('expanded', sidebarExpanded);
 }
 
-/* ═══════════════════════════════════════════════════
-   RENDER: STATS
-═══════════════════════════════════════════════════ */
-function renderStats(){
-  const total = S.employees.length;
-  let urgent=0, expired=0, payroll=0;
-  S.employees.forEach(e=>{
-    payroll += Number(e.salary)||0;
-    const n=daysLeft(e.contract);
-    if(n!==null && n<0) expired++;
-    else if(n!==null && n<=30 && n>=0) urgent++;
+/* ==========================================
+   NOTIFICATION DROPDOWN
+========================================== */
+function toggleNotif() {
+  const dd = document.getElementById('notifDropdown');
+  dd.classList.toggle('show');
+  renderNotifDropdown();
+}
+function closeNotif() { document.getElementById('notifDropdown').classList.remove('show'); }
+
+document.addEventListener('click', function(e) {
+  const btn = document.getElementById('notifBtn');
+  const dd = document.getElementById('notifDropdown');
+  if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) closeNotif();
+});
+
+/* Group by urgency level, then by outlet */
+function getUrgentByLevel() {
+  const expired = [], urgent7 = [], urgent30 = [];
+  S.employees.forEach(function(e) {
+    const n = daysLeft(e.contract);
+    if (n === null) return;
+    const obj = Object.assign({}, e, { days: n, coName: coName(e.companyId) });
+    if (n < 0)        expired.push(obj);
+    else if (n <= 7)  urgent7.push(obj);
+    else if (n <= 30) urgent30.push(obj);
   });
-  document.getElementById('s-total').textContent = total;
-  document.getElementById('s-total-sub').textContent = `dari ${S.companies.length} perusahaan`;
-  document.getElementById('s-urgent').textContent = urgent;
-  document.getElementById('s-urgent').className = 'stat-v ' + (urgent>0?'warn':'');
-  document.getElementById('s-expired').textContent = expired;
-  document.getElementById('s-expired').className = 'stat-v ' + (expired>0?'warn':'');
-  document.getElementById('s-payroll').textContent = idr(payroll);
-  document.getElementById('s-payroll-avg').textContent = total ? `rata-rata ${idr(Math.round(payroll/total))}` : 'rata-rata Rp 0';
+  expired.sort(function(a,b) { return a.days - b.days; });
+  urgent7.sort(function(a,b) { return a.days - b.days; });
+  urgent30.sort(function(a,b) { return a.days - b.days; });
+  return { expired, urgent7, urgent30 };
 }
 
-/* ═══════════════════════════════════════════════════
-   RENDER: COMPANY GRID
-═══════════════════════════════════════════════════ */
-function renderCompanies(){
-  const grid = document.getElementById('coGrid');
-  if(!S.companies.length){
-    grid.innerHTML=`<div class="empty"><div class="empty-glyph">🏢</div><div class="empty-title">Belum Ada Perusahaan</div><div class="empty-sub">Tambahkan anak usaha pertama</div></div>`;
+function renderNotifDropdown() {
+  const body = document.getElementById('notifBody');
+  const summary = document.getElementById('notifSummary');
+  const { expired, urgent7, urgent30 } = getUrgentByLevel();
+  const total = expired.length + urgent7.length + urgent30.length;
+
+  // Summary pills
+  if (total === 0) {
+    summary.innerHTML = '<span class="notif-sum-pill nsp-safe">\u2713 Semua kontrak aman</span>';
+  } else {
+    let pills = '';
+    if (expired.length) pills += '<span class="notif-sum-pill nsp-expired">' + expired.length + ' Expired</span>';
+    if (urgent7.length) pills += '<span class="notif-sum-pill nsp-urgent">' + urgent7.length + ' &le; 7 Hari</span>';
+    if (urgent30.length) pills += '<span class="notif-sum-pill nsp-urgent">' + urgent30.length + ' &le; 30 Hari</span>';
+    summary.innerHTML = pills;
+  }
+
+  if (!total) {
+    body.innerHTML = '<div class="notif-empty">\u2713 Semua kontrak aman</div>';
     return;
   }
-  grid.innerHTML = S.companies.map(co=>{
-    const emps = S.employees.filter(e=>e.companyId===co.id);
-    const warn = emps.filter(e=>{ const n=daysLeft(e.contract); return n!==null&&n>=0&&n<=30; }).length;
-    const exp  = emps.filter(e=>{ const n=daysLeft(e.contract); return n!==null&&n<0; }).length;
-    const badge = exp>0
-      ? `<span class="co-stat-pill warn" onclick="filterByCompany('${co.id}')">⚠ ${exp} expired · ${warn} mendesak · ${emps.length} total</span>`
-      : warn>0
-      ? `<span class="co-stat-pill warn" onclick="filterByCompany('${co.id}')">⚠ ${warn} mendesak · ${emps.length} total</span>`
-      : `<span class="co-stat-pill ok" onclick="filterByCompany('${co.id}')">✓ Aman · ${emps.length} karyawan</span>`;
-    return `
-      <div class="co-card">
-        <div class="co-name">${esc(co.name)}</div>
-        <div class="co-loc">📍 ${esc(co.location||'—')}</div>
-        <div class="co-desc">${esc(co.description||'Tidak ada deskripsi.')}</div>
-        <div class="co-footer">
-          ${badge}
-          <div class="co-btns">
-            <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="editCompany('${co.id}')">✎</button>
-            <button class="btn btn-danger btn-sm btn-icon" title="Hapus" onclick="deleteCompany('${co.id}')">✕</button>
-          </div>
-        </div>
-      </div>`;
+
+  function sectionHtml(label, items, cls) {
+    if (!items.length) return '';
+    const rows = items.map(function(e) {
+      const dayStr = e.days < 0 ? 'Expired ' + Math.abs(e.days) + ' hari lalu' : e.days === 0 ? 'Hari ini!' : e.days + ' hari lagi';
+      return '<div class="notif-item ' + cls + '" onclick="editEmployee(\'' + e.id + '\');closeNotif()">' +
+        '<div class="notif-avatar">' + initials(e.name) + '</div>' +
+        '<div class="notif-info">' +
+          '<div class="notif-name">' + esc(e.name) + '</div>' +
+          '<div class="notif-days">' + dayStr + ' \u00b7 ' + esc(e.coName) + '</div>' +
+        '</div></div>';
+    }).join('');
+    return '<div class="notif-group"><div class="notif-section-title">' + label + '</div>' + rows + '</div>';
+  }
+
+  body.innerHTML =
+    sectionHtml('\ud83d\udea8 Expired', expired, 'expired') +
+    sectionHtml('\ud83d\udd34 Kritis \u2264 7 Hari', urgent7, 'danger') +
+    sectionHtml('\ud83d\udfe0 Mendesak \u2264 30 Hari', urgent30, 'urgent');
+}
+
+function updateNotifBadge() {
+  const { expired, urgent7, urgent30 } = getUrgentByLevel();
+  const total = expired.length + urgent7.length + urgent30.length;
+  const badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  badge.textContent = total > 99 ? '99+' : String(total);
+  badge.classList.toggle('show', total > 0);
+}
+
+/* ==========================================
+   QUICK FILTER COUNTERS
+========================================== */
+function updateQfCounters() {
+  let cAll = 0, cExp = 0, c7 = 0, c30 = 0, cSafe = 0;
+  S.employees.forEach(function(e) {
+    cAll++;
+    const n = daysLeft(e.contract);
+    const k = cStatus(e.contract).key;
+    if (k === 'expired') cExp++;
+    if (n !== null && n >= 0 && n <= 7) c7++;
+    if (n !== null && n >= 0 && n <= 30) c30++;
+    if (k === 'safe') cSafe++;
+  });
+  function setCount(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  setCount('qfc-all', cAll);
+  setCount('qfc-expired', cExp);
+  setCount('qfc-7', c7);
+  setCount('qfc-30', c30);
+  setCount('qfc-safe', cSafe);
+}
+
+/* ==========================================
+   ACTIVITY LOG
+========================================== */
+function logActivity(icon, type, payload) {
+  S.activity.unshift({ icon: icon, type: type, payload: payload, ts: Date.now() });
+  if (S.activity.length > 20) S.activity.length = 20;
+}
+
+function activityText(a) {
+  const p = a.payload || {};
+  if (a.type === 'employee_add')    return '<strong>' + esc(p.name) + '</strong> ditambahkan ke ' + esc(p.co);
+  if (a.type === 'employee_update') return 'Data <strong>' + esc(p.name) + '</strong> diperbarui';
+  if (a.type === 'employee_delete') return '<strong>' + esc(p.name) + '</strong> dihapus';
+  if (a.type === 'company_add')     return 'Outlet <strong>' + esc(p.name) + '</strong> ditambahkan';
+  if (a.type === 'company_update')  return 'Outlet <strong>' + esc(p.name) + '</strong> diperbarui';
+  if (a.type === 'company_delete')  return 'Outlet <strong>' + esc(p.name) + '</strong> dihapus';
+  if (a.type === 'contract_extend') return 'Kontrak <strong>' + esc(p.name) + '</strong> diperpanjang hingga ' + fmtD(p.until);
+  if (a.type === 'import')          return 'Data diimport: ' + (p.companies || 0) + ' outlet, ' + (p.employees || 0) + ' karyawan';
+  return esc(a.text || '');
+}
+
+function renderActivity() {
+  const card = document.getElementById('activityCard');
+  if (!card) return;
+  if (!S.activity.length) {
+    card.innerHTML = '<div class="empty" style="padding:32px 0"><div class="empty-glyph">\ud83d\udccb</div><div class="empty-title">Belum ada aktivitas</div></div>';
+    return;
+  }
+  const timeAgo = function(ts) {
+    const s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return 'Baru saja';
+    if (s < 3600) return Math.floor(s/60) + ' mnt lalu';
+    if (s < 86400) return Math.floor(s/3600) + ' jam lalu';
+    return Math.floor(s/86400) + ' hr lalu';
+  };
+  card.innerHTML = S.activity.slice(0, 8).map(function(a) {
+    return '<div class="activity-item"><div class="act-icon">' + (a.icon || '\u2139\ufe0f') + '</div>' +
+      '<div class="act-text">' + activityText(a) + '</div>' +
+      '<div class="act-time">' + timeAgo(a.ts) + '</div></div>';
+  }).join('');
+}
+
+/* ==========================================
+   RENDER: STATS
+========================================== */
+function renderStats() {
+  const total = S.employees.length;
+  let urgent = 0, expired = 0, payroll = 0;
+  S.employees.forEach(function(e) {
+    payroll += Number(e.salary) || 0;
+    const n = daysLeft(e.contract);
+    if (n !== null && n < 0) expired++;
+    else if (n !== null && n <= 30) urgent++;
+  });
+  const setEl = function(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setEl('s-total', total);
+  setEl('s-total-sub', 'dari ' + S.companies.length + ' outlet');
+  setEl('s-urgent', urgent);
+  const su = document.getElementById('s-urgent'); if (su) su.className = 'stat-v ' + (urgent > 0 ? 'warn' : '');
+  setEl('s-expired', expired);
+  const se = document.getElementById('s-expired'); if (se) se.className = 'stat-v ' + (expired > 0 ? 'danger' : '');
+  setEl('s-payroll', idr(payroll));
+  setEl('s-payroll-avg', total ? 'rata-rata ' + idr(Math.round(payroll / total)) : 'rata-rata Rp 0');
+
+  const banner = document.getElementById('dashAlert');
+  if (banner) {
+    if (expired > 0 || urgent > 0) {
+      const type = expired > 0 ? 'danger' : 'warn';
+      const msg = expired > 0
+        ? expired + ' kontrak expired & ' + urgent + ' kontrak akan habis dalam 30 hari'
+        : urgent + ' kontrak akan habis dalam 30 hari';
+      banner.style.display = 'flex';
+      banner.className = 'alert-banner ' + type;
+      banner.innerHTML = '<div class="alert-left"><div class="alert-icon">' + (expired > 0 ? '\ud83d\udea8' : '\u26a0\ufe0f') + '</div>' +
+        '<div><div class="alert-title">' + esc(msg) + '</div><div class="alert-sub">Tinjau dan perpanjang kontrak segera</div></div></div>' +
+        '<button class="btn btn-sm ' + (type === 'danger' ? 'btn-danger' : 'btn-ghost') + '" onclick="goPage(\'contracts\')">Lihat Detail &rarr;</button>';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  renderDistribution();
+  updateNotifBadge();
+  updateQfCounters();
+}
+
+function renderDistribution() {
+  if (!S.employees.length) {
+    const db = document.getElementById('distBar'); if (db) db.innerHTML = '<div class="dist-seg dim" style="flex:1"></div>';
+    const dl = document.getElementById('distLabels'); if (dl) dl.innerHTML = '';
+    return;
+  }
+  let safe = 0, warn = 0, danger = 0, none = 0;
+  S.employees.forEach(function(e) {
+    const k = cStatus(e.contract).key;
+    if (k === 'safe') safe++;
+    else if (k === 'urgent' || k === 'urgent7') warn++;
+    else if (k === 'expired') danger++;
+    else none++;
+  });
+  const total = S.employees.length;
+  const pct = function(n) { return Math.max(n / total * 100, n > 0 ? 2 : 0); };
+  const db = document.getElementById('distBar');
+  if (db) db.innerHTML =
+    (safe   > 0 ? '<div class="dist-seg ok"    style="flex:' + pct(safe)   + '"></div>' : '') +
+    (warn   > 0 ? '<div class="dist-seg warn"  style="flex:' + pct(warn)   + '"></div>' : '') +
+    (danger > 0 ? '<div class="dist-seg danger" style="flex:' + pct(danger) + '"></div>' : '') +
+    (none   > 0 ? '<div class="dist-seg dim"   style="flex:' + pct(none)   + '"></div>' : '');
+  const dl = document.getElementById('distLabels');
+  if (dl) dl.innerHTML =
+    '<span class="dist-label"><span class="dist-dot" style="background:var(--ok)"></span>Aman: ' + safe + '</span>' +
+    '<span class="dist-label"><span class="dist-dot" style="background:var(--warn)"></span>Mendesak: ' + warn + '</span>' +
+    '<span class="dist-label"><span class="dist-dot" style="background:var(--danger)"></span>Expired: ' + danger + '</span>' +
+    (none > 0 ? '<span class="dist-label"><span class="dist-dot" style="background:var(--line2)"></span>Tanpa kontrak: ' + none + '</span>' : '');
+}
+
+/* ==========================================
+   RENDER: OUTLET GRID
+========================================== */
+function renderCompanies() {
+  const grid = document.getElementById('coGrid');
+  if (!grid) return;
+  if (!S.companies.length) {
+    grid.innerHTML = '<div class="onboarding-empty">' +
+      '<div class="ob-glyph">\ud83c\udfe2</div>' +
+      '<div class="ob-title">Mulai dengan membuat outlet pertama</div>' +
+      '<div class="ob-sub">Outlet adalah unit bisnis atau lokasi yang mengelompokkan karyawan.<br>Anda bisa menambahkan karyawan setelah outlet dibuat.</div>' +
+      '<button class="btn btn-gold" onclick="document.getElementById(\'addOutletBtn\').click()">+ Buat Outlet Pertama</button></div>';
+    return;
+  }
+  grid.innerHTML = S.companies.map(function(co) {
+    const emps = S.employees.filter(function(e) { return e.companyId === co.id; });
+    const exp  = emps.filter(function(e) { const n = daysLeft(e.contract); return n !== null && n < 0; }).length;
+    const warn = emps.filter(function(e) { const n = daysLeft(e.contract); return n !== null && n >= 0 && n <= 30; }).length;
+    let pillCls = 'ok', pillText = '\u2713 Aman \u00b7 ' + emps.length + ' karyawan';
+    if (exp > 0) { pillCls = 'danger'; pillText = '\u26a0 ' + exp + ' expired \u00b7 ' + warn + ' mendesak'; }
+    else if (warn > 0) { pillCls = 'warn'; pillText = '\u26a0 ' + warn + ' mendesak \u00b7 ' + emps.length + ' total'; }
+    return '<div class="co-card">' +
+      '<div class="co-card-top"><div class="co-name">' + esc(co.name) + '</div></div>' +
+      '<div class="co-loc">\ud83d\udccd ' + esc(co.location || '\u2014') + '</div>' +
+      '<div class="co-desc">' + esc(co.description || 'Tidak ada deskripsi.') + '</div>' +
+      '<div class="co-footer">' +
+        '<span class="co-pill ' + pillCls + '" onclick="filterByCompany(\'' + co.id + '\')">' + pillText + '</span>' +
+        '<div class="co-btns">' +
+          '<button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="editCompany(\'' + co.id + '\')">&#9998;</button>' +
+          '<button class="btn btn-danger btn-sm btn-icon" title="Hapus" onclick="deleteCompany(\'' + co.id + '\')">&#10005;</button>' +
+        '</div></div></div>';
   }).join('');
   rebuildCompanyOptions();
   rebuildFilterChips();
   rebuildCtFilter();
 }
 
-function rebuildCompanyOptions(){
+function rebuildCompanyOptions() {
   const sel = document.getElementById('empCo');
-  sel.innerHTML = S.companies.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  if (!sel) return;
+  sel.innerHTML = S.companies.map(function(c) { return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
 }
-function rebuildFilterChips(){
+function rebuildFilterChips() {
   const el = document.getElementById('filterCompanyChips');
-  el.innerHTML = S.companies.map(c=>`
-    <div class="chip ${F.company===c.id?'active':''}" onclick="toggleCompanyFilter('${c.id}')">
-      ${esc(c.name)}<span class="chip-x">✕</span>
-    </div>`).join('');
+  if (!el) return;
+  el.innerHTML = S.companies.map(function(c) {
+    return '<div class="chip ' + (F.company === c.id ? 'active' : '') + '" onclick="toggleCompanyFilter(\'' + c.id + '\')">' +
+      esc(c.name) + '<span class="chip-x">&#10005;</span></div>';
+  }).join('');
 }
-function rebuildCtFilter(){
+function rebuildCtFilter() {
   const sel = document.getElementById('ctFilterCo');
-  if(!sel) return;
+  if (!sel) return;
   const cur = sel.value;
-  sel.innerHTML = `<option value="">Semua Perusahaan</option>` +
-    S.companies.map(c=>`<option value="${esc(c.id)}" ${cur===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
+  sel.innerHTML = '<option value="">Semua Outlet</option>' +
+    S.companies.map(function(c) { return '<option value="' + esc(c.id) + '"' + (cur === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('');
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    FILTER HELPERS
-═══════════════════════════════════════════════════ */
-function toggleCompanyFilter(id){
-  F.company = F.company===id ? null : id;
-  rebuildFilterChips();
-  renderEmployees();
-}
-function filterByCompany(id){
-  F.company = id;
-  goPage('employees');
-  rebuildFilterChips();
-  renderEmployees();
-}
+========================================== */
+function toggleCompanyFilter(id) { F.company = F.company === id ? null : id; rebuildFilterChips(); renderEmployees(); }
+function filterByCompany(id) { F.company = id; goPage('employees'); rebuildFilterChips(); renderEmployees(); }
 
-function applyFilters(list){
-  const kw = (F.search||'').toLowerCase();
-  return list.filter(e=>{
-    if(F.company && e.companyId!==F.company) return false;
-    if(F.type && e.status!==F.type) return false;
-    if(F.status){
+function applyFilters(list) {
+  const kw = (F.search || '').toLowerCase();
+  return list.filter(function(e) {
+    if (F.company && e.companyId !== F.company) return false;
+    if (F.type && e.status !== F.type) return false;
+    if (F.quickFilter) {
+      const n = daysLeft(e.contract);
       const k = cStatus(e.contract).key;
-      if(F.status==='safe' && k!=='safe' && k!=='none') return false;
-      if(F.status==='urgent' && k!=='urgent') return false;
-      if(F.status==='expired' && k!=='expired') return false;
+      if (F.quickFilter === 'expired' && k !== 'expired') return false;
+      if (F.quickFilter === '7' && !(n !== null && n >= 0 && n <= 7)) return false;
+      if (F.quickFilter === '30' && !(n !== null && n >= 0 && n <= 30)) return false;
+      if (F.quickFilter === 'safe' && k !== 'safe') return false;
     }
-    if(kw){
-      const hay = `${e.name} ${e.position} ${coName(e.companyId)}`.toLowerCase();
-      if(!hay.includes(kw)) return false;
+    if (kw) {
+      const hay = ((e.name || '') + ' ' + (e.position || '') + ' ' + coName(e.companyId) + ' ' + (e.phone || '') + ' ' + (e.email || '') + ' ' + (e.notes || '')).toLowerCase();
+      if (!hay.includes(kw)) return false;
     }
     return true;
   });
 }
 
-/* ═══════════════════════════════════════════════════
-   RENDER: EMPLOYEE TABLE (shared helper)
-═══════════════════════════════════════════════════ */
-function empRow(e, actions=true){
-  const co = S.companies.find(c=>c.id===e.companyId);
-  const st = cStatus(e.contract);
-  return `<tr>
-    <td class="td-name">${esc(e.name)}</td>
-    <td class="td-muted">${esc(co?.name||'—')}</td>
-    <td>${esc(e.position||'—')}</td>
-    <td><span class="badge b-dim">${esc(e.status||'—')}</span></td>
-    <td class="td-dim">${fmtD(e.contract)}</td>
-    <td><span class="badge ${st.cls}">${st.label}</span></td>
-    <td class="td-muted">${idr(e.salary)}</td>
-    ${actions?`<td><div style="display:flex;gap:5px">
-      <button class="btn btn-ghost btn-sm" onclick="editEmployee('${e.id}')">Edit</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${e.id}')">Hapus</button>
-    </div></td>`:''}
-  </tr>`;
+function setQf(el, val) {
+  F.quickFilter = val;
+  document.querySelectorAll('.qf').forEach(function(q) { q.classList.remove('active'); });
+  el.classList.add('active');
+  renderEmployees();
 }
 
-function renderRecentTable(){
+/* ==========================================
+   AVATAR HTML
+========================================== */
+function avatarHtml(name) {
+  const colors = avatarColor(name);
+  const fg = colors[0], bg = colors[1];
+  return '<div class="avatar" style="background:' + bg + ';color:' + fg + '">' + initials(name) + '</div>';
+}
+
+/* ==========================================
+   RENDER: EMPLOYEE ROW
+========================================== */
+function empRow(e) {
+  const co = S.companies.find(function(c) { return c.id === e.companyId; });
+  const st = cStatus(e.contract);
+  const n = daysLeft(e.contract);
+  const dStr = n === null ? '\u2014' : n < 0 ? Math.abs(n) + ' hr lalu' : n === 0 ? 'Hari ini' : n + ' hr';
+  return '<tr>' +
+    '<td><div class="td-name">' + avatarHtml(e.name) + ' <span>' + esc(e.name) + '</span></div></td>' +
+    '<td class="td-muted">' + esc(co ? co.name : '\u2014') + '</td>' +
+    '<td>' + esc(e.position || '\u2014') + '</td>' +
+    '<td><span class="badge b-dim">' + esc(e.status || '\u2014') + '</span></td>' +
+    '<td class="td-dim">' + fmtD(e.contract) + '</td>' +
+    '<td><span>' + dStr + '</span></td>' +
+    '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+    '<td><div style="display:flex;gap:4px">' +
+      '<button class="btn btn-ghost btn-sm" onclick="editEmployee(\'' + e.id + '\')">Edit</button>' +
+      (e.contract ? '<button class="btn btn-ok btn-sm" onclick="openExtend(\'' + e.id + '\')">\u21bb</button>' : '') +
+      '<button class="btn btn-danger btn-sm" onclick="deleteEmployee(\'' + e.id + '\')">&#10005;</button>' +
+    '</div></td></tr>';
+}
+
+function renderRecentTable() {
   const tbody = document.getElementById('tbodyRecent');
-  if(!tbody) return;
-  // Show latest 10, sorted by contract urgency
-  const list = sortEmp(S.employees, 'contract').slice(0,10);
-  if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-glyph">👤</div><div class="empty-title">Belum ada karyawan</div></div></td></tr>`;
+  if (!tbody) return;
+  const list = sortEmp(S.employees, 'contract').slice(0, 10);
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-glyph">\ud83d\udc64</div><div class="empty-title">Belum ada karyawan</div></div></td></tr>';
     return;
   }
-  tbody.innerHTML = list.map(e=>empRow(e)).join('');
+  tbody.innerHTML = list.map(empRow).join('');
 }
 
-function renderEmployees(){
+function renderEmployees() {
   const tbody = document.getElementById('tbodyEmp');
-  if(!tbody) return;
+  if (!tbody) return;
   let list = applyFilters(S.employees);
   list = sortEmp(list, F.sort);
-  document.getElementById('empCount').textContent = `${list.length} dari ${S.employees.length} karyawan`;
-  if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-glyph">🔍</div><div class="empty-title">Tidak ada hasil</div><div class="empty-sub">Coba ubah filter atau kata kunci</div></div></td></tr>`;
+  const ec = document.getElementById('empCount');
+  if (ec) ec.textContent = list.length + ' dari ' + S.employees.length + ' karyawan';
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-glyph">\ud83d\udd0d</div><div class="empty-title">Tidak ada hasil</div><div class="empty-sub">Coba ubah filter</div></div></td></tr>';
     return;
   }
-  tbody.innerHTML = list.map(e=>empRow(e)).join('');
+  tbody.innerHTML = list.map(empRow).join('');
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    RENDER: CONTRACTS
-═══════════════════════════════════════════════════ */
-function renderContracts(){
+========================================== */
+function renderContracts() {
   const tbody = document.getElementById('tbodyCt');
-  if(!tbody) return;
-  const ctCo = document.getElementById('ctFilterCo')?.value||'';
-  const ctSt = document.getElementById('ctFilterStatus')?.value||'';
-
-  let list = S.employees.filter(e=>e.contract);
-  if(ctCo) list = list.filter(e=>e.companyId===ctCo);
-  if(ctSt){
-    list = list.filter(e=>{
-      const k=cStatus(e.contract).key;
-      if(ctSt==='expired') return k==='expired';
-      if(ctSt==='urgent') return k==='urgent';
-      if(ctSt==='safe') return k==='safe';
+  if (!tbody) return;
+  const ctCo = (document.getElementById('ctFilterCo') || {}).value || '';
+  const ctSt = (document.getElementById('ctFilterStatus') || {}).value || '';
+  let list = S.employees.filter(function(e) { return e.contract; });
+  if (ctCo) list = list.filter(function(e) { return e.companyId === ctCo; });
+  if (ctSt) {
+    list = list.filter(function(e) {
+      const k = cStatus(e.contract).key;
+      if (ctSt === 'expired') return k === 'expired';
+      if (ctSt === 'urgent') return k === 'urgent' || k === 'urgent7';
+      if (ctSt === 'safe') return k === 'safe';
       return true;
     });
   }
-  list = sortEmp(list,'contract');
-
-  if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-glyph">📋</div><div class="empty-title">Tidak ada data kontrak</div></div></td></tr>`;
+  list = sortEmp(list, 'contract');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-glyph">\ud83d\udccb</div><div class="empty-title">Tidak ada data kontrak</div></div></td></tr>';
     return;
   }
-  tbody.innerHTML = list.map(e=>{
-    const co=S.companies.find(c=>c.id===e.companyId);
-    const st=cStatus(e.contract);
-    const n=daysLeft(e.contract);
-    const dStr = n===null?'—':n<0?`${Math.abs(n)} hari lalu`:n===0?'Hari ini':`${n} hari lagi`;
-    const rowCls = st.key==='expired'?'contract-row-danger':st.key==='urgent'?'contract-row-warn':'';
-    return `<tr class="${rowCls}">
-      <td class="td-name">${esc(e.name)}</td>
-      <td class="td-muted">${esc(co?.name||'—')}</td>
-      <td>${esc(e.position||'—')}</td>
-      <td><span class="badge b-dim">${esc(e.status||'—')}</span></td>
-      <td class="td-dim">${fmtD(e.contract)}</td>
-      <td>${dStr}</td>
-      <td><span class="badge ${st.cls}">${st.label}</span></td>
-    </tr>`;
+  tbody.innerHTML = list.map(function(e) {
+    const co = S.companies.find(function(c) { return c.id === e.companyId; });
+    const st = cStatus(e.contract);
+    const n = daysLeft(e.contract);
+    const dStr = n === null ? '\u2014' : n < 0 ? Math.abs(n) + ' hari lalu' : n === 0 ? 'Hari ini' : n + ' hari lagi';
+    const rowCls = st.key === 'expired' ? 'ct-expired' : (st.key === 'urgent' || st.key === 'urgent7') ? 'ct-urgent' : '';
+    return '<tr class="' + rowCls + '">' +
+      '<td><div class="td-name">' + avatarHtml(e.name) + ' <span>' + esc(e.name) + '</span></div></td>' +
+      '<td class="td-muted">' + esc(co ? co.name : '\u2014') + '</td>' +
+      '<td>' + esc(e.position || '\u2014') + '</td>' +
+      '<td><span class="badge b-dim">' + esc(e.status || '\u2014') + '</span></td>' +
+      '<td class="td-dim">' + fmtD(e.contract) + '</td>' +
+      '<td><strong>' + dStr + '</strong></td>' +
+      '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+      '<td><div style="display:flex;gap:4px">' +
+        '<button class="btn btn-ok btn-sm" onclick="openExtend(\'' + e.id + '\')">\u21bb Perpanjang</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="editEmployee(\'' + e.id + '\')">Edit</button>' +
+      '</div></td></tr>';
   }).join('');
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
+   EXTEND CONTRACT
+========================================== */
+function openExtend(id) {
+  const e = S.employees.find(function(x) { return x.id === id; });
+  if (!e) return;
+  document.getElementById('extendEmpId').value = id;
+  document.getElementById('extendDate').value = '';
+  document.getElementById('extendDuration').value = '6';
+  const st = cStatus(e.contract);
+  document.getElementById('extendInfo').textContent = e.name + ' \u00b7 Kontrak berakhir: ' + fmtD(e.contract) + ' (' + st.label + ')';
+
+  // Contract history
+  const histEl = document.getElementById('extendHistory');
+  const history = e.contractHistory || [];
+  if (history.length) {
+    histEl.innerHTML = '<div class="contract-history"><div class="ch-title">Riwayat Kontrak</div>' +
+      history.slice().reverse().slice(0, 5).map(function(h) {
+        return '<div class="ch-item">' +
+          '<span>' + fmtD(h.from) + '</span>' +
+          '<span style="color:var(--text3)">&rarr;</span>' +
+          '<span>' + fmtD(h.to) + '</span>' +
+          '<span>' + new Date(h.extendedAt).toLocaleDateString('id-ID') + '</span>' +
+        '</div>';
+      }).join('') + '</div>';
+  } else {
+    histEl.innerHTML = '';
+  }
+
+  openMo('mExtend');
+}
+
+function submitExtend() {
+  const id = document.getElementById('extendEmpId').value;
+  const e = S.employees.find(function(x) { return x.id === id; });
+  if (!e) return;
+  const customDate = document.getElementById('extendDate').value;
+  let newDate;
+  const oldDate = e.contract || '';
+  if (customDate) {
+    newDate = customDate;
+  } else {
+    const months = parseInt(document.getElementById('extendDuration').value) || 6;
+    const n = daysLeft(e.contract);
+    let base;
+    if (n !== null && n < 0) { base = new Date(); }
+    else if (e.contract) { base = new Date(e.contract + 'T00:00:00'); }
+    else { base = new Date(); }
+    base.setMonth(base.getMonth() + months);
+    newDate = base.toISOString().slice(0, 10);
+  }
+
+  // Save history
+  if (!e.contractHistory) e.contractHistory = [];
+  if (oldDate) e.contractHistory.push({ from: oldDate, to: newDate, extendedAt: Date.now() });
+
+  e.contract = newDate;
+  e.updatedAt = Date.now();
+  logActivity('\ud83d\udcdd', 'contract_extend', { name: e.name, until: newDate });
+  persistSave(); renderAll(); closeMo('mExtend');
+  toast('Kontrak ' + e.name + ' diperpanjang');
+}
+
+/* ==========================================
    RENDER ALL
-═══════════════════════════════════════════════════ */
-function renderAll(){
+========================================== */
+function renderAll() {
   renderStats();
   renderCompanies();
   renderRecentTable();
-  // Refresh active page tables
-  if(document.getElementById('page-employees').classList.contains('active')) renderEmployees();
-  if(document.getElementById('page-contracts').classList.contains('active')) renderContracts();
+  renderActivity();
+  updateNotifBadge();
+  updateQfCounters();
+  if (document.getElementById('page-employees').classList.contains('active')) renderEmployees();
+  if (document.getElementById('page-contracts').classList.contains('active')) renderContracts();
 }
 
-/* ═══════════════════════════════════════════════════
-   COMPANY CRUD
-═══════════════════════════════════════════════════ */
-document.getElementById('addCompanyBtn').addEventListener('click',()=>{
-  resetForms(); openMo('mCompany');
-});
+/* ==========================================
+   OUTLET CRUD
+========================================== */
+document.getElementById('addOutletBtn').addEventListener('click', function() { resetForms(); openMo('mCompany'); });
 
-function submitCompany(){
-  const name=document.getElementById('coName').value.trim();
-  if(!name){ toast('Nama perusahaan wajib diisi','err'); return; }
-  const editId=document.getElementById('coEditId').value;
-  if(editId){
-    const idx=S.companies.findIndex(c=>c.id===editId);
-    if(idx<0){ toast('Data tidak ditemukan','err'); return; }
-    const dup=S.companies.some((c,i)=>i!==idx&&(c.name||'').toLowerCase()===name.toLowerCase());
-    if(dup){ toast('Nama sudah digunakan','err'); return; }
-    S.companies[idx]={...S.companies[idx],name,location:document.getElementById('coLoc').value.trim(),description:document.getElementById('coDesc').value.trim(),updatedAt:Date.now()};
-    toast('Perusahaan diperbarui');
+function submitCompany() {
+  const name = document.getElementById('coName').value.trim();
+  if (!name) { toast('Nama outlet wajib diisi', 'err'); return; }
+  const editId = document.getElementById('coEditId').value;
+  if (editId) {
+    const idx = S.companies.findIndex(function(c) { return c.id === editId; });
+    if (idx < 0) { toast('Data tidak ditemukan', 'err'); return; }
+    if (S.companies.some(function(c, i) { return i !== idx && (c.name || '').toLowerCase() === name.toLowerCase(); })) {
+      toast('Nama sudah digunakan', 'err'); return;
+    }
+    S.companies[idx] = Object.assign({}, S.companies[idx], {
+      name: name,
+      location: document.getElementById('coLoc').value.trim(),
+      description: document.getElementById('coDesc').value.trim(),
+      updatedAt: Date.now()
+    });
+    logActivity('\ud83c\udfe2', 'company_update', { name: name });
+    toast('Outlet diperbarui');
   } else {
-    if(S.companies.some(c=>(c.name||'').toLowerCase()===name.toLowerCase())){ toast('Nama sudah digunakan','err'); return; }
-    S.companies.push({id:uid(),name,location:document.getElementById('coLoc').value.trim(),description:document.getElementById('coDesc').value.trim(),createdAt:Date.now(),updatedAt:Date.now()});
-    toast('Perusahaan ditambahkan');
+    if (S.companies.some(function(c) { return (c.name || '').toLowerCase() === name.toLowerCase(); })) { toast('Nama sudah digunakan', 'err'); return; }
+    S.companies.push({ id: uid(), name: name, location: document.getElementById('coLoc').value.trim(), description: document.getElementById('coDesc').value.trim(), createdAt: Date.now(), updatedAt: Date.now() });
+    logActivity('\ud83c\udfe2', 'company_add', { name: name });
+    toast('Outlet ditambahkan');
   }
   persistSave(); renderAll(); closeMo('mCompany'); resetForms();
 }
 
-function editCompany(id){
-  const co=S.companies.find(c=>c.id===id); if(!co) return;
-  document.getElementById('coEditId').value=co.id;
-  document.getElementById('coName').value=co.name||'';
-  document.getElementById('coLoc').value=co.location||'';
-  document.getElementById('coDesc').value=co.description||'';
-  document.getElementById('mCoTitle').textContent='Edit Perusahaan';
+function editCompany(id) {
+  const co = S.companies.find(function(c) { return c.id === id; });
+  if (!co) return;
+  document.getElementById('coEditId').value = co.id;
+  document.getElementById('coName').value = co.name || '';
+  document.getElementById('coLoc').value = co.location || '';
+  document.getElementById('coDesc').value = co.description || '';
+  document.getElementById('mCoTitle').textContent = 'Edit Outlet';
   openMo('mCompany');
 }
 
-function deleteCompany(id){
-  const co=S.companies.find(c=>c.id===id); if(!co) return;
-  const n=S.employees.filter(e=>e.companyId===id).length;
-  if(!confirm(`Hapus "${co.name}"${n?` beserta ${n} karyawan`:''}?`)) return;
-  S.companies=S.companies.filter(c=>c.id!==id);
-  S.employees=S.employees.filter(e=>e.companyId!==id);
-  if(F.company===id) F.company=null;
+function deleteCompany(id) {
+  const co = S.companies.find(function(c) { return c.id === id; });
+  if (!co) return;
+  const n = S.employees.filter(function(e) { return e.companyId === id; }).length;
+  if (!confirm('Hapus "' + co.name + '"' + (n ? ' beserta ' + n + ' karyawan' : '') + '?')) return;
+  S.companies = S.companies.filter(function(c) { return c.id !== id; });
+  S.employees = S.employees.filter(function(e) { return e.companyId !== id; });
+  if (F.company === id) F.company = null;
+  logActivity('\ud83d\uddd1', 'company_delete', { name: co.name });
   persistSave(); renderAll(); rebuildFilterChips();
-  toast('Perusahaan dihapus','warn');
+  toast('Outlet dihapus', 'warn');
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    EMPLOYEE CRUD
-═══════════════════════════════════════════════════ */
-function openAddEmployee(){
-  if(!S.companies.length){ toast('Tambahkan perusahaan terlebih dahulu','err'); return; }
+========================================== */
+function openAddEmployee() {
+  if (!S.companies.length) { toast('Tambahkan outlet terlebih dahulu', 'err'); return; }
   resetForms(); rebuildCompanyOptions(); openMo('mEmployee');
 }
 
-function submitEmployee(){
-  const name=document.getElementById('empName').value.trim();
-  if(!name){ toast('Nama wajib diisi','err'); return; }
-  const coId=document.getElementById('empCo').value;
-  if(!S.companies.some(c=>c.id===coId)){ toast('Pilih perusahaan yang valid','err'); return; }
-  const editId=document.getElementById('empEditId').value;
-  const data={
-    companyId:coId,name,
-    position:document.getElementById('empPos').value.trim(),
-    status:document.getElementById('empType').value,
-    startDate:document.getElementById('empStart').value,
-    contract:document.getElementById('empEnd').value,
-    salary:Number(document.getElementById('empSalary').value)||0,
-    phone:document.getElementById('empPhone').value.trim(),
-    email:document.getElementById('empEmail').value.trim(),
-    notes:document.getElementById('empNotes').value.trim(),
-    updatedAt:Date.now()
+function submitEmployee() {
+  const name = document.getElementById('empName').value.trim();
+  if (!name) { toast('Nama wajib diisi', 'err'); return; }
+  const coId = document.getElementById('empCo').value;
+  if (!S.companies.some(function(c) { return c.id === coId; })) { toast('Pilih outlet yang valid', 'err'); return; }
+  const editId = document.getElementById('empEditId').value;
+  const data = {
+    companyId: coId, name: name,
+    position: document.getElementById('empPos').value.trim(),
+    status: document.getElementById('empType').value,
+    startDate: document.getElementById('empStart').value,
+    contract: document.getElementById('empEnd').value,
+    salary: Number(document.getElementById('empSalary').value) || 0,
+    phone: document.getElementById('empPhone').value.trim(),
+    email: document.getElementById('empEmail').value.trim(),
+    notes: document.getElementById('empNotes').value.trim(),
+    updatedAt: Date.now()
   };
-  if(editId){
-    const idx=S.employees.findIndex(e=>e.id===editId);
-    if(idx<0){ toast('Data tidak ditemukan','err'); return; }
-    S.employees[idx]={...S.employees[idx],...data};
+  if (editId) {
+    const idx = S.employees.findIndex(function(e) { return e.id === editId; });
+    if (idx < 0) { toast('Data tidak ditemukan', 'err'); return; }
+    S.employees[idx] = Object.assign({}, S.employees[idx], data);
+    logActivity('\u270f\ufe0f', 'employee_update', { name: name });
     toast('Data karyawan diperbarui');
   } else {
-    S.employees.push({id:uid(),createdAt:Date.now(),...data});
+    S.employees.push(Object.assign({ id: uid(), createdAt: Date.now(), contractHistory: [] }, data));
+    logActivity('\ud83d\udc64', 'employee_add', { name: name, co: coName(coId) });
     toast('Karyawan ditambahkan');
   }
   persistSave(); renderAll(); closeMo('mEmployee'); resetForms();
 }
 
-function editEmployee(id){
-  const e=S.employees.find(x=>x.id===id); if(!e) return;
+function editEmployee(id) {
+  const e = S.employees.find(function(x) { return x.id === id; });
+  if (!e) return;
   rebuildCompanyOptions();
-  document.getElementById('empEditId').value=e.id;
-  document.getElementById('empName').value=e.name||'';
-  document.getElementById('empCo').value=e.companyId||'';
-  document.getElementById('empPos').value=e.position||'';
-  document.getElementById('empType').value=e.status||'Tetap';
-  document.getElementById('empStart').value=e.startDate||'';
-  document.getElementById('empEnd').value=e.contract||'';
-  document.getElementById('empSalary').value=e.salary||'';
-  document.getElementById('empPhone').value=e.phone||'';
-  document.getElementById('empEmail').value=e.email||'';
-  document.getElementById('empNotes').value=e.notes||'';
-  document.getElementById('mEmpTitle').textContent='Edit Karyawan';
+  document.getElementById('empEditId').value = e.id;
+  document.getElementById('empName').value = e.name || '';
+  document.getElementById('empCo').value = e.companyId || '';
+  document.getElementById('empPos').value = e.position || '';
+  document.getElementById('empType').value = e.status || 'Tetap';
+  document.getElementById('empStart').value = e.startDate || '';
+  document.getElementById('empEnd').value = e.contract || '';
+  document.getElementById('empSalary').value = e.salary || '';
+  document.getElementById('empPhone').value = e.phone || '';
+  document.getElementById('empEmail').value = e.email || '';
+  document.getElementById('empNotes').value = e.notes || '';
+  document.getElementById('mEmpTitle').textContent = 'Edit Karyawan';
   openMo('mEmployee');
 }
 
-function deleteEmployee(id){
-  const e=S.employees.find(x=>x.id===id); if(!e) return;
-  if(!confirm(`Hapus karyawan "${e.name}"?`)) return;
-  S.employees=S.employees.filter(x=>x.id!==id);
+function deleteEmployee(id) {
+  const e = S.employees.find(function(x) { return x.id === id; });
+  if (!e) return;
+  if (!confirm('Hapus karyawan "' + e.name + '"?')) return;
+  S.employees = S.employees.filter(function(x) { return x.id !== id; });
+  logActivity('\ud83d\uddd1', 'employee_delete', { name: e.name });
   persistSave(); renderAll();
-  toast('Karyawan dihapus','warn');
+  toast('Karyawan dihapus', 'warn');
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    FILTER EVENTS
-═══════════════════════════════════════════════════ */
-document.getElementById('searchInput').addEventListener('input',e=>{
-  F.search=e.target.value;
+========================================== */
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  F.search = e.target.value;
   renderRecentTable();
   renderEmployees();
 });
-document.getElementById('filterType').addEventListener('change',e=>{ F.type=e.target.value; renderEmployees(); });
-document.getElementById('filterStatus').addEventListener('change',e=>{ F.status=e.target.value; renderEmployees(); });
-document.getElementById('sortBy').addEventListener('change',e=>{ F.sort=e.target.value; renderEmployees(); });
-document.getElementById('filterClearBtn').addEventListener('click',()=>{
-  F.company=null; F.type=''; F.status=''; F.sort='name';
-  document.getElementById('filterType').value='';
-  document.getElementById('filterStatus').value='';
-  document.getElementById('sortBy').value='name';
+document.getElementById('filterType').addEventListener('change', function(e) { F.type = e.target.value; renderEmployees(); });
+document.getElementById('sortBy').addEventListener('change', function(e) { F.sort = e.target.value; renderEmployees(); });
+document.getElementById('filterClearBtn').addEventListener('click', function() {
+  F.company = null; F.type = ''; F.sort = 'name'; F.quickFilter = '';
+  document.getElementById('filterType').value = '';
+  document.getElementById('sortBy').value = 'name';
+  document.querySelectorAll('.qf').forEach(function(q) { q.classList.remove('active'); });
+  const qa = document.querySelector('.qf.all'); if (qa) qa.classList.add('active');
   rebuildFilterChips(); renderEmployees();
 });
 document.getElementById('ctFilterCo').addEventListener('change', renderContracts);
 document.getElementById('ctFilterStatus').addEventListener('change', renderContracts);
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    EXPORT: EXCEL
-═══════════════════════════════════════════════════ */
-function exportExcel(){
-  if(!S.employees.length){ toast('Tidak ada data','err'); return; }
-  const rows=S.employees.map(e=>{
-    const co=S.companies.find(c=>c.id===e.companyId);
-    const st=cStatus(e.contract);
+========================================== */
+function exportExcel() {
+  if (!S.employees.length) { toast('Tidak ada data', 'err'); return; }
+  const rows = S.employees.map(function(e) {
+    const co = S.companies.find(function(c) { return c.id === e.companyId; });
+    const st = cStatus(e.contract);
     return {
-      Nama:e.name, Perusahaan:co?.name||'—', Jabatan:e.position,
-      Tipe:e.status, Mulai:e.startDate||'', 'Kontrak Berakhir':e.contract||'',
-      'Sisa Hari':daysLeft(e.contract)??'', Status:st.label,
-      'Gaji (IDR)':e.salary||0, Telepon:e.phone||'',
-      Email:e.email||'', Catatan:e.notes||''
+      'Nama': e.name,
+      'Outlet': co ? co.name : '\u2014',
+      'Jabatan': e.position || '',
+      'Tipe': e.status || '',
+      'Mulai': e.startDate || '',
+      'Kontrak Berakhir': e.contract || '',
+      'Sisa Hari': daysLeft(e.contract) !== null ? daysLeft(e.contract) : '',
+      'Status': st.label,
+      'Gaji (IDR)': e.salary || 0,
+      'Telepon': e.phone || '',
+      'Email': e.email || '',
+      'Catatan': e.notes || ''
     };
   });
-  const ws=XLSX.utils.json_to_sheet(rows);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Karyawan');
-  XLSX.writeFile(wb,`naruna_hr_${Date.now()}.xlsx`);
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Karyawan');
+  XLSX.writeFile(wb, 'naruna_hr_' + Date.now() + '.xlsx');
   toast('Excel berhasil diexport');
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    EXPORT: PDF
-═══════════════════════════════════════════════════ */
-function exportPDF(){
-  if(!S.employees.length){ toast('Tidak ada data','err'); return; }
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'landscape'});
-  if(!doc.autoTable){ toast('Plugin PDF gagal','err'); return; }
-  doc.setFontSize(18); doc.setFont('helvetica','bold');
-  doc.text('Naruna HR — Laporan Karyawan',14,16);
-  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(120);
-  doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')} | Total: ${S.employees.length} karyawan`,14,23);
-  const rows=S.employees.map(e=>{
-    const co=S.companies.find(c=>c.id===e.companyId);
-    return [e.name,co?.name||'—',e.position||'—',e.status||'—',fmtD(e.contract),cStatus(e.contract).label,idr(e.salary)];
+========================================== */
+function exportPDF() {
+  if (!S.employees.length) { toast('Tidak ada data', 'err'); return; }
+  const jsPDF = window.jspdf && window.jspdf.jsPDF;
+  if (!jsPDF) { toast('Library PDF gagal dimuat', 'err'); return; }
+  const doc = new jsPDF({ orientation: 'landscape' });
+  if (!doc.autoTable) { toast('Plugin PDF gagal dimuat', 'err'); return; }
+
+  const totalPages = 1; // will be overwritten by autotable
+
+  doc.setFillColor(20, 22, 30);
+  doc.rect(0, 0, 300, 32, 'F');
+  doc.setFontSize(20); doc.setFont('helvetica', 'bold'); doc.setTextColor(200, 160, 77);
+  doc.text('Naruna HR Suite', 14, 14);
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(160, 160, 180);
+  doc.text('Laporan Data Karyawan', 14, 21);
+  doc.setTextColor(120, 120, 140);
+  doc.text('Dicetak: ' + new Date().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }), 14, 28);
+  doc.text('Total: ' + S.employees.length + ' karyawan \u00b7 ' + S.companies.length + ' outlet', 200, 28);
+
+  let expired = 0, urgent = 0;
+  S.employees.forEach(function(e) {
+    const n = daysLeft(e.contract);
+    if (n !== null && n < 0) expired++;
+    else if (n !== null && n <= 30) urgent++;
   });
+  doc.setFontSize(9); doc.setTextColor(60, 60, 70);
+  doc.text('Kontrak Expired: ' + expired + '  |  Mendesak (30 hari): ' + urgent + '  |  Aman: ' + (S.employees.length - expired - urgent), 14, 40);
+
+  const rows = S.employees.map(function(e) {
+    const co = S.companies.find(function(c) { return c.id === e.companyId; });
+    return [e.name, co ? co.name : '\u2014', e.position || '\u2014', e.status || '\u2014', fmtD(e.contract), cStatus(e.contract).label, idr(e.salary)];
+  });
+
   doc.autoTable({
-    startY:28,
-    head:[['Nama','Perusahaan','Jabatan','Tipe','Kontrak','Status','Gaji']],
-    body:rows,
-    styles:{fontSize:8,cellPadding:4},
-    headStyles:{fillColor:[20,20,30],textColor:[201,168,76],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[245,245,250]},
-    columnStyles:{6:{halign:'right'}}
+    startY: 46,
+    head: [['Nama', 'Outlet', 'Jabatan', 'Tipe', 'Kontrak', 'Status', 'Gaji']],
+    body: rows,
+    styles: { fontSize: 8, cellPadding: 4 },
+    headStyles: { fillColor: [20, 22, 30], textColor: [200, 160, 77], fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [248, 249, 252] },
+    columnStyles: { 6: { halign: 'right' } },
+    didParseCell: function(data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        const v = data.cell.raw;
+        if (v === 'Expired') data.cell.styles.textColor = [217, 79, 79];
+        else if (v === 'Aman') data.cell.styles.textColor = [58, 158, 106];
+        else if (v !== '\u2014') data.cell.styles.textColor = [201, 122, 42];
+      }
+    },
+    didDrawPage: function(data) {
+      // Footer with page numbers
+      const pageCount = doc.internal.getNumberOfPages();
+      doc.setFontSize(7); doc.setTextColor(160, 160, 160);
+      doc.text('Naruna HR Suite \u2014 Halaman ' + data.pageNumber + ' dari ' + pageCount, 14, doc.internal.pageSize.height - 8);
+      doc.text('Dicetak: ' + new Date().toLocaleDateString('id-ID'), doc.internal.pageSize.width - 14, doc.internal.pageSize.height - 8, { align: 'right' });
+    }
   });
-  doc.save(`naruna_hr_${Date.now()}.pdf`);
+
+  doc.save('naruna_hr_' + Date.now() + '.pdf');
   toast('PDF berhasil diexport');
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    EXPORT: JSON
-═══════════════════════════════════════════════════ */
-function exportJSON(){
-  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`naruna_hr_backup_${Date.now()}.json`;
+========================================== */
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'naruna_hr_backup_' + Date.now() + '.json';
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(a.href);
   toast('Backup JSON didownload');
 }
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    IMPORT: JSON
-═══════════════════════════════════════════════════ */
-document.getElementById('impJson').addEventListener('change',async e=>{
-  const file=e.target.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=async ev=>{
-    try{
-      const d=JSON.parse(ev.target.result);
-      if(!Array.isArray(d.companies)||!Array.isArray(d.employees)){ toast('Format JSON tidak valid','err'); return; }
-      if(!confirm(`Import akan mengganti semua data saat ini.\n${d.companies.length} perusahaan, ${d.employees.length} karyawan.\nLanjutkan?`)) return;
-      S.meta=d.meta||S.meta;
-      S.companies=d.companies;
-      S.employees=d.employees;
+========================================== */
+document.getElementById('impJson').addEventListener('change', function(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (!Array.isArray(d.companies) || !Array.isArray(d.employees)) { toast('Format JSON tidak valid', 'err'); return; }
+      if (!confirm('Import akan mengganti semua data saat ini.\n' + d.companies.length + ' outlet, ' + d.employees.length + ' karyawan.\nLanjutkan?')) return;
+      S.meta = d.meta || S.meta;
+      S.companies = d.companies;
+      S.employees = d.employees;
+      S.activity = d.activity || [];
+      logActivity('\ud83d\udce5', 'import', { companies: d.companies.length, employees: d.employees.length });
       await persistSave(); renderAll();
-      toast(`Import berhasil: ${d.companies.length} perusahaan, ${d.employees.length} karyawan`,'info');
-    }catch(err){ console.error(err); toast('Gagal membaca JSON','err'); }
-    e.target.value='';
+      toast('Import berhasil: ' + d.companies.length + ' outlet, ' + d.employees.length + ' karyawan', 'info');
+    } catch(err) { console.error(err); toast('Gagal membaca JSON', 'err'); }
+    e.target.value = '';
   };
   reader.readAsText(file);
 });
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
    WIRE BUTTONS
-═══════════════════════════════════════════════════ */
-document.getElementById('expExcelBtn').addEventListener('click',exportExcel);
-document.getElementById('expPdfBtn').addEventListener('click',exportPDF);
-document.getElementById('expExcel2').addEventListener('click',exportExcel);
-document.getElementById('expPdf2').addEventListener('click',exportPDF);
-document.getElementById('expJson').addEventListener('click',exportJSON);
+========================================== */
+document.getElementById('expExcelBtn').addEventListener('click', exportExcel);
+document.getElementById('expPdfBtn').addEventListener('click', exportPDF);
+document.getElementById('expExcel2').addEventListener('click', exportExcel);
+document.getElementById('expPdf2').addEventListener('click', exportPDF);
+document.getElementById('expJson').addEventListener('click', exportJSON);
 
-/* ═══════════════════════════════════════════════════
+/* ==========================================
+   STARTUP REMINDER
+========================================== */
+function showStartupReminder() {
+  const { expired, urgent7, urgent30 } = getUrgentByLevel();
+  if (expired.length) {
+    setTimeout(function() { toast('\ud83d\udea8 ' + expired.length + ' kontrak expired \u2014 tindakan diperlukan', 'err'); }, 800);
+  } else if (urgent7.length + urgent30.length > 0) {
+    const total = urgent7.length + urgent30.length;
+    setTimeout(function() { toast('\u26a0 ' + total + ' kontrak akan habis dalam 30 hari', 'warn'); }, 800);
+  }
+}
+
+/* ==========================================
    INIT
-═══════════════════════════════════════════════════ */
-(async()=>{
+========================================== */
+(async function() {
   await initStorage();
   await persistLoad();
   renderAll();
+  showStartupReminder();
+  updateClock();
+  setInterval(updateClock, 30000);
 })();
 </script>
 

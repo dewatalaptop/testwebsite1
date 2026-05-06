@@ -3,1303 +3,1712 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Naruna HR Suite</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Naruna HR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap">
-
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Epilogue:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-
 <style>
-/* ── RESET ── */
-*{margin:0;padding:0;box-sizing:border-box;}
-
-/* ── TOKENS ── */
+/* ─────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────── */
 :root{
-  --bg:#0d0f14;
-  --surface:#161a23;
-  --surface2:#1e2330;
-  --border:#252b38;
-  --accent:#6ee7b7;
-  --accent2:#818cf8;
-  --danger:#f87171;
-  --warning:#fbbf24;
-  --text:#e8eaf0;
-  --muted:#64748b;
-  --radius:18px;
-  --font-head:'Syne',sans-serif;
-  --font-body:'DM Sans',sans-serif;
+  --ink:#0a0a0f;
+  --ink2:#16161f;
+  --ink3:#1e1e2a;
+  --line:#2a2a38;
+  --line2:#343448;
+  --gold:#c9a84c;
+  --gold2:#e8c96a;
+  --cream:#f5f0e8;
+  --fog:#8b8ba0;
+  --fog2:#5e5e72;
+  --danger:#e05555;
+  --warn:#d4943a;
+  --ok:#4aaa7a;
+  --r:14px;
+  --sh:0 0 0 1px var(--line);
 }
-
+/* ─────────────────────────────────────────
+   RESET & BASE
+───────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
 body{
-  font-family:var(--font-body);
-  background:var(--bg);
-  color:var(--text);
+  font-family:'Epilogue',sans-serif;
+  background:var(--ink);
+  color:var(--cream);
   min-height:100vh;
+  overflow-x:hidden;
 }
+button,input,select,textarea{font-family:'Epilogue',sans-serif;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--ink);}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px;}
+::selection{background:rgba(201,168,76,.25);color:var(--cream);}
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+/* ─────────────────────────────────────────
+LAYOUT
+───────────────────────────────────────── */
+.shell{display:flex;min-height:100vh;}
 
-/* ── LAYOUT ── */
-.app{display:flex;min-height:100vh;}
-
-/* ── SIDEBAR ── */
+/* ─────────────────────────────────────────
+SIDEBAR
+───────────────────────────────────────── */
 .sidebar{
-  width:240px;
-  background:var(--surface);
-  border-right:1px solid var(--border);
-  position:fixed;top:0;left:0;bottom:0;
-  padding:28px 16px;
-  display:flex;flex-direction:column;
-  transition:transform .3s;
-  z-index:200;
+width:72px;
+background:var(–ink2);
+border-right:1px solid var(–line);
+position:fixed;top:0;left:0;bottom:0;
+display:flex;flex-direction:column;
+align-items:center;
+padding:24px 0 20px;
+z-index:300;
+transition:width .35s cubic-bezier(.4,0,.2,1);
+overflow:hidden;
 }
+.sidebar.expanded{ width:240px; align-items:flex-start; padding:24px 0 20px; }
 
-.brand{margin-bottom:40px;padding:0 8px;}
-.brand-logo{
-  font-family:var(--font-head);
-  font-size:26px;font-weight:800;
-  letter-spacing:-.5px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
+.sidebar-logo{
+width:40px;height:40px;min-width:40px;
+background:linear-gradient(135deg,var(–gold),var(–gold2));
+border-radius:10px;
+display:flex;align-items:center;justify-content:center;
+font-family:‘Playfair Display’,serif;
+font-weight:900;font-size:18px;color:var(–ink);
+margin:0 16px 32px;
+flex-shrink:0;
+cursor:pointer;
+transition:.2s;
 }
-.brand-sub{
-  font-size:10px;font-weight:600;
-  letter-spacing:4px;color:var(--muted);
-  margin-top:4px;text-transform:uppercase;
-}
+.sidebar-logo:hover{transform:scale(1.05);}
 
-.nav{display:flex;flex-direction:column;gap:4px;flex:1;}
-.nav-btn{
-  border:none;background:transparent;
-  color:var(--muted);
-  padding:12px 16px;border-radius:12px;
-  text-align:left;font-weight:500;
-  font-size:14px;cursor:pointer;
-  transition:.2s;
-  font-family:var(--font-body);
-  display:flex;align-items:center;gap:10px;
+.sidebar-brand-text{
+margin-left:12px;
+opacity:0;
+transition:opacity .2s;
+white-space:nowrap;
 }
-.nav-btn:hover{background:var(--surface2);color:var(--text);}
-.nav-btn.active{
-  background:linear-gradient(135deg,rgba(110,231,183,.12),rgba(129,140,248,.12));
-  color:var(--accent);
-  border:1px solid rgba(110,231,183,.15);
+.sidebar.expanded .sidebar-brand-text{ opacity:1; }
+.sidebar-brand-text strong{
+font-family:‘Playfair Display’,serif;
+font-size:16px;font-weight:700;
+display:block;line-height:1.1;
 }
-.nav-btn .icon{font-size:16px;width:20px;text-align:center;}
+.sidebar-brand-text span{
+font-size:10px;letter-spacing:3px;
+text-transform:uppercase;color:var(–fog);
+}
+.brand-row{display:flex;align-items:center;padding:0 16px;margin-bottom:32px;}
 
-.sidebar-footer{
-  padding:16px 8px 0;
-  border-top:1px solid var(--border);
-  color:var(--muted);font-size:11px;
+.nav{
+display:flex;flex-direction:column;
+gap:2px;width:100%;padding:0 10px;
 }
+.nav-item{
+display:flex;align-items:center;
+gap:12px;padding:11px 13px;
+border-radius:10px;
+cursor:pointer;border:none;background:transparent;
+color:var(–fog);font-size:13px;font-weight:500;
+text-align:left;width:100%;
+transition:.2s;
+white-space:nowrap;overflow:hidden;
+}
+.nav-item:hover{background:var(–ink3);color:var(–cream);}
+.nav-item.active{background:rgba(201,168,76,.12);color:var(–gold);}
+.nav-item .ni{
+width:20px;height:20px;min-width:20px;
+display:flex;align-items:center;justify-content:center;
+font-size:15px;
+}
+.nav-item span.label{
+opacity:0;transition:opacity .15s .1s;
+}
+.sidebar.expanded .nav-item span.label{opacity:1;}
 
-/* ── MAIN ── */
+.sidebar-toggle{
+margin-top:auto;padding:0 10px;width:100%;
+}
+.toggle-btn{
+display:flex;align-items:center;gap:12px;
+padding:11px 13px;border-radius:10px;
+cursor:pointer;border:none;background:transparent;
+color:var(–fog2);font-size:13px;width:100%;
+transition:.2s;
+}
+.toggle-btn:hover{color:var(–fog);}
+.toggle-icon{transition:transform .35s;}
+.sidebar.expanded .toggle-icon{transform:rotate(180deg);}
+
+/* ─────────────────────────────────────────
+MAIN
+───────────────────────────────────────── */
 .main{
-  margin-left:240px;
-  width:100%;padding:32px;
-  min-height:100vh;
+margin-left:72px;
+flex:1;padding:0;
+transition:margin-left .35s cubic-bezier(.4,0,.2,1);
+min-width:0;
 }
+.sidebar.expanded ~ .main{ margin-left:240px; }
 
-/* ── TOPBAR ── */
+/* ─────────────────────────────────────────
+TOPBAR
+───────────────────────────────────────── */
 .topbar{
-  display:flex;justify-content:space-between;
-  align-items:flex-start;gap:20px;
-  flex-wrap:wrap;margin-bottom:32px;
+position:sticky;top:0;z-index:100;
+background:rgba(10,10,15,.85);
+backdrop-filter:blur(16px);
+border-bottom:1px solid var(–line);
+padding:0 32px;
+height:64px;
+display:flex;align-items:center;
+justify-content:space-between;gap:16px;
 }
-.topbar-title{
-  font-family:var(--font-head);
-  font-size:32px;font-weight:800;
-  letter-spacing:-.5px;line-height:1.1;
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.page-label{
+font-family:‘Playfair Display’,serif;
+font-size:20px;font-weight:700;
 }
-.topbar-sub{color:var(--muted);font-size:14px;margin-top:6px;}
-.topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
 
-.search-wrap{
-  display:flex;align-items:center;gap:8px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:10px 16px;width:280px;
+.search-box{
+display:flex;align-items:center;gap:8px;
+background:var(–ink2);
+border:1px solid var(–line);
+border-radius:10px;
+padding:8px 14px;width:240px;
+transition:.2s;
 }
-.search-wrap input{
-  border:none;background:none;outline:none;
-  color:var(--text);font-size:14px;width:100%;
-  font-family:var(--font-body);
+.search-box:focus-within{border-color:var(–gold);box-shadow:0 0 0 3px rgba(201,168,76,.1);}
+.search-box svg{color:var(–fog2);flex-shrink:0;}
+.search-box input{
+border:none;background:none;outline:none;
+color:var(–cream);font-size:13px;width:100%;
 }
-.search-wrap input::placeholder{color:var(--muted);}
-.search-icon{color:var(--muted);font-size:16px;}
+.search-box input::placeholder{color:var(–fog2);}
 
-/* ── FILTER BADGE ── */
+.save-status{
+font-size:11px;color:var(–fog2);
+display:flex;align-items:center;gap:5px;
+padding:6px 10px;border-radius:8px;
+background:var(–ink2);border:1px solid var(–line);
+white-space:nowrap;
+}
+.save-dot{
+width:6px;height:6px;border-radius:50%;
+background:var(–ok);transition:.3s;
+}
+.save-dot.saving{background:var(–warn);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ─────────────────────────────────────────
+CONTENT
+───────────────────────────────────────── */
+.content{padding:32px;}
+
+/* ─────────────────────────────────────────
+PAGE SYSTEM
+───────────────────────────────────────── */
+.page{display:none;animation:fadeUp .3s ease;}
+.page.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ─────────────────────────────────────────
+SECTION HEADER
+───────────────────────────────────────── */
+.sec-head{
+display:flex;align-items:flex-start;
+justify-content:space-between;gap:16px;
+flex-wrap:wrap;margin-bottom:24px;
+}
+.sec-title{
+font-family:‘Playfair Display’,serif;
+font-size:28px;font-weight:800;line-height:1.1;
+}
+.sec-sub{font-size:13px;color:var(–fog);margin-top:4px;}
+.sec-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+/* ─────────────────────────────────────────
+STAT CARDS
+───────────────────────────────────────── */
+.stats-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:16px;margin-bottom:32px;
+}
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.stats-grid{grid-template-columns:1fr 1fr;}}
+
+.stat{
+background:var(–ink2);
+border:1px solid var(–line);
+border-radius:var(–r);
+padding:22px 24px;
+position:relative;overflow:hidden;
+transition:.25s;
+}
+.stat:hover{border-color:var(–line2);transform:translateY(-2px);}
+.stat::after{
+content:’’;position:absolute;
+bottom:-20px;right:-20px;
+width:80px;height:80px;
+border-radius:50%;
+background:var(–stat-glow,var(–gold));
+opacity:.05;
+transition:opacity .3s;
+}
+.stat:hover::after{opacity:.1;}
+.stat-n{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(–fog);margin-bottom:12px;}
+.stat-v{
+font-family:‘Playfair Display’,serif;
+font-size:32px;font-weight:800;line-height:1;
+}
+.stat-v.gold{color:var(–gold);}
+.stat-v.warn{color:var(–warn);}
+.stat-v.sm{font-size:20px;}
+.stat-trend{
+font-size:11px;color:var(–fog2);
+margin-top:8px;
+}
+
+/* ─────────────────────────────────────────
+FILTER BAR
+───────────────────────────────────────── */
 .filter-bar{
-  display:flex;align-items:center;gap:8px;
-  flex-wrap:wrap;margin-bottom:20px;
-  min-height:36px;
+display:flex;align-items:center;gap:8px;
+flex-wrap:wrap;margin-bottom:20px;
+padding:12px 16px;
+background:var(–ink2);
+border:1px solid var(–line);
+border-radius:var(–r);
 }
-.filter-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  background:rgba(110,231,183,.1);
-  border:1px solid rgba(110,231,183,.25);
-  color:var(--accent);font-size:13px;font-weight:600;
-  padding:6px 12px;border-radius:999px;
+.filter-bar-label{
+font-size:11px;font-weight:600;
+letter-spacing:.8px;text-transform:uppercase;
+color:var(–fog2);margin-right:4px;
+flex-shrink:0;
 }
-.filter-badge button{
-  background:none;border:none;color:var(--accent);
-  cursor:pointer;font-size:14px;line-height:1;
-  padding:0;opacity:.7;transition:.2s;
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+.chip{
+display:inline-flex;align-items:center;gap:5px;
+padding:5px 11px;border-radius:999px;
+font-size:12px;font-weight:600;
+cursor:pointer;border:1px solid var(–line2);
+background:var(–ink3);color:var(–fog);
+transition:.18s;white-space:nowrap;
 }
-.filter-badge button:hover{opacity:1;}
+.chip:hover{border-color:var(–line2);color:var(–cream);}
+.chip.active{
+background:rgba(201,168,76,.1);
+border-color:rgba(201,168,76,.35);
+color:var(–gold);
+}
+.chip .chip-x{
+display:none;font-size:10px;
+color:var(–gold);margin-left:2px;
+}
+.chip.active .chip-x{display:inline;}
+.filter-divider{width:1px;height:20px;background:var(–line);flex-shrink:0;}
+.filter-select{
+background:var(–ink3);border:1px solid var(–line2);
+border-radius:8px;padding:5px 10px;
+color:var(–fog);font-size:12px;font-weight:600;
+cursor:pointer;outline:none;
+transition:.18s;
+}
+.filter-select:focus{border-color:var(–gold);}
+.filter-select option{background:var(–ink2);}
+.filter-clear{
+margin-left:auto;font-size:11px;
+color:var(–fog2);cursor:pointer;
+background:none;border:none;
+display:flex;align-items:center;gap:4px;
+transition:.2s;padding:4px 8px;border-radius:6px;
+}
+.filter-clear:hover{color:var(–cream);background:var(–ink3);}
 
-/* ── STATS ── */
-.stats{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:16px;margin-bottom:32px;
+/* ─────────────────────────────────────────
+COMPANY GRID
+───────────────────────────────────────── */
+.co-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+gap:16px;
 }
-.stat-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:24px;
-  position:relative;overflow:hidden;
-  transition:.2s;
+.co-card{
+background:var(–ink2);
+border:1px solid var(–line);
+border-radius:18px;padding:22px;
+transition:.25s;cursor:default;
+position:relative;overflow:hidden;
 }
-.stat-card::before{
-  content:'';position:absolute;
-  top:-30px;right:-30px;
-  width:100px;height:100px;
-  border-radius:50%;
-  background:var(--accent-color,var(--accent));
-  opacity:.06;
+.co-card::before{
+content:’’;
+position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,transparent,var(–gold),transparent);
+opacity:0;transition:.3s;
 }
-.stat-card:nth-child(1){--accent-color:var(--accent);}
-.stat-card:nth-child(2){--accent-color:var(--warning);}
-.stat-card:nth-child(3){--accent-color:var(--accent2);}
-.stat-card:nth-child(4){--accent-color:#34d399;}
-.stat-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
-.stat-value{
-  font-family:var(--font-head);
-  font-size:30px;font-weight:800;letter-spacing:-.5px;
+.co-card:hover{border-color:var(–line2);transform:translateY(-3px);}
+.co-card:hover::before{opacity:1;}
+.co-name{
+font-family:‘Playfair Display’,serif;
+font-size:17px;font-weight:700;
+margin-bottom:4px;
 }
-.stat-value.danger-text{color:var(--danger);}
-.stat-value.warning-text{color:var(--warning);}
+.co-loc{font-size:12px;color:var(–fog);margin-bottom:10px;display:flex;align-items:center;gap:4px;}
+.co-desc{
+font-size:12px;color:var(–fog2);line-height:1.6;
+margin-bottom:14px;
+display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+min-height:38px;
+}
+.co-footer{
+display:flex;align-items:center;
+justify-content:space-between;gap:8px;
+padding-top:14px;border-top:1px solid var(–line);
+}
+.co-stat-pill{
+display:flex;align-items:center;gap:6px;
+font-size:12px;font-weight:600;
+cursor:pointer;
+padding:5px 10px;border-radius:999px;
+transition:.18s;
+}
+.co-stat-pill.ok{
+background:rgba(74,170,122,.1);
+color:var(–ok);border:1px solid rgba(74,170,122,.2);
+}
+.co-stat-pill.ok:hover{background:rgba(74,170,122,.18);}
+.co-stat-pill.warn{
+background:rgba(212,148,58,.1);
+color:var(–warn);border:1px solid rgba(212,148,58,.2);
+}
+.co-stat-pill.warn:hover{background:rgba(212,148,58,.18);}
+.co-btns{display:flex;gap:6px;}
 
-/* ── SECTION ── */
-.section{margin-bottom:40px;}
-.section-header{
-  display:flex;justify-content:space-between;
-  align-items:center;gap:16px;flex-wrap:wrap;
-  margin-bottom:20px;
-}
-.section-title{
-  font-family:var(--font-head);
-  font-size:20px;font-weight:700;
-}
-
-/* ── BUTTONS ── */
-.btn{
-  border:none;
-  padding:10px 18px;border-radius:12px;
-  font-weight:600;font-size:13px;
-  cursor:pointer;transition:.2s;
-  font-family:var(--font-body);
-  display:inline-flex;align-items:center;gap:6px;
-  white-space:nowrap;
-}
-.btn-primary{
-  background:linear-gradient(135deg,var(--accent),#34d399);
-  color:#0d1a12;
-}
-.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
-.btn-ghost{
-  background:var(--surface2);
-  color:var(--text);
-  border:1px solid var(--border);
-}
-.btn-ghost:hover{background:var(--border);}
-.btn-danger-ghost{
-  background:rgba(248,113,113,.1);
-  color:var(--danger);
-  border:1px solid rgba(248,113,113,.2);
-}
-.btn-danger-ghost:hover{background:rgba(248,113,113,.18);}
-.btn-sm{padding:7px 12px;font-size:12px;}
-
-.actions-row{display:flex;gap:8px;flex-wrap:wrap;}
-
-/* ── COMPANY GRID ── */
-.company-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:16px;
-}
-.company-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:22px;
-  transition:.2s;
-}
-.company-card:hover{border-color:rgba(110,231,183,.25);}
-.company-name{
-  font-family:var(--font-head);
-  font-size:18px;font-weight:700;
-  margin-bottom:4px;
-}
-.company-location{
-  font-size:13px;color:var(--muted);
-  margin-bottom:12px;
-}
-.company-desc{
-  font-size:13px;color:var(--muted);
-  line-height:1.6;margin-bottom:14px;
-  display:-webkit-box;-webkit-line-clamp:2;
-  -webkit-box-orient:vertical;overflow:hidden;
-}
-.company-meta{
-  display:flex;align-items:center;
-  justify-content:space-between;
-  gap:8px;
-}
-.company-badge{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:6px 12px;border-radius:999px;
-  font-size:12px;font-weight:700;cursor:pointer;
-  transition:.2s;
-}
-.badge-safe{background:rgba(110,231,183,.1);color:var(--accent);border:1px solid rgba(110,231,183,.2);}
-.badge-safe:hover{background:rgba(110,231,183,.18);}
-.badge-warn{background:rgba(251,191,36,.1);color:var(--warning);border:1px solid rgba(251,191,36,.2);}
-.badge-warn:hover{background:rgba(251,191,36,.18);}
-.company-btns{display:flex;gap:6px;}
-
-/* ── TABLE ── */
+/* ─────────────────────────────────────────
+TABLE
+───────────────────────────────────────── */
 .table-wrap{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
+background:var(–ink2);
+border:1px solid var(–line);
+border-radius:18px;overflow:hidden;
 }
 .table-scroll{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
-thead tr{background:var(--surface2);}
+thead tr{border-bottom:1px solid var(–line);}
 th{
-  padding:13px 16px;
-  text-align:left;font-size:11px;
-  font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.5px;
-  white-space:nowrap;
+padding:12px 16px;
+font-size:10px;font-weight:700;
+letter-spacing:.8px;text-transform:uppercase;
+color:var(–fog2);text-align:left;
+white-space:nowrap;background:rgba(0,0,0,.2);
+cursor:pointer;user-select:none;
+transition:.15s;
 }
+th:hover{color:var(–fog);}
+th .sort-icon{margin-left:4px;opacity:.4;font-size:9px;}
+th.sorted .sort-icon{opacity:1;color:var(–gold);}
 td{
-  padding:13px 16px;
-  border-top:1px solid var(--border);
-  font-size:13px;vertical-align:middle;
+padding:13px 16px;
+border-bottom:1px solid rgba(42,42,56,.6);
+font-size:13px;vertical-align:middle;
+transition:.15s;
 }
+tr:last-child td{border-bottom:none;}
 tr:hover td{background:rgba(255,255,255,.02);}
-.td-name{font-weight:600;color:var(--text);}
-.td-muted{color:var(--muted);}
+.td-name{font-weight:600;}
+.td-muted{color:var(–fog);}
+.td-dim{color:var(–fog2);font-size:12px;}
 
-/* ── STATUS BADGE ── */
-.status-badge{
-  display:inline-flex;padding:5px 10px;
-  border-radius:999px;font-size:11px;font-weight:700;
-  white-space:nowrap;
+/* ─────────────────────────────────────────
+BADGE / STATUS
+───────────────────────────────────────── */
+.badge{
+display:inline-flex;align-items:center;gap:4px;
+padding:4px 10px;border-radius:999px;
+font-size:11px;font-weight:700;white-space:nowrap;
 }
-.s-safe{background:rgba(110,231,183,.1);color:var(--accent);}
-.s-warn{background:rgba(251,191,36,.1);color:var(--warning);}
-.s-danger{background:rgba(248,113,113,.1);color:var(--danger);}
+.b-ok{background:rgba(74,170,122,.1);color:var(–ok);}
+.b-warn{background:rgba(212,148,58,.12);color:var(–warn);}
+.b-danger{background:rgba(224,85,85,.1);color:var(–danger);}
+.b-dim{background:rgba(139,139,160,.1);color:var(–fog);}
 
-/* ── EMPTY ── */
-.empty-state{
-  padding:60px 20px;text-align:center;
-  color:var(--muted);
+/* ─────────────────────────────────────────
+BUTTONS
+───────────────────────────────────────── */
+.btn{
+display:inline-flex;align-items:center;gap:7px;
+padding:9px 16px;border-radius:10px;
+font-size:13px;font-weight:600;
+cursor:pointer;border:none;
+transition:.2s;white-space:nowrap;
+font-family:‘Epilogue’,sans-serif;
 }
-.empty-state .empty-icon{font-size:40px;margin-bottom:12px;}
-.empty-state p{font-size:14px;}
+.btn:active{transform:scale(.97);}
+.btn-gold{
+background:linear-gradient(135deg,var(–gold),var(–gold2));
+color:var(–ink);
+}
+.btn-gold:hover{opacity:.9;box-shadow:0 4px 20px rgba(201,168,76,.3);}
+.btn-ghost{
+background:var(–ink3);color:var(–cream);
+border:1px solid var(–line2);
+}
+.btn-ghost:hover{border-color:var(–line2);background:var(–line);}
+.btn-danger{
+background:rgba(224,85,85,.1);
+color:var(–danger);
+border:1px solid rgba(224,85,85,.2);
+}
+.btn-danger:hover{background:rgba(224,85,85,.18);}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:8px;}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:8px;}
 
-/* ── MODAL ── */
+/* ─────────────────────────────────────────
+EMPTY STATE
+───────────────────────────────────────── */
+.empty{
+padding:64px 20px;text-align:center;
+}
+.empty-glyph{
+font-size:36px;margin-bottom:14px;
+opacity:.4;
+}
+.empty-title{
+font-family:‘Playfair Display’,serif;
+font-size:20px;font-weight:700;
+margin-bottom:6px;color:var(–fog);
+}
+.empty-sub{font-size:13px;color:var(–fog2);}
+
+/* ─────────────────────────────────────────
+MODAL
+───────────────────────────────────────── */
+.modal-bg{
+position:fixed;inset:0;
+background:rgba(0,0,0,.75);
+display:none;align-items:center;justify-content:center;
+padding:20px;z-index:1000;
+backdrop-filter:blur(6px);
+}
+.modal-bg.show{display:flex;}
 .modal{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.7);
-  display:none;align-items:center;
-  justify-content:center;
-  padding:20px;z-index:1000;
-  backdrop-filter:blur(4px);
+width:100%;max-width:600px;
+background:var(–ink2);
+border:1px solid var(–line2);
+border-radius:22px;padding:30px;
+max-height:90vh;overflow-y:auto;
+animation:modalIn .25s cubic-bezier(.34,1.56,.64,1);
 }
-.modal.show{display:flex;animation:fadeIn .2s ease;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes modalIn{from{opacity:0;transform:scale(.94)translateY(10px);}to{opacity:1;transform:scale(1)translateY(0);}}
+.modal-head{
+display:flex;justify-content:space-between;
+align-items:center;margin-bottom:26px;
+}
+.modal-title{
+font-family:‘Playfair Display’,serif;
+font-size:22px;font-weight:800;
+}
+.modal-close{
+width:34px;height:34px;border:none;
+background:var(–ink3);border-radius:9px;
+cursor:pointer;color:var(–fog);
+display:flex;align-items:center;justify-content:center;
+font-size:14px;transition:.2s;
+}
+.modal-close:hover{background:var(–line2);color:var(–cream);}
 
-.modal-box{
-  width:100%;max-width:640px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:24px;
-  padding:28px;
-  max-height:90vh;overflow:auto;
-  animation:slideUp .25s ease;
+/* ─────────────────────────────────────────
+FORM
+───────────────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fg-full{grid-column:1/-1;}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg label{font-size:12px;font-weight:600;letter-spacing:.4px;color:var(–fog);}
+.fi{
+background:var(–ink3);
+border:1px solid var(–line2);
+border-radius:10px;
+padding:10px 13px;
+color:var(–cream);font-size:13px;
+outline:none;transition:.2s;
+-webkit-appearance:none;
+width:100%;
 }
-@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.fi:focus{border-color:var(–gold);box-shadow:0 0 0 3px rgba(201,168,76,.08);}
+.fi option{background:var(–ink2);}
+textarea.fi{resize:vertical;min-height:80px;}
+.form-footer{margin-top:20px;display:flex;gap:10px;justify-content:flex-end;}
 
-.modal-header{
-  display:flex;justify-content:space-between;
-  align-items:center;margin-bottom:24px;
-}
-.modal-title{font-family:var(--font-head);font-size:20px;font-weight:700;}
-.close-btn{
-  width:36px;height:36px;border:none;
-  background:var(--surface2);
-  border-radius:10px;cursor:pointer;
-  color:var(--muted);font-size:16px;
-  display:flex;align-items:center;justify-content:center;
-  transition:.2s;
-}
-.close-btn:hover{background:var(--border);color:var(--text);}
-
-/* ── FORM ── */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.form-group{display:flex;flex-direction:column;gap:7px;}
-.form-group.full{grid-column:1/-1;}
-.form-label{font-size:13px;font-weight:600;color:var(--text);}
-.form-input{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:11px 14px;
-  color:var(--text);
-  font-family:var(--font-body);font-size:14px;
-  outline:none;transition:.2s;
-  -webkit-appearance:none;
-}
-.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,231,183,.1);}
-.form-input option{background:var(--surface2);}
-textarea.form-input{resize:vertical;min-height:80px;}
-.form-submit{margin-top:8px;width:100%;justify-content:center;padding:13px;}
-
-/* ── TOAST ── */
-#toast-container{
-  position:fixed;bottom:24px;right:24px;
-  display:flex;flex-direction:column;gap:8px;
-  z-index:9999;
+/* ─────────────────────────────────────────
+TOAST
+───────────────────────────────────────── */
+#toasts{
+position:fixed;bottom:24px;right:24px;
+display:flex;flex-direction:column-reverse;gap:8px;
+z-index:9999;pointer-events:none;
 }
 .toast{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:12px 18px;
-  font-size:13px;font-weight:500;
-  box-shadow:0 8px 24px rgba(0,0,0,.4);
-  animation:toastIn .3s ease;
-  display:flex;align-items:center;gap:8px;
-  min-width:220px;
+display:flex;align-items:center;gap:10px;
+background:var(–ink3);
+border:1px solid var(–line2);
+border-radius:12px;padding:12px 16px;
+font-size:13px;font-weight:500;
+box-shadow:0 12px 32px rgba(0,0,0,.5);
+animation:tIn .3s cubic-bezier(.34,1.56,.64,1);
+pointer-events:all;min-width:220px;max-width:340px;
 }
-.toast.success{border-left:3px solid var(--accent);}
-.toast.error{border-left:3px solid var(--danger);}
-.toast.info{border-left:3px solid var(--accent2);}
-@keyframes toastIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
-@keyframes toastOut{to{transform:translateX(20px);opacity:0;}}
+.toast.leaving{animation:tOut .25s ease forwards;}
+@keyframes tIn{from{opacity:0;transform:translateX(20px)scale(.95);}to{opacity:1;transform:translateX(0)scale(1);}}
+@keyframes tOut{to{opacity:0;transform:translateX(16px)scale(.95);}}
+.toast-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.t-ok .toast-dot{background:var(–ok);}
+.t-warn .toast-dot{background:var(–warn);}
+.t-err .toast-dot{background:var(–danger);}
+.t-info .toast-dot{background:var(–gold);}
 
-/* ── PAGE SECTIONS ── */
-.page{display:none;}
-.page.active{display:block;}
+/* ─────────────────────────────────────────
+EXPORT PAGE
+───────────────────────────────────────── */
+.export-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+gap:16px;max-width:800px;
+}
+.export-card{
+background:var(–ink2);border:1px solid var(–line);
+border-radius:18px;padding:24px;
+transition:.25s;
+}
+.export-card:hover{border-color:var(–line2);transform:translateY(-2px);}
+.export-icon{font-size:28px;margin-bottom:12px;}
+.export-title{
+font-family:‘Playfair Display’,serif;
+font-size:16px;font-weight:700;margin-bottom:6px;
+}
+.export-desc{font-size:12px;color:var(–fog);line-height:1.6;margin-bottom:16px;}
 
-/* ── RESPONSIVE ── */
+/* ─────────────────────────────────────────
+STORAGE INFO
+───────────────────────────────────────── */
+.storage-info{
+background:var(–ink2);border:1px solid var(–line);
+border-radius:18px;padding:24px;
+margin-bottom:24px;
+}
+.storage-row{
+display:flex;align-items:center;gap:12px;
+flex-wrap:wrap;
+}
+.storage-badge{
+display:inline-flex;align-items:center;gap:6px;
+padding:5px 12px;border-radius:999px;
+font-size:11px;font-weight:700;
+}
+.sb-opfs{background:rgba(74,170,122,.1);color:var(–ok);border:1px solid rgba(74,170,122,.2);}
+.sb-ls{background:rgba(201,168,76,.1);color:var(–gold);border:1px solid rgba(201,168,76,.2);}
+
+/* ─────────────────────────────────────────
+CONTRACTS PAGE
+───────────────────────────────────────── */
+.contract-row-danger td{background:rgba(224,85,85,.04);}
+.contract-row-warn td{background:rgba(212,148,58,.04);}
+
+/* ─────────────────────────────────────────
+DIVIDER
+───────────────────────────────────────── */
+.divider{
+height:1px;background:var(–line);
+margin:28px 0;
+}
+
+/* ─────────────────────────────────────────
+RESPONSIVE
+───────────────────────────────────────── */
 @media(max-width:900px){
-  .sidebar{transform:translateX(-100%);}
-  .sidebar.open{transform:translateX(0);}
-  .main{margin-left:0;}
-  .stats{grid-template-columns:repeat(2,1fr);}
+.main{margin-left:0!important;}
+.sidebar{
+transform:translateX(-100%);
+width:240px!important;align-items:flex-start!important;
+}
+.sidebar.mobile-open{transform:translateX(0);}
+.sidebar .nav-item span.label{opacity:1!important;}
+.sidebar .sidebar-brand-text{opacity:1!important;}
+.topbar{padding:0 16px;}
+.content{padding:16px;}
+.mobile-menu-btn{display:flex!important;}
+}
+.mobile-menu-btn{
+display:none;width:36px;height:36px;
+align-items:center;justify-content:center;
+background:var(–ink3);border:1px solid var(–line2);
+border-radius:9px;cursor:pointer;border:none;
+color:var(–fog);font-size:18px;
 }
 @media(max-width:600px){
-  .main{padding:16px;}
-  .form-grid{grid-template-columns:1fr;}
-  .stats{grid-template-columns:1fr 1fr;}
-  .topbar-title{font-size:24px;}
+.form-grid{grid-template-columns:1fr!important;}
+.stats-grid{grid-template-columns:1fr 1fr!important;}
+.sec-title{font-size:22px;}
 }
 </style>
 
 </head>
 <body>
 
-<div class="app">
+<div class="shell">
 
-  <!-- SIDEBAR -->
+<!-- ─────────────────────────────────────────
+     SIDEBAR
+───────────────────────────────────────── -->
 
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="brand-logo">NARUNA</div>
-      <div class="brand-sub">HR Suite</div>
+<aside class="sidebar" id="sidebar">
+  <div class="brand-row">
+    <div class="sidebar-logo" onclick="toggleSidebar()">N</div>
+    <div class="sidebar-brand-text">
+      <strong>Naruna</strong>
+      <span>HR Suite</span>
     </div>
-    <nav class="nav">
-      <button class="nav-btn active" data-page="dashboard">
-        <span class="icon">◈</span> Dashboard
-      </button>
-      <button class="nav-btn" data-page="employees">
-        <span class="icon">◉</span> Karyawan
-      </button>
-      <button class="nav-btn" data-page="contracts">
-        <span class="icon">◷</span> Kontrak
-      </button>
-      <button class="nav-btn" data-page="export">
-        <span class="icon">↗</span> Export
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      v2.0 · Naruna Group
+  </div>
+
+  <nav class="nav">
+    <button class="nav-item active" data-page="dashboard">
+      <span class="ni">◈</span><span class="label">Dashboard</span>
+    </button>
+    <button class="nav-item" data-page="employees">
+      <span class="ni">◉</span><span class="label">Karyawan</span>
+    </button>
+    <button class="nav-item" data-page="contracts">
+      <span class="ni">◷</span><span class="label">Kontrak</span>
+    </button>
+    <button class="nav-item" data-page="export">
+      <span class="ni">↗</span><span class="label">Export & Import</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-toggle">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <span class="toggle-icon ni">⟨</span>
+      <span class="label" style="opacity:0;transition:opacity .15s .1s">Ciutkan</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ─────────────────────────────────────────
+     MAIN
+───────────────────────────────────────── -->
+
+<div class="main">
+
+  <!-- TOPBAR -->
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">☰</button>
+      <div class="page-label" id="pageLabel">Dashboard</div>
     </div>
-  </aside>
+    <div class="topbar-right">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Cari karyawan...">
+      </div>
+      <div class="save-status" id="saveStatus">
+        <div class="save-dot" id="saveDot"></div>
+        <span id="saveText">Tersimpan</span>
+      </div>
+    </div>
+  </div>
 
-  <!-- MAIN -->
+  <!-- CONTENT -->
 
-  <main class="main">
+  <div class="content">
 
 ```
-<!-- TOPBAR -->
-<div class="topbar">
-  <div>
-    <div class="topbar-title" id="pageTitle">Dashboard HR</div>
-    <div class="topbar-sub" id="pageSubtitle">Pemantau kontrak karyawan Naruna Group</div>
-  </div>
-  <div class="topbar-right">
-    <div class="search-wrap">
-      <span class="search-icon">⌕</span>
-      <input type="text" id="searchInput" placeholder="Cari karyawan...">
-    </div>
-  </div>
-</div>
-
-<!-- FILTER BAR -->
-<div class="filter-bar" id="filterBar"></div>
-
-<!-- PAGE: DASHBOARD -->
+<!-- ─── PAGE: DASHBOARD ─── -->
 <div class="page active" id="page-dashboard">
 
-  <div class="stats">
-    <div class="stat-card">
-      <div class="stat-label">Total Karyawan</div>
-      <div class="stat-value" id="totalEmployee">0</div>
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">Dashboard HR</div>
+      <div class="sec-sub">Pemantau kontrak & karyawan Naruna Group</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Kontrak Mendesak</div>
-      <div class="stat-value" id="totalWarning">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Anak Usaha</div>
-      <div class="stat-value" id="totalCompany">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Total Payroll</div>
-      <div class="stat-value" id="totalPayroll" style="font-size:20px">Rp 0</div>
+    <div class="sec-actions">
+      <button class="btn btn-ghost btn-sm" onclick="goPage('employees')">Lihat Semua →</button>
+      <button class="btn btn-gold" onclick="openAddEmployee()">+ Karyawan</button>
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Anak Usaha</div>
-      <button class="btn btn-primary" id="addCompanyBtn">+ Tambah</button>
+  <div class="stats-grid">
+    <div class="stat" style="--stat-glow:var(--gold)">
+      <div class="stat-n">Total Karyawan</div>
+      <div class="stat-v gold" id="s-total">0</div>
+      <div class="stat-trend" id="s-total-sub">dari 0 perusahaan</div>
     </div>
-    <div class="company-grid" id="companyGrid"></div>
+    <div class="stat" style="--stat-glow:var(--warn)">
+      <div class="stat-n">Kontrak Mendesak</div>
+      <div class="stat-v" id="s-urgent">0</div>
+      <div class="stat-trend">dalam 30 hari ke depan</div>
+    </div>
+    <div class="stat" style="--stat-glow:var(--danger)">
+      <div class="stat-n">Kontrak Expired</div>
+      <div class="stat-v" id="s-expired">0</div>
+      <div class="stat-trend">perlu tindakan segera</div>
+    </div>
+    <div class="stat" style="--stat-glow:var(--ok)">
+      <div class="stat-n">Total Payroll</div>
+      <div class="stat-v sm" id="s-payroll">Rp 0</div>
+      <div class="stat-trend" id="s-payroll-avg">rata-rata Rp 0</div>
+    </div>
   </div>
 
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Semua Karyawan</div>
-      <button class="btn btn-primary" id="addEmployeeBtnDash">+ Tambah Karyawan</button>
+  <!-- Company section -->
+  <div class="sec-head">
+    <div>
+      <div class="sec-title" style="font-size:22px">Anak Usaha</div>
     </div>
-    <div class="table-wrap"><div class="table-scroll">
-      <table>
-        <thead><tr>
-          <th>Nama</th><th>Perusahaan</th><th>Jabatan</th>
-          <th>Tipe</th><th>Kontrak</th><th>Status</th>
-          <th>Gaji</th><th>Aksi</th>
-        </tr></thead>
-        <tbody id="employeeTableDash"></tbody>
-      </table>
-    </div></div>
+    <div class="sec-actions">
+      <button class="btn btn-ghost btn-sm" id="addCompanyBtn">+ Perusahaan</button>
+    </div>
   </div>
+  <div class="co-grid" id="coGrid" style="margin-bottom:32px"></div>
 
+  <!-- Recent employees -->
+  <div class="sec-head">
+    <div>
+      <div class="sec-title" style="font-size:22px">Karyawan Terbaru</div>
+    </div>
+  </div>
+  <div class="table-wrap"><div class="table-scroll">
+    <table id="tblRecent">
+      <thead><tr>
+        <th data-col="name">Nama <span class="sort-icon">↕</span></th>
+        <th>Perusahaan</th><th>Jabatan</th><th>Tipe</th>
+        <th data-col="contract">Kontrak <span class="sort-icon">↕</span></th>
+        <th>Status</th>
+        <th data-col="salary">Gaji <span class="sort-icon">↕</span></th>
+        <th>Aksi</th>
+      </tr></thead>
+      <tbody id="tbodyRecent"></tbody>
+    </table>
+  </div></div>
 </div>
 
-<!-- PAGE: EMPLOYEES -->
+<!-- ─── PAGE: EMPLOYEES ─── -->
 <div class="page" id="page-employees">
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Data Karyawan</div>
-      <div class="actions-row">
-        <button class="btn btn-ghost btn-sm" id="exportExcelBtn">↓ Excel</button>
-        <button class="btn btn-ghost btn-sm" id="exportPDFBtn">↓ PDF</button>
-        <button class="btn btn-primary" id="addEmployeeBtn">+ Tambah</button>
-      </div>
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">Data Karyawan</div>
+      <div class="sec-sub" id="empCount">0 karyawan</div>
     </div>
-    <div class="table-wrap"><div class="table-scroll">
-      <table>
-        <thead><tr>
-          <th>Nama</th><th>Perusahaan</th><th>Jabatan</th>
-          <th>Tipe</th><th>Kontrak</th><th>Status</th>
-          <th>Gaji</th><th>Aksi</th>
-        </tr></thead>
-        <tbody id="employeeTable"></tbody>
-      </table>
-    </div></div>
+    <div class="sec-actions">
+      <button class="btn btn-ghost btn-sm" id="expExcelBtn">↓ Excel</button>
+      <button class="btn btn-ghost btn-sm" id="expPdfBtn">↓ PDF</button>
+      <button class="btn btn-gold" onclick="openAddEmployee()">+ Tambah</button>
+    </div>
   </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-bar-label">Filter</span>
+    <div class="filter-chips" id="filterCompanyChips"></div>
+    <div class="filter-divider"></div>
+    <select class="filter-select" id="filterType">
+      <option value="">Semua Tipe</option>
+      <option>Tetap</option><option>Kontrak</option><option>Probation</option>
+    </select>
+    <select class="filter-select" id="filterStatus">
+      <option value="">Semua Status</option>
+      <option value="safe">Aman</option>
+      <option value="urgent">Mendesak</option>
+      <option value="expired">Expired</option>
+    </select>
+    <select class="filter-select" id="sortBy">
+      <option value="name">Sort: Nama</option>
+      <option value="contract">Sort: Kontrak</option>
+      <option value="salary_desc">Sort: Gaji ↓</option>
+      <option value="salary_asc">Sort: Gaji ↑</option>
+      <option value="company">Sort: Perusahaan</option>
+    </select>
+    <button class="filter-clear" id="filterClearBtn">✕ Reset</button>
+  </div>
+
+  <div class="table-wrap"><div class="table-scroll">
+    <table>
+      <thead><tr>
+        <th>Nama</th><th>Perusahaan</th><th>Jabatan</th>
+        <th>Tipe</th><th>Kontrak</th><th>Status</th>
+        <th>Gaji</th><th>Aksi</th>
+      </tr></thead>
+      <tbody id="tbodyEmp"></tbody>
+    </table>
+  </div></div>
 </div>
 
-<!-- PAGE: CONTRACTS -->
+<!-- ─── PAGE: CONTRACTS ─── -->
 <div class="page" id="page-contracts">
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Monitor Kontrak</div>
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">Monitor Kontrak</div>
+      <div class="sec-sub">Karyawan dengan tanggal kontrak terdaftar</div>
     </div>
-    <div class="table-wrap"><div class="table-scroll">
-      <table>
-        <thead><tr>
-          <th>Nama</th><th>Perusahaan</th><th>Tipe</th>
-          <th>Kontrak Berakhir</th><th>Sisa Hari</th><th>Status</th>
-        </tr></thead>
-        <tbody id="contractTable"></tbody>
-      </table>
-    </div></div>
+    <div class="sec-actions">
+      <select class="filter-select" id="ctFilterCo" style="font-size:13px;padding:8px 12px;">
+        <option value="">Semua Perusahaan</option>
+      </select>
+      <select class="filter-select" id="ctFilterStatus" style="font-size:13px;padding:8px 12px;">
+        <option value="">Semua Status</option>
+        <option value="expired">Expired</option>
+        <option value="urgent">30 Hari</option>
+        <option value="safe">Aman</option>
+      </select>
+    </div>
   </div>
+  <div class="table-wrap"><div class="table-scroll">
+    <table>
+      <thead><tr>
+        <th>Nama</th><th>Perusahaan</th><th>Jabatan</th>
+        <th>Tipe</th><th>Kontrak Berakhir</th>
+        <th>Sisa Hari</th><th>Status</th>
+      </tr></thead>
+      <tbody id="tbodyCt"></tbody>
+    </table>
+  </div></div>
 </div>
 
-<!-- PAGE: EXPORT -->
+<!-- ─── PAGE: EXPORT ─── -->
 <div class="page" id="page-export">
-  <div class="section">
-    <div class="section-title" style="margin-bottom:20px">Export & Import Data</div>
-    <div class="company-grid" style="max-width:700px">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">Export & Import</div>
+      <div class="sec-sub">Kelola backup dan restore data HR</div>
+    </div>
+  </div>
 
-      <div class="company-card">
-        <div class="company-name" style="font-size:16px;margin-bottom:8px">📊 Excel</div>
-        <div class="company-location">Export seluruh data karyawan ke format .xlsx</div>
-        <div style="margin-top:16px">
-          <button class="btn btn-ghost" id="exportExcelBtn2">Export Excel</button>
-        </div>
-      </div>
+  <!-- Storage info -->
+  <div class="storage-info">
+    <div style="font-size:12px;color:var(--fog);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;">Penyimpanan Aktif</div>
+    <div class="storage-row">
+      <span class="storage-badge" id="storageBadge">…</span>
+      <span style="font-size:13px;color:var(--fog)" id="storageDesc">Mendeteksi…</span>
+    </div>
+  </div>
 
-      <div class="company-card">
-        <div class="company-name" style="font-size:16px;margin-bottom:8px">📄 PDF</div>
-        <div class="company-location">Export laporan karyawan ke format .pdf</div>
-        <div style="margin-top:16px">
-          <button class="btn btn-ghost" id="exportPDFBtn2">Export PDF</button>
-        </div>
-      </div>
-
-      <div class="company-card">
-        <div class="company-name" style="font-size:16px;margin-bottom:8px">💾 JSON Backup</div>
-        <div class="company-location">Backup semua data ke file .json</div>
-        <div style="margin-top:16px">
-          <button class="btn btn-ghost" id="exportJSONBtn">Export JSON</button>
-        </div>
-      </div>
-
-      <div class="company-card">
-        <div class="company-name" style="font-size:16px;margin-bottom:8px">📥 Import JSON</div>
-        <div class="company-location">Pulihkan data dari file backup .json</div>
-        <div style="margin-top:16px">
-          <label class="btn btn-ghost" for="importJSONInput" style="cursor:pointer">Import JSON</label>
-          <input type="file" id="importJSONInput" accept=".json" hidden>
-        </div>
-      </div>
-
+  <div class="export-grid">
+    <div class="export-card">
+      <div class="export-icon">📊</div>
+      <div class="export-title">Excel</div>
+      <div class="export-desc">Export seluruh data karyawan ke format .xlsx, lengkap dengan semua kolom.</div>
+      <button class="btn btn-ghost" id="expExcel2">Export Excel</button>
+    </div>
+    <div class="export-card">
+      <div class="export-icon">📄</div>
+      <div class="export-title">PDF Report</div>
+      <div class="export-desc">Cetak laporan karyawan dalam format PDF siap distribusi.</div>
+      <button class="btn btn-ghost" id="expPdf2">Export PDF</button>
+    </div>
+    <div class="export-card">
+      <div class="export-icon">💾</div>
+      <div class="export-title">JSON Backup</div>
+      <div class="export-desc">Backup semua data (perusahaan + karyawan) ke file .json.</div>
+      <button class="btn btn-ghost" id="expJson">Export JSON</button>
+    </div>
+    <div class="export-card">
+      <div class="export-icon">📥</div>
+      <div class="export-title">Import JSON</div>
+      <div class="export-desc">Restore data dari file backup .json yang sebelumnya diexport.</div>
+      <label class="btn btn-ghost" for="impJson" style="cursor:pointer">Import JSON</label>
+      <input type="file" id="impJson" accept=".json" hidden>
     </div>
   </div>
 </div>
 ```
 
-  </main>
-</div>
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
 
-<!-- TOAST CONTAINER -->
+<!-- TOASTS -->
 
-<div id="toast-container"></div>
+<div id="toasts"></div>
 
-<!-- ── COMPANY MODAL ── -->
+<!-- ─── MODAL: COMPANY ─── -->
 
-<div class="modal" id="companyModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title" id="companyModalTitle">Tambah Anak Usaha</div>
-      <button class="close-btn" onclick="closeModal('companyModal')">✕</button>
+<div class="modal-bg" id="mCompany">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="mCoTitle">Tambah Perusahaan</div>
+      <button class="modal-close" onclick="closeMo('mCompany')">✕</button>
     </div>
+    <input type="hidden" id="coEditId">
     <div class="form-grid">
-      <input type="hidden" id="companyEditId">
-      <div class="form-group">
-        <label class="form-label">Nama Perusahaan *</label>
-        <input type="text" class="form-input" id="companyName" required placeholder="PT. Naruna ...">
+      <div class="fg">
+        <label>Nama Perusahaan *</label>
+        <input class="fi" id="coName" placeholder="PT. Naruna …">
       </div>
-      <div class="form-group">
-        <label class="form-label">Lokasi</label>
-        <input type="text" class="form-input" id="companyLocation" placeholder="Jakarta, Indonesia">
+      <div class="fg">
+        <label>Lokasi</label>
+        <input class="fi" id="coLoc" placeholder="Jakarta, Indonesia">
       </div>
-      <div class="form-group full">
-        <label class="form-label">Deskripsi</label>
-        <textarea class="form-input" id="companyDescription" placeholder="Deskripsi singkat perusahaan..."></textarea>
+      <div class="fg fg-full">
+        <label>Deskripsi</label>
+        <textarea class="fi" id="coDesc" placeholder="Bidang usaha, keterangan…"></textarea>
       </div>
     </div>
-    <button class="btn btn-primary form-submit" id="companySubmitBtn" onclick="submitCompany()">Simpan</button>
+    <div class="form-footer">
+      <button class="btn btn-ghost" onclick="closeMo('mCompany')">Batal</button>
+      <button class="btn btn-gold" onclick="submitCompany()">Simpan</button>
+    </div>
   </div>
 </div>
 
-<!-- ── EMPLOYEE MODAL ── -->
+<!-- ─── MODAL: EMPLOYEE ─── -->
 
-<div class="modal" id="employeeModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title" id="employeeModalTitle">Tambah Karyawan</div>
-      <button class="close-btn" onclick="closeModal('employeeModal')">✕</button>
+<div class="modal-bg" id="mEmployee">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="mEmpTitle">Tambah Karyawan</div>
+      <button class="modal-close" onclick="closeMo('mEmployee')">✕</button>
     </div>
+    <input type="hidden" id="empEditId">
     <div class="form-grid">
-      <input type="hidden" id="employeeEditId">
-      <div class="form-group">
-        <label class="form-label">Nama Lengkap *</label>
-        <input type="text" class="form-input" id="employeeName" placeholder="Nama karyawan">
+      <div class="fg">
+        <label>Nama Lengkap *</label>
+        <input class="fi" id="empName" placeholder="Nama karyawan">
       </div>
-      <div class="form-group">
-        <label class="form-label">Perusahaan *</label>
-        <select class="form-input" id="employeeCompany"></select>
+      <div class="fg">
+        <label>Perusahaan *</label>
+        <select class="fi" id="empCo"></select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Jabatan</label>
-        <input type="text" class="form-input" id="employeePosition" placeholder="Manager, Staff, dsb.">
+      <div class="fg">
+        <label>Jabatan / Posisi</label>
+        <input class="fi" id="empPos" placeholder="Manager, Staff…">
       </div>
-      <div class="form-group">
-        <label class="form-label">Tipe Karyawan</label>
-        <select class="form-input" id="employeeStatus">
+      <div class="fg">
+        <label>Tipe Karyawan</label>
+        <select class="fi" id="empType">
           <option>Tetap</option>
           <option>Kontrak</option>
           <option>Probation</option>
         </select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Kontrak Berakhir</label>
-        <input type="date" class="form-input" id="employeeContract">
+      <div class="fg">
+        <label>Tanggal Mulai</label>
+        <input class="fi" type="date" id="empStart">
       </div>
-      <div class="form-group">
-        <label class="form-label">Gaji (Rp)</label>
-        <input type="number" class="form-input" id="employeeSalary" min="0" placeholder="0">
+      <div class="fg">
+        <label>Kontrak Berakhir</label>
+        <input class="fi" type="date" id="empEnd">
       </div>
-      <div class="form-group full">
-        <label class="form-label">Catatan</label>
-        <textarea class="form-input" id="employeeNotes" placeholder="Catatan tambahan..."></textarea>
+      <div class="fg">
+        <label>Gaji (Rp)</label>
+        <input class="fi" type="number" id="empSalary" min="0" placeholder="0">
+      </div>
+      <div class="fg">
+        <label>No. Telepon</label>
+        <input class="fi" id="empPhone" placeholder="+62…">
+      </div>
+      <div class="fg fg-full">
+        <label>Email</label>
+        <input class="fi" type="email" id="empEmail" placeholder="nama@naruna.co.id">
+      </div>
+      <div class="fg fg-full">
+        <label>Catatan</label>
+        <textarea class="fi" id="empNotes" placeholder="Informasi tambahan…"></textarea>
       </div>
     </div>
-    <button class="btn btn-primary form-submit" onclick="submitEmployee()">Simpan</button>
+    <div class="form-footer">
+      <button class="btn btn-ghost" onclick="closeMo('mEmployee')">Batal</button>
+      <button class="btn btn-gold" onclick="submitEmployee()">Simpan</button>
+    </div>
   </div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    STATE
-═══════════════════════════════════════ */
-const AppState = {
-  meta:{ updatedAt:Date.now(), version:2 },
+═══════════════════════════════════════════════════ */
+const S = {
+  meta:{ v:3, savedAt:0 },
   companies:[],
   employees:[]
 };
 
-let activeFilter = null; // companyId filter
-
-/* ═══════════════════════════════════════
-   UTILS
-═══════════════════════════════════════ */
-const uid = () =>
-  Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-
-const esc = str =>
-  String(str||'')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-
-const currency = n =>
-  new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0})
-    .format(n||0);
-
-const fmtDate = str => {
-  if(!str) return '-';
-  const [y,m,d] = str.split('-');
-  return `${d}/${m}/${y}`;
+// Active filter state
+const F = {
+  company: null,   // companyId or null
+  type: '',
+  status: '',
+  sort: 'name',
+  search: ''
 };
 
-// FIX: returns days left; negative = expired; null = no date
-const daysLeft = date => {
-  if(!date) return null;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const [y,m,d] = date.split('-');
-  const end = new Date(Number(y),Number(m)-1,Number(d));
-  end.setHours(0,0,0,0);
-  return Math.ceil((end - today)/86400000);
-};
+/* ═══════════════════════════════════════════════════
+   PERSISTENT STORAGE — OPFS + localStorage fallback
+═══════════════════════════════════════════════════ */
+let opfsAvailable = false;
+let opfsFile = null;
+const LS_KEY = 'naruna_hr_v3';
+const OPFS_FILENAME = 'naruna_hr.json';
 
-const contractStatus = date => {
-  const days = daysLeft(date);
-  if(days === null)          return { label:'—',    cls:'s-safe' };
-  if(days < 0)               return { label:'Expired', cls:'s-danger' };
-  if(days === 0)             return { label:'Hari ini', cls:'s-danger' };
-  if(days <= 30)             return { label:days+' Hari', cls:'s-warn' };
-  return                            { label:'Aman', cls:'s-safe' };
-};
-
-// FIX: proper sort — expired first (most negative), then by days ascending, null last
-const sortWeight = emp => {
-  const days = daysLeft(emp.contract);
-  if(days === null) return 999999;
-  return days;
-};
-
-/* ═══════════════════════════════════════
-   STORAGE
-═══════════════════════════════════════ */
-const Storage = {
-  key:'naruna_hr_v2',
-  save(){
-    AppState.meta.updatedAt = Date.now();
+async function initStorage(){
+  // Detect OPFS support
+  if('storage' in navigator && 'getDirectory' in navigator.storage){
     try{
-      localStorage.setItem(this.key, JSON.stringify(AppState));
-    }catch(e){ showToast('Gagal menyimpan data','error'); }
-  },
-  load(){
-    try{
-      const raw = localStorage.getItem(this.key)
-                || localStorage.getItem('naruna_hr'); // migrate old key
-      if(!raw) return;
-      const data = JSON.parse(raw);
-      if(typeof data !== 'object') return;
-      AppState.meta     = data.meta || { updatedAt:Date.now(), version:2 };
-      AppState.companies= Array.isArray(data.companies) ? data.companies : [];
-      AppState.employees= Array.isArray(data.employees) ? data.employees : [];
-    }catch(e){ console.error('Storage load:', e); }
+      const root = await navigator.storage.getDirectory();
+      opfsFile = await root.getFileHandle(OPFS_FILENAME, { create:true });
+      opfsAvailable = true;
+      console.log('[Storage] OPFS available');
+    }catch(e){
+      console.warn('[Storage] OPFS init failed, using localStorage:', e);
+    }
   }
-};
+  updateStorageBadge();
+}
 
-function saveAll(){ Storage.save(); }
+async function persistSave(){
+  setSaveDot('saving');
+  const raw = JSON.stringify(S, null, 2);
+  // Always save to localStorage as safety net
+  try{ localStorage.setItem(LS_KEY, raw); }
+  catch(e){ console.warn('localStorage save failed:', e); }
+  // Primary: OPFS
+  if(opfsAvailable && opfsFile){
+    try{
+      const w = await opfsFile.createWritable();
+      await w.write(raw);
+      await w.close();
+    }catch(e){ console.warn('[OPFS] write failed:', e); }
+  }
+  S.meta.savedAt = Date.now();
+  setSaveDot('ok');
+}
 
-/* ═══════════════════════════════════════
+async function persistLoad(){
+  let raw = null;
+  // Try OPFS first
+  if(opfsAvailable && opfsFile){
+    try{
+      const file = await opfsFile.getFile();
+      raw = await file.text();
+      if(raw.trim()==='') raw = null;
+    }catch(e){ raw = null; }
+  }
+  // Fallback to localStorage
+  if(!raw){
+    raw = localStorage.getItem(LS_KEY)
+       || localStorage.getItem('naruna_hr_v2')
+       || localStorage.getItem('naruna_hr');
+  }
+  if(!raw) return;
+  try{
+    const d = JSON.parse(raw);
+    if(typeof d !== 'object') return;
+    S.meta      = d.meta      || S.meta;
+    S.companies = Array.isArray(d.companies) ? d.companies : [];
+    S.employees = Array.isArray(d.employees) ? d.employees : [];
+  }catch(e){ console.error('Load parse error:', e); }
+}
+
+function setSaveDot(state){
+  const dot = document.getElementById('saveDot');
+  const txt = document.getElementById('saveText');
+  dot.className = 'save-dot' + (state==='saving' ? ' saving' : '');
+  if(state==='ok') txt.textContent = 'Tersimpan';
+  if(state==='saving') txt.textContent = 'Menyimpan…';
+}
+
+function updateStorageBadge(){
+  const el = document.getElementById('storageBadge');
+  const desc = document.getElementById('storageDesc');
+  if(opfsAvailable){
+    el.className = 'storage-badge sb-opfs';
+    el.textContent = '✓ OPFS — File System Perangkat';
+    desc.textContent = 'Data tersimpan permanen di storage perangkat via Origin Private File System. Tidak hilang meski browser di-refresh atau ditutup.';
+  } else {
+    el.className = 'storage-badge sb-ls';
+    el.textContent = '◎ localStorage';
+    desc.textContent = 'OPFS tidak didukung browser ini. Data tersimpan di localStorage. Beberapa browser mungkin menghapus data ini jika storage dibersihkan.';
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════ */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const idr = n => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n||0);
+const fmtD = s => { if(!s) return '—'; const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; };
+
+function daysLeft(d){
+  if(!d) return null;
+  const t=new Date(); t.setHours(0,0,0,0);
+  const [y,m,dd]=d.split('-');
+  const e=new Date(+y,+m-1,+dd); e.setHours(0,0,0,0);
+  return Math.ceil((e-t)/86400000);
+}
+
+function cStatus(d){
+  const n=daysLeft(d);
+  if(n===null)    return { label:'—',        cls:'b-dim',    key:'none' };
+  if(n<0)         return { label:'Expired',  cls:'b-danger', key:'expired' };
+  if(n===0)       return { label:'Hari ini', cls:'b-danger', key:'expired' };
+  if(n<=30)       return { label:n+' Hari',  cls:'b-warn',   key:'urgent' };
+  return                  { label:'Aman',    cls:'b-ok',     key:'safe' };
+}
+
+function sortEmp(list, by){
+  return [...list].sort((a,b)=>{
+    if(by==='contract'){
+      const da=daysLeft(a.contract)??999999, db=daysLeft(b.contract)??999999;
+      return da-db;
+    }
+    if(by==='salary_desc') return (b.salary||0)-(a.salary||0);
+    if(by==='salary_asc')  return (a.salary||0)-(b.salary||0);
+    if(by==='company'){
+      const ca=coName(a.companyId), cb=coName(b.companyId);
+      return ca.localeCompare(cb);
+    }
+    return (a.name||'').localeCompare(b.name||'');
+  });
+}
+
+function coName(id){
+  return S.companies.find(c=>c.id===id)?.name||'—';
+}
+
+/* ═══════════════════════════════════════════════════
    TOAST
-═══════════════════════════════════════ */
-function showToast(msg, type='success'){
-  const c = document.getElementById('toast-container');
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  const icons = { success:'✓', error:'✕', info:'ℹ' };
-  t.innerHTML = `<span>${icons[type]||'·'}</span> ${esc(msg)}`;
-  c.appendChild(t);
+═══════════════════════════════════════════════════ */
+function toast(msg, type='ok'){
+  const c=document.getElementById('toasts');
+  const d=document.createElement('div');
+  d.className=`toast t-${type}`;
+  d.innerHTML=`<div class="toast-dot"></div><span>${esc(msg)}</span>`;
+  c.appendChild(d);
   setTimeout(()=>{
-    t.style.animation = 'toastOut .3s ease forwards';
-    setTimeout(()=>t.remove(), 300);
+    d.classList.add('leaving');
+    setTimeout(()=>d.remove(), 280);
   }, 2800);
 }
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    MODAL
-═══════════════════════════════════════ */
-function openModal(id){
+═══════════════════════════════════════════════════ */
+function openMo(id){
   document.getElementById(id).classList.add('show');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
-function closeModal(id){
+function closeMo(id){
   document.getElementById(id).classList.remove('show');
-  if(!document.querySelector('.modal.show'))
-    document.body.style.overflow = '';
+  if(!document.querySelector('.modal-bg.show')) document.body.style.overflow='';
 }
-
-// Backdrop close — FIX: also resets forms
-document.querySelectorAll('.modal').forEach(modal=>{
-  modal.addEventListener('click', e=>{
-    if(e.target === modal){
-      closeModal(modal.id);
-      resetModalForms();
-    }
-  });
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{ if(e.target===bg){ closeMo(bg.id); resetForms(); } });
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ document.querySelectorAll('.modal-bg.show').forEach(b=>closeMo(b.id)); resetForms(); }
 });
 
-// ESC close — FIX: also resets forms
-document.addEventListener('keydown', e=>{
-  if(e.key === 'Escape'){
-    document.querySelectorAll('.modal.show')
-      .forEach(m=>closeModal(m.id));
-    document.body.style.overflow = '';
-    resetModalForms();
-  }
-});
-
-function resetModalForms(){
-  // Reset company modal
-  document.getElementById('companyEditId').value = '';
-  document.getElementById('companyName').value = '';
-  document.getElementById('companyLocation').value = '';
-  document.getElementById('companyDescription').value = '';
-  document.getElementById('companyModalTitle').textContent = 'Tambah Anak Usaha';
-
-  // Reset employee modal
-  document.getElementById('employeeEditId').value = '';
-  document.getElementById('employeeName').value = '';
-  document.getElementById('employeePosition').value = '';
-  document.getElementById('employeeStatus').value = 'Tetap';
-  document.getElementById('employeeContract').value = '';
-  document.getElementById('employeeSalary').value = '';
-  document.getElementById('employeeNotes').value = '';
-  document.getElementById('employeeModalTitle').textContent = 'Tambah Karyawan';
+function resetForms(){
+  ['coEditId','coName','coLoc','coDesc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('mCoTitle').textContent='Tambah Perusahaan';
+  ['empEditId','empName','empPos','empStart','empEnd','empSalary','empPhone','empEmail','empNotes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const et=document.getElementById('empType'); if(et) et.value='Tetap';
+  document.getElementById('mEmpTitle').textContent='Tambah Karyawan';
 }
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    NAVIGATION
-═══════════════════════════════════════ */
-const pages = {
-  dashboard: { title:'Dashboard HR', sub:'Pemantau kontrak karyawan Naruna Group' },
-  employees:  { title:'Data Karyawan', sub:'Kelola seluruh data karyawan' },
-  contracts:  { title:'Monitor Kontrak', sub:'Pantau status kontrak secara detail' },
-  export:     { title:'Export & Import', sub:'Backup dan restore data HR' }
+═══════════════════════════════════════════════════ */
+const PAGE_LABELS = {
+  dashboard:'Dashboard',employees:'Karyawan',
+  contracts:'Monitor Kontrak',export:'Export & Import'
 };
-
-document.querySelectorAll('.nav-btn').forEach(btn=>{
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    b.classList.toggle('active', b.dataset.page===id);
+  });
+  document.getElementById('pageLabel').textContent = PAGE_LABELS[id]||id;
+  if(id==='contracts') renderContracts();
+  if(id==='employees') renderEmployees();
+}
+document.querySelectorAll('.nav-item[data-page]').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    const page = btn.dataset.page;
-    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    document.getElementById('page-'+page).classList.add('active');
-    document.getElementById('pageTitle').textContent = pages[page].title;
-    document.getElementById('pageSubtitle').textContent = pages[page].sub;
-    if(page==='contracts') renderContractTable();
-    else if(page==='employees') renderEmployeeTable('employeeTable');
+    goPage(btn.dataset.page);
+    // close mobile sidebar
+    document.getElementById('sidebar').classList.remove('mobile-open');
   });
 });
 
-/* ═══════════════════════════════════════
-   FILTER
-═══════════════════════════════════════ */
-function setFilter(companyId){
-  activeFilter = companyId;
-  renderFilterBar();
-  renderAll();
-}
-function clearFilter(){
-  activeFilter = null;
-  renderFilterBar();
-  renderAll();
-}
-function renderFilterBar(){
-  const bar = document.getElementById('filterBar');
-  if(!activeFilter){ bar.innerHTML=''; return; }
-  const co = AppState.companies.find(c=>c.id===activeFilter);
-  if(!co){ bar.innerHTML=''; return; }
-  bar.innerHTML = `
-    <div class="filter-badge">
-      Menampilkan: ${esc(co.name)}
-      <button onclick="clearFilter()" title="Hapus filter">✕</button>
-    </div>`;
+/* ═══════════════════════════════════════════════════
+   SIDEBAR TOGGLE
+═══════════════════════════════════════════════════ */
+let sidebarExpanded = false;
+function toggleSidebar(){
+  sidebarExpanded = !sidebarExpanded;
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('expanded', sidebarExpanded);
+  // show label on toggle button
+  const tl = sb.querySelector('.toggle-btn .label');
+  if(tl) tl.style.opacity = sidebarExpanded ? '1' : '0';
 }
 
-/* ═══════════════════════════════════════
-   RENDER
-═══════════════════════════════════════ */
-function renderAll(){
-  renderStats();
-  renderCompanies();
-  renderEmployeeTable('employeeTableDash');
-  renderEmployeeTable('employeeTable');
-}
-
+/* ═══════════════════════════════════════════════════
+   RENDER: STATS
+═══════════════════════════════════════════════════ */
 function renderStats(){
-  document.getElementById('totalEmployee').textContent = AppState.employees.length;
-  document.getElementById('totalCompany').textContent  = AppState.companies.length;
-
-  let payroll=0, warning=0;
-  AppState.employees.forEach(emp=>{
-    payroll += Number(emp.salary)||0;
-    const days = daysLeft(emp.contract);
-    if(days!==null && days>=0 && days<=30) warning++;
+  const total = S.employees.length;
+  let urgent=0, expired=0, payroll=0;
+  S.employees.forEach(e=>{
+    payroll += Number(e.salary)||0;
+    const n=daysLeft(e.contract);
+    if(n!==null && n<0) expired++;
+    else if(n!==null && n<=30 && n>=0) urgent++;
   });
-
-  document.getElementById('totalPayroll').textContent = currency(payroll);
-  const wEl = document.getElementById('totalWarning');
-  wEl.textContent = warning;
-  wEl.className = 'stat-value ' + (warning>0 ? 'warning-text' : '');
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-total-sub').textContent = `dari ${S.companies.length} perusahaan`;
+  document.getElementById('s-urgent').textContent = urgent;
+  document.getElementById('s-urgent').className = 'stat-v ' + (urgent>0?'warn':'');
+  document.getElementById('s-expired').textContent = expired;
+  document.getElementById('s-expired').className = 'stat-v ' + (expired>0?'warn':'');
+  document.getElementById('s-payroll').textContent = idr(payroll);
+  document.getElementById('s-payroll-avg').textContent = total ? `rata-rata ${idr(Math.round(payroll/total))}` : 'rata-rata Rp 0';
 }
 
+/* ═══════════════════════════════════════════════════
+   RENDER: COMPANY GRID
+═══════════════════════════════════════════════════ */
 function renderCompanies(){
-  const grid = document.getElementById('companyGrid');
-  if(!AppState.companies.length){
-    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🏢</div><p>Belum ada anak usaha.<br>Tambahkan yang pertama!</p></div>`;
+  const grid = document.getElementById('coGrid');
+  if(!S.companies.length){
+    grid.innerHTML=`<div class="empty"><div class="empty-glyph">🏢</div><div class="empty-title">Belum Ada Perusahaan</div><div class="empty-sub">Tambahkan anak usaha pertama</div></div>`;
     return;
   }
-  grid.innerHTML = AppState.companies.map(co=>{
-    const emps = AppState.employees.filter(e=>e.companyId===co.id);
-    const warn = emps.filter(e=>{ const d=daysLeft(e.contract); return d!==null&&d>=0&&d<=30; }).length;
-    const badgeCls = warn ? 'badge-warn' : 'badge-safe';
-    const badgeTxt = warn ? `⚠ ${warn} mendesak` : `✓ Semua aman`;
+  grid.innerHTML = S.companies.map(co=>{
+    const emps = S.employees.filter(e=>e.companyId===co.id);
+    const warn = emps.filter(e=>{ const n=daysLeft(e.contract); return n!==null&&n>=0&&n<=30; }).length;
+    const exp  = emps.filter(e=>{ const n=daysLeft(e.contract); return n!==null&&n<0; }).length;
+    const badge = exp>0
+      ? `<span class="co-stat-pill warn" onclick="filterByCompany('${co.id}')">⚠ ${exp} expired · ${warn} mendesak · ${emps.length} total</span>`
+      : warn>0
+      ? `<span class="co-stat-pill warn" onclick="filterByCompany('${co.id}')">⚠ ${warn} mendesak · ${emps.length} total</span>`
+      : `<span class="co-stat-pill ok" onclick="filterByCompany('${co.id}')">✓ Aman · ${emps.length} karyawan</span>`;
     return `
-      <div class="company-card">
-        <div class="company-name">${esc(co.name)}</div>
-        <div class="company-location">${esc(co.location)||'—'}</div>
-        ${co.description ? `<div class="company-desc">${esc(co.description)}</div>` : ''}
-        <div class="company-meta">
-          <button class="company-badge ${badgeCls}" onclick="setFilter('${co.id}')" title="Filter karyawan perusahaan ini">
-            ${emps.length} karyawan · ${badgeTxt}
-          </button>
-          <div class="company-btns">
-            <button class="btn btn-ghost btn-sm" onclick="editCompany('${co.id}')">Edit</button>
-            <button class="btn btn-danger-ghost btn-sm" onclick="deleteCompany('${co.id}')">Hapus</button>
+      <div class="co-card">
+        <div class="co-name">${esc(co.name)}</div>
+        <div class="co-loc">📍 ${esc(co.location||'—')}</div>
+        <div class="co-desc">${esc(co.description||'Tidak ada deskripsi.')}</div>
+        <div class="co-footer">
+          ${badge}
+          <div class="co-btns">
+            <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="editCompany('${co.id}')">✎</button>
+            <button class="btn btn-danger btn-sm btn-icon" title="Hapus" onclick="deleteCompany('${co.id}')">✕</button>
           </div>
         </div>
       </div>`;
   }).join('');
-  renderCompanyOptions();
+  rebuildCompanyOptions();
+  rebuildFilterChips();
+  rebuildCtFilter();
 }
 
-function renderCompanyOptions(){
-  const sel = document.getElementById('employeeCompany');
-  sel.innerHTML = AppState.companies.map(co=>
-    `<option value="${esc(co.id)}">${esc(co.name)}</option>`
-  ).join('');
+function rebuildCompanyOptions(){
+  const sel = document.getElementById('empCo');
+  sel.innerHTML = S.companies.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+}
+function rebuildFilterChips(){
+  const el = document.getElementById('filterCompanyChips');
+  el.innerHTML = S.companies.map(c=>`
+    <div class="chip ${F.company===c.id?'active':''}" onclick="toggleCompanyFilter('${c.id}')">
+      ${esc(c.name)}<span class="chip-x">✕</span>
+    </div>`).join('');
+}
+function rebuildCtFilter(){
+  const sel = document.getElementById('ctFilterCo');
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">Semua Perusahaan</option>` +
+    S.companies.map(c=>`<option value="${esc(c.id)}" ${cur===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
 }
 
-function getFilteredEmployees(){
-  const kw = document.getElementById('searchInput').value.trim().toLowerCase();
-  return AppState.employees
-    .filter(e=>{
-      const matchSearch =
-        (e.name||'').toLowerCase().includes(kw) ||
-        (e.position||'').toLowerCase().includes(kw);
-      const matchFilter = !activeFilter || e.companyId === activeFilter;
-      return matchSearch && matchFilter;
-    })
-    .sort((a,b)=>sortWeight(a)-sortWeight(b));
+/* ═══════════════════════════════════════════════════
+   FILTER HELPERS
+═══════════════════════════════════════════════════ */
+function toggleCompanyFilter(id){
+  F.company = F.company===id ? null : id;
+  rebuildFilterChips();
+  renderEmployees();
+}
+function filterByCompany(id){
+  F.company = id;
+  goPage('employees');
+  rebuildFilterChips();
+  renderEmployees();
 }
 
-function renderEmployeeTable(tbodyId){
-  const tbody = document.getElementById(tbodyId);
+function applyFilters(list){
+  const kw = (F.search||'').toLowerCase();
+  return list.filter(e=>{
+    if(F.company && e.companyId!==F.company) return false;
+    if(F.type && e.status!==F.type) return false;
+    if(F.status){
+      const k = cStatus(e.contract).key;
+      if(F.status==='safe' && k!=='safe' && k!=='none') return false;
+      if(F.status==='urgent' && k!=='urgent') return false;
+      if(F.status==='expired' && k!=='expired') return false;
+    }
+    if(kw){
+      const hay = `${e.name} ${e.position} ${coName(e.companyId)}`.toLowerCase();
+      if(!hay.includes(kw)) return false;
+    }
+    return true;
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDER: EMPLOYEE TABLE (shared helper)
+═══════════════════════════════════════════════════ */
+function empRow(e, actions=true){
+  const co = S.companies.find(c=>c.id===e.companyId);
+  const st = cStatus(e.contract);
+  return `<tr>
+    <td class="td-name">${esc(e.name)}</td>
+    <td class="td-muted">${esc(co?.name||'—')}</td>
+    <td>${esc(e.position||'—')}</td>
+    <td><span class="badge b-dim">${esc(e.status||'—')}</span></td>
+    <td class="td-dim">${fmtD(e.contract)}</td>
+    <td><span class="badge ${st.cls}">${st.label}</span></td>
+    <td class="td-muted">${idr(e.salary)}</td>
+    ${actions?`<td><div style="display:flex;gap:5px">
+      <button class="btn btn-ghost btn-sm" onclick="editEmployee('${e.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${e.id}')">Hapus</button>
+    </div></td>`:''}
+  </tr>`;
+}
+
+function renderRecentTable(){
+  const tbody = document.getElementById('tbodyRecent');
   if(!tbody) return;
-  const filtered = getFilteredEmployees();
-  if(!filtered.length){
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">👤</div><p>Tidak ada data karyawan</p></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = filtered.map(emp=>{
-    const co = AppState.companies.find(c=>c.id===emp.companyId);
-    const st = contractStatus(emp.contract);
-    const days = daysLeft(emp.contract);
-    const daysStr = days===null ? '—' : days<0 ? `${Math.abs(days)}h lalu` : `${days}h`;
-    return `
-      <tr>
-        <td class="td-name">${esc(emp.name)}</td>
-        <td class="td-muted">${esc(co?.name||'—')}</td>
-        <td>${esc(emp.position||'—')}</td>
-        <td>${esc(emp.status||'—')}</td>
-        <td class="td-muted">${fmtDate(emp.contract)}</td>
-        <td><span class="status-badge ${st.cls}">${st.label}</span></td>
-        <td class="td-muted">${currency(emp.salary)}</td>
-        <td>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="editEmployee('${emp.id}')">Edit</button>
-            <button class="btn btn-danger-ghost btn-sm" onclick="deleteEmployee('${emp.id}')">Hapus</button>
-          </div>
-        </td>
-      </tr>`;
-  }).join('');
-}
-
-function renderContractTable(){
-  const tbody = document.getElementById('contractTable');
-  if(!tbody) return;
-  // Only show employees WITH a contract date, sorted by urgency
-  const list = AppState.employees
-    .filter(e=>e.contract)
-    .sort((a,b)=>sortWeight(a)-sortWeight(b));
+  // Show latest 10, sorted by contract urgency
+  const list = sortEmp(S.employees, 'contract').slice(0,10);
   if(!list.length){
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><p>Tidak ada data kontrak</p></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-glyph">👤</div><div class="empty-title">Belum ada karyawan</div></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(emp=>{
-    const co = AppState.companies.find(c=>c.id===emp.companyId);
-    const st = contractStatus(emp.contract);
-    const days = daysLeft(emp.contract);
-    const daysStr = days<0 ? `Expired ${Math.abs(days)} hari lalu` : days===0 ? 'Hari ini' : `${days} hari lagi`;
-    return `
-      <tr>
-        <td class="td-name">${esc(emp.name)}</td>
-        <td class="td-muted">${esc(co?.name||'—')}</td>
-        <td>${esc(emp.status||'—')}</td>
-        <td class="td-muted">${fmtDate(emp.contract)}</td>
-        <td>${daysStr}</td>
-        <td><span class="status-badge ${st.cls}">${st.label}</span></td>
-      </tr>`;
+  tbody.innerHTML = list.map(e=>empRow(e)).join('');
+}
+
+function renderEmployees(){
+  const tbody = document.getElementById('tbodyEmp');
+  if(!tbody) return;
+  let list = applyFilters(S.employees);
+  list = sortEmp(list, F.sort);
+  document.getElementById('empCount').textContent = `${list.length} dari ${S.employees.length} karyawan`;
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-glyph">🔍</div><div class="empty-title">Tidak ada hasil</div><div class="empty-sub">Coba ubah filter atau kata kunci</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(e=>empRow(e)).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDER: CONTRACTS
+═══════════════════════════════════════════════════ */
+function renderContracts(){
+  const tbody = document.getElementById('tbodyCt');
+  if(!tbody) return;
+  const ctCo = document.getElementById('ctFilterCo')?.value||'';
+  const ctSt = document.getElementById('ctFilterStatus')?.value||'';
+
+  let list = S.employees.filter(e=>e.contract);
+  if(ctCo) list = list.filter(e=>e.companyId===ctCo);
+  if(ctSt){
+    list = list.filter(e=>{
+      const k=cStatus(e.contract).key;
+      if(ctSt==='expired') return k==='expired';
+      if(ctSt==='urgent') return k==='urgent';
+      if(ctSt==='safe') return k==='safe';
+      return true;
+    });
+  }
+  list = sortEmp(list,'contract');
+
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-glyph">📋</div><div class="empty-title">Tidak ada data kontrak</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(e=>{
+    const co=S.companies.find(c=>c.id===e.companyId);
+    const st=cStatus(e.contract);
+    const n=daysLeft(e.contract);
+    const dStr = n===null?'—':n<0?`${Math.abs(n)} hari lalu`:n===0?'Hari ini':`${n} hari lagi`;
+    const rowCls = st.key==='expired'?'contract-row-danger':st.key==='urgent'?'contract-row-warn':'';
+    return `<tr class="${rowCls}">
+      <td class="td-name">${esc(e.name)}</td>
+      <td class="td-muted">${esc(co?.name||'—')}</td>
+      <td>${esc(e.position||'—')}</td>
+      <td><span class="badge b-dim">${esc(e.status||'—')}</span></td>
+      <td class="td-dim">${fmtD(e.contract)}</td>
+      <td>${dStr}</td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+    </tr>`;
   }).join('');
 }
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════════════════
+   RENDER ALL
+═══════════════════════════════════════════════════ */
+function renderAll(){
+  renderStats();
+  renderCompanies();
+  renderRecentTable();
+  // Refresh active page tables
+  if(document.getElementById('page-employees').classList.contains('active')) renderEmployees();
+  if(document.getElementById('page-contracts').classList.contains('active')) renderContracts();
+}
+
+/* ═══════════════════════════════════════════════════
    COMPANY CRUD
-═══════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 document.getElementById('addCompanyBtn').addEventListener('click',()=>{
-  resetModalForms();
-  openModal('companyModal');
+  resetForms(); openMo('mCompany');
 });
 
 function submitCompany(){
-  const name = document.getElementById('companyName').value.trim();
-  if(!name){ showToast('Nama perusahaan wajib diisi','error'); return; }
-
-  const editId = document.getElementById('companyEditId').value;
-
+  const name=document.getElementById('coName').value.trim();
+  if(!name){ toast('Nama perusahaan wajib diisi','err'); return; }
+  const editId=document.getElementById('coEditId').value;
   if(editId){
-    // EDIT
-    const idx = AppState.companies.findIndex(c=>c.id===editId);
-    if(idx<0){ showToast('Perusahaan tidak ditemukan','error'); return; }
-    const dupName = AppState.companies.some((c,i)=>i!==idx && (c.name||'').toLowerCase()===name.toLowerCase());
-    if(dupName){ showToast('Nama perusahaan sudah ada','error'); return; }
-    AppState.companies[idx] = {
-      ...AppState.companies[idx],
-      name,
-      location: document.getElementById('companyLocation').value.trim(),
-      description: document.getElementById('companyDescription').value.trim(),
-      updatedAt: Date.now()
-    };
-    saveAll(); renderAll();
-    showToast('Perusahaan berhasil diperbarui');
+    const idx=S.companies.findIndex(c=>c.id===editId);
+    if(idx<0){ toast('Data tidak ditemukan','err'); return; }
+    const dup=S.companies.some((c,i)=>i!==idx&&(c.name||'').toLowerCase()===name.toLowerCase());
+    if(dup){ toast('Nama sudah digunakan','err'); return; }
+    S.companies[idx]={...S.companies[idx],name,location:document.getElementById('coLoc').value.trim(),description:document.getElementById('coDesc').value.trim(),updatedAt:Date.now()};
+    toast('Perusahaan diperbarui');
   } else {
-    // ADD
-    const exists = AppState.companies.some(c=>(c.name||'').toLowerCase()===name.toLowerCase());
-    if(exists){ showToast('Nama perusahaan sudah ada','error'); return; }
-    AppState.companies.push({
-      id:uid(), updatedAt:Date.now(), name,
-      location: document.getElementById('companyLocation').value.trim(),
-      description: document.getElementById('companyDescription').value.trim()
-    });
-    saveAll(); renderAll();
-    showToast('Perusahaan berhasil ditambahkan');
+    if(S.companies.some(c=>(c.name||'').toLowerCase()===name.toLowerCase())){ toast('Nama sudah digunakan','err'); return; }
+    S.companies.push({id:uid(),name,location:document.getElementById('coLoc').value.trim(),description:document.getElementById('coDesc').value.trim(),createdAt:Date.now(),updatedAt:Date.now()});
+    toast('Perusahaan ditambahkan');
   }
-  closeModal('companyModal');
-  resetModalForms();
+  persistSave(); renderAll(); closeMo('mCompany'); resetForms();
 }
 
 function editCompany(id){
-  const co = AppState.companies.find(c=>c.id===id);
-  if(!co) return;
-  document.getElementById('companyEditId').value = co.id;
-  document.getElementById('companyName').value = co.name||'';
-  document.getElementById('companyLocation').value = co.location||'';
-  document.getElementById('companyDescription').value = co.description||'';
-  document.getElementById('companyModalTitle').textContent = 'Edit Perusahaan';
-  openModal('companyModal');
+  const co=S.companies.find(c=>c.id===id); if(!co) return;
+  document.getElementById('coEditId').value=co.id;
+  document.getElementById('coName').value=co.name||'';
+  document.getElementById('coLoc').value=co.location||'';
+  document.getElementById('coDesc').value=co.description||'';
+  document.getElementById('mCoTitle').textContent='Edit Perusahaan';
+  openMo('mCompany');
 }
 
 function deleteCompany(id){
-  const co = AppState.companies.find(c=>c.id===id);
-  if(!co) return;
-  const empCount = AppState.employees.filter(e=>e.companyId===id).length;
-  const msg = empCount
-    ? `Hapus "${co.name}" beserta ${empCount} karyawan?`
-    : `Hapus perusahaan "${co.name}"?`;
-  if(!confirm(msg)) return;
-  AppState.companies = AppState.companies.filter(c=>c.id!==id);
-  AppState.employees = AppState.employees.filter(e=>e.companyId!==id);
-  if(activeFilter===id) activeFilter=null;
-  saveAll(); renderAll(); renderFilterBar();
-  showToast('Perusahaan dihapus','info');
+  const co=S.companies.find(c=>c.id===id); if(!co) return;
+  const n=S.employees.filter(e=>e.companyId===id).length;
+  if(!confirm(`Hapus "${co.name}"${n?` beserta ${n} karyawan`:''}?`)) return;
+  S.companies=S.companies.filter(c=>c.id!==id);
+  S.employees=S.employees.filter(e=>e.companyId!==id);
+  if(F.company===id) F.company=null;
+  persistSave(); renderAll(); rebuildFilterChips();
+  toast('Perusahaan dihapus','warn');
 }
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    EMPLOYEE CRUD
-═══════════════════════════════════════ */
-// FIX: check companies before opening modal
+═══════════════════════════════════════════════════ */
 function openAddEmployee(){
-  if(!AppState.companies.length){
-    showToast('Tambahkan perusahaan terlebih dahulu','error');
-    return;
-  }
-  resetModalForms();
-  renderCompanyOptions();
-  openModal('employeeModal');
+  if(!S.companies.length){ toast('Tambahkan perusahaan terlebih dahulu','err'); return; }
+  resetForms(); rebuildCompanyOptions(); openMo('mEmployee');
 }
-
-document.getElementById('addEmployeeBtnDash').addEventListener('click', openAddEmployee);
-document.getElementById('addEmployeeBtn').addEventListener('click', openAddEmployee);
 
 function submitEmployee(){
-  const name = document.getElementById('employeeName').value.trim();
-  if(!name){ showToast('Nama karyawan wajib diisi','error'); return; }
-
-  const companyId = document.getElementById('employeeCompany').value;
-  if(!AppState.companies.some(c=>c.id===companyId)){
-    showToast('Pilih perusahaan yang valid','error'); return;
-  }
-
-  const editId = document.getElementById('employeeEditId').value;
-
-  const data = {
-    companyId,
-    name,
-    position:  document.getElementById('employeePosition').value.trim(),
-    status:    document.getElementById('employeeStatus').value,
-    contract:  document.getElementById('employeeContract').value,
-    salary:    Number(document.getElementById('employeeSalary').value)||0,
-    notes:     document.getElementById('employeeNotes').value.trim(),
-    updatedAt: Date.now()
+  const name=document.getElementById('empName').value.trim();
+  if(!name){ toast('Nama wajib diisi','err'); return; }
+  const coId=document.getElementById('empCo').value;
+  if(!S.companies.some(c=>c.id===coId)){ toast('Pilih perusahaan yang valid','err'); return; }
+  const editId=document.getElementById('empEditId').value;
+  const data={
+    companyId:coId,name,
+    position:document.getElementById('empPos').value.trim(),
+    status:document.getElementById('empType').value,
+    startDate:document.getElementById('empStart').value,
+    contract:document.getElementById('empEnd').value,
+    salary:Number(document.getElementById('empSalary').value)||0,
+    phone:document.getElementById('empPhone').value.trim(),
+    email:document.getElementById('empEmail').value.trim(),
+    notes:document.getElementById('empNotes').value.trim(),
+    updatedAt:Date.now()
   };
-
   if(editId){
-    const idx = AppState.employees.findIndex(e=>e.id===editId);
-    if(idx<0){ showToast('Data tidak ditemukan','error'); return; }
-    AppState.employees[idx] = { ...AppState.employees[idx], ...data };
-    showToast('Data karyawan diperbarui');
+    const idx=S.employees.findIndex(e=>e.id===editId);
+    if(idx<0){ toast('Data tidak ditemukan','err'); return; }
+    S.employees[idx]={...S.employees[idx],...data};
+    toast('Data karyawan diperbarui');
   } else {
-    AppState.employees.push({ id:uid(), ...data });
-    showToast('Karyawan berhasil ditambahkan');
+    S.employees.push({id:uid(),createdAt:Date.now(),...data});
+    toast('Karyawan ditambahkan');
   }
-
-  saveAll(); renderAll();
-  closeModal('employeeModal');
-  resetModalForms();
+  persistSave(); renderAll(); closeMo('mEmployee'); resetForms();
 }
 
 function editEmployee(id){
-  const emp = AppState.employees.find(e=>e.id===id);
-  if(!emp) return;
-  renderCompanyOptions();
-  document.getElementById('employeeEditId').value  = emp.id;
-  document.getElementById('employeeName').value    = emp.name||'';
-  document.getElementById('employeeCompany').value = emp.companyId||'';
-  document.getElementById('employeePosition').value= emp.position||'';
-  document.getElementById('employeeStatus').value  = emp.status||'Tetap';
-  document.getElementById('employeeContract').value= emp.contract||'';
-  document.getElementById('employeeSalary').value  = emp.salary||'';
-  document.getElementById('employeeNotes').value   = emp.notes||'';
-  document.getElementById('employeeModalTitle').textContent = 'Edit Karyawan';
-  openModal('employeeModal');
+  const e=S.employees.find(x=>x.id===id); if(!e) return;
+  rebuildCompanyOptions();
+  document.getElementById('empEditId').value=e.id;
+  document.getElementById('empName').value=e.name||'';
+  document.getElementById('empCo').value=e.companyId||'';
+  document.getElementById('empPos').value=e.position||'';
+  document.getElementById('empType').value=e.status||'Tetap';
+  document.getElementById('empStart').value=e.startDate||'';
+  document.getElementById('empEnd').value=e.contract||'';
+  document.getElementById('empSalary').value=e.salary||'';
+  document.getElementById('empPhone').value=e.phone||'';
+  document.getElementById('empEmail').value=e.email||'';
+  document.getElementById('empNotes').value=e.notes||'';
+  document.getElementById('mEmpTitle').textContent='Edit Karyawan';
+  openMo('mEmployee');
 }
 
 function deleteEmployee(id){
-  const emp = AppState.employees.find(e=>e.id===id);
-  if(!emp) return;
-  if(!confirm(`Hapus karyawan "${emp.name}"?`)) return;
-  AppState.employees = AppState.employees.filter(e=>e.id!==id);
-  saveAll(); renderAll();
-  showToast('Karyawan dihapus','info');
+  const e=S.employees.find(x=>x.id===id); if(!e) return;
+  if(!confirm(`Hapus karyawan "${e.name}"?`)) return;
+  S.employees=S.employees.filter(x=>x.id!==id);
+  persistSave(); renderAll();
+  toast('Karyawan dihapus','warn');
 }
 
-/* ═══════════════════════════════════════
-   SEARCH
-═══════════════════════════════════════ */
-document.getElementById('searchInput').addEventListener('input',()=>{
-  renderEmployeeTable('employeeTableDash');
-  renderEmployeeTable('employeeTable');
+/* ═══════════════════════════════════════════════════
+   FILTER EVENTS
+═══════════════════════════════════════════════════ */
+document.getElementById('searchInput').addEventListener('input',e=>{
+  F.search=e.target.value;
+  renderRecentTable();
+  renderEmployees();
 });
+document.getElementById('filterType').addEventListener('change',e=>{ F.type=e.target.value; renderEmployees(); });
+document.getElementById('filterStatus').addEventListener('change',e=>{ F.status=e.target.value; renderEmployees(); });
+document.getElementById('sortBy').addEventListener('change',e=>{ F.sort=e.target.value; renderEmployees(); });
+document.getElementById('filterClearBtn').addEventListener('click',()=>{
+  F.company=null; F.type=''; F.status=''; F.sort='name';
+  document.getElementById('filterType').value='';
+  document.getElementById('filterStatus').value='';
+  document.getElementById('sortBy').value='name';
+  rebuildFilterChips(); renderEmployees();
+});
+document.getElementById('ctFilterCo').addEventListener('change', renderContracts);
+document.getElementById('ctFilterStatus').addEventListener('change', renderContracts);
 
-/* ═══════════════════════════════════════
-   EXPORT EXCEL
-═══════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   EXPORT: EXCEL
+═══════════════════════════════════════════════════ */
 function exportExcel(){
-  if(!AppState.employees.length){ showToast('Tidak ada data untuk diexport','error'); return; }
-  const rows = AppState.employees.map(e=>{
-    const co = AppState.companies.find(c=>c.id===e.companyId);
+  if(!S.employees.length){ toast('Tidak ada data','err'); return; }
+  const rows=S.employees.map(e=>{
+    const co=S.companies.find(c=>c.id===e.companyId);
+    const st=cStatus(e.contract);
     return {
-      Nama:e.name, Perusahaan:co?.name||'-', Jabatan:e.position,
-      Tipe:e.status, 'Kontrak Berakhir':e.contract||'-',
-      'Sisa Hari':daysLeft(e.contract)??'-',
-      Status:contractStatus(e.contract).label,
-      'Gaji (IDR)':e.salary||0, Catatan:e.notes||''
+      Nama:e.name, Perusahaan:co?.name||'—', Jabatan:e.position,
+      Tipe:e.status, Mulai:e.startDate||'', 'Kontrak Berakhir':e.contract||'',
+      'Sisa Hari':daysLeft(e.contract)??'', Status:st.label,
+      'Gaji (IDR)':e.salary||0, Telepon:e.phone||'',
+      Email:e.email||'', Catatan:e.notes||''
     };
   });
-  const ws  = XLSX.utils.json_to_sheet(rows);
-  const wb  = XLSX.utils.book_new();
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Karyawan');
-  XLSX.writeFile(wb,'naruna_hr.xlsx');
-  showToast('Excel berhasil diexport');
+  XLSX.writeFile(wb,`naruna_hr_${Date.now()}.xlsx`);
+  toast('Excel berhasil diexport');
 }
 
-document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
-document.getElementById('exportExcelBtn2').addEventListener('click', exportExcel);
-
-/* ═══════════════════════════════════════
-   EXPORT PDF
-═══════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   EXPORT: PDF
+═══════════════════════════════════════════════════ */
 function exportPDF(){
-  if(!AppState.employees.length){ showToast('Tidak ada data untuk diexport','error'); return; }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  if(!doc.autoTable){ showToast('Plugin PDF gagal dimuat','error'); return; }
-  doc.setFontSize(16);
-  doc.text('Naruna HR — Laporan Karyawan', 14, 18);
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 26);
-  const rows = AppState.employees.map(e=>{
-    const co = AppState.companies.find(c=>c.id===e.companyId);
-    const st = contractStatus(e.contract);
-    return [e.name, co?.name||'-', e.position||'-', e.status||'-', fmtDate(e.contract), st.label, currency(e.salary)];
+  if(!S.employees.length){ toast('Tidak ada data','err'); return; }
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape'});
+  if(!doc.autoTable){ toast('Plugin PDF gagal','err'); return; }
+  doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text('Naruna HR — Laporan Karyawan',14,16);
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(120);
+  doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')} | Total: ${S.employees.length} karyawan`,14,23);
+  const rows=S.employees.map(e=>{
+    const co=S.companies.find(c=>c.id===e.companyId);
+    return [e.name,co?.name||'—',e.position||'—',e.status||'—',fmtD(e.contract),cStatus(e.contract).label,idr(e.salary)];
   });
   doc.autoTable({
-    startY:32,
+    startY:28,
     head:[['Nama','Perusahaan','Jabatan','Tipe','Kontrak','Status','Gaji']],
     body:rows,
-    styles:{fontSize:9},
-    headStyles:{fillColor:[79,70,229]}
+    styles:{fontSize:8,cellPadding:4},
+    headStyles:{fillColor:[20,20,30],textColor:[201,168,76],fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[245,245,250]},
+    columnStyles:{6:{halign:'right'}}
   });
-  doc.save('naruna_hr.pdf');
-  showToast('PDF berhasil diexport');
+  doc.save(`naruna_hr_${Date.now()}.pdf`);
+  toast('PDF berhasil diexport');
 }
 
-document.getElementById('exportPDFBtn').addEventListener('click', exportPDF);
-document.getElementById('exportPDFBtn2').addEventListener('click', exportPDF);
-
-/* ═══════════════════════════════════════
-   EXPORT JSON
-═══════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   EXPORT: JSON
+═══════════════════════════════════════════════════ */
 function exportJSON(){
-  const blob = new Blob([JSON.stringify(AppState,null,2)],{type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `naruna_hr_backup_${Date.now()}.json`;
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`naruna_hr_backup_${Date.now()}.json`;
   document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
-  showToast('Backup JSON berhasil didownload');
+  document.body.removeChild(a); URL.revokeObjectURL(a.href);
+  toast('Backup JSON didownload');
 }
-document.getElementById('exportJSONBtn').addEventListener('click', exportJSON);
 
-/* ═══════════════════════════════════════
-   IMPORT JSON
-═══════════════════════════════════════ */
-document.getElementById('importJSONInput').addEventListener('change', e=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev=>{
+/* ═══════════════════════════════════════════════════
+   IMPORT: JSON
+═══════════════════════════════════════════════════ */
+document.getElementById('impJson').addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
     try{
-      const data = JSON.parse(ev.target.result);
-      if(!Array.isArray(data.companies)||!Array.isArray(data.employees)){
-        showToast('Format JSON tidak valid','error'); return;
-      }
-      if(!confirm(`Import akan mengganti semua data saat ini. Lanjutkan?`)) return;
-      AppState.meta      = data.meta || { updatedAt:Date.now(), version:2 };
-      AppState.companies = data.companies;
-      AppState.employees = data.employees;
-      saveAll(); renderAll();
-      showToast(`Import berhasil: ${data.companies.length} perusahaan, ${data.employees.length} karyawan`);
-    }catch(err){
-      console.error(err);
-      showToast('Gagal membaca file JSON','error');
-    }
+      const d=JSON.parse(ev.target.result);
+      if(!Array.isArray(d.companies)||!Array.isArray(d.employees)){ toast('Format JSON tidak valid','err'); return; }
+      if(!confirm(`Import akan mengganti semua data saat ini.\n${d.companies.length} perusahaan, ${d.employees.length} karyawan.\nLanjutkan?`)) return;
+      S.meta=d.meta||S.meta;
+      S.companies=d.companies;
+      S.employees=d.employees;
+      await persistSave(); renderAll();
+      toast(`Import berhasil: ${d.companies.length} perusahaan, ${d.employees.length} karyawan`,'info');
+    }catch(err){ console.error(err); toast('Gagal membaca JSON','err'); }
     e.target.value='';
   };
   reader.readAsText(file);
 });
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════════════════════════
+   WIRE BUTTONS
+═══════════════════════════════════════════════════ */
+document.getElementById('expExcelBtn').addEventListener('click',exportExcel);
+document.getElementById('expPdfBtn').addEventListener('click',exportPDF);
+document.getElementById('expExcel2').addEventListener('click',exportExcel);
+document.getElementById('expPdf2').addEventListener('click',exportPDF);
+document.getElementById('expJson').addEventListener('click',exportJSON);
+
+/* ═══════════════════════════════════════════════════
    INIT
-═══════════════════════════════════════ */
-Storage.load();
-renderAll();
+═══════════════════════════════════════════════════ */
+(async()=>{
+  await initStorage();
+  await persistLoad();
+  renderAll();
+})();
 </script>
 
 </body>

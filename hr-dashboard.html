@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Naruna Contract Monitor</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -18,179 +19,236 @@
 }
 
 :root{
-  --bg:#0f1118;
-  --bg2:#171b25;
-  --card:#1d2230;
-  --card2:#252b3d;
 
-  --border:#31384f;
+  --bg:#0e1117;
+  --bg2:#161b24;
 
-  --text:#edf1ff;
-  --text2:#b8c0dd;
-  --text3:#7f89ad;
+  --card:#1c2230;
+  --card2:#252d3d;
+
+  --border:#30384c;
+
+  --text:#edf2ff;
+  --text2:#b7c0dd;
+  --text3:#7f89a8;
 
   --accent:#7c6cff;
-  --accent2:#6d5df6;
+  --accent2:#6655f2;
 
   --green:#22c55e;
   --yellow:#eab308;
   --red:#ef4444;
 
-  --radius:18px;
-  --shadow:0 10px 30px rgba(0,0,0,0.35);
+  --radius:22px;
+
+  --shadow:
+    0 10px 30px rgba(0,0,0,0.35);
+
 }
 
 body{
+
   font-family:'Inter',sans-serif;
+
   background:
-    radial-gradient(circle at top left,#232a42 0%,transparent 30%),
-    radial-gradient(circle at bottom right,#1b2440 0%,transparent 30%),
+    radial-gradient(circle at top left,#20283e 0%,transparent 30%),
+    radial-gradient(circle at bottom right,#171d30 0%,transparent 30%),
     var(--bg);
 
   color:var(--text);
+
   min-height:100vh;
+
 }
 
 button,
-input{
+input,
+select{
+
   font-family:'Inter',sans-serif;
+
 }
 
 .hidden{
-  display:none !important;
+  display:none!important;
 }
 
-/* TOPBAR */
+/* =========================
+TOPBAR
+========================= */
 
 .topbar{
+
   position:sticky;
   top:0;
+
   z-index:100;
 
   backdrop-filter:blur(14px);
 
-  background:rgba(15,17,24,0.88);
+  background:rgba(14,17,23,0.88);
 
-  border-bottom:1px solid rgba(255,255,255,0.05);
+  border-bottom:
+    1px solid rgba(255,255,255,0.05);
 
-  padding:16px 20px;
+  padding:16px 22px;
 
   display:flex;
   align-items:center;
   justify-content:space-between;
+
 }
 
 .brand{
+
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:14px;
+
 }
 
 .logo{
-  width:44px;
-  height:44px;
 
-  border-radius:14px;
-
-  background:linear-gradient(
-    135deg,
-    var(--accent),
-    #9d91ff
-  );
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  font-size:20px;
-  font-weight:800;
-}
-
-.brand-title{
-  font-size:20px;
-  font-weight:800;
-}
-
-.brand-sub{
-  font-size:12px;
-  color:var(--text3);
-  margin-top:2px;
-}
-
-.notif-btn{
-  position:relative;
-
-  background:var(--card);
-  border:1px solid var(--border);
-
-  width:52px;
-  height:52px;
+  width:48px;
+  height:48px;
 
   border-radius:16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--accent),
+      #9b8fff
+    );
 
   display:flex;
   align-items:center;
   justify-content:center;
 
   font-size:22px;
+  font-weight:800;
 
-  cursor:pointer;
-
-  transition:0.2s;
 }
 
-.notif-btn:hover{
-  transform:translateY(-2px);
-  background:var(--card2);
+.brand-title{
+
+  font-size:22px;
+  font-weight:800;
+
 }
 
-.notif-count{
-  position:absolute;
+.brand-sub{
 
-  top:-6px;
-  right:-6px;
+  font-size:12px;
+  color:var(--text3);
 
-  background:var(--red);
-  color:#fff;
+  margin-top:3px;
 
-  min-width:22px;
-  height:22px;
+}
 
-  border-radius:999px;
+.topbar-right{
+
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+}
+
+.notif-btn{
+
+  position:relative;
+
+  width:52px;
+  height:52px;
+
+  border:none;
+
+  background:var(--card);
+
+  border-radius:16px;
 
   display:flex;
   align-items:center;
   justify-content:center;
 
+  cursor:pointer;
+
+  font-size:22px;
+
+  color:#fff;
+
+  transition:0.2s;
+
+}
+
+.notif-btn:hover{
+
+  transform:translateY(-2px);
+
+  background:var(--card2);
+
+}
+
+.notif-count{
+
+  position:absolute;
+
+  top:-6px;
+  right:-6px;
+
+  min-width:24px;
+  height:24px;
+
+  border-radius:999px;
+
+  background:var(--red);
+
+  color:#fff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:0 7px;
+
   font-size:11px;
   font-weight:700;
 
-  padding:0 6px;
 }
 
-/* WRAPPER */
+/* =========================
+WRAPPER
+========================= */
 
 .wrapper{
-  max-width:1400px;
+
+  max-width:1500px;
+
   margin:auto;
+
   padding:24px;
+
 }
 
-/* HERO */
+/* =========================
+HERO
+========================= */
 
 .hero{
+
   background:
     linear-gradient(
       135deg,
-      rgba(124,108,255,0.25),
-      rgba(124,108,255,0.05)
+      rgba(124,108,255,0.24),
+      rgba(124,108,255,0.06)
     );
 
-  border:1px solid rgba(124,108,255,0.18);
+  border:
+    1px solid rgba(124,108,255,0.16);
 
-  border-radius:30px;
+  border-radius:34px;
 
-  padding:32px;
+  padding:34px;
 
   margin-bottom:24px;
 
@@ -199,86 +257,70 @@ input{
   align-items:center;
   gap:20px;
   flex-wrap:wrap;
+
 }
 
 .hero h1{
-  font-size:34px;
-  font-weight:800;
+
+  font-size:36px;
   line-height:1.15;
+
+  font-weight:800;
+
 }
 
 .hero p{
+
   color:var(--text2);
-  margin-top:10px;
-  max-width:700px;
+
+  margin-top:12px;
+
+  max-width:760px;
+
+  line-height:1.7;
+
 }
 
 .hero-badge{
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.1);
 
-  padding:14px 18px;
+  background:
+    rgba(255,255,255,0.08);
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  padding:16px 18px;
 
   border-radius:18px;
 
   font-size:14px;
+
 }
 
-/* ACTIONS */
+/* =========================
+KPI
+========================= */
 
-.actions{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  margin-bottom:24px;
-}
+.kpi-grid{
 
-.btn{
-  border:none;
-  cursor:pointer;
-
-  border-radius:16px;
-
-  padding:14px 18px;
-
-  font-weight:600;
-
-  transition:0.2s;
-}
-
-.btn:hover{
-  transform:translateY(-2px);
-}
-
-.btn-primary{
-  background:linear-gradient(
-    135deg,
-    var(--accent),
-    var(--accent2)
-  );
-
-  color:#fff;
-}
-
-.btn-secondary{
-  background:var(--card);
-  color:var(--text);
-
-  border:1px solid var(--border);
-}
-
-/* OUTLETS */
-
-.outlet-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:20px;
+
+  grid-template-columns:
+    repeat(auto-fit,minmax(220px,1fr));
+
+  gap:18px;
+
+  margin-bottom:24px;
+
 }
 
-.outlet-card{
-  background:rgba(29,34,48,0.88);
+.kpi-card{
 
-  border:1px solid rgba(255,255,255,0.05);
+  background:
+    rgba(28,34,48,0.88);
+
+  border:
+    1px solid rgba(255,255,255,0.05);
 
   border-radius:28px;
 
@@ -286,147 +328,385 @@ input{
 
   box-shadow:var(--shadow);
 
-  transition:0.2s;
 }
 
-.outlet-card:hover{
-  transform:translateY(-4px);
-}
+.kpi-top{
 
-.outlet-top{
   display:flex;
+  align-items:center;
   justify-content:space-between;
-  gap:12px;
+
 }
 
-.outlet-name{
-  font-size:20px;
-  font-weight:700;
-}
+.kpi-title{
 
-.outlet-total{
   color:var(--text3);
+
   font-size:13px;
-  margin-top:6px;
+
 }
 
-.outlet-actions{
+.kpi-icon{
+
+  width:46px;
+  height:46px;
+
+  border-radius:14px;
+
+  background:
+    rgba(255,255,255,0.06);
+
   display:flex;
-  gap:8px;
+  align-items:center;
+  justify-content:center;
+
+  font-size:20px;
+
 }
 
-.icon-btn{
-  width:40px;
-  height:40px;
+.kpi-value{
+
+  margin-top:18px;
+
+  font-size:34px;
+  font-weight:800;
+
+}
+
+/* =========================
+ACTION BAR
+========================= */
+
+.action-bar{
+
+  display:flex;
+  gap:12px;
+
+  flex-wrap:wrap;
+
+  margin-bottom:24px;
+
+}
+
+.btn{
 
   border:none;
   cursor:pointer;
 
-  border-radius:12px;
+  border-radius:18px;
 
-  background:var(--card2);
-  color:var(--text);
+  padding:14px 18px;
+
+  font-weight:600;
 
   transition:0.2s;
+
 }
 
-.icon-btn:hover{
-  background:var(--accent);
+.btn:hover{
+
+  transform:translateY(-2px);
+
 }
 
-.employee-list{
-  margin-top:20px;
+.btn-primary{
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--accent),
+      var(--accent2)
+    );
+
+  color:#fff;
+
+}
+
+.btn-secondary{
+
+  background:var(--card);
+
+  border:
+    1px solid var(--border);
+
+  color:var(--text);
+
+}
+
+/* =========================
+FILTER
+========================= */
+
+.filter-wrap{
 
   display:flex;
-  flex-direction:column;
-  gap:12px;
+  gap:14px;
+
+  flex-wrap:wrap;
+
+  margin-bottom:24px;
+
 }
 
-.employee-item{
-  background:rgba(255,255,255,0.03);
+.search-box{
 
-  border:1px solid rgba(255,255,255,0.05);
+  flex:1;
+  min-width:240px;
+
+}
+
+.input,
+.select{
+
+  width:100%;
+
+  background:var(--card);
+
+  border:
+    1px solid var(--border);
+
+  color:var(--text);
 
   border-radius:18px;
 
-  padding:16px;
+  padding:15px 16px;
+
+  outline:none;
+
 }
 
-.employee-name{
-  font-size:16px;
-  font-weight:700;
+.input:focus,
+.select:focus{
+
+  border-color:var(--accent);
+
 }
 
-.employee-phone{
-  font-size:13px;
+/* =========================
+OUTLET GRID
+========================= */
+
+.outlet-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(auto-fit,minmax(330px,1fr));
+
+  gap:22px;
+
+}
+
+.outlet-card{
+
+  background:
+    rgba(28,34,48,0.88);
+
+  border:
+    1px solid rgba(255,255,255,0.05);
+
+  border-radius:30px;
+
+  padding:22px;
+
+  box-shadow:var(--shadow);
+
+}
+
+.outlet-top{
+
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+
+}
+
+.outlet-name{
+
+  font-size:22px;
+  font-weight:800;
+
+}
+
+.outlet-meta{
+
+  margin-top:8px;
+
   color:var(--text3);
-  margin-top:4px;
+
+  font-size:13px;
+  line-height:1.7;
+
 }
 
-.employee-salary{
-  margin-top:10px;
-  color:#9fd6ff;
-  font-weight:600;
+.outlet-actions{
+
+  display:flex;
+  gap:8px;
+
 }
 
-.contract-box{
-  margin-top:14px;
+.icon-btn{
 
-  padding:12px;
+  width:42px;
+  height:42px;
+
+  border:none;
+
+  background:var(--card2);
+
+  color:#fff;
 
   border-radius:14px;
 
-  background:rgba(255,255,255,0.03);
+  cursor:pointer;
+
+  transition:0.2s;
+
 }
 
-.contract-dates{
-  font-size:13px;
-  color:var(--text2);
-  line-height:1.6;
+.icon-btn:hover{
+
+  background:var(--accent);
+
 }
 
-.contract-status{
-  margin-top:10px;
+/* =========================
+TABLE
+========================= */
+
+.table-wrap{
+
+  overflow:auto;
+
+  margin-top:22px;
+
+}
+
+table{
+
+  width:100%;
+
+  border-collapse:collapse;
+
+}
+
+th{
+
+  text-align:left;
+
+  font-size:12px;
+  font-weight:700;
+
+  color:var(--text3);
+
+  padding:12px;
+
+  cursor:pointer;
+
+  user-select:none;
+
+  white-space:nowrap;
+
+}
+
+td{
+
+  padding:14px 12px;
+
+  border-top:
+    1px solid rgba(255,255,255,0.05);
+
+  vertical-align:top;
+
+  font-size:14px;
+
+}
+
+tr:hover{
+
+  background:
+    rgba(255,255,255,0.03);
+
+}
+
+.employee-name{
+
+  font-weight:700;
+
+}
+
+.employee-phone{
+
+  color:var(--text3);
+
+  font-size:12px;
+
+  margin-top:4px;
+
+}
+
+/* =========================
+BADGE
+========================= */
+
+.badge{
 
   display:inline-flex;
   align-items:center;
+  justify-content:center;
 
-  padding:7px 12px;
+  padding:8px 12px;
 
   border-radius:999px;
 
   font-size:12px;
   font-weight:700;
+
+  white-space:nowrap;
+
 }
 
-.status-safe{
-  background:rgba(34,197,94,0.15);
+.badge-safe{
+
+  background:
+    rgba(34,197,94,0.15);
+
   color:var(--green);
+
 }
 
-.status-warning{
-  background:rgba(234,179,8,0.15);
+.badge-warning{
+
+  background:
+    rgba(234,179,8,0.15);
+
   color:var(--yellow);
+
 }
 
-.status-danger{
-  background:rgba(239,68,68,0.15);
+.badge-danger{
+
+  background:
+    rgba(239,68,68,0.15);
+
   color:var(--red);
+
 }
 
-.employee-actions{
-  display:flex;
-  gap:10px;
-  margin-top:14px;
-}
-
-/* MODAL */
+/* =========================
+MODAL
+========================= */
 
 .modal-wrap{
+
   position:fixed;
   inset:0;
 
-  background:rgba(0,0,0,0.65);
+  background:
+    rgba(0,0,0,0.7);
+
+  z-index:999;
 
   display:flex;
   align-items:center;
@@ -434,155 +714,176 @@ input{
 
   padding:20px;
 
-  z-index:999;
-
   backdrop-filter:blur(5px);
+
 }
 
 .modal{
+
   width:100%;
-  max-width:560px;
+  max-width:620px;
 
   background:var(--bg2);
 
-  border:1px solid var(--border);
+  border:
+    1px solid var(--border);
 
-  border-radius:28px;
+  border-radius:30px;
 
   overflow:hidden;
+
 }
 
 .modal-header{
+
   padding:22px 24px;
 
-  border-bottom:1px solid rgba(255,255,255,0.06);
+  border-bottom:
+    1px solid rgba(255,255,255,0.06);
 
   display:flex;
   justify-content:space-between;
   align-items:center;
+
 }
 
 .modal-title{
-  font-size:22px;
+
+  font-size:24px;
   font-weight:800;
+
 }
 
 .modal-body{
+
   padding:24px;
-}
 
-.form-group{
-  margin-bottom:18px;
-}
-
-.label{
-  display:block;
-  margin-bottom:8px;
-
-  font-size:13px;
-  color:var(--text2);
-}
-
-.input{
-  width:100%;
-
-  background:var(--card);
-
-  border:1px solid var(--border);
-
-  color:var(--text);
-
-  border-radius:16px;
-
-  padding:14px 16px;
-
-  outline:none;
-}
-
-.input:focus{
-  border-color:var(--accent);
 }
 
 .modal-footer{
+
   padding:24px;
 
   display:flex;
-  gap:12px;
   justify-content:flex-end;
+  gap:12px;
+
 }
 
-/* NOTIFICATION PANEL */
+.form-group{
+
+  margin-bottom:18px;
+
+}
+
+.label{
+
+  display:block;
+
+  margin-bottom:8px;
+
+  color:var(--text2);
+
+  font-size:13px;
+
+}
+
+/* =========================
+NOTIFICATION PANEL
+========================= */
 
 .notification-panel{
+
   position:fixed;
 
   top:90px;
   right:20px;
 
-  width:380px;
+  width:400px;
   max-height:70vh;
 
   overflow:auto;
 
   background:var(--bg2);
 
-  border:1px solid var(--border);
+  border:
+    1px solid var(--border);
 
-  border-radius:24px;
+  border-radius:28px;
+
+  padding:18px;
 
   box-shadow:var(--shadow);
 
   z-index:998;
 
-  padding:18px;
 }
 
 .notification-title{
-  font-size:18px;
+
+  font-size:20px;
   font-weight:800;
-  margin-bottom:16px;
+
+  margin-bottom:18px;
+
 }
 
 .notif-item{
-  background:rgba(255,255,255,0.04);
 
-  border:1px solid rgba(255,255,255,0.05);
+  background:
+    rgba(255,255,255,0.04);
+
+  border:
+    1px solid rgba(255,255,255,0.05);
 
   border-radius:18px;
 
   padding:16px;
 
   margin-bottom:12px;
-}
 
-.notif-item:last-child{
-  margin-bottom:0;
 }
 
 .notif-name{
+
   font-weight:700;
+
 }
 
 .notif-outlet{
+
   color:var(--text3);
+
   font-size:13px;
-  margin-top:4px;
+
+  margin-top:5px;
+
 }
 
-.notif-expire{
+.notif-days{
+
   margin-top:10px;
 
   color:var(--yellow);
 
   font-size:13px;
   font-weight:700;
+
 }
 
 .empty{
+
   text-align:center;
+
   color:var(--text3);
+
   padding:30px;
+
 }
+
+/* =========================
+RESPONSIVE
+========================= */
 
 @media(max-width:768px){
 
@@ -595,19 +896,28 @@ input{
   }
 
   .hero h1{
-    font-size:26px;
+    font-size:28px;
   }
 
   .notification-panel{
-    width:calc(100vw - 32px);
+
+    width:
+      calc(100vw - 32px);
+
     right:16px;
+
   }
 
 }
 
 </style>
 </head>
+
 <body>
+
+<!-- =========================
+TOPBAR
+========================= -->
 
 <div class="topbar">
 
@@ -618,35 +928,48 @@ input{
     </div>
 
     <div>
+
       <div class="brand-title">
         Naruna Contract Monitor
       </div>
 
       <div class="brand-sub">
-        Monitoring kontrak karyawan seluruh outlet
+        Monitoring kontrak seluruh outlet
       </div>
+
     </div>
 
   </div>
 
-  <button
-    class="notif-btn"
-    id="notifBtn"
-  >
-    🔔
+  <div class="topbar-right">
 
-    <div
-      class="notif-count hidden"
-      id="notifCount"
+    <button
+      class="notif-btn"
+      id="notifBtn"
     >
-      0
-    </div>
 
-  </button>
+      🔔
+
+      <div
+        class="notif-count hidden"
+        id="notifCount"
+      >
+        0
+      </div>
+
+    </button>
+
+  </div>
 
 </div>
 
+<!-- =========================
+WRAPPER
+========================= -->
+
 <div class="wrapper">
+
+  <!-- HERO -->
 
   <div class="hero">
 
@@ -654,24 +977,125 @@ input{
 
       <h1>
         Monitoring Kontrak Karyawan
-        Jadi Lebih Mudah
+        Lebih Cepat & Profesional
       </h1>
 
       <p>
-        Tambahkan outlet, kelola karyawan,
-        dan dapatkan notifikasi otomatis
-        saat kontrak hampir habis.
+        Pantau seluruh kontrak karyawan,
+        dapatkan notifikasi otomatis,
+        dan kelola data outlet dengan
+        sistem ringan berbasis IndexedDB.
       </p>
 
     </div>
 
     <div class="hero-badge">
-      Data tersimpan aman di device menggunakan IndexedDB
+      💾 Data aman tersimpan di device
     </div>
 
   </div>
 
-  <div class="actions">
+  <!-- KPI -->
+
+  <div class="kpi-grid">
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-title">
+          Total Karyawan
+        </div>
+
+        <div class="kpi-icon">
+          👥
+        </div>
+
+      </div>
+
+      <div
+        class="kpi-value"
+        id="kpiEmployees"
+      >
+        0
+      </div>
+
+    </div>
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-title">
+          Kontrak Aktif
+        </div>
+
+        <div class="kpi-icon">
+          🟢
+        </div>
+
+      </div>
+
+      <div
+        class="kpi-value"
+        id="kpiActive"
+      >
+        0
+      </div>
+
+    </div>
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-title">
+          Hampir Habis
+        </div>
+
+        <div class="kpi-icon">
+          ⏳
+        </div>
+
+      </div>
+
+      <div
+        class="kpi-value"
+        id="kpiWarning"
+      >
+        0
+      </div>
+
+    </div>
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-title">
+          Sudah Habis
+        </div>
+
+        <div class="kpi-icon">
+          🔴
+        </div>
+
+      </div>
+
+      <div
+        class="kpi-value"
+        id="kpiExpired"
+      >
+        0
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ACTION BAR -->
+
+  <div class="action-bar">
 
     <button
       class="btn btn-primary"
@@ -682,26 +1106,63 @@ input{
 
     <button
       class="btn btn-secondary"
-      id="exportBtn"
+      id="exportJsonBtn"
     >
-      💾 Backup Data
+      💾 Backup JSON
     </button>
 
     <button
       class="btn btn-secondary"
-      id="importBtn"
+      id="exportCsvBtn"
+    >
+      📄 Export Excel
+    </button>
+
+    <button
+      class="btn btn-secondary"
+      id="restoreBtn"
     >
       📂 Restore Data
     </button>
 
     <input
       type="file"
-      id="importFile"
+      id="restoreInput"
       class="hidden"
       accept=".json"
     >
 
   </div>
+
+  <!-- FILTER -->
+
+  <div class="filter-wrap">
+
+    <div class="search-box">
+
+      <input
+        type="text"
+        id="searchInput"
+        class="input"
+        placeholder="Cari nama karyawan..."
+      >
+
+    </div>
+
+    <select
+      id="filterOutlet"
+      class="select"
+    >
+
+      <option value="">
+        Semua Outlet
+      </option>
+
+    </select>
+
+  </div>
+
+  <!-- OUTLET GRID -->
 
   <div
     class="outlet-grid"
@@ -710,7 +1171,26 @@ input{
 
 </div>
 
-<!-- MODAL -->
+<!-- =========================
+NOTIFICATION PANEL
+========================= -->
+
+<div
+  class="notification-panel hidden"
+  id="notifPanel"
+>
+
+  <div class="notification-title">
+    Kontrak Akan Berakhir
+  </div>
+
+  <div id="notifList"></div>
+
+</div>
+
+<!-- =========================
+MODAL
+========================= -->
 
 <div
   class="modal-wrap hidden"
@@ -739,8 +1219,7 @@ input{
     <div
       class="modal-body"
       id="modalBody"
-    >
-    </div>
+    ></div>
 
     <div class="modal-footer">
 
@@ -764,150 +1243,168 @@ input{
 
 </div>
 
-<!-- NOTIFICATION -->
-
-<div
-  class="notification-panel hidden"
-  id="notifPanel"
->
-
-  <div class="notification-title">
-    Kontrak Akan Berakhir
-  </div>
-
-  <div id="notifList"></div>
-
-</div>
-
 <script>
 
-/* =====================================================
+/* =========================
 INDEXED DB
-===================================================== */
+========================= */
 
-const DB_NAME = 'naruna_contract_monitor';
-const STORE_NAME = 'app_data';
+const DB_NAME =
+  'naruna_contract_monitor';
+
+const STORE_NAME =
+  'app_data';
 
 let db = null;
 
 function openDB(){
 
-  return new Promise((resolve,reject)=>{
+  return new Promise(
+    (resolve,reject)=>{
 
-    const request =
-      indexedDB.open(DB_NAME,1);
-
-    request.onupgradeneeded = e=>{
-
-      db = e.target.result;
-
-      if(
-        !db.objectStoreNames.contains(
-          STORE_NAME
-        )
-      ){
-
-        db.createObjectStore(
-          STORE_NAME,
-          { keyPath:'key' }
+      const request =
+        indexedDB.open(
+          DB_NAME,
+          1
         );
 
-      }
+      request.onupgradeneeded =
+        e=>{
 
-    };
+          db =
+            e.target.result;
 
-    request.onsuccess = e=>{
+          if(
+            !db.objectStoreNames.contains(
+              STORE_NAME
+            )
+          ){
 
-      db = e.target.result;
-      resolve();
+            db.createObjectStore(
+              STORE_NAME,
+              {
+                keyPath:'key'
+              }
+            );
 
-    };
+          }
 
-    request.onerror = e=>{
+        };
 
-      reject(e);
+      request.onsuccess =
+        e=>{
 
-    };
+          db =
+            e.target.result;
 
-  });
+          resolve();
+
+        };
+
+      request.onerror =
+        err=>reject(err);
+
+    }
+  );
 
 }
 
 function saveData(data){
 
-  return new Promise((resolve,reject)=>{
+  return new Promise(
+    (resolve,reject)=>{
 
-    const tx =
-      db.transaction(
-        STORE_NAME,
-        'readwrite'
-      );
+      const tx =
+        db.transaction(
+          STORE_NAME,
+          'readwrite'
+        );
 
-    const store =
-      tx.objectStore(STORE_NAME);
+      tx.objectStore(STORE_NAME)
+      .put({
+        key:'main',
+        value:data
+      });
 
-    store.put({
-      key:'main',
-      value:data
-    });
+      tx.oncomplete =
+        ()=>resolve();
 
-    tx.oncomplete = ()=>resolve();
+      tx.onerror =
+        err=>reject(err);
 
-    tx.onerror = err=>reject(err);
-
-  });
+    }
+  );
 
 }
 
 function loadData(){
 
-  return new Promise((resolve,reject)=>{
+  return new Promise(
+    (resolve,reject)=>{
 
-    const tx =
-      db.transaction(
-        STORE_NAME,
-        'readonly'
-      );
+      const tx =
+        db.transaction(
+          STORE_NAME,
+          'readonly'
+        );
 
-    const store =
-      tx.objectStore(STORE_NAME);
+      const req =
+        tx.objectStore(STORE_NAME)
+        .get('main');
 
-    const req =
-      store.get('main');
+      req.onsuccess = ()=>{
 
-    req.onsuccess = ()=>{
-
-      resolve(
-        req.result
+        resolve(
+          req.result
           ? req.result.value
           : {
               outlets:[]
             }
-      );
+        );
 
-    };
+      };
 
-    req.onerror = err=>reject(err);
+      req.onerror =
+        err=>reject(err);
 
-  });
+    }
+  );
 
 }
 
-/* =====================================================
+/* =========================
 STATE
-===================================================== */
+========================= */
 
 let state = {
   outlets:[]
 };
 
-/* =====================================================
-ELEMENTS
-===================================================== */
-
-const outletGrid =
+let currentSort =
+  'end-asc';
+  const outletGrid =
   document.getElementById(
     'outletGrid'
+  );
+
+const notifBtn =
+  document.getElementById(
+    'notifBtn'
+  );
+
+const notifPanel =
+  document.getElementById(
+    'notifPanel'
+  );
+
+const notifList =
+  document.getElementById(
+    'notifList'
+  );
+
+const notifCount =
+  document.getElementById(
+    'notifCount'
   );
 
 const modalWrap =
@@ -925,56 +1422,116 @@ const modalBody =
     'modalBody'
   );
 
-const saveModal =
+const searchInput =
   document.getElementById(
-    'saveModal'
+    'searchInput'
   );
 
-const notifBtn =
+const filterOutlet =
   document.getElementById(
-    'notifBtn'
+    'filterOutlet'
   );
 
-const notifPanel =
-  document.getElementById(
-    'notifPanel'
-  );
+/* =========================
+UTILS
+========================= */
 
-const notifCount =
-  document.getElementById(
-    'notifCount'
-  );
-
-const notifList =
-  document.getElementById(
-    'notifList'
-  );
-
-/* =====================================================
-HELPERS
-===================================================== */
-
-function id(){
+function uid(){
 
   return (
     Date.now() +
+    '_' +
     Math.random()
       .toString(36)
-      .slice(2,7)
+      .slice(2,8)
   );
 
 }
 
 function formatDate(date){
 
-  return new Date(date)
-    .toLocaleDateString(
-      'id-ID'
-    );
+  if(!date) return '-';
+
+  function formatDate(date){
+
+  if(!date) return '-';
+
+  const parsed =
+    new Date(date);
+
+  if(isNaN(parsed.getTime())){
+
+    return '-';
+
+  }
+
+  return parsed.toLocaleDateString(
+    'id-ID'
+  );
 
 }
 
-function currency(num){
+}
+
+function daysLeft(date){
+
+  if(!date) return 0;
+
+  const end =
+    new Date(date);
+
+  if(isNaN(end.getTime())){
+
+    return 0;
+
+  }
+
+  const now =
+    new Date();
+
+  end.setHours(0,0,0,0);
+  now.setHours(0,0,0,0);
+
+  const diff =
+    end - now;
+
+  return Math.ceil(
+    diff / (1000*60*60*24)
+  );
+
+}
+
+function getStatus(endDate){
+
+  const days =
+    daysLeft(endDate);
+
+  if(days < 0){
+
+    return {
+      text:'Sudah Habis',
+      class:'badge-danger'
+    };
+
+  }
+
+  if(days <= 30){
+
+    return {
+      text:'Hampir Habis',
+      class:'badge-warning'
+    };
+
+  }
+
+  return {
+    text:'Aman',
+    class:'badge-safe'
+  };
+
+}
+
+function currency(value){
 
   return new Intl.NumberFormat(
     'id-ID',
@@ -983,934 +1540,45 @@ function currency(num){
       currency:'IDR',
       maximumFractionDigits:0
     }
-  ).format(num || 0);
+  ).format(value || 0);
 
 }
 
-function daysLeft(date){
+function escapeHtml(text=''){
 
-  const now = new Date();
-
-  now.setHours(0,0,0,0);
-
-  const end = new Date(date);
-
-  end.setHours(0,0,0,0);
-
-  return Math.ceil(
-    (
-      end - now
-    ) / (1000*60*60*24)
-  );
+  return String(text)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
 
 }
 
-/* =====================================================
-SAVE
-===================================================== */
+/* =========================
+MODAL
+========================= */
 
-async function persist(){
+let modalSaveAction = null;
 
-  await saveData(state);
+function openModal(
+  title='',
+  content='',
+  onSave=null
+){
 
-}
+  modalTitle.innerHTML =
+    title;
 
-/* =====================================================
-RENDER
-===================================================== */
+  modalBody.innerHTML =
+    content;
 
-function render(){
-
-  renderOutlets();
-  renderNotifications();
-
-}
-
-function renderOutlets(){
-
-  outletGrid.innerHTML = '';
-
-  if(
-    !state.outlets.length
-  ){
-
-    outletGrid.innerHTML = `
-      <div class="empty">
-        Belum ada outlet
-      </div>
-    `;
-
-    return;
-
-  }
-
-  state.outlets
-    .sort((a,b)=>
-      a.name.localeCompare(b.name)
-    )
-    .forEach(outlet=>{
-
-      const div =
-        document.createElement('div');
-
-      div.className =
-        'outlet-card';
-
-      const employees =
-        outlet.employees || [];
-
-      div.innerHTML = `
-        <div class="outlet-top">
-
-          <div>
-
-            <div class="outlet-name">
-              ${outlet.name}
-            </div>
-
-            <div class="outlet-total">
-              ${employees.length}
-              karyawan
-            </div>
-
-          </div>
-
-          <div class="outlet-actions">
-
-            <button
-              class="icon-btn"
-              onclick="editOutlet('${outlet.id}')"
-            >
-              ✏️
-            </button>
-
-            <button
-              class="icon-btn"
-              onclick="removeOutlet('${outlet.id}')"
-            >
-              🗑️
-            </button>
-
-          </div>
-
-        </div>
-
-        <div class="employee-list">
-
-          ${
-            employees.length
-            ? employees
-              .sort((a,b)=>
-                a.name.localeCompare(b.name)
-              )
-              .map(emp=>{
-
-                const left =
-                  daysLeft(emp.end);
-
-                let status =
-                  'Aman';
-
-                let statusClass =
-                  'status-safe';
-
-                if(
-                  left <= 30 &&
-                  left >= 0
-                ){
-
-                  status =
-                    `Habis ${left} hari lagi`;
-
-                  statusClass =
-                    'status-warning';
-
-                }
-
-                if(left < 0){
-
-                  status =
-                    'Kontrak Habis';
-
-                  statusClass =
-                    'status-danger';
-
-                }
-
-                return `
-                  <div class="employee-item">
-
-                    <div class="employee-name">
-                      ${emp.name}
-                    </div>
-
-                    <div class="employee-phone">
-                      ${emp.phone}
-                    </div>
-
-                    <div class="employee-salary">
-                      ${currency(emp.salary)}
-                    </div>
-
-                    <div class="contract-box">
-
-                      <div class="contract-dates">
-                        Mulai:
-                        ${formatDate(emp.start)}
-                        <br>
-                        Berakhir:
-                        ${formatDate(emp.end)}
-                      </div>
-
-                      <div class="
-                        contract-status
-                        ${statusClass}
-                      ">
-                        ${status}
-                      </div>
-
-                    </div>
-
-                    <div class="employee-actions">
-
-                      <button
-                        class="btn btn-secondary"
-                        onclick="editEmployee(
-                          '${outlet.id}',
-                          '${emp.id}'
-                        )"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        class="btn btn-secondary"
-                        onclick="removeEmployee(
-                          '${outlet.id}',
-                          '${emp.id}'
-                        )"
-                      >
-                        Hapus
-                      </button>
-
-                    </div>
-
-                  </div>
-                `;
-
-              }).join('')
-            : `
-              <div class="empty">
-                Belum ada karyawan
-              </div>
-            `
-          }
-
-        </div>
-
-        <div style="margin-top:18px">
-
-          <button
-            class="btn btn-primary"
-            onclick="openEmployeeModal(
-              '${outlet.id}'
-            )"
-          >
-            ➕ Tambah Karyawan
-          </button>
-
-        </div>
-      `;
-
-      outletGrid.appendChild(div);
-
-    });
-
-}
-
-/* =====================================================
-NOTIFICATION
-===================================================== */
-
-function renderNotifications(){
-
-  let list = [];
-
-  state.outlets.forEach(outlet=>{
-
-    (
-      outlet.employees || []
-    ).forEach(emp=>{
-
-      const left =
-        daysLeft(emp.end);
-
-      if(
-        left >= 0 &&
-        left <= 30
-      ){
-
-        list.push({
-          outlet:outlet.name,
-          employee:emp.name,
-          end:emp.end,
-          left
-        });
-
-      }
-
-    });
-
-  });
-
-  list.sort((a,b)=>{
-
-    if(
-      a.outlet !== b.outlet
-    ){
-
-      return a.outlet
-        .localeCompare(b.outlet);
-
-    }
-
-    return a.employee
-      .localeCompare(b.employee);
-
-  });
-
-  notifCount.textContent =
-    list.length;
-
-  notifCount.classList.toggle(
-    'hidden',
-    !list.length
-  );
-
-  notifList.innerHTML = '';
-
-  if(!list.length){
-
-    notifList.innerHTML = `
-      <div class="empty">
-        Tidak ada kontrak
-        yang akan habis
-      </div>
-    `;
-
-    return;
-
-  }
-
-  list.forEach(item=>{
-
-    notifList.innerHTML += `
-      <div class="notif-item">
-
-        <div class="notif-name">
-          ${item.employee}
-        </div>
-
-        <div class="notif-outlet">
-          ${item.outlet}
-        </div>
-
-        <div class="notif-expire">
-          Berakhir dalam
-          ${item.left} hari
-        </div>
-
-      </div>
-    `;
-
-  });
-
-}
-
-notifBtn.onclick = ()=>{
-
-  notifPanel.classList.toggle(
-    'hidden'
-  );
-
-};
-
-/* =====================================================
-OUTLET
-===================================================== */
-
-document
-  .getElementById(
-    'addOutletBtn'
-  )
-  .onclick = ()=>{
-
-    modalWrap.classList.remove(
-      'hidden'
-    );
-
-    modalTitle.innerHTML =
-      'Tambah Outlet';
-
-    modalBody.innerHTML = `
-      <div class="form-group">
-
-        <label class="label">
-          Nama Outlet
-        </label>
-
-        <input
-          type="text"
-          id="outletName"
-          class="input"
-          placeholder="Contoh: Naruna Semarang"
-        >
-
-      </div>
-    `;
-
-    saveModal.onclick =
-      async ()=>{
-
-        const name =
-          document
-            .getElementById(
-              'outletName'
-            )
-            .value.trim();
-
-        if(!name){
-
-          alert(
-            'Nama outlet wajib diisi'
-          );
-
-          return;
-
-        }
-
-        state.outlets.push({
-          id:id(),
-          name,
-          employees:[]
-        });
-
-        await persist();
-
-        render();
-
-        closeModal();
-
-      };
-
-  };
-
-async function removeOutlet(idOutlet){
-
-  if(
-    !confirm(
-      'Hapus outlet beserta seluruh karyawan?'
-    )
-  ) return;
-
-  state.outlets =
-    state.outlets.filter(
-      o=>o.id !== idOutlet
-    );
-
-  await persist();
-
-  render();
-
-}
-
-function editOutlet(idOutlet){
-
-  const outlet =
-    state.outlets.find(
-      o=>o.id === idOutlet
-    );
-
-  if(!outlet) return;
+  modalSaveAction =
+    onSave;
 
   modalWrap.classList.remove(
     'hidden'
   );
 
-  modalTitle.innerHTML =
-    'Edit Outlet';
-
-  modalBody.innerHTML = `
-    <div class="form-group">
-
-      <label class="label">
-        Nama Outlet
-      </label>
-
-      <input
-        type="text"
-        id="outletName"
-        class="input"
-        value="${outlet.name}"
-      >
-
-    </div>
-  `;
-
-  saveModal.onclick =
-    async ()=>{
-
-      const name =
-        document
-          .getElementById(
-            'outletName'
-          )
-          .value.trim();
-
-      if(!name){
-
-        alert(
-          'Nama outlet wajib diisi'
-        );
-
-        return;
-
-      }
-
-      outlet.name = name;
-
-      await persist();
-
-      render();
-
-      closeModal();
-
-    };
-
 }
-
-/* =====================================================
-EMPLOYEE
-===================================================== */
-
-function openEmployeeModal(
-  outletId
-){
-
-  const outlet =
-    state.outlets.find(
-      o=>o.id === outletId
-    );
-
-  if(!outlet) return;
-
-  modalWrap.classList.remove(
-    'hidden'
-  );
-
-  modalTitle.innerHTML =
-    'Tambah Karyawan';
-
-  modalBody.innerHTML = `
-    <div class="form-group">
-      <label class="label">
-        Nama
-      </label>
-
-      <input
-        type="text"
-        id="empName"
-        class="input"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="label">
-        Nomor HP
-      </label>
-
-      <input
-        type="text"
-        id="empPhone"
-        class="input"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="label">
-        Gaji Pokok
-      </label>
-
-      <input
-        type="number"
-        id="empSalary"
-        class="input"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="label">
-        Start Kontrak
-      </label>
-
-      <input
-        type="date"
-        id="empStart"
-        class="input"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="label">
-        Akhir Kontrak
-      </label>
-
-      <input
-        type="date"
-        id="empEnd"
-        class="input"
-      >
-    </div>
-  `;
-
-  saveModal.onclick =
-    async ()=>{
-
-      const start =
-        document
-          .getElementById(
-            'empStart'
-          )
-          .value;
-
-      const end =
-        document
-          .getElementById(
-            'empEnd'
-          )
-          .value;
-
-      if(
-        new Date(end) <
-        new Date(start)
-      ){
-
-        alert(
-          'Tanggal akhir kontrak tidak valid'
-        );
-
-        return;
-
-      }
-
-      outlet.employees.push({
-
-        id:id(),
-
-        name:
-          document
-            .getElementById(
-              'empName'
-            )
-            .value,
-
-        phone:
-          document
-            .getElementById(
-              'empPhone'
-            )
-            .value,
-
-        salary:
-          Number(
-            document
-              .getElementById(
-                'empSalary'
-              )
-              .value
-          ),
-
-        start,
-        end
-
-      });
-
-      await persist();
-
-      render();
-
-      closeModal();
-
-    };
-
-}
-
-function editEmployee(
-  outletId,
-  empId
-){
-
-  const outlet =
-    state.outlets.find(
-      o=>o.id === outletId
-    );
-
-  if(!outlet) return;
-
-  const emp =
-    outlet.employees.find(
-      e=>e.id === empId
-    );
-
-  if(!emp) return;
-
-  modalWrap.classList.remove(
-    'hidden'
-  );
-
-  modalTitle.innerHTML =
-    'Edit Karyawan';
-
-  modalBody.innerHTML = `
-    <div class="form-group">
-      <label class="label">
-        Nama
-      </label>
-
-      <input
-        type="text"
-        id="empName"
-        class="input"
-        value="${emp.name}"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="label">
-        Nomor HP
-      </label>
-
-      <input
-        type="text"
-        id="empPhone"
-        class="input"
-        value="${emp.phone}"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="label">
-        Gaji Pokok
-      </label>
-
-      <input
-        type="number"
-        id="empSalary"
-        class="input"
-        value="${emp.salary}"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="label">
-        Start Kontrak
-      </label>
-
-      <input
-        type="date"
-        id="empStart"
-        class="input"
-        value="${emp.start}"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="label">
-        Akhir Kontrak
-      </label>
-
-      <input
-        type="date"
-        id="empEnd"
-        class="input"
-        value="${emp.end}"
-      >
-    </div>
-  `;
-
-  saveModal.onclick =
-    async ()=>{
-
-      const start =
-        document
-          .getElementById(
-            'empStart'
-          )
-          .value;
-
-      const end =
-        document
-          .getElementById(
-            'empEnd'
-          )
-          .value;
-
-      if(
-        new Date(end) <
-        new Date(start)
-      ){
-
-        alert(
-          'Tanggal akhir kontrak tidak valid'
-        );
-
-        return;
-
-      }
-
-      emp.name =
-        document
-          .getElementById(
-            'empName'
-          )
-          .value;
-
-      emp.phone =
-        document
-          .getElementById(
-            'empPhone'
-          )
-          .value;
-
-      emp.salary =
-        Number(
-          document
-            .getElementById(
-              'empSalary'
-            )
-            .value
-        );
-
-      emp.start = start;
-      emp.end = end;
-
-      await persist();
-
-      render();
-
-      closeModal();
-
-    };
-
-}
-
-async function removeEmployee(
-  outletId,
-  empId
-){
-
-  if(
-    !confirm(
-      'Hapus karyawan ini?'
-    )
-  ) return;
-
-  const outlet =
-    state.outlets.find(
-      o=>o.id === outletId
-    );
-
-  outlet.employees =
-    outlet.employees.filter(
-      e=>e.id !== empId
-    );
-
-  await persist();
-
-  render();
-
-}
-
-/* =====================================================
-EXPORT IMPORT
-===================================================== */
-
-document
-  .getElementById(
-    'exportBtn'
-  )
-  .onclick = ()=>{
-
-    const blob =
-      new Blob(
-        [
-          JSON.stringify(
-            state,
-            null,
-            2
-          )
-        ],
-        {
-          type:'application/json'
-        }
-      );
-
-    const a =
-      document.createElement('a');
-
-    a.href =
-      URL.createObjectURL(blob);
-
-    a.download =
-      'naruna-backup.json';
-
-    a.click();
-
-  };
-
-document
-  .getElementById(
-    'importBtn'
-  )
-  .onclick = ()=>{
-
-    document
-      .getElementById(
-        'importFile'
-      )
-      .click();
-
-  };
-
-document
-  .getElementById(
-    'importFile'
-  )
-  .addEventListener(
-    'change',
-    async e=>{
-
-      const file =
-        e.target.files[0];
-
-      if(!file) return;
-
-      const text =
-        await file.text();
-
-      state =
-        JSON.parse(text);
-
-      await persist();
-
-      render();
-
-    }
-  );
-
-/* =====================================================
-MODAL CLOSE
-===================================================== */
 
 function closeModal(){
 
@@ -1932,19 +1600,1533 @@ document
   )
   .onclick = closeModal;
 
-/* =====================================================
-INIT
-===================================================== */
+document
+  .getElementById(
+    'saveModal'
+  )
+  .onclick = async ()=>{
+
+    const btn =
+      document.getElementById(
+        'saveModal'
+      );
+
+    if(btn.disabled) return;
+
+    btn.disabled = true;
+
+    try{
+
+      if(modalSaveAction){
+
+        await modalSaveAction();
+
+      }
+
+    }finally{
+
+      btn.disabled = false;
+
+    }
+
+  };
+
+  };
+
+/* =========================
+CONFIRM
+========================= */
+
+function confirmDelete(
+  text='',
+  callback=()=>{}
+){
+
+  const ok =
+    confirm(
+      `Apakah Anda yakin ingin menghapus ${text}?`
+    );
+
+  if(ok){
+
+    callback();
+
+  }
+
+}
+
+/* =========================
+RENDER KPI
+========================= */
+
+function renderKPI(){
+
+  const employees =
+    state.outlets.flatMap(
+      o=>o.employees || []
+    );
+
+  let active = 0;
+  let warning = 0;
+  let expired = 0;
+
+  employees.forEach(emp=>{
+
+    const days =
+      daysLeft(
+        emp.contractEnd
+      );
+
+    if(days < 0){
+
+      expired++;
+
+    }else if(days <= 30){
+
+      warning++;
+
+    }else{
+
+      active++;
+
+    }
+
+  });
+
+  document.getElementById(
+    'kpiEmployees'
+  ).innerText =
+    employees.length;
+
+  document.getElementById(
+    'kpiActive'
+  ).innerText =
+    active;
+
+  document.getElementById(
+    'kpiWarning'
+  ).innerText =
+    warning;
+
+  document.getElementById(
+    'kpiExpired'
+  ).innerText =
+    expired;
+
+}
+
+/* =========================
+RENDER NOTIFICATION
+========================= */
+
+function renderNotifications(){
+
+  const all = [];
+
+  state.outlets.forEach(
+    outlet=>{
+
+      (outlet.employees || [])
+      .forEach(emp=>{
+
+        const days =
+          daysLeft(
+            emp.contractEnd
+          );
+
+        if(days <= 30){
+
+          all.push({
+            ...emp,
+            outletName:
+              outlet.name,
+            days
+          });
+
+        }
+
+      });
+
+    }
+  );
+
+  all.sort((a,b)=>{
+
+    if(
+      a.outletName <
+      b.outletName
+    ) return -1;
+
+    if(
+      a.outletName >
+      b.outletName
+    ) return 1;
+
+    return a.name.localeCompare(
+      b.name
+    );
+
+  });
+
+  notifCount.innerText =
+    all.length;
+
+  if(all.length){
+
+    notifCount.classList.remove(
+      'hidden'
+    );
+
+  }else{
+
+    notifCount.classList.add(
+      'hidden'
+    );
+
+  }
+
+  if(!all.length){
+
+    notifList.innerHTML = `
+      <div class="empty">
+        Tidak ada kontrak kritis
+      </div>
+    `;
+
+    return;
+
+  }
+
+  notifList.innerHTML =
+    all.map(emp=>{
+
+      return `
+        <div class="notif-item">
+
+          <div class="notif-name">
+            ${escapeHtml(emp.name)}
+          </div>
+
+          <div class="notif-outlet">
+            ${escapeHtml(emp.outletName)}
+          </div>
+
+          <div class="notif-days">
+
+            ${
+              emp.days < 0
+              ? `Sudah habis ${Math.abs(emp.days)} hari`
+              : `Sisa ${emp.days} hari`
+            }
+
+          </div>
+
+        </div>
+      `;
+
+    }).join('');
+
+}
+
+notifBtn.onclick = ()=>{
+
+  notifPanel.classList.toggle(
+    'hidden'
+  );
+
+};
+document.addEventListener(
+  'click',
+  e=>{
+
+    const clickedInside =
+      notifPanel.contains(
+        e.target
+      ) ||
+      notifBtn.contains(
+        e.target
+      );
+
+    if(!clickedInside){
+
+      notifPanel.classList.add(
+        'hidden'
+      );
+
+    }
+
+  }
+);
+/* =========================
+RENDER FILTER
+========================= */
+
+function renderOutletFilter(){
+
+  filterOutlet.innerHTML =
+    `
+      <option value="">
+        Semua Outlet
+      </option>
+    `;
+
+  state.outlets.forEach(
+    outlet=>{
+
+      filterOutlet.innerHTML += `
+        <option value="${outlet.id}">
+          ${escapeHtml(outlet.name)}
+        </option>
+      `;
+
+    }
+  );
+
+}
+
+/* =========================
+RENDER
+========================= */
+
+function render(){
+
+  renderKPI();
+
+  renderNotifications();
+
+  renderOutletFilter();
+
+  const keyword =
+    searchInput.value
+      .toLowerCase()
+      .trim();
+
+  const filter =
+    filterOutlet.value;
+
+  let html = '';
+
+  let outlets =
+    [...state.outlets];
+
+  outlets.sort((a,b)=>
+    a.name.localeCompare(
+      b.name
+    )
+  );
+
+  outlets.forEach(outlet=>{
+
+    if(
+      filter &&
+      filter !== outlet.id
+    ){
+
+      return;
+
+    }
+
+    let employees =
+      [...(outlet.employees || [])];
+
+    employees =
+      employees.filter(emp=>{
+
+        return (
+          String(emp.name || '')
+  .toLowerCase()
+  .includes(keyword)
+        );
+
+      });
+
+    employees.sort((a,b)=>{
+
+      if(
+        currentSort ===
+        'name-asc'
+      ){
+
+        return a.name.localeCompare(
+          b.name
+        );
+
+      }
+
+      if(
+        currentSort ===
+        'name-desc'
+      ){
+
+        return b.name.localeCompare(
+          a.name
+        );
+
+      }
+
+      if(
+        currentSort ===
+        'end-desc'
+      ){
+
+        return (
+          new Date(
+            b.contractEnd
+          ) -
+          new Date(
+            a.contractEnd
+          )
+        );
+
+      }
+
+      return (
+        new Date(
+          a.contractEnd
+        ) -
+        new Date(
+          b.contractEnd
+        )
+      );
+
+    });
+
+    html += `
+      <div class="outlet-card">
+
+        <div class="outlet-top">
+
+          <div>
+
+            <div class="outlet-name">
+              ${escapeHtml(outlet.name)}
+            </div>
+
+            <div class="outlet-meta">
+
+              📍 ${escapeHtml(outlet.address || '-')}
+
+              <br>
+
+              👤 PIC:
+              ${escapeHtml(outlet.pic || '-')}
+
+              <br>
+
+              📞 ${escapeHtml(outlet.phone || '-')}
+
+            </div>
+
+          </div>
+
+          <div class="outlet-actions">
+
+            <button
+              class="icon-btn"
+              onclick="editOutlet('${outlet.id}')"
+            >
+              ✏️
+            </button>
+
+            <button
+              class="icon-btn"
+              onclick="deleteOutlet('${outlet.id}')"
+            >
+              🗑️
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="action-bar"
+          style="margin-top:18px"
+        >
+
+          <button
+            class="btn btn-primary"
+            onclick="addEmployee('${outlet.id}')"
+          >
+            ➕ Tambah Karyawan
+          </button>
+
+        </div>
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th onclick="sortBy('name')">
+                  Nama
+                </th>
+
+                <th>
+                  Gaji
+                </th>
+
+                <th onclick="sortBy('end')">
+                  Kontrak Berakhir
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Aksi
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              ${
+                employees.length
+                ? employees.map(emp=>{
+
+                  const status =
+                    getStatus(
+                      emp.contractEnd
+                    );
+
+                  return `
+
+                    <tr>
+
+                      <td>
+
+                        <div class="employee-name">
+                          ${escapeHtml(emp.name)}
+                        </div>
+
+                        <div class="employee-phone">
+                          ${escapeHtml(emp.phone)}
+                        </div>
+
+                      </td>
+
+                      <td>
+                        ${currency(emp.salary)}
+                      </td>
+
+                      <td>
+
+                        ${formatDate(
+                          emp.contractEnd
+                        )}
+
+                      </td>
+
+                      <td>
+
+                        <span class="badge ${status.class}">
+
+                          ${status.text}
+
+                        </span>
+
+                      </td>
+
+                      <td>
+
+                        <div
+                          style="
+                            display:flex;
+                            gap:8px;
+                          "
+                        >
+
+                          <button
+                            class="icon-btn"
+                            onclick="
+                              editEmployee(
+                                '${outlet.id}',
+                                '${emp.id}'
+                              )
+                            "
+                          >
+                            ✏️
+                          </button>
+
+                          <button
+                            class="icon-btn"
+                            onclick="
+                              deleteEmployee(
+                                '${outlet.id}',
+                                '${emp.id}'
+                              )
+                            "
+                          >
+                            🗑️
+                          </button>
+
+                        </div>
+
+                      </td>
+
+                    </tr>
+
+                  `;
+
+                }).join('')
+
+                : `
+                  <tr>
+
+                    <td colspan="5">
+
+                      <div class="empty">
+                        Belum ada karyawan
+                      </div>
+
+                    </td>
+
+                  </tr>
+                `
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+    `;
+
+  });
+
+  outletGrid.innerHTML =
+    html || `
+      <div class="empty">
+        Belum ada outlet
+      </div>
+    `;
+
+}
+
+/* =========================
+SORT
+========================= */
+
+function sortBy(type){
+
+  if(type === 'name'){
+
+    currentSort =
+      currentSort === 'name-asc'
+      ? 'name-desc'
+      : 'name-asc';
+
+  }
+
+  if(type === 'end'){
+
+    currentSort =
+      currentSort === 'end-asc'
+      ? 'end-desc'
+      : 'end-asc';
+
+  }
+
+  render();
+
+}
+
+/* =========================
+ADD OUTLET
+========================= */
+
+document
+  .getElementById(
+    'addOutletBtn'
+  )
+  .onclick = ()=>{
+
+    openModal(
+      'Tambah Outlet',
+      `
+
+      <div class="form-group">
+
+        <label class="label">
+          Nama Outlet
+        </label>
+
+        <input
+          type="text"
+          id="outletName"
+          class="input"
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="label">
+          Alamat
+        </label>
+
+        <input
+          type="text"
+          id="outletAddress"
+          class="input"
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="label">
+          Nama PIC
+        </label>
+
+        <input
+          type="text"
+          id="outletPic"
+          class="input"
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="label">
+          Nomor HP
+        </label>
+
+        <input
+          type="text"
+          id="outletPhone"
+          class="input"
+        >
+
+      </div>
+
+      `,
+      async ()=>{
+
+  const name =
+    document.getElementById(
+      'outletName'
+    ).value.trim();
+
+  if(!name){
+
+    alert(
+      'Nama outlet wajib diisi'
+    );
+
+    return;
+
+  }
+
+  state.outlets.push({
+
+    id:uid(),
+
+    name:name,
+
+    address:
+      document.getElementById(
+        'outletAddress'
+      ).value,
+
+    pic:
+      document.getElementById(
+        'outletPic'
+      ).value,
+
+    phone:
+      document.getElementById(
+        'outletPhone'
+      ).value,
+
+    employees:[]
+
+  });
+
+  await saveData(state);
+
+  render();
+
+  closeModal();
+
+}
+
+          
+    );
+
+};
+/* =========================
+EDIT OUTLET
+========================= */
+
+function editOutlet(id){
+
+  const outlet =
+    state.outlets.find(
+      o=>o.id === id
+    );
+
+  if(!outlet) return;
+
+  openModal(
+    'Edit Outlet',
+    `
+
+    <div class="form-group">
+
+      <label class="label">
+        Nama Outlet
+      </label>
+
+      <input
+        type="text"
+        id="outletName"
+        class="input"
+        value="${escapeHtml(outlet.name)}"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Alamat
+      </label>
+
+      <input
+        type="text"
+        id="outletAddress"
+        class="input"
+        value="${escapeHtml(outlet.address || '')}"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        PIC Outlet
+      </label>
+
+      <input
+        type="text"
+        id="outletPic"
+        class="input"
+        value="${escapeHtml(outlet.pic || '')}"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Nomor HP
+      </label>
+
+      <input
+        type="text"
+        id="outletPhone"
+        class="input"
+        value="${escapeHtml(outlet.phone || '')}"
+      >
+
+    </div>
+
+    `,
+    async ()=>{
+
+  const name =
+    document.getElementById(
+      'outletName'
+    ).value.trim();
+
+  if(!name){
+
+    alert(
+      'Nama outlet wajib diisi'
+    );
+
+    return;
+
+  }
+
+  outlet.name = name;
+
+  outlet.address =
+    document.getElementById(
+      'outletAddress'
+    ).value;
+
+  outlet.pic =
+    document.getElementById(
+      'outletPic'
+    ).value;
+
+  outlet.phone =
+    document.getElementById(
+      'outletPhone'
+    ).value;
+
+  await saveData(state);
+
+  render();
+
+  closeModal();
+
+}
+        
+  );
+
+}
+
+/* =========================
+DELETE OUTLET
+========================= */
+
+function deleteOutlet(id){
+
+  const outlet =
+    state.outlets.find(
+      o=>o.id === id
+    );
+
+  if(!outlet) return;
+
+  confirmDelete(
+    outlet.name,
+    async ()=>{
+
+      state.outlets =
+        state.outlets.filter(
+          o=>o.id !== id
+        );
+
+      await saveData(state);
+
+      render();
+
+    }
+  );
+
+}
+
+/* =========================
+ADD EMPLOYEE
+========================= */
+
+function addEmployee(outletId){
+
+  openModal(
+    'Tambah Karyawan',
+    `
+
+    <div class="form-group">
+
+      <label class="label">
+        Nama
+      </label>
+
+      <input
+        type="text"
+        id="employeeName"
+        class="input"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Nomor HP
+      </label>
+
+      <input
+        type="text"
+        id="employeePhone"
+        class="input"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Gaji Pokok
+      </label>
+
+      <input
+        type="number"
+        id="employeeSalary"
+        class="input"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Start Kontrak
+      </label>
+
+      <input
+        type="date"
+        id="employeeStart"
+        class="input"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Akhir Kontrak
+      </label>
+
+      <input
+        type="date"
+        id="employeeEnd"
+        class="input"
+      >
+
+    </div>
+
+    `,
+    async ()=>{
+
+  const employeeName =
+    document.getElementById(
+      'employeeName'
+    ).value.trim();
+
+  const employeeEnd =
+    document.getElementById(
+      'employeeEnd'
+    ).value;
+
+  if(!employeeName){
+
+    alert(
+      'Nama karyawan wajib diisi'
+    );
+
+    return;
+
+  }
+
+  if(!employeeEnd){
+
+    alert(
+      'Tanggal akhir kontrak wajib diisi'
+    );
+
+    return;
+
+  }
+
+  const outlet =
+    state.outlets.find(
+      o=>o.id === outletId
+    );
+
+  if(!outlet) return;
+
+  outlet.employees.push({
+
+    id:uid(),
+
+    name:employeeName,
+
+    phone:
+      document.getElementById(
+        'employeePhone'
+      ).value,
+
+    salary:Number(
+      document.getElementById(
+        'employeeSalary'
+      ).value || 0
+    ),
+
+    contractStart:
+      document.getElementById(
+        'employeeStart'
+      ).value,
+
+    contractEnd:employeeEnd
+
+  });
+
+  await saveData(state);
+
+  render();
+
+  closeModal();
+
+}
+          
+  );
+
+}
+
+/* =========================
+EDIT EMPLOYEE
+========================= */
+
+function editEmployee(
+  outletId,
+  employeeId
+){
+
+  const outlet =
+    state.outlets.find(
+      o=>o.id === outletId
+    );
+
+  if(!outlet) return;
+
+  const employee =
+    outlet.employees.find(
+      e=>e.id === employeeId
+    );
+
+  if(!employee) return;
+
+  openModal(
+    'Edit Karyawan',
+    `
+
+    <div class="form-group">
+
+      <label class="label">
+        Nama
+      </label>
+
+      <input
+        type="text"
+        id="employeeName"
+        class="input"
+        value="${escapeHtml(employee.name)}"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Nomor HP
+      </label>
+
+      <input
+        type="text"
+        id="employeePhone"
+        class="input"
+        value="${escapeHtml(employee.phone)}"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Gaji Pokok
+      </label>
+
+      <input
+        type="number"
+        id="employeeSalary"
+        class="input"
+        value="${employee.salary}"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Start Kontrak
+      </label>
+
+      <input
+        type="date"
+        id="employeeStart"
+        class="input"
+        value="${employee.contractStart}"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label class="label">
+        Akhir Kontrak
+      </label>
+
+      <input
+        type="date"
+        id="employeeEnd"
+        class="input"
+        value="${employee.contractEnd}"
+      >
+
+    </div>
+
+    `,
+    async ()=>{
+
+  const employeeName =
+    document.getElementById(
+      'employeeName'
+    ).value.trim();
+
+  const employeeEnd =
+    document.getElementById(
+      'employeeEnd'
+    ).value;
+
+  if(!employeeName){
+
+    alert(
+      'Nama karyawan wajib diisi'
+    );
+
+    return;
+
+  }
+
+  if(!employeeEnd){
+
+    alert(
+      'Tanggal akhir kontrak wajib diisi'
+    );
+
+    return;
+
+  }
+
+  employee.name =
+    employeeName;
+
+  employee.phone =
+    document.getElementById(
+      'employeePhone'
+    ).value;
+
+  employee.salary =
+    Number(
+      document.getElementById(
+        'employeeSalary'
+      ).value || 0
+    );
+
+  employee.contractStart =
+    document.getElementById(
+      'employeeStart'
+    ).value;
+
+  employee.contractEnd =
+    employeeEnd;
+
+  await saveData(state);
+
+  render();
+
+  closeModal();
+
+}
+        
+  );
+
+}
+
+/* =========================
+DELETE EMPLOYEE
+========================= */
+
+function deleteEmployee(
+  outletId,
+  employeeId
+){
+
+  const outlet =
+    state.outlets.find(
+      o=>o.id === outletId
+    );
+
+  if(!outlet) return;
+
+  const employee =
+    outlet.employees.find(
+      e=>e.id === employeeId
+    );
+
+  if(!employee) return;
+
+  confirmDelete(
+    employee.name,
+    async ()=>{
+
+      outlet.employees =
+        outlet.employees.filter(
+          e=>e.id !== employeeId
+        );
+
+      await saveData(state);
+
+      render();
+
+    }
+  );
+
+}
+
+/* =========================
+EXPORT JSON BACKUP
+========================= */
+
+document.getElementById(
+  'exportJsonBtn'
+)
+  .onclick = ()=>{
+
+    const blob =
+      new Blob(
+        [
+          JSON.stringify(
+            state,
+            null,
+            2
+          )
+        ],
+        {
+          type:'application/json'
+        }
+      );
+
+    const url =
+      URL.createObjectURL(blob);
+
+    const a =
+      document.createElement('a');
+
+    a.href = url;
+
+    a.download =
+      'naruna-backup.json';
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+};
+/* =========================
+EXPORT CSV
+========================= */
+
+document
+  .getElementById(
+    'exportCsvBtn'
+  )
+  .onclick = ()=>{
+
+    let rows = [[
+      'Outlet',
+      'Nama',
+      'Nomor HP',
+      'Gaji',
+      'Start Kontrak',
+      'Akhir Kontrak',
+      'Status'
+    ]];
+
+    state.outlets.forEach(outlet=>{
+
+      (outlet.employees || [])
+      .forEach(emp=>{
+
+        const status =
+          getStatus(
+            emp.contractEnd
+          ).text;
+
+        rows.push([
+          outlet.name,
+          emp.name,
+          emp.phone,
+          emp.salary,
+          emp.contractStart,
+          emp.contractEnd,
+          status
+        ]);
+
+      });
+
+    });
+
+    const csv =
+      rows.map(row=>
+        row.map(value=>
+          `"${String(value || '')
+            .replace(/"/g,'""')}"`
+        ).join(',')
+      ).join('\n');
+
+    const blob =
+  new Blob(
+    ['\uFEFF' + csv],
+        {
+          type:'text/csv'
+        }
+      );
+
+    const url =
+      URL.createObjectURL(blob);
+
+    const a =
+      document.createElement('a');
+
+    a.href = url;
+
+    a.download =
+      'naruna-contracts.csv';
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+  };
+/* =========================
+
+RESTORE BUTTON
+
+========================= */
+
+document
+
+  .getElementById(
+
+    'restoreBtn'
+
+  )
+
+  .onclick = ()=>{
+
+    document
+
+      .getElementById(
+
+        'restoreInput'
+
+      )
+
+      .click();
+
+  };
+
+/* =========================
+IMPORT BACKUP
+========================= */
+
+document
+  .getElementById(
+    'restoreInput'
+  )
+  .addEventListener(
+    'change',
+    async event=>{
+
+      const file =
+        event.target.files[0];
+
+      if(!file) return;
+
+      const text =
+        await file.text();
+
+      try{
+
+        const data =
+          JSON.parse(text);
+
+        if(!Array.isArray(data.outlets))
+
+          alert(
+            'File backup tidak valid'
+          );
+
+          return;
+
+        }
+
+        state.outlets =
+          data.outlets || [];
+
+        await saveData(state);
+
+        render();
+
+        alert(
+          'Backup berhasil dipulihkan'
+        );
+
+      }catch(err){
+
+        alert(
+          'Gagal membaca file backup'
+        );
+
+      }
+
+    }
+  );
+
+/* =========================
+SEARCH + FILTER
+========================= */
+
+searchInput.addEventListener(
+  'input',
+  render
+);
+
+filterOutlet.addEventListener(
+  'change',
+  render
+);
+
+/* =========================
+INDEXED DB INIT
+========================= */
 
 async function init(){
 
   await openDB();
 
-  state = await loadData();
+  const saved =
+    await loadData();
+
+  if(saved){
+
+    state.outlets =
+      saved.outlets || [];
+
+  }
 
   render();
 
 }
+
+/* =========================
+START APP
+========================= */
 
 init();
 

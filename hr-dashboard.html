@@ -1,2158 +1,1591 @@
 <!DOCTYPE html>
-
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Naruna HR Suite</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Naruna HR</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
 :root{
-  --bg:#0f1117;
-  --bg2:#181b24;
-  --bg3:#1e2130;
-  --bg4:#252940;
-  --card:#1a1d2e;
-  --card2:#20243a;
-  --border:#2a2f4a;
-  --border2:#353b5c;
-  --text:#e8eaf6;
-  --text2:#9ca3c8;
-  --text3:#6b72a0;
-  --accent:#6c63ff;
-  --accent2:#7c75ff;
-  --accent3:#5a52e0;
-  --green:#22c55e;
-  --yellow:#eab308;
-  --orange:#f97316;
-  --red:#ef4444;
-  --sidebar-w:240px;
-  --topbar-h:60px;
-  --radius:10px;
-  --radius2:6px;
-  --shadow:0 4px 24px rgba(0,0,0,0.4);
-  --shadow2:0 2px 8px rgba(0,0,0,0.3);
-}
-html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow:hidden}
-button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none}
-input,select,textarea{font-family:'DM Sans',sans-serif;outline:none}
-a{text-decoration:none;color:inherit}
-.hidden{display:none!important}
-.flex{display:flex}
-.flex-col{flex-direction:column}
-.items-center{align-items:center}
-.justify-between{justify-content:space-between}
-.gap-1{gap:4px}
-.gap-2{gap:8px}
-.gap-3{gap:12px}
-.gap-4{gap:16px}
-.w-full{width:100%}
-.h-full{height:100%}
-.ml-auto{margin-left:auto}
-.mt-1{margin-top:4px}
-.mt-2{margin-top:8px}
-.mt-4{margin-top:16px}
-.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* ===== SCROLLBAR ===== */
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(–border2);border-radius:99px}
+  --bg:#0f172a;
+  --bg2:#111827;
+  --card:#182235;
+  --card2:#1f2c44;
 
-/* ===== AUTH ===== */
-#auth-screen{position:fixed;inset:0;background:var(–bg);display:flex;align-items:center;justify-content:center;z-index:9999}
-.auth-card{background:var(–card);border:1px solid var(–border);border-radius:16px;padding:40px;width:100%;max-width:380px;box-shadow:var(–shadow)}
-.auth-logo{text-align:center;margin-bottom:32px}
-.auth-logo-icon{width:56px;height:56px;background:var(–accent);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px}
-.auth-logo h1{font-size:22px;font-weight:700;color:var(–text)}
-.auth-logo p{font-size:13px;color:var(–text3);margin-top:2px}
-.auth-tabs{display:flex;background:var(–bg3);border-radius:8px;padding:3px;margin-bottom:24px}
-.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;color:var(–text3);border-radius:6px;cursor:pointer;transition:all 0.2s}
-.auth-tab.active{background:var(–accent);color:#fff}
-.form-group{margin-bottom:16px}
-.form-label{font-size:12px;font-weight:600;color:var(–text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px}
-.form-input{width:100%;background:var(–bg3);border:1px solid var(–border);border-radius:var(–radius2);padding:10px 12px;color:var(–text);font-size:14px;transition:border-color 0.2s}
-.form-input:focus{border-color:var(–accent)}
-.form-input::placeholder{color:var(–text3)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:var(–radius2);font-size:14px;font-weight:500;transition:all 0.2s;cursor:pointer}
-.btn-primary{background:var(–accent);color:#fff}
-.btn-primary:hover{background:var(–accent2)}
-.btn-secondary{background:var(–bg3);color:var(–text2);border:1px solid var(–border)}
-.btn-secondary:hover{background:var(–bg4);color:var(–text)}
-.btn-danger{background:rgba(239,68,68,0.15);color:var(–red);border:1px solid rgba(239,68,68,0.3)}
-.btn-danger:hover{background:rgba(239,68,68,0.25)}
-.btn-success{background:rgba(34,197,94,0.15);color:var(–green);border:1px solid rgba(34,197,94,0.3)}
-.btn-success:hover{background:rgba(34,197,94,0.25)}
-.btn-warning{background:rgba(234,179,8,0.15);color:var(–yellow);border:1px solid rgba(234,179,8,0.3)}
-.btn-sm{padding:6px 12px;font-size:12px}
-.btn-icon{padding:8px;border-radius:var(–radius2);background:transparent;color:var(–text2)}
-.btn-icon:hover{background:var(–bg4);color:var(–text)}
-.btn-w-full{width:100%;justify-content:center}
-.auth-msg{padding:10px 12px;border-radius:var(–radius2);font-size:13px;margin-bottom:12px}
-.auth-msg.error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(–red)}
-.auth-msg.success{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:var(–green)}
+  --line:#2b3954;
 
-/* ===== LAYOUT ===== */
-#app{display:flex;height:100vh;overflow:hidden}
+  --text:#f8fafc;
+  --text2:#cbd5e1;
+  --text3:#94a3b8;
 
-/* ===== SIDEBAR ===== */
-#sidebar{width:var(–sidebar-w);background:var(–card);border-right:1px solid var(–border);display:flex;flex-direction:column;flex-shrink:0;transition:transform 0.3s ease,width 0.3s ease;z-index:100;position:relative}
-#sidebar.collapsed{width:60px}
-.sidebar-top{padding:16px;border-bottom:1px solid var(–border);display:flex;align-items:center;gap:10px;min-height:var(–topbar-h)}
-.sidebar-logo-icon{width:32px;height:32px;background:var(–accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.sidebar-logo-text{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;transition:opacity 0.2s}
-#sidebar.collapsed .sidebar-logo-text{opacity:0;width:0}
-.sidebar-nav{flex:1;overflow-y:auto;padding:12px 0}
-.nav-group-label{font-size:10px;font-weight:600;color:var(–text3);text-transform:uppercase;letter-spacing:1px;padding:8px 16px 4px;white-space:nowrap;overflow:hidden;transition:opacity 0.2s}
-#sidebar.collapsed .nav-group-label{opacity:0}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-radius:0;transition:all 0.2s;color:var(–text3);position:relative;white-space:nowrap}
-.nav-item:hover{background:var(–bg3);color:var(–text2)}
-.nav-item.active{background:rgba(108,99,255,0.15);color:var(–accent)}
-.nav-item.active::before{content:’’;position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(–accent);border-radius:0 3px 3px 0}
-.nav-icon{font-size:18px;flex-shrink:0;width:24px;text-align:center}
-.nav-label{font-size:13px;font-weight:500;transition:opacity 0.2s}
-#sidebar.collapsed .nav-label{opacity:0;width:0}
-.sidebar-bottom{padding:12px;border-top:1px solid var(–border)}
-.sidebar-user{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(–radius2);background:var(–bg3);cursor:pointer;transition:background 0.2s}
-.sidebar-user:hover{background:var(–bg4)}
-.user-avatar{width:32px;height:32px;background:var(–accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
-.user-info{overflow:hidden;transition:opacity 0.2s;white-space:nowrap}
-#sidebar.collapsed .user-info{opacity:0;width:0}
-.user-name{font-size:13px;font-weight:600;color:var(–text)}
-.user-role{font-size:11px;color:var(–text3)}
+  --primary:#7c3aed;
+  --primary2:#8b5cf6;
 
-/* ===== MAIN ===== */
-#main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+  --danger:#ef4444;
+  --success:#22c55e;
+  --warning:#f59e0b;
 
-/* ===== TOPBAR ===== */
-#topbar{height:var(–topbar-h);background:var(–card);border-bottom:1px solid var(–border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
-.topbar-toggle{font-size:20px;cursor:pointer;color:var(–text2);background:none;border:none;padding:4px;display:flex}
-.topbar-title{font-size:16px;font-weight:600;color:var(–text)}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-.notif-btn{position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(–radius2);background:var(–bg3);border:1px solid var(–border);cursor:pointer;color:var(–text2);font-size:18px;transition:all 0.2s}
-.notif-btn:hover{background:var(–bg4);color:var(–text)}
-.notif-badge{position:absolute;top:-4px;right:-4px;background:var(–red);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(–card)}
-.notif-dropdown{position:absolute;top:calc(var(–topbar-h));right:16px;width:320px;background:var(–card);border:1px solid var(–border);border-radius:var(–radius);box-shadow:var(–shadow);z-index:500;max-height:400px;overflow-y:auto}
-.notif-header{padding:12px 16px;border-bottom:1px solid var(–border);font-size:13px;font-weight:600;color:var(–text)}
-.notif-item{padding:12px 16px;border-bottom:1px solid var(–border);cursor:pointer;transition:background 0.2s}
-.notif-item:hover{background:var(–bg3)}
-.notif-item:last-child{border-bottom:none}
-.notif-item-name{font-size:13px;font-weight:500;color:var(–text)}
-.notif-item-sub{font-size:11px;color:var(–text3);margin-top:2px}
-.notif-empty{padding:24px;text-align:center;color:var(–text3);font-size:13px}
+  --shadow:
+    0 10px 40px rgba(0,0,0,.35);
 
-/* ===== CONTENT ===== */
-#content{flex:1;overflow-y:auto;padding:24px}
-.page{display:none}
-.page.active{display:block}
-
-/* ===== PAGE HEADER ===== */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.page-title{font-size:22px;font-weight:700;color:var(–text)}
-.page-subtitle{font-size:13px;color:var(–text3);margin-top:2px}
-.page-actions{display:flex;gap:8px;flex-wrap:wrap}
-
-/* ===== STATS CARDS ===== */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:24px}
-.stat-card{background:var(–card);border:1px solid var(–border);border-radius:var(–radius);padding:20px;position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
-.stat-card:hover{transform:translateY(-2px);box-shadow:var(–shadow)}
-.stat-card::before{content:’’;position:absolute;top:0;left:0;right:0;height:3px;background:var(–accent)}
-.stat-card.green::before{background:var(–green)}
-.stat-card.yellow::before{background:var(–yellow)}
-.stat-card.orange::before{background:var(–orange)}
-.stat-card.red::before{background:var(–red)}
-.stat-icon{font-size:22px;margin-bottom:12px}
-.stat-value{font-size:28px;font-weight:700;color:var(–text);font-family:‘DM Mono’,monospace}
-.stat-label{font-size:12px;color:var(–text3);margin-top:4px;font-weight:500}
-
-/* ===== CARDS ===== */
-.card{background:var(–card);border:1px solid var(–border);border-radius:var(–radius);padding:20px}
-.card-title{font-size:15px;font-weight:600;color:var(–text);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-
-/* ===== TABLE ===== */
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-thead th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(–text3);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(–border);white-space:nowrap}
-tbody td{padding:10px 12px;font-size:13px;color:var(–text2);border-bottom:1px solid var(–border)}
-tbody tr{transition:background 0.15s}
-tbody tr:hover{background:var(–bg3)}
-tbody tr:last-child td{border-bottom:none}
-.td-name{color:var(–text);font-weight:500}
-
-/* ===== BADGES ===== */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}
-.badge-green{background:rgba(34,197,94,0.12);color:var(–green);border:1px solid rgba(34,197,94,0.25)}
-.badge-yellow{background:rgba(234,179,8,0.12);color:var(–yellow);border:1px solid rgba(234,179,8,0.25)}
-.badge-orange{background:rgba(249,115,22,0.12);color:var(–orange);border:1px solid rgba(249,115,22,0.25)}
-.badge-red{background:rgba(239,68,68,0.12);color:var(–red);border:1px solid rgba(239,68,68,0.25)}
-.badge-blue{background:rgba(108,99,255,0.12);color:var(–accent);border:1px solid rgba(108,99,255,0.25)}
-.badge-gray{background:rgba(107,114,160,0.12);color:var(–text3);border:1px solid var(–border)}
-
-/* ===== SEARCH + FILTER BAR ===== */
-.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.search-wrap{position:relative;flex:1;min-width:180px}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(–text3);font-size:15px;pointer-events:none}
-.search-input{width:100%;background:var(–bg3);border:1px solid var(–border);border-radius:var(–radius2);padding:8px 12px 8px 34px;color:var(–text);font-size:13px;transition:border-color 0.2s}
-.search-input:focus{border-color:var(–accent)}
-.search-input::placeholder{color:var(–text3)}
-.filter-select{background:var(–bg3);border:1px solid var(–border);border-radius:var(–radius2);padding:8px 12px;color:var(–text2);font-size:13px;cursor:pointer;transition:border-color 0.2s}
-.filter-select:focus{border-color:var(–accent)}
-.filter-select option{background:var(–bg2)}
-
-/* ===== MODAL ===== */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
-.modal{background:var(–card);border:1px solid var(–border);border-radius:14px;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(–shadow)}
-.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.modal-title{font-size:16px;font-weight:700;color:var(–text)}
-.modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(–bg3);border:1px solid var(–border);color:var(–text2);cursor:pointer;font-size:16px;transition:all 0.2s}
-.modal-close:hover{background:var(–bg4);color:var(–text)}
-.modal-body{padding:20px 24px;overflow-y:auto;flex:1}
-.modal-footer{padding:16px 24px;border-top:1px solid var(–border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-group select.form-input{cursor:pointer}
-.form-help{font-size:11px;color:var(–text3);margin-top:4px}
-.form-divider{height:1px;background:var(–border);margin:16px 0}
-
-/* ===== EMPTY STATE ===== */
-.empty-state{text-align:center;padding:48px 24px;color:var(–text3)}
-.empty-icon{font-size:48px;margin-bottom:12px;opacity:0.5}
-.empty-title{font-size:15px;font-weight:600;color:var(–text2);margin-bottom:6px}
-.empty-sub{font-size:13px}
-
-/* ===== TOAST ===== */
-#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{background:var(–card);border:1px solid var(–border);border-radius:var(–radius2);padding:12px 16px;font-size:13px;color:var(–text);box-shadow:var(–shadow);display:flex;align-items:center;gap:8px;min-width:240px;max-width:320px;pointer-events:all;animation:toastIn 0.3s ease;opacity:1;transition:opacity 0.3s}
-.toast.hiding{opacity:0}
-.toast.toast-success{border-left:3px solid var(–green)}
-.toast.toast-error{border-left:3px solid var(–red)}
-.toast.toast-info{border-left:3px solid var(–accent)}
-@keyframes toastIn{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
-
-/* ===== OVERLAPPING TAG ===== */
-.outlet-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(–bg4);border:1px solid var(–border2);border-radius:99px;font-size:11px;color:var(–text2)}
-
-/* ===== CONFIRM MODAL ===== */
-.confirm-modal{max-width:360px}
-.confirm-body{padding:20px 24px;text-align:center}
-.confirm-icon{font-size:40px;margin-bottom:12px}
-.confirm-title{font-size:15px;font-weight:600;color:var(–text);margin-bottom:8px}
-.confirm-sub{font-size:13px;color:var(–text3)}
-
-/* ===== MOBILE OVERLAY ===== */
-#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;backdrop-filter:blur(2px)}
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:768px){
-:root{–sidebar-w:260px}
-#sidebar{position:fixed;top:0;bottom:0;left:0;transform:translateX(-100%)}
-#sidebar.mobile-open{transform:translateX(0)}
-#sidebar.collapsed{width:var(–sidebar-w);transform:translateX(-100%)}
-#sidebar-overlay{display:block}
-#sidebar-overlay.active{display:block}
-#main{width:100%}
-#content{padding:16px}
-.stats-grid{grid-template-columns:repeat(2,1fr)}
-.form-row{grid-template-columns:1fr}
-.page-header{flex-direction:column;align-items:flex-start}
-.page-actions{width:100%}
-.notif-dropdown{width:calc(100vw - 32px);right:0}
-.modal{max-width:100%;margin:0 8px}
-}
-@media(max-width:480px){
-.stats-grid{grid-template-columns:1fr 1fr}
-.filter-bar{flex-direction:column}
-.filter-bar .search-wrap{min-width:100%}
+  --radius:18px;
 }
 
-/* ===== SORT ICON ===== */
-th.sortable{cursor:pointer;user-select:none}
-th.sortable:hover{color:var(–text2)}
-th.sortable span{margin-left:4px;opacity:0.5}
-th.sortable.asc span::after{content:’ ^’}
-th.sortable.desc span::after{content:’ v’}
+html,
+body{
+  height:100%;
+  font-family:'Inter',sans-serif;
+  background:
+    linear-gradient(
+      180deg,
+      #0b1120,
+      #111827
+    );
+  color:var(--text);
+}
 
-/* ===== CONTRACT STATUS INDICATOR ===== */
-.contract-row.expired td{opacity:0.7}
-.days-left{font-family:‘DM Mono’,monospace;font-size:12px;font-weight:600}
+body{
+  overflow:hidden;
+}
 
-/* ===== PROGRESS BAR ===== */
-.progress-bar{height:4px;background:var(–bg4);border-radius:99px;overflow:hidden;margin-top:6px}
-.progress-fill{height:100%;border-radius:99px;background:var(–green);transition:width 0.3s}
+/* APP */
 
-/* ===== SECTION DIVIDER ===== */
-.section-gap{margin-bottom:20px}
+.app{
+  display:flex;
+  height:100vh;
+}
 
-/* ===== LOADING ===== */
-.spinner{width:20px;height:20px;border:2px solid var(–border);border-top-color:var(–accent);border-radius:50%;animation:spin 0.6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* SIDEBAR */
 
-/* ===== SETUP SCREEN ===== */
-.setup-steps{display:flex;gap:8px;margin-bottom:24px}
-.setup-step{flex:1;height:4px;background:var(–border);border-radius:99px}
-.setup-step.done{background:var(–accent)}
+.sidebar{
+  width:280px;
+  background:rgba(17,24,39,.92);
+  border-right:1px solid var(--line);
 
-/* ===== TOPBAR OUTLET SELECTOR ===== */
-.outlet-selector{background:var(–bg3);border:1px solid var(–border);border-radius:var(–radius2);padding:6px 10px;color:var(–text2);font-size:13px;cursor:pointer;max-width:160px}
-.outlet-selector:focus{border-color:var(–accent);outline:none}
-.outlet-selector option{background:var(–bg2)}
+  display:flex;
+  flex-direction:column;
 
-/* ===== WELCOME CARD ===== */
-.welcome-card{background:linear-gradient(135deg,var(–accent3),var(–accent));border-radius:var(–radius);padding:24px;margin-bottom:24px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.welcome-title{font-size:18px;font-weight:700}
-.welcome-sub{font-size:13px;opacity:0.85;margin-top:4px}
-.welcome-icon{font-size:40px;opacity:0.85}
+  backdrop-filter:blur(18px);
+}
 
-/* ===== RECENT TABLE ===== */
-.section-title{font-size:14px;font-weight:600;color:var(–text2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.logo{
+  padding:24px;
+  border-bottom:1px solid var(--line);
+}
 
-/* ===== ACTION AREA ===== */
-.action-group{display:flex;gap:6px;flex-wrap:nowrap}
+.logo h1{
+  font-size:22px;
+  font-weight:800;
+}
 
-/* ===== EXTEND MODAL ===== */
-.duration-btns{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
-.duration-btn{padding:10px;border-radius:var(–radius2);background:var(–bg3);border:1px solid var(–border);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;text-align:center;transition:all 0.2s}
-.duration-btn:hover,.duration-btn.active{background:rgba(108,99,255,0.15);border-color:var(--accent);color:var(--accent)}
+.logo p{
+  margin-top:4px;
+  color:var(--text3);
+  font-size:13px;
+}
 
-/* ===== DETAIL ROWS ===== */
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.detail-item{}
-.detail-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px}
-.detail-value{font-size:13px;color:var(--text)}
+.sidebar-top{
+  padding:20px;
+}
 
-/* ===== IMPORT SECTION ===== */
-.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;color:var(–text3)}
-.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(108,99,255,0.05);color:var(--text2)}
-.drop-zone-icon{font-size:36px;margin-bottom:8px}
+.btn{
+  border:none;
+  cursor:pointer;
+
+  background:var(--primary);
+  color:white;
+
+  padding:12px 16px;
+
+  border-radius:14px;
+
+  font-weight:600;
+  font-size:14px;
+
+  transition:.2s;
+}
+
+.btn:hover{
+  background:var(--primary2);
+}
+
+.btn-full{
+  width:100%;
+}
+
+.outlet-list{
+  flex:1;
+  overflow:auto;
+  padding:0 14px 20px;
+}
+
+.outlet-item{
+  background:transparent;
+  border:1px solid transparent;
+
+  padding:16px;
+  border-radius:16px;
+
+  margin-bottom:10px;
+
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.outlet-item:hover{
+  background:rgba(255,255,255,.04);
+}
+
+.outlet-item.active{
+  background:
+    linear-gradient(
+      135deg,
+      rgba(124,58,237,.18),
+      rgba(124,58,237,.08)
+    );
+
+  border-color:
+    rgba(139,92,246,.35);
+}
+
+.outlet-name{
+  font-size:15px;
+  font-weight:700;
+}
+
+.outlet-sub{
+  margin-top:6px;
+  color:var(--text3);
+  font-size:12px;
+}
+
+/* MAIN */
+
+.main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* TOPBAR */
+
+.topbar{
+  height:80px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:0 24px;
+
+  border-bottom:1px solid var(--line);
+
+  background:rgba(15,23,42,.72);
+
+  backdrop-filter:blur(18px);
+}
+
+.topbar h2{
+  font-size:24px;
+  font-weight:800;
+}
+
+.topbar p{
+  margin-top:4px;
+  color:var(--text3);
+  font-size:13px;
+}
+
+.topbar-actions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+/* NOTIFICATION */
+
+.notif-btn{
+  position:relative;
+
+  width:52px;
+  height:52px;
+
+  border-radius:16px;
+
+  background:rgba(255,255,255,.04);
+
+  border:1px solid var(--line);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  cursor:pointer;
+
+  font-size:20px;
+
+  transition:.2s;
+}
+
+.notif-btn:hover{
+  background:rgba(255,255,255,.08);
+}
+
+.notif-badge{
+  position:absolute;
+
+  top:-6px;
+  right:-6px;
+
+  min-width:24px;
+  height:24px;
+
+  padding:0 6px;
+
+  border-radius:999px;
+
+  background:var(--danger);
+
+  color:white;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:11px;
+  font-weight:800;
+}
+
+/* CONTENT */
+
+.content{
+  flex:1;
+  overflow:auto;
+  padding:24px;
+}
+
+/* HERO */
+
+.hero{
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #4f46e5
+    );
+
+  border-radius:28px;
+
+  padding:30px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:20px;
+
+  margin-bottom:24px;
+
+  box-shadow:var(--shadow);
+}
+
+.hero h3{
+  font-size:28px;
+  font-weight:800;
+}
+
+.hero p{
+  margin-top:10px;
+  color:rgba(255,255,255,.85);
+  line-height:1.6;
+}
+
+.hero-icon{
+  font-size:70px;
+}
+
+/* CARD */
+
+.card{
+  background:rgba(24,34,53,.92);
+
+  border:1px solid var(--line);
+
+  border-radius:24px;
+
+  padding:22px;
+
+  box-shadow:var(--shadow);
+}
+
+.card-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  margin-bottom:20px;
+}
+
+.card-title{
+  font-size:18px;
+  font-weight:800;
+}
+
+/* EMPLOYEE */
+
+.employee-list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.employee-card{
+  background:rgba(255,255,255,.03);
+
+  border:1px solid rgba(255,255,255,.05);
+
+  border-radius:18px;
+
+  padding:18px;
+
+  transition:.2s;
+}
+
+.employee-card:hover{
+  transform:translateY(-2px);
+}
+
+.employee-top{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.employee-name{
+  font-size:18px;
+  font-weight:800;
+}
+
+.employee-phone{
+  margin-top:6px;
+  color:var(--text3);
+  font-size:13px;
+}
+
+.employee-salary{
+  font-size:15px;
+  font-weight:700;
+  color:#a78bfa;
+}
+
+.employee-grid{
+  margin-top:18px;
+
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+
+.info-box{
+  background:rgba(255,255,255,.03);
+
+  border-radius:14px;
+
+  padding:12px;
+}
+
+.info-label{
+  color:var(--text3);
+  font-size:11px;
+}
+
+.info-value{
+  margin-top:5px;
+  font-size:14px;
+  font-weight:700;
+}
+
+.employee-actions{
+  margin-top:18px;
+
+  display:flex;
+  gap:10px;
+}
+
+.btn-secondary{
+  background:rgba(255,255,255,.06);
+}
+
+.btn-danger{
+  background:rgba(239,68,68,.18);
+}
+
+/* EMPTY */
+
+.empty{
+  text-align:center;
+  padding:70px 20px;
+}
+
+.empty-icon{
+  font-size:60px;
+}
+
+.empty h3{
+  margin-top:18px;
+  font-size:22px;
+}
+
+.empty p{
+  margin-top:8px;
+  color:var(--text3);
+}
+
+/* MODAL */
+
+.modal-overlay{
+  position:fixed;
+  inset:0;
+
+  background:rgba(0,0,0,.6);
+
+  display:none;
+  align-items:center;
+  justify-content:center;
+
+  padding:20px;
+
+  z-index:999;
+}
+
+.modal-overlay.show{
+  display:flex;
+}
+
+.modal{
+  width:100%;
+  max-width:520px;
+
+  background:#182235;
+
+  border:1px solid var(--line);
+
+  border-radius:28px;
+
+  overflow:hidden;
+
+  box-shadow:var(--shadow);
+}
+
+.modal-header{
+  padding:24px;
+
+  border-bottom:1px solid var(--line);
+}
+
+.modal-header h3{
+  font-size:22px;
+}
+
+.modal-body{
+  padding:24px;
+}
+
+.modal-footer{
+  padding:24px;
+
+  border-top:1px solid var(--line);
+
+  display:flex;
+  gap:12px;
+  justify-content:flex-end;
+}
+
+/* FORM */
+
+.form-group{
+  margin-bottom:18px;
+}
+
+.form-label{
+  display:block;
+
+  margin-bottom:8px;
+
+  font-size:13px;
+  font-weight:700;
+}
+
+.input{
+  width:100%;
+
+  background:#0f172a;
+
+  border:1px solid #334155;
+
+  color:white;
+
+  padding:14px;
+
+  border-radius:14px;
+
+  font-size:14px;
+}
+
+.input:focus{
+  outline:none;
+  border-color:#8b5cf6;
+}
+
+/* CONTRACT ALERT */
+
+.alert-item{
+  background:rgba(239,68,68,.12);
+
+  border:1px solid rgba(239,68,68,.22);
+
+  border-radius:16px;
+
+  padding:16px;
+
+  margin-bottom:12px;
+}
+
+.alert-name{
+  font-weight:800;
+}
+
+.alert-sub{
+  margin-top:6px;
+  color:#fecaca;
+  font-size:13px;
+}
+
+/* MOBILE */
+
+@media(max-width:900px){
+
+  .app{
+    flex-direction:column;
+  }
+
+  .sidebar{
+    width:100%;
+    height:auto;
+    border-right:none;
+    border-bottom:1px solid var(--line);
+  }
+
+  .outlet-list{
+    display:flex;
+    overflow:auto;
+    gap:10px;
+    padding:14px;
+  }
+
+  .outlet-item{
+    min-width:220px;
+    margin-bottom:0;
+  }
+
+  .topbar{
+    padding:0 16px;
+  }
+
+  .content{
+    padding:16px;
+  }
+
+  .hero{
+    flex-direction:column;
+    text-align:center;
+  }
+
+  .employee-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+
 </style>
-
 </head>
+
 <body>
 
-<!-- Auth Screen -->
+<div class="app">
 
-<div id="auth-screen">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="auth-logo-icon">&#128084;</div>
-      <h1>Naruna HR Suite</h1>
-      <p>Manajemen SDM Multi Outlet</p>
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      <h1>🏢 Naruna HR</h1>
+      <p>Monitoring kontrak karyawan</p>
     </div>
-    <div id="auth-tabs" class="auth-tabs">
-      <div class="auth-tab active" data-tab="login">Masuk</div>
-      <div class="auth-tab" data-tab="setup">Buat Akun</div>
-    </div>
-    <div id="auth-msg"></div>
 
-```
-<!-- Login Form -->
-<div id="tab-login">
-  <div class="form-group">
-    <label class="form-label">Username</label>
-    <input type="text" id="login-user" class="form-input" placeholder="Masukkan username" autocomplete="username">
-  </div>
-  <div class="form-group">
-    <label class="form-label">Password</label>
-    <input type="password" id="login-pass" class="form-input" placeholder="Masukkan password" autocomplete="current-password">
-  </div>
-  <button class="btn btn-primary btn-w-full" id="btn-login">&#128274; Masuk</button>
-</div>
-
-<!-- Setup Form -->
-<div id="tab-setup" class="hidden">
-  <div class="form-group">
-    <label class="form-label">Nama Perusahaan</label>
-    <input type="text" id="setup-company" class="form-input" placeholder="Contoh: Naruna Resto Group">
-  </div>
-  <div class="form-group">
-    <label class="form-label">Username Admin</label>
-    <input type="text" id="setup-user" class="form-input" placeholder="admin">
-  </div>
-  <div class="form-group">
-    <label class="form-label">Password</label>
-    <input type="password" id="setup-pass" class="form-input" placeholder="Minimal 6 karakter">
-  </div>
-  <div class="form-group">
-    <label class="form-label">Konfirmasi Password</label>
-    <input type="password" id="setup-pass2" class="form-input" placeholder="Ulangi password">
-  </div>
-  <button class="btn btn-primary btn-w-full" id="btn-setup">&#9989; Buat Akun</button>
-</div>
-```
-
-  </div>
-</div>
-
-<!-- App -->
-
-<div id="app" class="hidden">
-  <!-- Sidebar Overlay (mobile) -->
-  <div id="sidebar-overlay"></div>
-
-  <!-- Sidebar -->
-
-  <nav id="sidebar">
     <div class="sidebar-top">
-      <div class="sidebar-logo-icon">&#128084;</div>
-      <span class="sidebar-logo-text">Naruna HR</span>
+      <button
+        class="btn btn-full"
+        onclick="openOutletModal()"
+      >
+        + Tambah Outlet
+      </button>
     </div>
-    <div class="sidebar-nav">
-      <div class="nav-group-label">Menu Utama</div>
-      <div class="nav-item active" data-page="dashboard">
-        <span class="nav-icon">&#9962;</span>
-        <span class="nav-label">Dashboard</span>
-      </div>
-      <div class="nav-item" data-page="outlets">
-        <span class="nav-icon">&#127978;</span>
-        <span class="nav-label">Outlet</span>
-      </div>
-      <div class="nav-item" data-page="employees">
-        <span class="nav-icon">&#128101;</span>
-        <span class="nav-label">Karyawan</span>
-      </div>
-      <div class="nav-item" data-page="contracts">
-        <span class="nav-icon">&#128203;</span>
-        <span class="nav-label">Kontrak</span>
-      </div>
-      <div class="nav-group-label" style="margin-top:8px">Sistem</div>
-      <div class="nav-item" data-page="export">
-        <span class="nav-icon">&#128190;</span>
-        <span class="nav-label">Export / Import</span>
-      </div>
-      <div class="nav-item" data-page="settings">
-        <span class="nav-icon">&#9881;</span>
-        <span class="nav-label">Pengaturan</span>
-      </div>
-    </div>
-    <div class="sidebar-bottom">
-      <div class="sidebar-user" id="btn-logout">
-        <div class="user-avatar" id="user-avatar-letter">A</div>
-        <div class="user-info">
-          <div class="user-name" id="sidebar-username">Admin</div>
-          <div class="user-role">Keluar</div>
-        </div>
-      </div>
-    </div>
-  </nav>
 
-  <!-- Main -->
+    <div
+      class="outlet-list"
+      id="outletList"
+    ></div>
 
-  <div id="main">
-    <!-- Topbar -->
-    <div id="topbar">
-      <button class="topbar-toggle" id="sidebar-toggle">&#9776;</button>
-      <span class="topbar-title" id="topbar-title">Dashboard</span>
-      <div class="topbar-right">
-        <div style="position:relative">
-          <div class="notif-btn" id="notif-btn">
-            &#128276;
-            <span class="notif-badge hidden" id="notif-badge">0</span>
+  </aside>
+
+  <!-- MAIN -->
+
+  <main class="main">
+
+    <!-- TOPBAR -->
+
+    <div class="topbar">
+
+      <div>
+        <h2 id="pageTitle">
+          Dashboard
+        </h2>
+
+        <p>
+          Kelola kontrak kerja seluruh outlet
+        </p>
+      </div>
+
+      <div class="topbar-actions">
+
+        <div
+          class="notif-btn"
+          onclick="openReminderModal()"
+        >
+          🔔
+
+          <div
+            class="notif-badge"
+            id="notifBadge"
+            style="display:none"
+          >
+            0
           </div>
-          <div class="notif-dropdown hidden" id="notif-dropdown"></div>
+
         </div>
+
+        <button
+          class="btn"
+          onclick="openEmployeeModal()"
+        >
+          + Karyawan
+        </button>
+
       </div>
+
     </div>
 
-```
-<!-- Content -->
-<div id="content">
+    <!-- CONTENT -->
 
-  <!-- Dashboard Page -->
-  <div class="page active" id="page-dashboard">
-    <div class="welcome-card">
-      <div>
-        <div class="welcome-title" id="welcome-title">Selamat Datang!</div>
-        <div class="welcome-sub" id="welcome-sub">Pantau SDM restoran Anda hari ini.</div>
+    <div class="content">
+
+      <div class="hero">
+
+        <div>
+          <h3>
+            Sistem Monitoring Kontrak
+          </h3>
+
+          <p>
+            Pantau masa kontrak seluruh
+            karyawan secara otomatis,
+            urut per outlet dan alfabet.
+          </p>
+        </div>
+
+        <div class="hero-icon">
+          📋
+        </div>
+
       </div>
-      <div class="welcome-icon">&#127859;</div>
-    </div>
-    <div class="stats-grid" id="dash-stats"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="dash-bottom-grid">
+
       <div class="card">
-        <div class="card-title">Kontrak Perlu Perhatian <span id="alert-count" class="badge badge-red">0</span></div>
-        <div id="dash-alert-list"></div>
+
+        <div class="card-header">
+
+          <div class="card-title">
+            Daftar Karyawan
+          </div>
+
+        </div>
+
+        <div
+          class="employee-list"
+          id="employeeList"
+        ></div>
+
       </div>
-      <div class="card">
-        <div class="card-title">Outlet Aktif</div>
-        <div id="dash-outlet-list"></div>
-      </div>
+
     </div>
+
+  </main>
+
+</div>
+
+<!-- MODAL OUTLET -->
+
+<div
+  class="modal-overlay"
+  id="outletModal"
+>
+
+  <div class="modal">
+
+    <div class="modal-header">
+      <h3>Tambah Outlet</h3>
+    </div>
+
+    <div class="modal-body">
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Nama Outlet
+        </label>
+
+        <input
+          type="text"
+          id="outletName"
+          class="input"
+          placeholder="Contoh: Outlet Semarang"
+        >
+
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+      <button
+        class="btn btn-secondary"
+        onclick="closeModal('outletModal')"
+      >
+        Batal
+      </button>
+
+      <button
+        class="btn"
+        onclick="saveOutlet()"
+      >
+        Simpan
+      </button>
+
+    </div>
+
   </div>
 
-  <!-- Outlets Page -->
-  <div class="page hidden" id="page-outlets">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Manajemen Outlet</div>
-        <div class="page-subtitle">Kelola outlet / cabang restoran</div>
-      </div>
-      <div class="page-actions">
-        <button class="btn btn-primary" id="btn-add-outlet">+ Tambah Outlet</button>
-      </div>
+</div>
+
+<!-- MODAL EMPLOYEE -->
+
+<div
+  class="modal-overlay"
+  id="employeeModal"
+>
+
+  <div class="modal">
+
+    <div class="modal-header">
+      <h3>Tambah Karyawan</h3>
     </div>
-    <div class="filter-bar">
-      <div class="search-wrap">
-        <span class="search-icon">&#128269;</span>
-        <input type="text" class="search-input" id="outlet-search" placeholder="Cari outlet...">
+
+    <div class="modal-body">
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Nama
+        </label>
+
+        <input
+          type="text"
+          id="employeeName"
+          class="input"
+        >
+
       </div>
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Nomor HP
+        </label>
+
+        <input
+          type="text"
+          id="employeePhone"
+          class="input"
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Gaji Pokok
+        </label>
+
+        <input
+          type="number"
+          id="employeeSalary"
+          class="input"
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Start Kontrak
+        </label>
+
+        <input
+          type="date"
+          id="employeeStart"
+          class="input"
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Akhir Kontrak
+        </label>
+
+        <input
+          type="date"
+          id="employeeEnd"
+          class="input"
+        >
+
+      </div>
+
     </div>
-    <div class="card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th class="sortable" data-sort="name">Nama Outlet <span></span></th>
-              <th>Lokasi</th>
-              <th>Deskripsi</th>
-              <th>Karyawan</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="outlet-tbody"></tbody>
-        </table>
-      </div>
-      <div id="outlet-empty" class="empty-state hidden">
-        <div class="empty-icon">&#127978;</div>
-        <div class="empty-title">Belum ada outlet</div>
-        <div class="empty-sub">Klik "Tambah Outlet" untuk mulai</div>
-      </div>
+
+    <div class="modal-footer">
+
+      <button
+        class="btn btn-secondary"
+        onclick="closeModal('employeeModal')"
+      >
+        Batal
+      </button>
+
+      <button
+        class="btn"
+        onclick="saveEmployee()"
+      >
+        Simpan
+      </button>
+
     </div>
+
   </div>
 
-  <!-- Employees Page -->
-  <div class="page hidden" id="page-employees">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Manajemen Karyawan</div>
-        <div class="page-subtitle">Kelola seluruh karyawan multi outlet</div>
-      </div>
-      <div class="page-actions">
-        <button class="btn btn-secondary" id="btn-export-emp-xlsx">&#128190; XLSX</button>
-        <button class="btn btn-secondary" id="btn-export-emp-pdf">&#128196; PDF</button>
-        <button class="btn btn-primary" id="btn-add-emp">+ Tambah Karyawan</button>
-      </div>
+</div>
+
+<!-- MODAL REMINDER -->
+
+<div
+  class="modal-overlay"
+  id="reminderModal"
+>
+
+  <div class="modal">
+
+    <div class="modal-header">
+      <h3>Kontrak Akan Habis</h3>
     </div>
-    <div class="filter-bar">
-      <div class="search-wrap">
-        <span class="search-icon">&#128269;</span>
-        <input type="text" class="search-input" id="emp-search" placeholder="Cari nama, jabatan...">
-      </div>
-      <select class="filter-select" id="emp-filter-outlet">
-        <option value="">Semua Outlet</option>
-      </select>
-      <select class="filter-select" id="emp-filter-type">
-        <option value="">Semua Tipe</option>
-        <option value="Tetap">Tetap</option>
-        <option value="Kontrak">Kontrak</option>
-        <option value="Harian">Harian</option>
-        <option value="Magang">Magang</option>
-      </select>
-      <select class="filter-select" id="emp-sort">
-        <option value="name-asc">Nama A-Z</option>
-        <option value="name-desc">Nama Z-A</option>
-        <option value="salary-asc">Gaji Terkecil</option>
-        <option value="salary-desc">Gaji Terbesar</option>
-        <option value="contract-asc">Kontrak Terdekat</option>
-      </select>
+
+    <div
+      class="modal-body"
+      id="reminderList"
+    ></div>
+
+    <div class="modal-footer">
+
+      <button
+        class="btn"
+        onclick="closeModal('reminderModal')"
+      >
+        Tutup
+      </button>
+
     </div>
-    <div class="card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Nama</th>
-              <th>Outlet</th>
-              <th>Jabatan</th>
-              <th>Tipe</th>
-              <th>Gaji Pokok</th>
-              <th>Kontrak Selesai</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="emp-tbody"></tbody>
-        </table>
-      </div>
-      <div id="emp-empty" class="empty-state hidden">
-        <div class="empty-icon">&#128101;</div>
-        <div class="empty-title">Belum ada karyawan</div>
-        <div class="empty-sub">Klik "Tambah Karyawan" untuk mulai</div>
-      </div>
-    </div>
-    <div style="padding:12px 0;font-size:12px;color:var(--text3)" id="emp-count-label"></div>
+
   </div>
 
-  <!-- Contracts Page -->
-  <div class="page hidden" id="page-contracts">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Monitor Kontrak</div>
-        <div class="page-subtitle">Pantau status kontrak seluruh karyawan</div>
-      </div>
-      <div class="page-actions">
-        <button class="btn btn-secondary" id="btn-export-contract-pdf">&#128196; Export PDF</button>
-      </div>
-    </div>
-    <div class="stats-grid" id="contract-stats"></div>
-    <div class="filter-bar">
-      <div class="search-wrap">
-        <span class="search-icon">&#128269;</span>
-        <input type="text" class="search-input" id="contract-search" placeholder="Cari karyawan...">
-      </div>
-      <select class="filter-select" id="contract-filter-outlet">
-        <option value="">Semua Outlet</option>
-      </select>
-      <select class="filter-select" id="contract-filter-status">
-        <option value="">Semua Status</option>
-        <option value="safe">Aman (&gt;30 hari)</option>
-        <option value="soon">30 Hari</option>
-        <option value="urgent">7 Hari</option>
-        <option value="expired">Expired</option>
-      </select>
-    </div>
-    <div class="card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Karyawan</th>
-              <th>Outlet</th>
-              <th>Jabatan</th>
-              <th>Mulai</th>
-              <th>Selesai</th>
-              <th>Sisa Hari</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="contract-tbody"></tbody>
-        </table>
-      </div>
-      <div id="contract-empty" class="empty-state hidden">
-        <div class="empty-icon">&#128203;</div>
-        <div class="empty-title">Tidak ada data kontrak</div>
-        <div class="empty-sub">Tambah karyawan dengan tipe Kontrak</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Export/Import Page -->
-  <div class="page hidden" id="page-export">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Export / Import Data</div>
-        <div class="page-subtitle">Backup dan restore data HR</div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="card">
-        <div class="card-title">&#128190; Export Data</div>
-        <p style="font-size:13px;color:var(--text3);margin-bottom:16px">Simpan semua data ke file JSON untuk backup atau pindah device.</p>
-        <button class="btn btn-primary btn-w-full" id="btn-export-json" style="margin-bottom:8px">&#128190; Export JSON</button>
-        <button class="btn btn-secondary btn-w-full" id="btn-export-all-xlsx" style="margin-bottom:8px">&#128190; Export Semua XLSX</button>
-        <button class="btn btn-secondary btn-w-full" id="btn-export-all-pdf">&#128196; Export Semua PDF</button>
-      </div>
-      <div class="card">
-        <div class="card-title">&#128228; Import Data</div>
-        <p style="font-size:13px;color:var(--text3);margin-bottom:16px">Restore data dari file JSON yang sebelumnya di-export.</p>
-        <div class="drop-zone" id="drop-zone">
-          <div class="drop-zone-icon">&#128228;</div>
-          <div style="font-size:13px;font-weight:500;margin-bottom:4px">Klik atau drag file JSON</div>
-          <div style="font-size:12px">Format: naruna-backup.json</div>
-        </div>
-        <input type="file" id="import-file" accept=".json" class="hidden">
-        <div id="import-msg" class="mt-2"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Settings Page -->
-  <div class="page hidden" id="page-settings">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Pengaturan</div>
-        <div class="page-subtitle">Konfigurasi akun dan aplikasi</div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="card">
-        <div class="card-title">&#128100; Profil Akun</div>
-        <div class="form-group">
-          <label class="form-label">Username</label>
-          <input type="text" class="form-input" id="setting-username" placeholder="Username">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Nama Perusahaan</label>
-          <input type="text" class="form-input" id="setting-company" placeholder="Nama perusahaan">
-        </div>
-        <button class="btn btn-primary" id="btn-save-profile">Simpan Profil</button>
-      </div>
-      <div class="card">
-        <div class="card-title">&#128274; Ganti Password</div>
-        <div class="form-group">
-          <label class="form-label">Password Lama</label>
-          <input type="password" class="form-input" id="setting-old-pass" placeholder="Password saat ini">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password Baru</label>
-          <input type="password" class="form-input" id="setting-new-pass" placeholder="Minimal 6 karakter">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Konfirmasi Password Baru</label>
-          <input type="password" class="form-input" id="setting-new-pass2" placeholder="Ulangi password baru">
-        </div>
-        <button class="btn btn-primary" id="btn-save-password">Ganti Password</button>
-      </div>
-    </div>
-    <div class="card mt-4">
-      <div class="card-title">&#9888; Zona Bahaya</div>
-      <p style="font-size:13px;color:var(--text3);margin-bottom:12px">Hapus semua data aplikasi. Tindakan ini tidak dapat dibatalkan.</p>
-      <button class="btn btn-danger" id="btn-reset-all">&#128465; Hapus Semua Data</button>
-    </div>
-  </div>
-
-</div><!-- /content -->
-```
-
-  </div><!-- /main -->
-</div><!-- /app -->
-
-<!-- Toast Container -->
-
-<div id="toast-container"></div>
-
-<!-- Modals injected by JS -->
-
-<div id="modal-container"></div>
+</div>
 
 <script>
-(function() {
-'use strict';
 
-// ============================================================
-// UTILS
-// ============================================================
-var U = {
-  esc: function(s) {
-    if (s == null) return '';
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  },
-  id: function(id) { return document.getElementById(id); },
-  on: function(el, ev, fn) {
-    if (!el) return;
-    el.addEventListener(ev, fn);
-  },
-  delegate: function(parent, selector, ev, fn) {
-    if (!parent) return;
-    parent.addEventListener(ev, function(e) {
-      var t = e.target.closest(selector);
-      if (t && parent.contains(t)) fn(e, t);
-    });
-  },
-  genId: function() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  },
-  fmtDate: function(iso) {
-    if (!iso) return '-';
-    var d = new Date(iso);
-    if (isNaN(d)) return '-';
-    return d.getDate().toString().padStart(2,'0') + '/' +
-           (d.getMonth()+1).toString().padStart(2,'0') + '/' +
-           d.getFullYear();
-  },
-  fmtCurrency: function(n) {
-    if (!n && n !== 0) return '-';
-    return 'Rp ' + Number(n).toLocaleString('id-ID');
-  },
-  daysLeft: function(endDate) {
-    if (!endDate) return null;
-    var now = new Date();
-    now.setHours(0,0,0,0);
-    var end = new Date(endDate);
-    end.setHours(0,0,0,0);
-    return Math.round((end - now) / 86400000);
-  },
-  contractStatus: function(endDate) {
-    var d = U.daysLeft(endDate);
-    if (d === null) return 'none';
-    if (d < 0) return 'expired';
-    if (d <= 7) return 'urgent';
-    if (d <= 30) return 'soon';
-    return 'safe';
-  },
-  statusBadge: function(endDate) {
-    var s = U.contractStatus(endDate);
-    var d = U.daysLeft(endDate);
-    if (s === 'none') return '<span class="badge badge-gray">-</span>';
-    if (s === 'expired') return '<span class="badge badge-red">Expired</span>';
-    if (s === 'urgent') return '<span class="badge badge-orange">'+d+' hari</span>';
-    if (s === 'soon') return '<span class="badge badge-yellow">'+d+' hari</span>';
-    return '<span class="badge badge-green">Aman</span>';
-  },
-  addMonthsSafe: function(dateStr, months) {
-    var d = new Date(dateStr);
-    var day = d.getDate();
-    d.setDate(1);
-    d.setMonth(d.getMonth() + months);
-    var maxDay = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
-    d.setDate(Math.min(day, maxDay));
-    return d.toISOString().slice(0, 10);
-  },
-  debounce: function(fn, ms) {
-    var t;
-    return function() {
-      var a = arguments, ctx = this;
-      clearTimeout(t);
-      t = setTimeout(function(){ fn.apply(ctx, a); }, ms);
-    };
-  },
-  simpleHash: function(s) {
-    var h = 0;
-    for (var i = 0; i < s.length; i++) {
-      h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-    }
-    return 'h' + Math.abs(h).toString(16) + s.length.toString(16);
-  },
-  today: function() { return new Date().toISOString().slice(0, 10); },
-  capitalize: function(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+/* STORAGE */
+
+const DB_KEY =
+  'naruna_hr_simple_v1';
+
+/* STATE */
+
+let state = {
+  outlets:[],
+  employees:[]
 };
 
-// ============================================================
-// STORAGE
-// ============================================================
-var STORAGE_KEY = 'naruna_hr_v1';
-var STATE = {
-  auth: null,
-  outlets: [],
-  employees: [],
-  settings: { company: 'Naruna Resto Group' }
-};
+let selectedOutletId = null;
 
-function loadState() {
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    var d = JSON.parse(raw);
-    if (d && typeof d === 'object') {
-      if (Array.isArray(d.outlets)) STATE.outlets = d.outlets;
-      if (Array.isArray(d.employees)) STATE.employees = d.employees;
-      if (d.auth && typeof d.auth === 'object') STATE.auth = d.auth;
-      if (d.settings && typeof d.settings === 'object') STATE.settings = Object.assign(STATE.settings, d.settings);
-    }
-  } catch(e) { /* ignore */ }
-}
+/* LOAD */
 
-var _saveTimer = null;
-function saveState() {
-  if (_saveTimer) clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(function() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        auth: STATE.auth,
-        outlets: STATE.outlets,
-        employees: STATE.employees,
-        settings: STATE.settings
-      }));
-    } catch(e) {
-      showToast('Gagal menyimpan data!', 'error');
-    }
-    _saveTimer = null;
-  }, 80);
-}
+function loadData(){
 
-// ============================================================
-// OUTLET CACHE
-// ============================================================
-var _outletMap = {};
-function rebuildOutletMap() {
-  _outletMap = {};
-  for (var i = 0; i < STATE.outlets.length; i++) {
-    _outletMap[STATE.outlets[i].id] = STATE.outlets[i];
+  const data =
+    localStorage.getItem(DB_KEY);
+
+  if(data){
+
+    state = JSON.parse(data);
+
   }
-}
-function getOutlet(id) { return _outletMap[id] || null; }
 
-// ============================================================
-// TOAST
-// ============================================================
-function showToast(msg, type) {
-  type = type || 'info';
-  var c = U.id('toast-container');
-  if (!c) return;
-  var div = document.createElement('div');
-  div.className = 'toast toast-' + type;
-  var icon = type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : 'i';
-  div.innerHTML = '<span>' + icon + '</span><span>' + U.esc(msg) + '</span>';
-  c.appendChild(div);
-  setTimeout(function() {
-    div.classList.add('hiding');
-    setTimeout(function() { if (div.parentNode) div.parentNode.removeChild(div); }, 300);
-  }, 3000);
 }
 
-// ============================================================
-// MODAL SYSTEM
-// ============================================================
-var _modalStack = [];
+/* SAVE */
 
-function openModal(html, onReady) {
-  var overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = html;
-  document.body.appendChild(overlay);
-  _modalStack.push(overlay);
-  if (onReady) onReady(overlay);
-  U.on(overlay, 'click', function(e) {
-    if (e.target === overlay) closeModal();
-  });
-  var closeBtn = overlay.querySelector('.modal-close');
-  if (closeBtn) U.on(closeBtn, 'click', closeModal);
+function saveData(){
+
+  localStorage.setItem(
+    DB_KEY,
+    JSON.stringify(state)
+  );
+
 }
 
-function closeModal() {
-  if (_modalStack.length === 0) return;
-  var overlay = _modalStack.pop();
-  if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+/* MODAL */
+
+function openModal(id){
+
+  document
+    .getElementById(id)
+    .classList
+    .add('show');
+
 }
 
-function confirmAction(title, sub, onConfirm) {
-  var html = '<div class="modal confirm-modal">' +
-    '<div class="modal-header"><span class="modal-title">Konfirmasi</span><button class="modal-close">x</button></div>' +
-    '<div class="confirm-body">' +
-    '<div class="confirm-icon">&#9888;</div>' +
-    '<div class="confirm-title">' + U.esc(title) + '</div>' +
-    '<div class="confirm-sub">' + U.esc(sub) + '</div>' +
-    '</div>' +
-    '<div class="modal-footer">' +
-    '<button class="btn btn-secondary" id="conf-cancel">Batal</button>' +
-    '<button class="btn btn-danger" id="conf-ok">Ya, Lanjutkan</button>' +
-    '</div></div>';
-  openModal(html, function(overlay) {
-    U.on(overlay.querySelector('#conf-cancel'), 'click', closeModal);
-    U.on(overlay.querySelector('#conf-ok'), 'click', function() {
-      closeModal();
-      onConfirm();
-    });
-  });
+function closeModal(id){
+
+  document
+    .getElementById(id)
+    .classList
+    .remove('show');
+
 }
 
-// ============================================================
-// AUTH
-// ============================================================
-function checkAuth() {
-  var sess = sessionStorage.getItem('naruna_sess');
-  if (sess && STATE.auth) {
-    showApp();
-  } else {
-    showAuthScreen();
-  }
+function openOutletModal(){
+
+  openModal('outletModal');
+
 }
 
-function showAuthScreen() {
-  var authEl = U.id('auth-screen');
-  var appEl = U.id('app');
-  if (authEl) authEl.classList.remove('hidden');
-  if (appEl) appEl.classList.add('hidden');
+function openEmployeeModal(){
 
-  // Show correct tab
-  var hasAccount = !!STATE.auth;
-  if (!hasAccount) {
-    switchAuthTab('setup');
-    var tabs = document.querySelector('#auth-tabs');
-    if (tabs) tabs.style.display = 'none';
-  } else {
-    switchAuthTab('login');
-  }
-}
+  if(!selectedOutletId){
 
-function showApp() {
-  var authEl = U.id('auth-screen');
-  var appEl = U.id('app');
-  if (authEl) authEl.classList.add('hidden');
-  if (appEl) appEl.classList.remove('hidden');
-  updateSidebarUser();
-  updateNotifications();
-  renderCurrentPage();
-}
+    alert(
+      'Pilih outlet terlebih dahulu'
+    );
 
-function switchAuthTab(tab) {
-  document.querySelectorAll('.auth-tab').forEach(function(el) {
-    el.classList.toggle('active', el.dataset.tab === tab);
-  });
-  var login = U.id('tab-login');
-  var setup = U.id('tab-setup');
-  if (login) login.classList.toggle('hidden', tab !== 'login');
-  if (setup) setup.classList.toggle('hidden', tab !== 'setup');
-  clearAuthMsg();
-}
-
-function setAuthMsg(msg, type) {
-  var el = U.id('auth-msg');
-  if (!el) return;
-  el.innerHTML = '<div class="auth-msg ' + (type||'error') + '">' + U.esc(msg) + '</div>';
-}
-
-function clearAuthMsg() {
-  var el = U.id('auth-msg');
-  if (el) el.innerHTML = '';
-}
-
-function doLogin() {
-  var user = (U.id('login-user') || {}).value || '';
-  var pass = (U.id('login-pass') || {}).value || '';
-  user = user.trim();
-  if (!user || !pass) { setAuthMsg('Username dan password wajib diisi.'); return; }
-  if (!STATE.auth) { setAuthMsg('Belum ada akun. Buat akun terlebih dahulu.'); return; }
-  var hashPass = U.simpleHash(pass);
-  if (STATE.auth.username !== user || STATE.auth.password !== hashPass) {
-    setAuthMsg('Username atau password salah.');
     return;
-  }
-  sessionStorage.setItem('naruna_sess', '1');
-  clearAuthMsg();
-  showApp();
-}
 
-function doSetup() {
-  var company = (U.id('setup-company') || {}).value || '';
-  var user = (U.id('setup-user') || {}).value || '';
-  var pass = (U.id('setup-pass') || {}).value || '';
-  var pass2 = (U.id('setup-pass2') || {}).value || '';
-  company = company.trim(); user = user.trim();
-  if (!company || !user || !pass) { setAuthMsg('Semua field wajib diisi.'); return; }
-  if (pass.length < 6) { setAuthMsg('Password minimal 6 karakter.'); return; }
-  if (pass !== pass2) { setAuthMsg('Konfirmasi password tidak cocok.'); return; }
-  STATE.auth = { username: user, password: U.simpleHash(pass) };
-  STATE.settings.company = company;
-  saveState();
-  sessionStorage.setItem('naruna_sess', '1');
-  clearAuthMsg();
-  showApp();
-}
-
-function doLogout() {
-  sessionStorage.removeItem('naruna_sess');
-  showAuthScreen();
-}
-
-function updateSidebarUser() {
-  var nameEl = U.id('sidebar-username');
-  var avatarEl = U.id('user-avatar-letter');
-  if (!STATE.auth) return;
-  var name = STATE.auth.username || 'Admin';
-  if (nameEl) nameEl.textContent = name;
-  if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
-}
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-var _currentPage = 'dashboard';
-var PAGE_TITLES = {
-  dashboard: 'Dashboard',
-  outlets: 'Manajemen Outlet',
-  employees: 'Karyawan',
-  contracts: 'Monitor Kontrak',
-  export: 'Export / Import',
-  settings: 'Pengaturan'
-};
-
-function navigateTo(page) {
-  _currentPage = page;
-  // Update sidebar
-  document.querySelectorAll('.nav-item').forEach(function(el) {
-    el.classList.toggle('active', el.dataset.page === page);
-  });
-  // Update pages
-  document.querySelectorAll('.page').forEach(function(el) {
-    el.classList.toggle('active', el.id === 'page-' + page);
-    el.classList.toggle('hidden', el.id !== 'page-' + page);
-  });
-  // Topbar title
-  var titleEl = U.id('topbar-title');
-  if (titleEl) titleEl.textContent = PAGE_TITLES[page] || '';
-  // Close mobile sidebar
-  closeMobileSidebar();
-  renderCurrentPage();
-}
-
-function renderCurrentPage() {
-  rebuildOutletMap();
-  if (_currentPage === 'dashboard') renderDashboard();
-  else if (_currentPage === 'outlets') renderOutlets();
-  else if (_currentPage === 'employees') renderEmployees();
-  else if (_currentPage === 'contracts') renderContracts();
-  else if (_currentPage === 'settings') renderSettings();
-  updateNotifications();
-}
-
-// ============================================================
-// NOTIFICATIONS
-// ============================================================
-function getAlertEmployees() {
-  return STATE.employees.filter(function(e) {
-    var s = U.contractStatus(e.contractEnd);
-    return s === 'expired' || s === 'urgent' || s === 'soon';
-  });
-}
-
-function updateNotifications() {
-  var alerts = getAlertEmployees();
-  var badge = U.id('notif-badge');
-  var dropdown = U.id('notif-dropdown');
-  if (!badge || !dropdown) return;
-  if (alerts.length > 0) {
-    badge.classList.remove('hidden');
-    badge.textContent = alerts.length > 99 ? '99+' : alerts.length;
-  } else {
-    badge.classList.add('hidden');
-  }
-  // Build dropdown
-  if (alerts.length === 0) {
-    dropdown.innerHTML = '<div class="notif-empty">&#128994; Tidak ada notifikasi</div>';
-  } else {
-    var html = '<div class="notif-header">&#128276; Kontrak Bermasalah (' + alerts.length + ')</div>';
-    var sorted = alerts.slice().sort(function(a, b) {
-      return (U.daysLeft(a.contractEnd) || 9999) - (U.daysLeft(b.contractEnd) || 9999);
-    });
-    sorted.forEach(function(emp) {
-      var s = U.contractStatus(emp.contractEnd);
-      var d = U.daysLeft(emp.contractEnd);
-      var outlet = getOutlet(emp.outletId);
-      var outletName = outlet ? outlet.name : '-';
-      var statusTxt = s === 'expired' ? 'Expired' : (d + ' hari lagi');
-      var colorClass = s === 'expired' ? 'badge-red' : s === 'urgent' ? 'badge-orange' : 'badge-yellow';
-      html += '<div class="notif-item" data-empid="' + U.esc(emp.id) + '">' +
-        '<div class="notif-item-name">' + U.esc(emp.name) + ' <span class="badge ' + colorClass + '">' + U.esc(statusTxt) + '</span></div>' +
-        '<div class="notif-item-sub">' + U.esc(outletName) + ' &bull; ' + U.esc(emp.position || '-') + '</div>' +
-        '</div>';
-    });
-    dropdown.innerHTML = html;
-  }
-}
-
-// ============================================================
-// DASHBOARD
-// ============================================================
-function renderDashboard() {
-  var welcomeTitle = U.id('welcome-title');
-  var welcomeSub = U.id('welcome-sub');
-  if (welcomeTitle && STATE.auth) {
-    welcomeTitle.textContent = 'Selamat Datang, ' + U.capitalize(STATE.auth.username) + '!';
-  }
-  if (welcomeSub && STATE.settings) {
-    welcomeSub.textContent = STATE.settings.company + ' - ' + U.today();
   }
 
-  var totalEmp = STATE.employees.length;
-  var totalOutlets = STATE.outlets.length;
-  var expiredCount = 0, urgentCount = 0, soonCount = 0;
-  STATE.employees.forEach(function(e) {
-    var s = U.contractStatus(e.contractEnd);
-    if (s === 'expired') expiredCount++;
-    else if (s === 'urgent') urgentCount++;
-    else if (s === 'soon') soonCount++;
-  });
+  openModal('employeeModal');
 
-  var statsEl = U.id('dash-stats');
-  if (statsEl) {
-    statsEl.innerHTML =
-      statCard('&#127978;', totalOutlets, 'Total Outlet', '') +
-      statCard('&#128101;', totalEmp, 'Total Karyawan', 'green') +
-      statCard('&#128994;', soonCount, 'Kontrak 30 Hari', 'yellow') +
-      statCard('&#128308;', urgentCount + expiredCount, 'Perlu Tindakan', 'red');
-  }
-
-  var alertList = U.id('dash-alert-list');
-  var alertCount = U.id('alert-count');
-  var alerts = getAlertEmployees().slice(0, 8);
-  if (alertCount) alertCount.textContent = alerts.length;
-  if (alertList) {
-    if (alerts.length === 0) {
-      alertList.innerHTML = '<div class="empty-state" style="padding:24px"><div class="empty-icon">&#9989;</div><div class="empty-sub">Semua kontrak aman</div></div>';
-    } else {
-      var rows = alerts.map(function(emp) {
-        var outlet = getOutlet(emp.outletId);
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
-          '<div><div style="font-size:13px;font-weight:500;color:var(--text)">' + U.esc(emp.name) + '</div>' +
-          '<div style="font-size:11px;color:var(--text3)">' + U.esc(outlet ? outlet.name : '-') + '</div></div>' +
-          '<div>' + U.statusBadge(emp.contractEnd) + '</div></div>';
-      }).join('');
-      alertList.innerHTML = rows;
-    }
-  }
-
-  var outletList = U.id('dash-outlet-list');
-  if (outletList) {
-    if (STATE.outlets.length === 0) {
-      outletList.innerHTML = '<div class="empty-state" style="padding:24px"><div class="empty-sub">Belum ada outlet</div></div>';
-    } else {
-      var outletRows = STATE.outlets.slice(0, 6).map(function(o) {
-        var count = STATE.employees.filter(function(e) { return e.outletId === o.id; }).length;
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
-          '<div><div style="font-size:13px;font-weight:500;color:var(--text)">' + U.esc(o.name) + '</div>' +
-          '<div style="font-size:11px;color:var(--text3)">' + U.esc(o.location || '-') + '</div></div>' +
-          '<span class="badge badge-blue">' + count + ' org</span></div>';
-      }).join('');
-      outletList.innerHTML = outletRows;
-    }
-  }
 }
 
-function statCard(icon, val, label, colorClass) {
-  return '<div class="stat-card ' + colorClass + '">' +
-    '<div class="stat-icon">' + icon + '</div>' +
-    '<div class="stat-value">' + val + '</div>' +
-    '<div class="stat-label">' + U.esc(label) + '</div>' +
-    '</div>';
+function openReminderModal(){
+
+  renderReminder();
+
+  openModal('reminderModal');
+
 }
 
-// ============================================================
-// OUTLETS
-// ============================================================
-var _outletSearch = '';
-var _outletSort = { key: 'name', dir: 'asc' };
+/* OUTLET */
 
-function renderOutlets() {
-  var outlets = STATE.outlets.slice();
-  var search = _outletSearch.toLowerCase();
-  if (search) {
-    outlets = outlets.filter(function(o) {
-      return (o.name||'').toLowerCase().indexOf(search) >= 0 ||
-             (o.location||'').toLowerCase().indexOf(search) >= 0;
-    });
-  }
-  // Sort
-  outlets.sort(function(a, b) {
-    var av = (a[_outletSort.key] || '').toLowerCase();
-    var bv = (b[_outletSort.key] || '').toLowerCase();
-    return _outletSort.dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
-  });
+function saveOutlet(){
 
-  var tbody = U.id('outlet-tbody');
-  var empty = U.id('outlet-empty');
-  if (!tbody) return;
+  const name =
+    document
+      .getElementById(
+        'outletName'
+      )
+      .value
+      .trim();
 
-  if (outlets.length === 0) {
-    tbody.innerHTML = '';
-    if (empty) empty.classList.remove('hidden');
+  if(!name){
+
+    alert('Nama outlet wajib');
+
     return;
+
   }
-  if (empty) empty.classList.add('hidden');
 
-  var rows = outlets.map(function(o) {
-    var count = STATE.employees.filter(function(e) { return e.outletId === o.id; }).length;
-    return '<tr>' +
-      '<td class="td-name">' + U.esc(o.name) + '</td>' +
-      '<td>' + U.esc(o.location || '-') + '</td>' +
-      '<td style="max-width:200px;color:var(--text3)" class="truncate">' + U.esc(o.description || '-') + '</td>' +
-      '<td><span class="badge badge-blue">' + count + '</span></td>' +
-      '<td><div class="action-group">' +
-      '<button class="btn btn-sm btn-secondary" data-action="edit-outlet" data-id="' + U.esc(o.id) + '">Edit</button>' +
-      '<button class="btn btn-sm btn-danger" data-action="del-outlet" data-id="' + U.esc(o.id) + '">Hapus</button>' +
-      '</div></td></tr>';
-  }).join('');
-  tbody.innerHTML = rows;
+  state.outlets.push({
+    id:Date.now().toString(),
+    name
+  });
+
+  saveData();
+
+  renderOutlets();
+
+  closeModal('outletModal');
+
+  document
+    .getElementById(
+      'outletName'
+    )
+    .value='';
+
 }
 
-function openOutletModal(id) {
-  var outlet = id ? STATE.outlets.find(function(o) { return o.id === id; }) : null;
-  var isEdit = !!outlet;
-  var html = '<div class="modal">' +
-    '<div class="modal-header"><span class="modal-title">' + (isEdit ? 'Edit Outlet' : 'Tambah Outlet') + '</span><button class="modal-close">x</button></div>' +
-    '<div class="modal-body">' +
-    '<div class="form-group"><label class="form-label">Nama Outlet *</label>' +
-    '<input class="form-input" id="m-outlet-name" placeholder="Contoh: Cabang Sudirman" value="' + U.esc(outlet ? outlet.name : '') + '"></div>' +
-    '<div class="form-group"><label class="form-label">Lokasi</label>' +
-    '<input class="form-input" id="m-outlet-loc" placeholder="Alamat atau kota" value="' + U.esc(outlet ? outlet.location : '') + '"></div>' +
-    '<div class="form-group"><label class="form-label">Deskripsi</label>' +
-    '<textarea class="form-input" id="m-outlet-desc" rows="3" placeholder="Deskripsi singkat...">' + U.esc(outlet ? outlet.description : '') + '</textarea></div>' +
+/* EMPLOYEE */
 
-```
-'</div>' +
-'<div class="modal-footer">' +
-'<button class="btn btn-secondary" id="m-cancel">Batal</button>' +
-'<button class="btn btn-primary" id="m-save">Simpan</button>' +
-'</div></div>';
-```
+function saveEmployee(){
 
-openModal(html, function(overlay) {
-U.on(overlay.querySelector(’#m-cancel’), ‘click’, closeModal);
-U.on(overlay.querySelector(’#m-save’), ‘click’, function() {
-var name = (overlay.querySelector(’#m-outlet-name’) || {}).value || ‘’;
-var loc = (overlay.querySelector(’#m-outlet-loc’) || {}).value || ‘’;
-var desc = (overlay.querySelector(’#m-outlet-desc’) || {}).value || ‘’;
-name = name.trim();
-if (!name) { showToast(‘Nama outlet wajib diisi’, ‘error’); return; }
-if (isEdit) {
-outlet.name = name; outlet.location = loc.trim(); outlet.description = desc.trim();
-} else {
-STATE.outlets.push({ id: U.genId(), name: name, location: loc.trim(), description: desc.trim() });
-}
-saveState(); rebuildOutletMap(); closeModal();
-renderOutlets(); updateNotifications();
-showToast(isEdit ? ‘Outlet diperbarui’ : ‘Outlet ditambahkan’, ‘success’);
-});
-});
-}
+  const employee = {
 
-function deleteOutlet(id) {
-var outlet = STATE.outlets.find(function(o) { return o.id === id; });
-if (!outlet) return;
-var empCount = STATE.employees.filter(function(e) { return e.outletId === id; }).length;
-var sub = empCount > 0 ? ‘Outlet ini memiliki ’ + empCount + ’ karyawan. Data karyawan tidak akan terhapus.’ : ‘Tindakan ini tidak dapat dibatalkan.’;
-confirmAction(‘Hapus Outlet “’ + outlet.name + ‘”?’, sub, function() {
-STATE.outlets = STATE.outlets.filter(function(o) { return o.id !== id; });
-saveState(); rebuildOutletMap(); renderOutlets();
-showToast(‘Outlet dihapus’, ‘success’);
-});
-}
+    id:Date.now().toString(),
 
-// ============================================================
-// EMPLOYEES
-// ============================================================
-var _empSearch = ‘’;
-var _empFilterOutlet = ‘’;
-var _empFilterType = ‘’;
-var _empSort = ‘name-asc’;
+    outletId:selectedOutletId,
 
-function getFilteredEmployees() {
-var emps = STATE.employees.slice();
-var search = _empSearch.toLowerCase();
-if (search) {
-emps = emps.filter(function(e) {
-return (e.name||’’).toLowerCase().indexOf(search) >= 0 ||
-(e.position||’’).toLowerCase().indexOf(search) >= 0 ||
-(e.email||’’).toLowerCase().indexOf(search) >= 0;
-});
-}
-if (_empFilterOutlet) {
-emps = emps.filter(function(e) { return e.outletId === _empFilterOutlet; });
-}
-if (_empFilterType) {
-emps = emps.filter(function(e) { return e.type === _empFilterType; });
-}
-emps.sort(function(a, b) {
-if (_empSort === ‘name-asc’) return (a.name||’’).localeCompare(b.name||’’);
-if (_empSort === ‘name-desc’) return (b.name||’’).localeCompare(a.name||’’);
-if (_empSort === ‘salary-asc’) return (a.salary||0) - (b.salary||0);
-if (_empSort === ‘salary-desc’) return (b.salary||0) - (a.salary||0);
-if (_empSort === ‘contract-asc’) {
-var da = U.daysLeft(a.contractEnd); var db = U.daysLeft(b.contractEnd);
-if (da === null && db === null) return 0;
-if (da === null) return 1;
-if (db === null) return -1;
-return da - db;
-}
-return 0;
-});
-return emps;
-}
+    name:
+      document
+        .getElementById(
+          'employeeName'
+        )
+        .value
+        .trim(),
 
-function renderEmployees() {
-// Populate outlet filter
-var filterSel = U.id(‘emp-filter-outlet’);
-if (filterSel) {
-var prev = filterSel.value;
-filterSel.innerHTML = ‘<option value="">Semua Outlet</option>’ +
-STATE.outlets.map(function(o) {
-return ‘<option value="' + U.esc(o.id) + '">’ + U.esc(o.name) + ‘</option>’;
-}).join(’’);
-filterSel.value = prev;
-}
+    phone:
+      document
+        .getElementById(
+          'employeePhone'
+        )
+        .value
+        .trim(),
 
-var emps = getFilteredEmployees();
-var tbody = U.id(‘emp-tbody’);
-var empty = U.id(‘emp-empty’);
-var countLbl = U.id(‘emp-count-label’);
-if (!tbody) return;
+    salary:
+      document
+        .getElementById(
+          'employeeSalary'
+        )
+        .value,
 
-if (countLbl) countLbl.textContent = ‘Menampilkan ’ + emps.length + ’ dari ’ + STATE.employees.length + ’ karyawan’;
+    contractStart:
+      document
+        .getElementById(
+          'employeeStart'
+        )
+        .value,
 
-if (emps.length === 0) {
-tbody.innerHTML = ‘’;
-if (empty) empty.classList.remove(‘hidden’);
-return;
-}
-if (empty) empty.classList.add(‘hidden’);
+    contractEnd:
+      document
+        .getElementById(
+          'employeeEnd'
+        )
+        .value
 
-var rows = emps.map(function(e) {
-var outlet = getOutlet(e.outletId);
-return ‘<tr>’ +
-‘<td class="td-name">’ + U.esc(e.name) + ‘</td>’ +
-‘<td>’ + U.esc(outlet ? outlet.name : ‘-’) + ‘</td>’ +
-‘<td>’ + U.esc(e.position || ‘-’) + ‘</td>’ +
-‘<td><span class="badge badge-gray">’ + U.esc(e.type || ‘-’) + ‘</span></td>’ +
-‘<td style="font-family:\'DM Mono\',monospace;font-size:12px">’ + U.fmtCurrency(e.salary) + ‘</td>’ +
-‘<td>’ + U.fmtDate(e.contractEnd) + ‘</td>’ +
-‘<td>’ + U.statusBadge(e.contractEnd) + ‘</td>’ +
-‘<td><div class="action-group">’ +
-‘<button class="btn btn-sm btn-secondary" data-action="view-emp" data-id="' + U.esc(e.id) + '">Detail</button>’ +
-‘<button class="btn btn-sm btn-secondary" data-action="edit-emp" data-id="' + U.esc(e.id) + '">Edit</button>’ +
-‘<button class="btn btn-sm btn-danger" data-action="del-emp" data-id="' + U.esc(e.id) + '">Hapus</button>’ +
-‘</div></td></tr>’;
-}).join(’’);
-tbody.innerHTML = rows;
-}
-
-function openEmployeeModal(id) {
-var emp = id ? STATE.employees.find(function(e) { return e.id === id; }) : null;
-var isEdit = !!emp;
-var outletOptions = STATE.outlets.map(function(o) {
-var sel = emp && emp.outletId === o.id ? ’ selected’ : ‘’;
-return ‘<option value=”’ + U.esc(o.id) + ‘”’ + sel + ‘>’ + U.esc(o.name) + ‘</option>’;
-}).join(’’);
-
-var typeOptions = [‘Tetap’,‘Kontrak’,‘Harian’,‘Magang’].map(function(t) {
-var sel = emp && emp.type === t ? ’ selected’ : ‘’;
-return ‘<option value=”’ + t + ‘”’ + sel + ‘>’ + t + ‘</option>’;
-}).join(’’);
-
-var html = ‘<div class="modal" style="max-width:600px">’ +
-‘<div class="modal-header"><span class="modal-title">’ + (isEdit ? ‘Edit Karyawan’ : ‘Tambah Karyawan’) + ‘</span><button class="modal-close">x</button></div>’ +
-‘<div class="modal-body">’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Nama Lengkap *</label>’ +
-‘<input class="form-input" id="m-emp-name" placeholder="Nama lengkap" value="' + U.esc(emp ? emp.name : '') + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Outlet *</label>’ +
-‘<select class="form-input" id="m-emp-outlet"><option value="">Pilih Outlet</option>’ + outletOptions + ‘</select></div>’ +
-‘</div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Nomor HP</label>’ +
-‘<input class="form-input" id="m-emp-phone" placeholder="08xx" value="' + U.esc(emp ? emp.phone : '') + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Email</label>’ +
-‘<input class="form-input" id="m-emp-email" type="email" placeholder="email@example.com" value="' + U.esc(emp ? emp.email : '') + '"></div>’ +
-‘</div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Jabatan</label>’ +
-‘<input class="form-input" id="m-emp-pos" placeholder="Kasir, Chef, dll" value="' + U.esc(emp ? emp.position : '') + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Tipe Karyawan</label>’ +
-‘<select class="form-input" id="m-emp-type">’ + typeOptions + ‘</select></div>’ +
-‘</div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Gaji Pokok (Rp)</label>’ +
-‘<input class="form-input" id="m-emp-salary" type="number" placeholder="0" value="' + U.esc(emp ? emp.salary : '') + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Durasi Kontrak</label>’ +
-‘<select class="form-input" id="m-emp-duration">’ +
-‘<option value="">Pilih Durasi</option>’ +
-[‘1 Bulan’,‘3 Bulan’,‘6 Bulan’,‘12 Bulan’,‘24 Bulan’,‘Custom’].map(function(d) {
-return ‘<option value="' + d + '">’ + d + ‘</option>’;
-}).join(’’) + ‘</select></div>’ +
-‘</div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Tanggal Mulai Kontrak</label>’ +
-‘<input class="form-input" id="m-emp-start" type="date" value="' + U.esc(emp ? emp.contractStart : '') + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Tanggal Selesai Kontrak</label>’ +
-‘<input class="form-input" id="m-emp-end" type="date" value="' + U.esc(emp ? emp.contractEnd : '') + '"></div>’ +
-‘</div>’ +
-‘<div class="form-group"><label class="form-label">Catatan</label>’ +
-‘<textarea class="form-input" id="m-emp-notes" rows="2" placeholder="Catatan tambahan...">’ + U.esc(emp ? emp.notes : ‘’) + ‘</textarea></div>’ +
-‘</div>’ +
-‘<div class="modal-footer">’ +
-‘<button class="btn btn-secondary" id="m-cancel">Batal</button>’ +
-‘<button class="btn btn-primary" id="m-save">Simpan</button>’ +
-‘</div></div>’;
-
-openModal(html, function(overlay) {
-U.on(overlay.querySelector(’#m-cancel’), ‘click’, closeModal);
-
-```
-// Duration auto-fill
-var durationSel = overlay.querySelector('#m-emp-duration');
-var startInp = overlay.querySelector('#m-emp-start');
-var endInp = overlay.querySelector('#m-emp-end');
-
-function applyDuration() {
-  var dur = durationSel ? durationSel.value : '';
-  var start = startInp ? startInp.value : '';
-  if (!start || dur === 'Custom' || dur === '') return;
-  var months = { '1 Bulan': 1, '3 Bulan': 3, '6 Bulan': 6, '12 Bulan': 12, '24 Bulan': 24 };
-  var m = months[dur];
-  if (m && endInp) endInp.value = U.addMonthsSafe(start, m);
-}
-
-if (durationSel) U.on(durationSel, 'change', applyDuration);
-if (startInp) U.on(startInp, 'change', applyDuration);
-
-U.on(overlay.querySelector('#m-save'), 'click', function() {
-  var name = (overlay.querySelector('#m-emp-name') || {}).value || '';
-  var outletId = (overlay.querySelector('#m-emp-outlet') || {}).value || '';
-  var phone = (overlay.querySelector('#m-emp-phone') || {}).value || '';
-  var email = (overlay.querySelector('#m-emp-email') || {}).value || '';
-  var position = (overlay.querySelector('#m-emp-pos') || {}).value || '';
-  var type = (overlay.querySelector('#m-emp-type') || {}).value || '';
-  var salary = parseFloat((overlay.querySelector('#m-emp-salary') || {}).value) || 0;
-  var contractStart = (overlay.querySelector('#m-emp-start') || {}).value || '';
-  var contractEnd = (overlay.querySelector('#m-emp-end') || {}).value || '';
-  var notes = (overlay.querySelector('#m-emp-notes') || {}).value || '';
-  var duration = (overlay.querySelector('#m-emp-duration') || {}).value || '';
-
-  name = name.trim();
-  if (!name) { showToast('Nama wajib diisi', 'error'); return; }
-  if (!outletId) { showToast('Pilih outlet terlebih dahulu', 'error'); return; }
-
-  var data = {
-    name: name, outletId: outletId, phone: phone.trim(),
-    email: email.trim(), position: position.trim(),
-    type: type, salary: salary,
-    contractStart: contractStart, contractEnd: contractEnd,
-    duration: duration, notes: notes.trim()
   };
 
-  if (isEdit) {
-    Object.assign(emp, data);
-  } else {
-    data.id = U.genId();
-    data.createdAt = U.today();
-    STATE.employees.push(data);
+  if(
+    !employee.name ||
+    !employee.contractEnd
+  ){
+
+    alert(
+      'Lengkapi data karyawan'
+    );
+
+    return;
+
   }
-  saveState(); closeModal();
-  renderEmployees(); renderContracts(); updateNotifications();
-  showToast(isEdit ? 'Data karyawan diperbarui' : 'Karyawan ditambahkan', 'success');
-});
-```
 
-});
+  state.employees.push(employee);
+
+  saveData();
+
+  renderEmployees();
+
+  updateReminder();
+
+  closeModal('employeeModal');
+
 }
 
-function viewEmployee(id) {
-var emp = STATE.employees.find(function(e) { return e.id === id; });
-if (!emp) return;
-var outlet = getOutlet(emp.outletId);
-var html = ‘<div class="modal">’ +
-‘<div class="modal-header"><span class="modal-title">Detail Karyawan</span><button class="modal-close">x</button></div>’ +
-‘<div class="modal-body">’ +
-‘<div style="text-align:center;margin-bottom:20px">’ +
-‘<div style="width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;margin:0 auto 8px">’ + U.esc(emp.name.charAt(0).toUpperCase()) + ‘</div>’ +
-‘<div style="font-size:16px;font-weight:700">’ + U.esc(emp.name) + ‘</div>’ +
-‘<div style="font-size:13px;color:var(--text3)">’ + U.esc(emp.position || ‘-’) + ‘</div>’ +
-‘</div>’ +
-‘<div class="detail-grid">’ +
-detailItem(‘Outlet’, outlet ? outlet.name : ‘-’) +
-detailItem(‘Tipe’, emp.type || ‘-’) +
-detailItem(‘No. HP’, emp.phone || ‘-’) +
-detailItem(‘Email’, emp.email || ‘-’) +
-detailItem(‘Gaji Pokok’, U.fmtCurrency(emp.salary)) +
-detailItem(‘Mulai Kontrak’, U.fmtDate(emp.contractStart)) +
-detailItem(‘Selesai Kontrak’, U.fmtDate(emp.contractEnd)) +
-detailItem(‘Status’, U.contractStatus(emp.contractEnd)) +
-‘</div>’ +
-(emp.notes ? ‘<div class="form-group" style="margin-top:12px"><div class="detail-label">Catatan</div><div class="detail-value">’ + U.esc(emp.notes) + ‘</div></div>’ : ‘’) +
-‘</div>’ +
-‘<div class="modal-footer">’ +
-‘<button class="btn btn-secondary" id="m-close">Tutup</button>’ +
-‘<button class="btn btn-warning" id="m-extend">Perpanjang Kontrak</button>’ +
-‘<button class="btn btn-primary" id="m-edit">Edit</button>’ +
-‘</div></div>’;
-openModal(html, function(overlay) {
-U.on(overlay.querySelector(’#m-close’), ‘click’, closeModal);
-U.on(overlay.querySelector(’#m-edit’), ‘click’, function() {
-closeModal(); openEmployeeModal(id);
-});
-U.on(overlay.querySelector(’#m-extend’), ‘click’, function() {
-closeModal(); openExtendModal(id);
-});
-});
+/* RENDER OUTLET */
+
+function renderOutlets(){
+
+  const list =
+    document
+      .getElementById(
+        'outletList'
+      );
+
+  list.innerHTML='';
+
+  if(
+    state.outlets.length === 0
+  ){
+
+    list.innerHTML=`
+      <div
+        style="
+          color:#94a3b8;
+          padding:20px;
+          font-size:13px;
+        "
+      >
+        Belum ada outlet
+      </div>
+    `;
+
+    return;
+
+  }
+
+  state.outlets
+    .sort((a,b)=>
+      a.name.localeCompare(b.name)
+    )
+    .forEach(outlet=>{
+
+      const total =
+        state.employees.filter(
+          e=>e.outletId===outlet.id
+        ).length;
+
+      const div =
+        document.createElement(
+          'div'
+        );
+
+      div.className =
+        `
+        outlet-item
+        ${
+          selectedOutletId===
+          outlet.id
+          ? 'active'
+          : ''
+        }
+        `;
+
+      div.innerHTML=`
+        <div class="outlet-name">
+          ${outlet.name}
+        </div>
+
+        <div class="outlet-sub">
+          ${total} karyawan
+        </div>
+      `;
+
+      div.onclick=()=>{
+
+        selectedOutletId =
+          outlet.id;
+
+        renderOutlets();
+
+        renderEmployees();
+
+      };
+
+      list.appendChild(div);
+
+    });
+
 }
 
-function detailItem(label, value) {
-return ‘<div class="detail-item"><div class="detail-label">’ + U.esc(label) + ‘</div><div class="detail-value">’ + U.esc(value) + ‘</div></div>’;
-}
+/* RENDER EMPLOYEE */
 
-function deleteEmployee(id) {
-var emp = STATE.employees.find(function(e) { return e.id === id; });
-if (!emp) return;
-confirmAction(‘Hapus “’ + emp.name + ‘”?’, ‘Data karyawan akan dihapus permanen.’, function() {
-STATE.employees = STATE.employees.filter(function(e) { return e.id !== id; });
-saveState(); renderEmployees(); renderContracts(); updateNotifications();
-showToast(‘Karyawan dihapus’, ‘success’);
-});
-}
+function renderEmployees(){
 
-// ============================================================
-// CONTRACTS
-// ============================================================
-var _contractSearch = ‘’;
-var _contractFilterOutlet = ‘’;
-var _contractFilterStatus = ‘’;
+  const container =
+    document
+      .getElementById(
+        'employeeList'
+      );
 
-function renderContracts() {
-// Populate stats
-var expired = 0, urgent = 0, soon = 0, safe = 0;
-STATE.employees.forEach(function(e) {
-var s = U.contractStatus(e.contractEnd);
-if (s === ‘expired’) expired++;
-else if (s === ‘urgent’) urgent++;
-else if (s === ‘soon’) soon++;
-else if (s === ‘safe’) safe++;
-});
+  if(!selectedOutletId){
 
-var statsEl = U.id(‘contract-stats’);
-if (statsEl) {
-statsEl.innerHTML =
-statCard(’🟢’, safe, ‘Aman’, ‘green’) +
-statCard(’🟡’, soon, ‘<30 Hari’, ‘yellow’) +
-statCard(’🔴’, urgent, ‘<7 Hari’, ‘orange’) +
-statCard(’🟤’, expired, ‘Expired’, ‘red’);
-}
+    container.innerHTML=`
+      <div class="empty">
 
-// Populate outlet filter
-var filterSel = U.id(‘contract-filter-outlet’);
-if (filterSel) {
-var prev = filterSel.value;
-filterSel.innerHTML = ‘<option value="">Semua Outlet</option>’ +
-STATE.outlets.map(function(o) {
-return ‘<option value="' + U.esc(o.id) + '">’ + U.esc(o.name) + ‘</option>’;
-}).join(’’);
-filterSel.value = prev;
-}
+        <div class="empty-icon">
+          🏢
+        </div>
 
-var emps = STATE.employees.slice();
-var search = _contractSearch.toLowerCase();
-if (search) {
-emps = emps.filter(function(e) {
-return (e.name||’’).toLowerCase().indexOf(search) >= 0;
-});
-}
-if (_contractFilterOutlet) {
-emps = emps.filter(function(e) { return e.outletId === _contractFilterOutlet; });
-}
-if (_contractFilterStatus) {
-emps = emps.filter(function(e) { return U.contractStatus(e.contractEnd) === _contractFilterStatus; });
-}
-emps.sort(function(a, b) {
-var da = U.daysLeft(a.contractEnd); var db = U.daysLeft(b.contractEnd);
-if (da === null && db === null) return 0;
-if (da === null) return 1;
-if (db === null) return -1;
-return da - db;
-});
+        <h3>
+          Pilih Outlet
+        </h3>
 
-var tbody = U.id(‘contract-tbody’);
-var empty = U.id(‘contract-empty’);
-if (!tbody) return;
+        <p>
+          Pilih outlet untuk melihat
+          data karyawan
+        </p>
 
-if (emps.length === 0) {
-tbody.innerHTML = ‘’;
-if (empty) empty.classList.remove(‘hidden’);
-return;
-}
-if (empty) empty.classList.add(‘hidden’);
+      </div>
+    `;
 
-var rows = emps.map(function(e) {
-var outlet = getOutlet(e.outletId);
-var d = U.daysLeft(e.contractEnd);
-var daysStr = d === null ? ‘-’ : (d < 0 ? ‘Expired’ : d + ’ hari’);
-var status = U.contractStatus(e.contractEnd);
-return ‘<tr class="contract-row ' + status + '">’ +
-‘<td class="td-name">’ + U.esc(e.name) + ‘</td>’ +
-‘<td>’ + U.esc(outlet ? outlet.name : ‘-’) + ‘</td>’ +
-‘<td>’ + U.esc(e.position || ‘-’) + ‘</td>’ +
-‘<td>’ + U.fmtDate(e.contractStart) + ‘</td>’ +
-‘<td>’ + U.fmtDate(e.contractEnd) + ‘</td>’ +
-‘<td><span class="days-left">’ + U.esc(daysStr) + ‘</span></td>’ +
-‘<td>’ + U.statusBadge(e.contractEnd) + ‘</td>’ +
-‘<td><button class="btn btn-sm btn-warning" data-action="extend" data-id="' + U.esc(e.id) + '">Perpanjang</button></td>’ +
-‘</tr>’;
-}).join(’’);
-tbody.innerHTML = rows;
-}
+    return;
 
-function openExtendModal(id) {
-var emp = STATE.employees.find(function(e) { return e.id === id; });
-if (!emp) return;
-var currentEnd = emp.contractEnd || U.today();
+  }
 
-var html = ‘<div class="modal">’ +
-‘<div class="modal-header"><span class="modal-title">Perpanjang Kontrak</span><button class="modal-close">x</button></div>’ +
-‘<div class="modal-body">’ +
-‘<div style="margin-bottom:12px"><span style="font-size:14px;font-weight:600">’ + U.esc(emp.name) + ‘</span>’ +
-’<div style="font-size:12px;color:var(--text3)">Kontrak saat ini selesai: ’ + U.fmtDate(currentEnd) + ‘</div></div>’ +
-‘<div class="form-label" style="margin-bottom:8px">Pilih Durasi Perpanjangan</div>’ +
-‘<div class="duration-btns">’ +
-‘<div class="duration-btn" data-dur="1">1 Bulan</div>’ +
-‘<div class="duration-btn" data-dur="3">3 Bulan</div>’ +
-‘<div class="duration-btn" data-dur="6">6 Bulan</div>’ +
-‘<div class="duration-btn" data-dur="12">12 Bulan</div>’ +
-‘</div>’ +
-‘<div class="form-group">’ +
-‘<label class="form-label">Atau Tanggal Selesai Custom</label>’ +
-‘<input type="date" class="form-input" id="m-ext-date" value="' + U.esc(currentEnd) + '">’ +
-‘<div class="form-help">Pilih durasi di atas atau atur tanggal manual</div>’ +
-‘</div>’ +
-‘<div style="padding:10px;background:var(--bg3);border-radius:var(--radius2);margin-top:8px">’ +
-‘<div style="font-size:12px;color:var(--text3)">Tanggal baru selesai kontrak:</div>’ +
-‘<div style="font-size:15px;font-weight:600;color:var(--accent)" id="m-ext-preview">’ + U.fmtDate(currentEnd) + ‘</div>’ +
-‘</div>’ +
-‘</div>’ +
-‘<div class="modal-footer">’ +
-‘<button class="btn btn-secondary" id="m-cancel">Batal</button>’ +
-‘<button class="btn btn-success" id="m-save">Perpanjang</button>’ +
-‘</div></div>’;
+  const employees =
+    state.employees
+      .filter(
+        e=>
+          e.outletId===
+          selectedOutletId
+      )
+      .sort((a,b)=>
+        a.name.localeCompare(b.name)
+      );
 
-openModal(html, function(overlay) {
-var dateInp = overlay.querySelector(’#m-ext-date’);
-var preview = overlay.querySelector(’#m-ext-preview’);
-var activeDur = null;
+  if(employees.length===0){
 
-```
-function updatePreview() {
-  if (preview && dateInp) preview.textContent = U.fmtDate(dateInp.value);
-}
+    container.innerHTML=`
+      <div class="empty">
 
-overlay.querySelectorAll('.duration-btn').forEach(function(btn) {
-  U.on(btn, 'click', function() {
-    overlay.querySelectorAll('.duration-btn').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    activeDur = parseInt(btn.dataset.dur, 10);
-    var newEnd = U.addMonthsSafe(currentEnd, activeDur);
-    if (dateInp) dateInp.value = newEnd;
-    updatePreview();
+        <div class="empty-icon">
+          👤
+        </div>
+
+        <h3>
+          Belum Ada Karyawan
+        </h3>
+
+        <p>
+          Tambahkan karyawan pertama
+        </p>
+
+      </div>
+    `;
+
+    return;
+
+  }
+
+  container.innerHTML='';
+
+  employees.forEach(emp=>{
+
+    const card =
+      document.createElement(
+        'div'
+      );
+
+    card.className='employee-card';
+
+    card.innerHTML=`
+
+      <div class="employee-top">
+
+        <div>
+
+          <div class="employee-name">
+            ${emp.name}
+          </div>
+
+          <div class="employee-phone">
+            ${emp.phone || '-'}
+          </div>
+
+        </div>
+
+        <div class="employee-salary">
+          Rp ${Number(emp.salary)
+            .toLocaleString('id-ID')}
+        </div>
+
+      </div>
+
+      <div class="employee-grid">
+
+        <div class="info-box">
+
+          <div class="info-label">
+            START KONTRAK
+          </div>
+
+          <div class="info-value">
+            ${formatDate(
+              emp.contractStart
+            )}
+          </div>
+
+        </div>
+
+        <div class="info-box">
+
+          <div class="info-label">
+            AKHIR KONTRAK
+          </div>
+
+          <div class="info-value">
+            ${formatDate(
+              emp.contractEnd
+            )}
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    container.appendChild(card);
+
   });
-});
 
-if (dateInp) U.on(dateInp, 'change', function() {
-  overlay.querySelectorAll('.duration-btn').forEach(function(b) { b.classList.remove('active'); });
-  activeDur = null;
-  updatePreview();
-});
-
-U.on(overlay.querySelector('#m-cancel'), 'click', closeModal);
-U.on(overlay.querySelector('#m-save'), 'click', function() {
-  var newEnd = dateInp ? dateInp.value : '';
-  if (!newEnd) { showToast('Pilih tanggal perpanjangan', 'error'); return; }
-  emp.contractEnd = newEnd;
-  saveState(); closeModal();
-  renderContracts(); renderEmployees(); updateNotifications();
-  showToast('Kontrak diperpanjang hingga ' + U.fmtDate(newEnd), 'success');
-});
-```
-
-});
 }
 
-// ============================================================
-// SETTINGS
-// ============================================================
-function renderSettings() {
-var usernameEl = U.id(‘setting-username’);
-var companyEl = U.id(‘setting-company’);
-if (usernameEl && STATE.auth) usernameEl.value = STATE.auth.username || ‘’;
-if (companyEl && STATE.settings) companyEl.value = STATE.settings.company || ‘’;
+/* REMINDER */
+
+function updateReminder(){
+
+  const badge =
+    document
+      .getElementById(
+        'notifBadge'
+      );
+
+  const reminder =
+    getReminderEmployees();
+
+  if(reminder.length>0){
+
+    badge.style.display='flex';
+
+    badge.textContent =
+      reminder.length;
+
+  }else{
+
+    badge.style.display='none';
+
+  }
+
 }
 
-function saveProfile() {
-var usernameEl = U.id(‘setting-username’);
-var companyEl = U.id(‘setting-company’);
-var username = usernameEl ? usernameEl.value.trim() : ‘’;
-var company = companyEl ? companyEl.value.trim() : ‘’;
-if (!username) { showToast(‘Username wajib diisi’, ‘error’); return; }
-if (!STATE.auth) return;
-STATE.auth.username = username;
-STATE.settings.company = company;
-saveState(); updateSidebarUser();
-showToast(‘Profil disimpan’, ‘success’);
+function getReminderEmployees(){
+
+  return state.employees
+    .filter(emp=>{
+
+      const today =
+        new Date();
+
+      const end =
+        new Date(
+          emp.contractEnd
+        );
+
+      const diff =
+        Math.ceil(
+          (
+            end - today
+          ) /
+          (
+            1000*60*60*24
+          )
+        );
+
+      return diff <= 30;
+
+    })
+    .sort((a,b)=>{
+
+      const outletA =
+        getOutletName(
+          a.outletId
+        );
+
+      const outletB =
+        getOutletName(
+          b.outletId
+        );
+
+      if(outletA!==outletB){
+
+        return outletA
+          .localeCompare(outletB);
+
+      }
+
+      return a.name
+        .localeCompare(b.name);
+
+    });
+
 }
 
-function savePassword() {
-var oldPass = (U.id(‘setting-old-pass’) || {}).value || ‘’;
-var newPass = (U.id(‘setting-new-pass’) || {}).value || ‘’;
-var newPass2 = (U.id(‘setting-new-pass2’) || {}).value || ‘’;
-if (!oldPass || !newPass) { showToast(‘Semua field wajib diisi’, ‘error’); return; }
-if (!STATE.auth) return;
-if (U.simpleHash(oldPass) !== STATE.auth.password) {
-showToast(‘Password lama salah’, ‘error’); return;
-}
-if (newPass.length < 6) { showToast(‘Password baru minimal 6 karakter’, ‘error’); return; }
-if (newPass !== newPass2) { showToast(‘Konfirmasi password tidak cocok’, ‘error’); return; }
-STATE.auth.password = U.simpleHash(newPass);
-saveState();
-var fields = [‘setting-old-pass’,‘setting-new-pass’,‘setting-new-pass2’];
-fields.forEach(function(f) { var el = U.id(f); if (el) el.value = ‘’; });
-showToast(‘Password berhasil diganti’, ‘success’);
+function renderReminder(){
+
+  const container =
+    document
+      .getElementById(
+        'reminderList'
+      );
+
+  const reminder =
+    getReminderEmployees();
+
+  if(reminder.length===0){
+
+    container.innerHTML=`
+      <div class="empty">
+
+        <div class="empty-icon">
+          ✅
+        </div>
+
+        <h3>
+          Tidak Ada Reminder
+        </h3>
+
+        <p>
+          Semua kontrak masih aman
+        </p>
+
+      </div>
+    `;
+
+    return;
+
+  }
+
+  container.innerHTML='';
+
+  reminder.forEach(emp=>{
+
+    const days =
+      getRemainingDays(
+        emp.contractEnd
+      );
+
+    container.innerHTML += `
+
+      <div class="alert-item">
+
+        <div class="alert-name">
+          ${emp.name}
+        </div>
+
+        <div class="alert-sub">
+
+          ${getOutletName(
+            emp.outletId
+          )}
+
+          •
+
+          Kontrak habis
+          ${days} hari lagi
+
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
 }
 
-function resetAllData() {
-confirmAction(‘Hapus Semua Data?’, ‘Semua data outlet, karyawan, dan akun akan dihapus. Tidak dapat dibatalkan!’, function() {
-localStorage.removeItem(STORAGE_KEY);
-sessionStorage.removeItem(‘naruna_sess’);
-location.reload();
-});
+/* HELPERS */
+
+function getOutletName(id){
+
+  const outlet =
+    state.outlets.find(
+      o=>o.id===id
+    );
+
+  return outlet
+    ? outlet.name
+    : '-';
+
 }
 
-// ============================================================
-// EXPORT / IMPORT
-// ============================================================
-function exportJSON() {
-var data = {
-version: 1,
-exportedAt: new Date().toISOString(),
-company: STATE.settings.company,
-outlets: STATE.outlets,
-employees: STATE.employees
-};
-var json = JSON.stringify(data, null, 2);
-downloadFile(‘naruna-backup-’ + U.today() + ‘.json’, ‘application/json’, json);
-showToast(‘Data berhasil diekspor’, ‘success’);
+function formatDate(date){
+
+  if(!date) return '-';
+
+  return new Date(date)
+    .toLocaleDateString(
+      'id-ID'
+    );
+
 }
 
-function importJSON(file) {
-var reader = new FileReader();
-var msgEl = U.id(‘import-msg’);
-reader.onload = function(e) {
-try {
-var raw = e.target.result;
-var data = JSON.parse(raw);
-// Validate
-if (!data || typeof data !== ‘object’) throw new Error(‘Format tidak valid’);
-if (!Array.isArray(data.outlets)) throw new Error(‘Field outlets tidak valid’);
-if (!Array.isArray(data.employees)) throw new Error(‘Field employees tidak valid’);
-// Validate each employee
-data.employees.forEach(function(emp, i) {
-if (!emp || typeof emp !== ‘object’) throw new Error(‘Karyawan ke-’ + i + ’ tidak valid’);
-if (!emp.id) emp.id = U.genId();
-if (!emp.name) throw new Error(‘Nama karyawan ke-’ + i + ’ kosong’);
-});
-// Validate each outlet
-data.outlets.forEach(function(o, i) {
-if (!o || typeof o !== ‘object’) throw new Error(‘Outlet ke-’ + i + ’ tidak valid’);
-if (!o.id) o.id = U.genId();
-if (!o.name) throw new Error(‘Nama outlet ke-’ + i + ’ kosong’);
-});
+function getRemainingDays(date){
 
-```
-  confirmAction(
-    'Import Data?',
-    'Akan menggantikan ' + STATE.outlets.length + ' outlet dan ' + STATE.employees.length + ' karyawan saat ini.',
-    function() {
-      STATE.outlets = data.outlets;
-      STATE.employees = data.employees;
-      if (data.company && STATE.settings) STATE.settings.company = data.company;
-      saveState(); rebuildOutletMap();
-      renderCurrentPage(); updateNotifications();
-      if (msgEl) msgEl.innerHTML = '<div class="auth-msg success">Import berhasil: ' + data.outlets.length + ' outlet, ' + data.employees.length + ' karyawan</div>';
-      showToast('Data berhasil diimpor', 'success');
-    }
+  const today =
+    new Date();
+
+  const end =
+    new Date(date);
+
+  return Math.ceil(
+    (
+      end - today
+    ) /
+    (
+      1000*60*60*24
+    )
   );
-} catch(err) {
-  if (msgEl) msgEl.innerHTML = '<div class="auth-msg error">Error: ' + U.esc(err.message) + '</div>';
-  showToast('Import gagal: ' + err.message, 'error');
-}
-```
 
-};
-reader.readAsText(file);
 }
 
-function downloadFile(filename, mime, content) {
-var blob = new Blob([content], { type: mime });
-var url = URL.createObjectURL(blob);
-var a = document.createElement(‘a’);
-a.href = url; a.download = filename;
-document.body.appendChild(a); a.click();
-document.body.removeChild(a);
-setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-}
+/* INIT */
 
-function exportEmployeesXLSX(filtered) {
-if (typeof XLSX === ‘undefined’) { showToast(‘Library XLSX belum dimuat’, ‘error’); return; }
-var emps = filtered || STATE.employees;
-var rows = [[‘Nama’,‘Outlet’,‘Jabatan’,‘Tipe’,‘No HP’,‘Email’,‘Gaji Pokok’,‘Mulai Kontrak’,‘Selesai Kontrak’,‘Status’,‘Catatan’]];
-emps.forEach(function(e) {
-var outlet = getOutlet(e.outletId);
-rows.push([
-e.name || ‘’, outlet ? outlet.name : ‘’,
-e.position || ‘’, e.type || ‘’, e.phone || ‘’, e.email || ‘’,
-e.salary || 0,
-e.contractStart || ‘’, e.contractEnd || ‘’,
-U.contractStatus(e.contractEnd), e.notes || ‘’
-]);
-});
-var ws = XLSX.utils.aoa_to_sheet(rows);
-var wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, ‘Karyawan’);
-XLSX.writeFile(wb, ‘naruna-karyawan-’ + U.today() + ‘.xlsx’);
-showToast(‘XLSX berhasil diekspor’, ‘success’);
-}
+loadData();
 
-function exportEmployeesPDF(filtered) {
-if (typeof jspdf === ‘undefined’ && typeof window.jspdf === ‘undefined’) {
-showToast(‘Library jsPDF belum dimuat’, ‘error’); return;
-}
-var jsPDF = (window.jspdf && window.jspdf.jsPDF) || (typeof jspdf !== ‘undefined’ && jspdf.jsPDF);
-if (!jsPDF) { showToast(‘jsPDF tidak ditemukan’, ‘error’); return; }
-
-var emps = filtered || STATE.employees;
-var doc = new jsPDF({ orientation: ‘landscape’, unit: ‘mm’, format: ‘a4’ });
-doc.setFont(‘helvetica’, ‘bold’);
-doc.setFontSize(14);
-doc.text(‘Naruna HR Suite - Data Karyawan’, 14, 15);
-doc.setFont(‘helvetica’, ‘normal’);
-doc.setFontSize(9);
-doc.text(’Diekspor: ’ + new Date().toLocaleDateString(‘id-ID’), 14, 22);
-doc.text(STATE.settings.company || ‘’, 14, 28);
-
-var cols = [‘Nama’,‘Outlet’,‘Jabatan’,‘Tipe’,‘Gaji Pokok’,‘Selesai Kontrak’,‘Status’];
-var colW = [40, 35, 35, 20, 35, 35, 22];
-var startY = 34;
-var rowH = 8;
-var x = 14;
-
-// Header
-doc.setFillColor(60, 60, 100);
-doc.setTextColor(255,255,255);
-doc.setFont(‘helvetica’, ‘bold’);
-doc.setFontSize(8);
-var cx = x;
-cols.forEach(function(col, i) {
-doc.rect(cx, startY, colW[i], rowH, ‘F’);
-doc.text(col, cx + 2, startY + 5.5);
-cx += colW[i];
-});
-startY += rowH;
-
-// Rows
-doc.setFont(‘helvetica’, ‘normal’);
-doc.setTextColor(30,30,30);
-emps.forEach(function(e, idx) {
-var outlet = getOutlet(e.outletId);
-var row = [
-e.name || ‘’, outlet ? outlet.name : ‘’,
-e.position || ‘’, e.type || ‘’,
-’Rp ’ + Number(e.salary||0).toLocaleString(‘id-ID’),
-e.contractEnd || ‘-’,
-U.contractStatus(e.contractEnd)
-];
-if (idx % 2 === 0) {
-doc.setFillColor(245, 245, 255);
-cx = x;
-colW.forEach(function(w) {
-doc.rect(cx, startY, w, rowH, ‘F’);
-cx += w;
-});
-}
-cx = x;
-row.forEach(function(cell, i) {
-var txt = String(cell);
-if (txt.length > 18) txt = txt.substring(0, 16) + ‘..’;
-doc.text(txt, cx + 2, startY + 5.5);
-cx += colW[i];
-});
-startY += rowH;
-if (startY > 185) {
-doc.addPage();
-startY = 14;
-}
-});
-
-doc.save(‘naruna-karyawan-’ + U.today() + ‘.pdf’);
-showToast(‘PDF berhasil diekspor’, ‘success’);
-}
-
-function exportContractsPDF() {
-exportEmployeesPDF(STATE.employees);
-}
-
-// ============================================================
-// SIDEBAR COLLAPSE
-// ============================================================
-var _sidebarCollapsed = false;
-var _mobileOpen = false;
-
-function toggleSidebar() {
-var sidebar = U.id(‘sidebar’);
-var overlay = U.id(‘sidebar-overlay’);
-if (!sidebar) return;
-if (window.innerWidth <= 768) {
-_mobileOpen = !_mobileOpen;
-sidebar.classList.toggle(‘mobile-open’, _mobileOpen);
-if (overlay) overlay.classList.toggle(‘active’, _mobileOpen);
-} else {
-_sidebarCollapsed = !_sidebarCollapsed;
-sidebar.classList.toggle(‘collapsed’, _sidebarCollapsed);
-}
-}
-
-function closeMobileSidebar() {
-if (window.innerWidth > 768) return;
-var sidebar = U.id(‘sidebar’);
-var overlay = U.id(‘sidebar-overlay’);
-_mobileOpen = false;
-if (sidebar) sidebar.classList.remove(‘mobile-open’);
-if (overlay) overlay.classList.remove(‘active’);
-}
-
-// ============================================================
-// EVENT BINDINGS
-// ============================================================
-function bindEvents() {
-// Auth tabs
-document.querySelectorAll(’.auth-tab’).forEach(function(el) {
-U.on(el, ‘click’, function() { switchAuthTab(el.dataset.tab); });
-});
-U.on(U.id(‘btn-login’), ‘click’, doLogin);
-U.on(U.id(‘btn-setup’), ‘click’, doSetup);
-U.on(U.id(‘login-pass’), ‘keydown’, function(e) { if (e.key === ‘Enter’) doLogin(); });
-U.on(U.id(‘setup-pass2’), ‘keydown’, function(e) { if (e.key === ‘Enter’) doSetup(); });
-
-// Nav
-document.querySelectorAll(’.nav-item’).forEach(function(el) {
-U.on(el, ‘click’, function() { navigateTo(el.dataset.page); });
-});
-
-// Sidebar toggle
-U.on(U.id(‘sidebar-toggle’), ‘click’, toggleSidebar);
-U.on(U.id(‘sidebar-overlay’), ‘click’, closeMobileSidebar);
-
-// Logout
-U.on(U.id(‘btn-logout’), ‘click’, doLogout);
-
-// Notification
-U.on(U.id(‘notif-btn’), ‘click’, function(e) {
-e.stopPropagation();
-var dd = U.id(‘notif-dropdown’);
-if (dd) dd.classList.toggle(‘hidden’);
-});
-document.addEventListener(‘click’, function(e) {
-var dd = U.id(‘notif-dropdown’);
-var btn = U.id(‘notif-btn’);
-if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
-dd.classList.add(‘hidden’);
-}
-});
-U.delegate(U.id(‘notif-dropdown’), ‘[data-empid]’, ‘click’, function(e, t) {
-var empId = t.dataset.empid;
-var dd = U.id(‘notif-dropdown’);
-if (dd) dd.classList.add(‘hidden’);
-navigateTo(‘contracts’);
-});
-
-// Outlets page
-U.on(U.id(‘btn-add-outlet’), ‘click’, function() { openOutletModal(null); });
-var outletSearch = U.id(‘outlet-search’);
-if (outletSearch) {
-U.on(outletSearch, ‘input’, U.debounce(function() {
-_outletSearch = outletSearch.value;
 renderOutlets();
-}, 200));
-}
-U.delegate(U.id(‘outlet-tbody’), ‘[data-action]’, ‘click’, function(e, t) {
-var action = t.dataset.action;
-var id = t.dataset.id;
-if (action === ‘edit-outlet’) openOutletModal(id);
-else if (action === ‘del-outlet’) deleteOutlet(id);
-});
 
-// Employees page
-U.on(U.id(‘btn-add-emp’), ‘click’, function() { openEmployeeModal(null); });
-U.on(U.id(‘btn-export-emp-xlsx’), ‘click’, function() { exportEmployeesXLSX(getFilteredEmployees()); });
-U.on(U.id(‘btn-export-emp-pdf’), ‘click’, function() { exportEmployeesPDF(getFilteredEmployees()); });
-
-var empSearch = U.id(‘emp-search’);
-if (empSearch) {
-U.on(empSearch, ‘input’, U.debounce(function() {
-_empSearch = empSearch.value;
 renderEmployees();
-}, 200));
-}
-U.on(U.id(‘emp-filter-outlet’), ‘change’, function() {
-_empFilterOutlet = this.value;
-renderEmployees();
-});
-U.on(U.id(‘emp-filter-type’), ‘change’, function() {
-_empFilterType = this.value;
-renderEmployees();
-});
-U.on(U.id(‘emp-sort’), ‘change’, function() {
-_empSort = this.value;
-renderEmployees();
-});
-U.delegate(U.id(‘emp-tbody’), ‘[data-action]’, ‘click’, function(e, t) {
-var action = t.dataset.action;
-var id = t.dataset.id;
-if (action === ‘edit-emp’) openEmployeeModal(id);
-else if (action === ‘del-emp’) deleteEmployee(id);
-else if (action === ‘view-emp’) viewEmployee(id);
-});
 
-// Contracts page
-var contractSearch = U.id(‘contract-search’);
-if (contractSearch) {
-U.on(contractSearch, ‘input’, U.debounce(function() {
-_contractSearch = contractSearch.value;
-renderContracts();
-}, 200));
-}
-U.on(U.id(‘contract-filter-outlet’), ‘change’, function() {
-_contractFilterOutlet = this.value;
-renderContracts();
-});
-U.on(U.id(‘contract-filter-status’), ‘change’, function() {
-_contractFilterStatus = this.value;
-renderContracts();
-});
-U.delegate(U.id(‘contract-tbody’), ‘[data-action]’, ‘click’, function(e, t) {
-if (t.dataset.action === ‘extend’) openExtendModal(t.dataset.id);
-});
-U.on(U.id(‘btn-export-contract-pdf’), ‘click’, exportContractsPDF);
+updateReminder();
 
-// Export / Import page
-U.on(U.id(‘btn-export-json’), ‘click’, exportJSON);
-U.on(U.id(‘btn-export-all-xlsx’), ‘click’, function() { exportEmployeesXLSX(); });
-U.on(U.id(‘btn-export-all-pdf’), ‘click’, function() { exportEmployeesPDF(); });
-
-var dropZone = U.id(‘drop-zone’);
-var importFile = U.id(‘import-file’);
-if (dropZone) {
-U.on(dropZone, ‘click’, function() { if (importFile) importFile.click(); });
-U.on(dropZone, ‘dragover’, function(e) {
-e.preventDefault();
-dropZone.classList.add(‘drag-over’);
-});
-U.on(dropZone, ‘dragleave’, function() {
-dropZone.classList.remove(‘drag-over’);
-});
-U.on(dropZone, ‘drop’, function(e) {
-e.preventDefault();
-dropZone.classList.remove(‘drag-over’);
-var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-if (file) importJSON(file);
-});
-}
-if (importFile) {
-U.on(importFile, ‘change’, function() {
-var file = importFile.files && importFile.files[0];
-if (file) { importJSON(file); importFile.value = ‘’; }
-});
-}
-
-// Settings
-U.on(U.id(‘btn-save-profile’), ‘click’, saveProfile);
-U.on(U.id(‘btn-save-password’), ‘click’, savePassword);
-U.on(U.id(‘btn-reset-all’), ‘click’, resetAllData);
-}
-
-// ============================================================
-// INIT
-// ============================================================
-function init() {
-loadState();
-rebuildOutletMap();
-bindEvents();
-checkAuth();
-}
-
-document.addEventListener(‘DOMContentLoaded’, init);
-
-})();
 </script>
 
 </body>

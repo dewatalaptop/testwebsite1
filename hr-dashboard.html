@@ -1,2883 +1,1305 @@
 <!DOCTYPE html>
+
 <html lang="id">
 <head>
-
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naruna HR Suite</title>
 
-<meta
-  name="viewport"
-  content="
-    width=device-width,
-    initial-scale=1.0
-  "
->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap">
 
-<title>Naruna HR</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-<!-- ======================================================
-FONT
-====================================================== -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-<link
-  rel="preconnect"
-  href="https://fonts.googleapis.com"
->
-
-<link
-  rel="preconnect"
-  href="https://fonts.gstatic.com"
-  crossorigin
->
-
-<link
-  rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
->
-
-<!-- ======================================================
-XLSX
-====================================================== -->
-
-<script src="
-https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js
-"></script>
-
-<!-- ======================================================
-JSPDF
-====================================================== -->
-
-<script src="
-https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js
-"></script>
-
-<!-- ======================================================
-AUTOTABLE
-====================================================== -->
-
-<script src="
-https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js
-"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 
 <style>
+/* ── RESET ── */
+*{margin:0;padding:0;box-sizing:border-box;}
 
-/* =========================================================
-RESET
-========================================================= */
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+/* ── TOKENS ── */
+:root{
+  --bg:#0d0f14;
+  --surface:#161a23;
+  --surface2:#1e2330;
+  --border:#252b38;
+  --accent:#6ee7b7;
+  --accent2:#818cf8;
+  --danger:#f87171;
+  --warning:#fbbf24;
+  --text:#e8eaf0;
+  --muted:#64748b;
+  --radius:18px;
+  --font-head:'Syne',sans-serif;
+  --font-body:'DM Sans',sans-serif;
 }
 
 body{
-
-  font-family:'Inter',sans-serif;
-
-  background:#f3f4f6;
-
-  color:#111827;
-
-}
-
-/* =========================================================
-VARIABLES
-========================================================= */
-
-:root{
-
-  --primary:#4f46e5;
-
-  --danger:#ef4444;
-
-  --warning:#f59e0b;
-
-  --success:#22c55e;
-
-  --text:#111827;
-
-  --muted:#6b7280;
-
-  --border:#e5e7eb;
-
-  --radius:22px;
-
-  --shadow:
-    0 10px 30px rgba(0,0,0,.05);
-
-}
-
-/* =========================================================
-LAYOUT
-========================================================= */
-
-.app{
-
-  display:flex;
-
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
   min-height:100vh;
-
 }
 
-/* =========================================================
-SIDEBAR
-========================================================= */
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
 .sidebar{
-
-  width:260px;
-
-  background:#0f172a;
-
-  color:white;
-
-  position:fixed;
-
-  top:0;
-  left:0;
-  bottom:0;
-
-  padding:28px 18px;
-
+  width:240px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;
+  padding:28px 16px;
+  display:flex;flex-direction:column;
+  transition:transform .3s;
+  z-index:200;
 }
 
-.brand{
-
-  margin-bottom:36px;
-
+.brand{margin-bottom:40px;padding:0 8px;}
+.brand-logo{
+  font-family:var(--font-head);
+  font-size:26px;font-weight:800;
+  letter-spacing:-.5px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.brand-sub{
+  font-size:10px;font-weight:600;
+  letter-spacing:4px;color:var(--muted);
+  margin-top:4px;text-transform:uppercase;
 }
 
-.brand h1{
-
-  font-size:28px;
-
-  font-weight:800;
-
-}
-
-.brand p{
-
-  font-size:12px;
-
-  color:#94a3b8;
-
-  letter-spacing:3px;
-
-  margin-top:4px;
-
-}
-
-.nav{
-
-  display:flex;
-
-  flex-direction:column;
-
-  gap:8px;
-
-}
-
-.nav button{
-
-  border:none;
-
-  background:transparent;
-
-  color:#cbd5e1;
-
-  padding:14px 16px;
-
-  border-radius:16px;
-
-  text-align:left;
-
-  font-weight:600;
-
-  cursor:pointer;
-
+.nav{display:flex;flex-direction:column;gap:4px;flex:1;}
+.nav-btn{
+  border:none;background:transparent;
+  color:var(--muted);
+  padding:12px 16px;border-radius:12px;
+  text-align:left;font-weight:500;
+  font-size:14px;cursor:pointer;
   transition:.2s;
+  font-family:var(--font-body);
+  display:flex;align-items:center;gap:10px;
+}
+.nav-btn:hover{background:var(--surface2);color:var(--text);}
+.nav-btn.active{
+  background:linear-gradient(135deg,rgba(110,231,183,.12),rgba(129,140,248,.12));
+  color:var(--accent);
+  border:1px solid rgba(110,231,183,.15);
+}
+.nav-btn .icon{font-size:16px;width:20px;text-align:center;}
 
+.sidebar-footer{
+  padding:16px 8px 0;
+  border-top:1px solid var(--border);
+  color:var(--muted);font-size:11px;
 }
 
-.nav button:hover,
-.nav button.active{
-
-  background:
-    rgba(255,255,255,.08);
-
-  color:white;
-
-}
-
-/* =========================================================
-MAIN
-========================================================= */
-
+/* ── MAIN ── */
 .main{
-
-  margin-left:260px;
-
-  width:100%;
-
-  padding:32px;
-
+  margin-left:240px;
+  width:100%;padding:32px;
+  min-height:100vh;
 }
 
-/* =========================================================
-TOPBAR
-========================================================= */
-
+/* ── TOPBAR ── */
 .topbar{
-
-  display:flex;
-
-  justify-content:space-between;
-
-  align-items:center;
-
-  gap:20px;
-
-  flex-wrap:wrap;
-
-  margin-bottom:30px;
-
+  display:flex;justify-content:space-between;
+  align-items:flex-start;gap:20px;
+  flex-wrap:wrap;margin-bottom:32px;
 }
-
-.topbar h2{
-
-  font-size:32px;
-
-  font-weight:800;
-
+.topbar-title{
+  font-family:var(--font-head);
+  font-size:32px;font-weight:800;
+  letter-spacing:-.5px;line-height:1.1;
 }
+.topbar-sub{color:var(--muted);font-size:14px;margin-top:6px;}
+.topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 
-.topbar p{
-
-  margin-top:6px;
-
-  color:var(--muted);
-
-}
-
-.search{
-
-  width:340px;
-
-  background:white;
-
-  border-radius:18px;
-
+.search-wrap{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);
   border:1px solid var(--border);
-
-  padding:14px 18px;
-
-  box-shadow:var(--shadow);
-
+  border-radius:12px;
+  padding:10px 16px;width:280px;
 }
-
-.search input{
-
-  width:100%;
-
-  border:none;
-
-  outline:none;
-
-  background:none;
-
-  font-size:14px;
-
+.search-wrap input{
+  border:none;background:none;outline:none;
+  color:var(--text);font-size:14px;width:100%;
+  font-family:var(--font-body);
 }
+.search-wrap input::placeholder{color:var(--muted);}
+.search-icon{color:var(--muted);font-size:16px;}
 
-/* =========================================================
-STATS
-========================================================= */
+/* ── FILTER BADGE ── */
+.filter-bar{
+  display:flex;align-items:center;gap:8px;
+  flex-wrap:wrap;margin-bottom:20px;
+  min-height:36px;
+}
+.filter-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(110,231,183,.1);
+  border:1px solid rgba(110,231,183,.25);
+  color:var(--accent);font-size:13px;font-weight:600;
+  padding:6px 12px;border-radius:999px;
+}
+.filter-badge button{
+  background:none;border:none;color:var(--accent);
+  cursor:pointer;font-size:14px;line-height:1;
+  padding:0;opacity:.7;transition:.2s;
+}
+.filter-badge button:hover{opacity:1;}
 
+/* ── STATS ── */
 .stats{
-
   display:grid;
-
-  grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(220px,1fr)
-    );
-
-  gap:18px;
-
-  margin-bottom:30px;
-
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:16px;margin-bottom:32px;
 }
-
-.card{
-
-  background:white;
-
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
   border-radius:var(--radius);
-
   padding:24px;
-
-  box-shadow:var(--shadow);
-
-}
-
-.card small{
-
-  display:block;
-
-  color:var(--muted);
-
-  margin-bottom:10px;
-
-}
-
-.card h3{
-
-  font-size:34px;
-
-}
-
-/* =========================================================
-SECTION
-========================================================= */
-
-.section{
-
-  margin-bottom:30px;
-
-}
-
-.section-header{
-
-  display:flex;
-
-  justify-content:space-between;
-
-  align-items:center;
-
-  gap:16px;
-
-  flex-wrap:wrap;
-
-  margin-bottom:20px;
-
-}
-
-.section-header h3{
-
-  font-size:28px;
-
-}
-
-/* =========================================================
-BUTTON
-========================================================= */
-
-.btn{
-
-  border:none;
-
-  background:var(--primary);
-
-  color:white;
-
-  padding:14px 18px;
-
-  border-radius:16px;
-
-  font-weight:700;
-
-  cursor:pointer;
-
+  position:relative;overflow:hidden;
   transition:.2s;
+}
+.stat-card::before{
+  content:'';position:absolute;
+  top:-30px;right:-30px;
+  width:100px;height:100px;
+  border-radius:50%;
+  background:var(--accent-color,var(--accent));
+  opacity:.06;
+}
+.stat-card:nth-child(1){--accent-color:var(--accent);}
+.stat-card:nth-child(2){--accent-color:var(--warning);}
+.stat-card:nth-child(3){--accent-color:var(--accent2);}
+.stat-card:nth-child(4){--accent-color:#34d399;}
+.stat-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.stat-value{
+  font-family:var(--font-head);
+  font-size:30px;font-weight:800;letter-spacing:-.5px;
+}
+.stat-value.danger-text{color:var(--danger);}
+.stat-value.warning-text{color:var(--warning);}
 
+/* ── SECTION ── */
+.section{margin-bottom:40px;}
+.section-header{
+  display:flex;justify-content:space-between;
+  align-items:center;gap:16px;flex-wrap:wrap;
+  margin-bottom:20px;
+}
+.section-title{
+  font-family:var(--font-head);
+  font-size:20px;font-weight:700;
 }
 
-.btn:hover{
-
-  opacity:.94;
-
-}
-
-.btn:disabled{
-
-  opacity:.5;
-
-  cursor:not-allowed;
-
-}
-
-.btn.red{
-
-  background:var(--danger);
-
-}
-
-.btn.gray{
-
-  background:#e5e7eb;
-
-  color:#111827;
-
-}
-
-/* =========================================================
-GRID
-========================================================= */
-
-.grid{
-
-  display:grid;
-
-  grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(300px,1fr)
-    );
-
-  gap:20px;
-
-}
-
-.company{
-
-  background:white;
-
-  border-radius:28px;
-
-  padding:24px;
-
-  box-shadow:var(--shadow);
-
-}
-
-.company h4{
-
-  font-size:24px;
-
-  margin-bottom:8px;
-
-}
-
-.company p{
-
-  color:var(--muted);
-
-  margin-bottom:16px;
-
-  line-height:1.7;
-
-}
-
-.company-actions{
-
-  display:flex;
-
-  gap:10px;
-
-  margin-top:18px;
-
-}
-
-.company-actions button{
-
-  flex:1;
-
+/* ── BUTTONS ── */
+.btn{
   border:none;
-
-  padding:12px;
-
-  border-radius:14px;
-
-  font-weight:700;
-
-  cursor:pointer;
-
-}
-
-.detail-btn{
-
-  background:#eef2ff;
-
-  color:#3730a3;
-
-}
-
-.delete-btn{
-
-  background:#fee2e2;
-
-  color:#991b1b;
-
-}
-
-/* =========================================================
-BADGE
-========================================================= */
-
-.badge{
-
-  display:inline-flex;
-
-  padding:8px 12px;
-
-  border-radius:999px;
-
-  font-size:12px;
-
-  font-weight:700;
-
-}
-
-.badge.warning{
-
-  background:#fef3c7;
-
-  color:#92400e;
-
-}
-
-.badge.safe{
-
-  background:#dcfce7;
-
-  color:#166534;
-
-}
-/* =========================================================
-TABLE
-========================================================= */
-.table-wrap{
-
-  overflow-x:auto;
-
-  background:white;
-
-  border-radius:24px;
-
-  box-shadow:var(--shadow);
-
-}
-
-table{
-
-  width:100%;
-
-  border-collapse:collapse;
-
-}
-
-th{
-
-  background:#f9fafb;
-
-  padding:14px;
-
-  text-align:left;
-
-  font-size:13px;
-
-  color:var(--muted);
-
+  padding:10px 18px;border-radius:12px;
+  font-weight:600;font-size:13px;
+  cursor:pointer;transition:.2s;
+  font-family:var(--font-body);
+  display:inline-flex;align-items:center;gap:6px;
   white-space:nowrap;
-
 }
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),#34d399);
+  color:#0d1a12;
+}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-ghost{
+  background:var(--surface2);
+  color:var(--text);
+  border:1px solid var(--border);
+}
+.btn-ghost:hover{background:var(--border);}
+.btn-danger-ghost{
+  background:rgba(248,113,113,.1);
+  color:var(--danger);
+  border:1px solid rgba(248,113,113,.2);
+}
+.btn-danger-ghost:hover{background:rgba(248,113,113,.18);}
+.btn-sm{padding:7px 12px;font-size:12px;}
 
+.actions-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ── COMPANY GRID ── */
+.company-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;
+}
+.company-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;
+  transition:.2s;
+}
+.company-card:hover{border-color:rgba(110,231,183,.25);}
+.company-name{
+  font-family:var(--font-head);
+  font-size:18px;font-weight:700;
+  margin-bottom:4px;
+}
+.company-location{
+  font-size:13px;color:var(--muted);
+  margin-bottom:12px;
+}
+.company-desc{
+  font-size:13px;color:var(--muted);
+  line-height:1.6;margin-bottom:14px;
+  display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+.company-meta{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.company-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 12px;border-radius:999px;
+  font-size:12px;font-weight:700;cursor:pointer;
+  transition:.2s;
+}
+.badge-safe{background:rgba(110,231,183,.1);color:var(--accent);border:1px solid rgba(110,231,183,.2);}
+.badge-safe:hover{background:rgba(110,231,183,.18);}
+.badge-warn{background:rgba(251,191,36,.1);color:var(--warning);border:1px solid rgba(251,191,36,.2);}
+.badge-warn:hover{background:rgba(251,191,36,.18);}
+.company-btns{display:flex;gap:6px;}
+
+/* ── TABLE ── */
+.table-wrap{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--surface2);}
+th{
+  padding:13px 16px;
+  text-align:left;font-size:11px;
+  font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.5px;
+  white-space:nowrap;
+}
 td{
-
-  padding:14px;
-
-  border-top:1px solid #f3f4f6;
-
-  font-size:14px;
-
-  vertical-align:middle;
-
+  padding:13px 16px;
+  border-top:1px solid var(--border);
+  font-size:13px;vertical-align:middle;
 }
+tr:hover td{background:rgba(255,255,255,.02);}
+.td-name{font-weight:600;color:var(--text);}
+.td-muted{color:var(--muted);}
 
-/* =========================================================
-STATUS
-========================================================= */
-
-.status{
-
-  display:inline-flex;
-
-  padding:8px 12px;
-
-  border-radius:999px;
-
-  font-size:12px;
-
-  font-weight:700;
-
+/* ── STATUS BADGE ── */
+.status-badge{
+  display:inline-flex;padding:5px 10px;
+  border-radius:999px;font-size:11px;font-weight:700;
+  white-space:nowrap;
 }
+.s-safe{background:rgba(110,231,183,.1);color:var(--accent);}
+.s-warn{background:rgba(251,191,36,.1);color:var(--warning);}
+.s-danger{background:rgba(248,113,113,.1);color:var(--danger);}
 
-.status.safe{
-
-  background:#dcfce7;
-
-  color:#166534;
-
+/* ── EMPTY ── */
+.empty-state{
+  padding:60px 20px;text-align:center;
+  color:var(--muted);
 }
+.empty-state .empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-state p{font-size:14px;}
 
-.status.warning{
-
-  background:#fef3c7;
-
-  color:#92400e;
-
-}
-
-.status.danger{
-
-  background:#fee2e2;
-
-  color:#991b1b;
-
-}
-
-/* =========================================================
-MODAL
-========================================================= */
-
+/* ── MODAL ── */
 .modal{
-
-  position:fixed;
-
-  inset:0;
-
-  background:rgba(0,0,0,.45);
-
-  display:none;
-
-  align-items:center;
-
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;align-items:center;
   justify-content:center;
-
-  padding:20px;
-
-  z-index:999;
-
+  padding:20px;z-index:1000;
+  backdrop-filter:blur(4px);
 }
-
-.modal.show{
-
-  display:flex;
-
-}
+.modal.show{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 
 .modal-box{
-
-  width:100%;
-
-  max-width:760px;
-
-  background:white;
-
-  border-radius:30px;
-
+  width:100%;max-width:640px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
   padding:28px;
-
-  max-height:90vh;
-
-  overflow:auto;
-
+  max-height:90vh;overflow:auto;
+  animation:slideUp .25s ease;
 }
+@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
 .modal-header{
-
-  display:flex;
-
-  justify-content:space-between;
-
-  align-items:center;
-
-  margin-bottom:24px;
-
+  display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:24px;
 }
-
-.close{
-
-  width:42px;
-
-  height:42px;
-
-  border:none;
-
-  border-radius:14px;
-
-  background:#f3f4f6;
-
-  cursor:pointer;
-
+.modal-title{font-family:var(--font-head);font-size:20px;font-weight:700;}
+.close-btn{
+  width:36px;height:36px;border:none;
+  background:var(--surface2);
+  border-radius:10px;cursor:pointer;
+  color:var(--muted);font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:.2s;
 }
+.close-btn:hover{background:var(--border);color:var(--text);}
 
-/* =========================================================
-FORM
-========================================================= */
-
-.form-grid{
-
-  display:grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
-  gap:18px;
-
-}
-
-.form-group{
-
-  display:flex;
-
-  flex-direction:column;
-
-  gap:8px;
-
-}
-
-.form-group.full{
-
-  grid-column:1/-1;
-
-}
-
-label{
-
-  font-size:14px;
-
-  font-weight:700;
-
-}
-
-input,
-select,
-textarea{
-
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-group{display:flex;flex-direction:column;gap:7px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-size:13px;font-weight:600;color:var(--text);}
+.form-input{
+  background:var(--surface2);
   border:1px solid var(--border);
-
-  background:#f9fafb;
-
-  border-radius:16px;
-
-  padding:14px 16px;
-
-  outline:none;
-
-  font-family:inherit;
-
-  font-size:14px;
-
+  border-radius:12px;
+  padding:11px 14px;
+  color:var(--text);
+  font-family:var(--font-body);font-size:14px;
+  outline:none;transition:.2s;
+  -webkit-appearance:none;
 }
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,231,183,.1);}
+.form-input option{background:var(--surface2);}
+textarea.form-input{resize:vertical;min-height:80px;}
+.form-submit{margin-top:8px;width:100%;justify-content:center;padding:13px;}
 
-textarea{
-
-  resize:vertical;
-
-  min-height:100px;
-
+/* ── TOAST ── */
+#toast-container{
+  position:fixed;bottom:24px;right:24px;
+  display:flex;flex-direction:column;gap:8px;
+  z-index:9999;
 }
-
-.form-submit{
-
-  margin-top:20px;
-
-  width:100%;
-
+.toast{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px 18px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  animation:toastIn .3s ease;
+  display:flex;align-items:center;gap:8px;
+  min-width:220px;
 }
+.toast.success{border-left:3px solid var(--accent);}
+.toast.error{border-left:3px solid var(--danger);}
+.toast.info{border-left:3px solid var(--accent2);}
+@keyframes toastIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes toastOut{to{transform:translateX(20px);opacity:0;}}
 
-/* =========================================================
-EMPTY
-========================================================= */
+/* ── PAGE SECTIONS ── */
+.page{display:none;}
+.page.active{display:block;}
 
-.empty{
-
-  background:white;
-
-  border-radius:28px;
-
-  padding:60px;
-
-  text-align:center;
-
-  box-shadow:var(--shadow);
-
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .stats{grid-template-columns:repeat(2,1fr);}
 }
-
-.empty h3{
-
-  font-size:28px;
-
-  margin-bottom:10px;
-
+@media(max-width:600px){
+  .main{padding:16px;}
+  .form-grid{grid-template-columns:1fr;}
+  .stats{grid-template-columns:1fr 1fr;}
+  .topbar-title{font-size:24px;}
 }
-
-.empty p{
-
-  color:var(--muted);
-
-}
-
-/* =========================================================
-RESPONSIVE
-========================================================= */
-
-@media(max-width:1000px){
-
-  .sidebar{
-
-    display:none;
-
-  }
-
-  .main{
-
-    margin-left:0;
-
-  }
-
-}
-
-@media(max-width:700px){
-
-  .form-grid{
-
-    grid-template-columns:1fr;
-
-  }
-
-  .search{
-
-    width:100%;
-
-  }
-
-  .section-header{
-
-    align-items:flex-start;
-
-  }
-
-}
-
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="app">
 
-  <!-- =====================================================
-  SIDEBAR
-  ====================================================== -->
+  <!-- SIDEBAR -->
 
-  <aside class="sidebar">
-
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
-
-      <h1>NARUNA</h1>
-
-      <p>HR SUITE</p>
-
+      <div class="brand-logo">NARUNA</div>
+      <div class="brand-sub">HR Suite</div>
     </div>
-
-    <div class="nav">
-
-      <button class="active">
-        Dashboard
+    <nav class="nav">
+      <button class="nav-btn active" data-page="dashboard">
+        <span class="icon">◈</span> Dashboard
       </button>
-
-      <button>
-        Karyawan
+      <button class="nav-btn" data-page="employees">
+        <span class="icon">◉</span> Karyawan
       </button>
-
-      <button>
-        Kontrak
+      <button class="nav-btn" data-page="contracts">
+        <span class="icon">◷</span> Kontrak
       </button>
-
-      <button>
-        Export
+      <button class="nav-btn" data-page="export">
+        <span class="icon">↗</span> Export
       </button>
-
+    </nav>
+    <div class="sidebar-footer">
+      v2.0 · Naruna Group
     </div>
-
   </aside>
 
-  <!-- =====================================================
-  MAIN
-  ====================================================== -->
+  <!-- MAIN -->
 
   <main class="main">
 
-    <!-- ===================================================
-    TOPBAR
-    ==================================================== -->
+```
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title" id="pageTitle">Dashboard HR</div>
+    <div class="topbar-sub" id="pageSubtitle">Pemantau kontrak karyawan Naruna Group</div>
+  </div>
+  <div class="topbar-right">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Cari karyawan...">
+    </div>
+  </div>
+</div>
 
-    <div class="topbar">
+<!-- FILTER BAR -->
+<div class="filter-bar" id="filterBar"></div>
 
-      <div>
+<!-- PAGE: DASHBOARD -->
+<div class="page active" id="page-dashboard">
 
-        <h2>Dashboard HR</h2>
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Total Karyawan</div>
+      <div class="stat-value" id="totalEmployee">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Kontrak Mendesak</div>
+      <div class="stat-value" id="totalWarning">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Anak Usaha</div>
+      <div class="stat-value" id="totalCompany">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Payroll</div>
+      <div class="stat-value" id="totalPayroll" style="font-size:20px">Rp 0</div>
+    </div>
+  </div>
 
-        <p>
-          Pemantau kontrak
-          karyawan Naruna Group
-        </p>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Anak Usaha</div>
+      <button class="btn btn-primary" id="addCompanyBtn">+ Tambah</button>
+    </div>
+    <div class="company-grid" id="companyGrid"></div>
+  </div>
 
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Semua Karyawan</div>
+      <button class="btn btn-primary" id="addEmployeeBtnDash">+ Tambah Karyawan</button>
+    </div>
+    <div class="table-wrap"><div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Nama</th><th>Perusahaan</th><th>Jabatan</th>
+          <th>Tipe</th><th>Kontrak</th><th>Status</th>
+          <th>Gaji</th><th>Aksi</th>
+        </tr></thead>
+        <tbody id="employeeTableDash"></tbody>
+      </table>
+    </div></div>
+  </div>
+
+</div>
+
+<!-- PAGE: EMPLOYEES -->
+<div class="page" id="page-employees">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Data Karyawan</div>
+      <div class="actions-row">
+        <button class="btn btn-ghost btn-sm" id="exportExcelBtn">↓ Excel</button>
+        <button class="btn btn-ghost btn-sm" id="exportPDFBtn">↓ PDF</button>
+        <button class="btn btn-primary" id="addEmployeeBtn">+ Tambah</button>
+      </div>
+    </div>
+    <div class="table-wrap"><div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Nama</th><th>Perusahaan</th><th>Jabatan</th>
+          <th>Tipe</th><th>Kontrak</th><th>Status</th>
+          <th>Gaji</th><th>Aksi</th>
+        </tr></thead>
+        <tbody id="employeeTable"></tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+
+<!-- PAGE: CONTRACTS -->
+<div class="page" id="page-contracts">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Monitor Kontrak</div>
+    </div>
+    <div class="table-wrap"><div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Nama</th><th>Perusahaan</th><th>Tipe</th>
+          <th>Kontrak Berakhir</th><th>Sisa Hari</th><th>Status</th>
+        </tr></thead>
+        <tbody id="contractTable"></tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+
+<!-- PAGE: EXPORT -->
+<div class="page" id="page-export">
+  <div class="section">
+    <div class="section-title" style="margin-bottom:20px">Export & Import Data</div>
+    <div class="company-grid" style="max-width:700px">
+
+      <div class="company-card">
+        <div class="company-name" style="font-size:16px;margin-bottom:8px">📊 Excel</div>
+        <div class="company-location">Export seluruh data karyawan ke format .xlsx</div>
+        <div style="margin-top:16px">
+          <button class="btn btn-ghost" id="exportExcelBtn2">Export Excel</button>
+        </div>
       </div>
 
-      <div class="search">
+      <div class="company-card">
+        <div class="company-name" style="font-size:16px;margin-bottom:8px">📄 PDF</div>
+        <div class="company-location">Export laporan karyawan ke format .pdf</div>
+        <div style="margin-top:16px">
+          <button class="btn btn-ghost" id="exportPDFBtn2">Export PDF</button>
+        </div>
+      </div>
 
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Cari karyawan..."
-        >
+      <div class="company-card">
+        <div class="company-name" style="font-size:16px;margin-bottom:8px">💾 JSON Backup</div>
+        <div class="company-location">Backup semua data ke file .json</div>
+        <div style="margin-top:16px">
+          <button class="btn btn-ghost" id="exportJSONBtn">Export JSON</button>
+        </div>
+      </div>
 
+      <div class="company-card">
+        <div class="company-name" style="font-size:16px;margin-bottom:8px">📥 Import JSON</div>
+        <div class="company-location">Pulihkan data dari file backup .json</div>
+        <div style="margin-top:16px">
+          <label class="btn btn-ghost" for="importJSONInput" style="cursor:pointer">Import JSON</label>
+          <input type="file" id="importJSONInput" accept=".json" hidden>
+        </div>
       </div>
 
     </div>
-
-    <!-- ===================================================
-    STATS
-    ==================================================== -->
-
-    <section class="stats">
-
-      <div class="card">
-
-        <small>
-          Total Karyawan
-        </small>
-
-        <h3 id="totalEmployee">
-          0
-        </h3>
-
-      </div>
-
-      <div class="card">
-
-        <small>
-          Kontrak Mendesak
-        </small>
-
-        <h3 id="totalWarning">
-          0
-        </h3>
-
-      </div>
-
-      <div class="card">
-
-        <small>
-          Anak Usaha
-        </small>
-
-        <h3 id="totalCompany">
-          0
-        </h3>
-
-      </div>
-
-      <div class="card">
-
-        <small>
-          Total Payroll
-        </small>
-
-        <h3 id="totalPayroll">
-          Rp 0
-        </h3>
-
-      </div>
-
-    </section>
-
-    <!-- ===================================================
-    COMPANY
-    ==================================================== -->
-
-    <section class="section">
-
-      <div class="section-header">
-
-        <h3>
-          Anak Usaha
-        </h3>
-
-        <button
-          class="btn"
-          id="addCompanyBtn"
-        >
-          + Tambah
-        </button>
-
-      </div>
-
-      <div
-        class="grid"
-        id="companyGrid"
-      ></div>
-
-    </section>
-
-    <!-- ===================================================
-    EMPLOYEE
-    ==================================================== -->
-
-    <section class="section">
-
-      <div class="section-header">
-
-        <h3>
-          Karyawan
-        </h3>
-
-        <div
-          style="
-            display:flex;
-            gap:10px;
-            flex-wrap:wrap;
-          "
-        >
-
-          <button
-            class="btn gray"
-            id="exportExcelBtn"
-          >
-            Export Excel
-          </button>
-
-          <button
-            class="btn gray"
-            id="exportPDFBtn"
-          >
-            Export PDF
-          </button>
-
-          <button
-            class="btn gray"
-            id="exportJSONBtn"
-          >
-            Export JSON
-          </button>
-
-          <label
-            class="btn gray"
-            for="importJSONInput"
-            style="cursor:pointer;"
-          >
-            Import JSON
-          </label>
-
-          <input
-            type="file"
-            id="importJSONInput"
-            accept=".json"
-            hidden
-          >
-
-          <button
-            class="btn"
-            id="addEmployeeBtn"
-          >
-            + Tambah
-          </button>
-
-        </div>
-
-      </div>
-
-      <div class="table-wrap">
-
-        <table>
-
-          <thead>
-
-            <tr>
-
-              <th>Nama</th>
-
-              <th>Perusahaan</th>
-
-              <th>Jabatan</th>
-
-              <th>Tipe</th>
-
-              <th>Kontrak</th>
-
-              <th>Status</th>
-
-              <th>Gaji</th>
-
-              <th>Aksi</th>
-
-            </tr>
-
-          </thead>
-
-          <tbody id="employeeTable"></tbody>
-
-        </table>
-
-      </div>
-
-    </section>
+  </div>
+</div>
+```
 
   </main>
-
 </div>
 
-<!-- =========================================================
-COMPANY MODAL
-========================================================= -->
+<!-- TOAST CONTAINER -->
 
-<div
-  class="modal"
-  id="companyModal"
->
+<div id="toast-container"></div>
 
+<!-- ── COMPANY MODAL ── -->
+
+<div class="modal" id="companyModal">
   <div class="modal-box">
-
     <div class="modal-header">
-
-      <h3>
-        Tambah Anak Usaha
-      </h3>
-
-      <button
-        class="close"
-        onclick="
-          closeModal(
-            'companyModal'
-          )
-        "
-      >
-        ✕
-      </button>
-
+      <div class="modal-title" id="companyModalTitle">Tambah Anak Usaha</div>
+      <button class="close-btn" onclick="closeModal('companyModal')">✕</button>
     </div>
-
-    <form id="companyForm">
-
-      <div class="form-grid">
-
-        <div class="form-group">
-
-          <label>
-            Nama
-          </label>
-
-          <input
-            type="text"
-            id="companyName"
-            required
-          >
-
-        </div>
-
-        <div class="form-group">
-
-          <label>
-            Lokasi
-          </label>
-
-          <input
-            type="text"
-            id="companyLocation"
-          >
-
-        </div>
-
-        <div class="form-group full">
-
-          <label>
-            Deskripsi
-          </label>
-
-          <textarea
-            id="companyDescription"
-          ></textarea>
-
-        </div>
-
+    <div class="form-grid">
+      <input type="hidden" id="companyEditId">
+      <div class="form-group">
+        <label class="form-label">Nama Perusahaan *</label>
+        <input type="text" class="form-input" id="companyName" required placeholder="PT. Naruna ...">
       </div>
-
-      <button
-        class="btn form-submit"
-      >
-        Simpan
-      </button>
-
-    </form>
-
+      <div class="form-group">
+        <label class="form-label">Lokasi</label>
+        <input type="text" class="form-input" id="companyLocation" placeholder="Jakarta, Indonesia">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Deskripsi</label>
+        <textarea class="form-input" id="companyDescription" placeholder="Deskripsi singkat perusahaan..."></textarea>
+      </div>
+    </div>
+    <button class="btn btn-primary form-submit" id="companySubmitBtn" onclick="submitCompany()">Simpan</button>
   </div>
-
 </div>
-<!-- =========================================================
-EMPLOYEE MODAL
-========================================================= -->
 
-<div
-  class="modal"
-  id="employeeModal"
->
+<!-- ── EMPLOYEE MODAL ── -->
 
+<div class="modal" id="employeeModal">
   <div class="modal-box">
-
     <div class="modal-header">
-
-      <h3>
-        Tambah Karyawan
-      </h3>
-
-      <button
-        class="close"
-        onclick="
-          closeModal(
-            'employeeModal'
-          )
-        "
-      >
-        ✕
-      </button>
-
+      <div class="modal-title" id="employeeModalTitle">Tambah Karyawan</div>
+      <button class="close-btn" onclick="closeModal('employeeModal')">✕</button>
     </div>
-
-    <form id="employeeForm">
-
-      <div class="form-grid">
-
-        <div class="form-group">
-
-          <label>
-            Nama
-          </label>
-
-          <input
-            type="text"
-            id="employeeName"
-            required
-          >
-
-        </div>
-
-        <div class="form-group">
-
-          <label>
-            Perusahaan
-          </label>
-
-          <select
-            id="employeeCompany"
-            required
-          ></select>
-
-        </div>
-
-        <div class="form-group">
-
-          <label>
-            Jabatan
-          </label>
-
-          <input
-            type="text"
-            id="employeePosition"
-          >
-
-        </div>
-
-        <div class="form-group">
-
-          <label>
-            Status
-          </label>
-
-          <select
-            id="employeeStatus"
-          >
-
-            <option>
-              Tetap
-            </option>
-
-            <option>
-              Kontrak
-            </option>
-
-            <option>
-              Probation
-            </option>
-
-          </select>
-
-        </div>
-
-        <div class="form-group">
-
-          <label>
-            Kontrak Berakhir
-          </label>
-
-          <input
-            type="date"
-            id="employeeContract"
-          >
-
-        </div>
-
-        <div class="form-group">
-
-          <label>
-            Gaji
-          </label>
-
-          <input
-            type="number"
-            id="employeeSalary"
-            min="0"
-          >
-
-        </div>
-
+    <div class="form-grid">
+      <input type="hidden" id="employeeEditId">
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap *</label>
+        <input type="text" class="form-input" id="employeeName" placeholder="Nama karyawan">
       </div>
-
-      <button
-        class="btn form-submit"
-      >
-        Simpan
-      </button>
-
-    </form>
-
+      <div class="form-group">
+        <label class="form-label">Perusahaan *</label>
+        <select class="form-input" id="employeeCompany"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Jabatan</label>
+        <input type="text" class="form-input" id="employeePosition" placeholder="Manager, Staff, dsb.">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipe Karyawan</label>
+        <select class="form-input" id="employeeStatus">
+          <option>Tetap</option>
+          <option>Kontrak</option>
+          <option>Probation</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kontrak Berakhir</label>
+        <input type="date" class="form-input" id="employeeContract">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gaji (Rp)</label>
+        <input type="number" class="form-input" id="employeeSalary" min="0" placeholder="0">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Catatan</label>
+        <textarea class="form-input" id="employeeNotes" placeholder="Catatan tambahan..."></textarea>
+      </div>
+    </div>
+    <button class="btn btn-primary form-submit" onclick="submitEmployee()">Simpan</button>
   </div>
-
 </div>
 
 <script>
-
-/* =========================================================
-STATE
-========================================================= */
-
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
 const AppState = {
-
-  meta:{
-
-    updatedAt:Date.now(),
-
-    version:1
-
-  },
-
+  meta:{ updatedAt:Date.now(), version:2 },
   companies:[],
-
   employees:[]
-
 };
 
-/* =========================================================
-UTILS
-========================================================= */
+let activeFilter = null; // companyId filter
 
+/* ═══════════════════════════════════════
+   UTILS
+═══════════════════════════════════════ */
 const uid = () =>
-
-  Date.now()
-    .toString(36)
-
-  +
-
-  Math.random()
-    .toString(36)
-    .slice(2,6);
+  Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
 const esc = str =>
-
-  String(str || '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
+  String(str||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
 
-const currency = number =>
+const currency = n =>
+  new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0})
+    .format(n||0);
 
-  new Intl.NumberFormat(
-    'id-ID',
-    {
-      style:'currency',
-      currency:'IDR',
-      maximumFractionDigits:0
-    }
-  ).format(number || 0);
+const fmtDate = str => {
+  if(!str) return '-';
+  const [y,m,d] = str.split('-');
+  return `${d}/${m}/${y}`;
+};
 
+// FIX: returns days left; negative = expired; null = no date
 const daysLeft = date => {
-
   if(!date) return null;
-
-  const today = new Date();
-
-  today.setHours(
-    0,0,0,0
-  );
-
-  const [y,m,d] =
-    date.split('-');
-
-  const end = new Date(
-    Number(y),
-    Number(m)-1,
-    Number(d)
-  );
-
-  end.setHours(
-    0,0,0,0
-  );
-
-  return Math.ceil(
-    (end - today)
-    /
-    86400000
-  );
-
+  const today = new Date(); today.setHours(0,0,0,0);
+  const [y,m,d] = date.split('-');
+  const end = new Date(Number(y),Number(m)-1,Number(d));
+  end.setHours(0,0,0,0);
+  return Math.ceil((end - today)/86400000);
 };
 
 const contractStatus = date => {
-
-  const days =
-    daysLeft(date);
-
-  if(days === null){
-
-    return {
-      label:'-',
-      class:'safe'
-    };
-
-  }
-
-  if(days < 0){
-
-    return {
-      label:'Expired',
-      class:'danger'
-    };
-
-  }
-
-  if(days <= 30){
-
-    return {
-      label:
-        days + ' Hari',
-
-      class:'warning'
-    };
-
-  }
-
-  return {
-
-    label:'Aman',
-
-    class:'safe'
-
-  };
-
+  const days = daysLeft(date);
+  if(days === null)          return { label:'—',    cls:'s-safe' };
+  if(days < 0)               return { label:'Expired', cls:'s-danger' };
+  if(days === 0)             return { label:'Hari ini', cls:'s-danger' };
+  if(days <= 30)             return { label:days+' Hari', cls:'s-warn' };
+  return                            { label:'Aman', cls:'s-safe' };
 };
 
-const sortWeight = employee => {
-
-  const days =
-    daysLeft(
-      employee.contract
-    );
-
-  if(days === null){
-
-    return 999999;
-
-  }
-
-  if(days < 0){
-  return -999999;
-}
+// FIX: proper sort — expired first (most negative), then by days ascending, null last
+const sortWeight = emp => {
+  const days = daysLeft(emp.contract);
+  if(days === null) return 999999;
   return days;
-
 };
 
-/* =========================================================
-STORAGE
-========================================================= */
-
+/* ═══════════════════════════════════════
+   STORAGE
+═══════════════════════════════════════ */
 const Storage = {
-
-  key:'naruna_hr',
-
+  key:'naruna_hr_v2',
   save(){
-
-    AppState.meta.updatedAt =
-      Date.now();
-
-    localStorage.setItem(
-      this.key,
-      JSON.stringify(AppState)
-    );
-
-  },
-
-  load(){
-
+    AppState.meta.updatedAt = Date.now();
     try{
-
-      const raw =
-        localStorage.getItem(
-          this.key
-        );
-
+      localStorage.setItem(this.key, JSON.stringify(AppState));
+    }catch(e){ showToast('Gagal menyimpan data','error'); }
+  },
+  load(){
+    try{
+      const raw = localStorage.getItem(this.key)
+                || localStorage.getItem('naruna_hr'); // migrate old key
       if(!raw) return;
-
-      const data =
-        JSON.parse(raw);
-
-      if(
-        typeof data !== 'object'
-      ){
-
-        return;
-
-      }
-
-      AppState.meta =
-        data.meta || {
-
-          updatedAt:Date.now(),
-
-          version:1
-
-        };
-
-      AppState.companies =
-        Array.isArray(
-          data.companies
-        )
-        ?
-        data.companies
-        :
-        [];
-
-      AppState.employees =
-        Array.isArray(
-          data.employees
-        )
-        ?
-        data.employees
-        :
-        [];
-
-    }catch(error){
-
-      console.error(
-        'Storage load error:',
-        error
-      );
-
-    }
-
+      const data = JSON.parse(raw);
+      if(typeof data !== 'object') return;
+      AppState.meta     = data.meta || { updatedAt:Date.now(), version:2 };
+      AppState.companies= Array.isArray(data.companies) ? data.companies : [];
+      AppState.employees= Array.isArray(data.employees) ? data.employees : [];
+    }catch(e){ console.error('Storage load:', e); }
   }
-
 };
 
-/* =========================================================
-SAVE ALL
-========================================================= */
+function saveAll(){ Storage.save(); }
 
-async function saveAll(){
-
-  Storage.save();
-
-  /*
-  await syncToFirebase();
-  */
-
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+function showToast(msg, type='success'){
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = { success:'✓', error:'✕', info:'ℹ' };
+  t.innerHTML = `<span>${icons[type]||'·'}</span> ${esc(msg)}`;
+  c.appendChild(t);
+  setTimeout(()=>{
+    t.style.animation = 'toastOut .3s ease forwards';
+    setTimeout(()=>t.remove(), 300);
+  }, 2800);
 }
 
-/* =========================================================
-MODAL
-========================================================= */
-
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
 function openModal(id){
-
-  document
-    .getElementById(id)
-    .classList
-    .add('show');
-
-  document.body.style.overflow =
-    'hidden';
-
+  document.getElementById(id).classList.add('show');
+  document.body.style.overflow = 'hidden';
 }
-
 function closeModal(id){
-
-  document
-    .getElementById(id)
-    .classList
-    .remove('show');
-
-  const activeModal =
-    document.querySelector(
-      '.modal.show'
-    );
-
-  if(!activeModal){
-
-    document.body.style.overflow =
-      '';
-
-  }
-
+  document.getElementById(id).classList.remove('show');
+  if(!document.querySelector('.modal.show'))
+    document.body.style.overflow = '';
 }
 
-/* =========================================================
-BACKDROP CLOSE
-========================================================= */
-
-document
-  .querySelectorAll('.modal')
-  .forEach(modal => {
-
-    modal.addEventListener(
-      'click',
-      event => {
-
-        if(
-          event.target === modal
-        ){
-
-          modal.classList.remove(
-            'show'
-          );
-
-          const activeModal =
-            document.querySelector(
-              '.modal.show'
-            );
-
-          if(!activeModal){
-
-            document.body.style.overflow =
-              '';
-
-          }
-
-        }
-
-      }
-    );
-
+// Backdrop close — FIX: also resets forms
+document.querySelectorAll('.modal').forEach(modal=>{
+  modal.addEventListener('click', e=>{
+    if(e.target === modal){
+      closeModal(modal.id);
+      resetModalForms();
+    }
   });
+});
 
-/* =========================================================
-RENDER
-========================================================= */
+// ESC close — FIX: also resets forms
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.modal.show')
+      .forEach(m=>closeModal(m.id));
+    document.body.style.overflow = '';
+    resetModalForms();
+  }
+});
 
-function render(){
+function resetModalForms(){
+  // Reset company modal
+  document.getElementById('companyEditId').value = '';
+  document.getElementById('companyName').value = '';
+  document.getElementById('companyLocation').value = '';
+  document.getElementById('companyDescription').value = '';
+  document.getElementById('companyModalTitle').textContent = 'Tambah Anak Usaha';
 
+  // Reset employee modal
+  document.getElementById('employeeEditId').value = '';
+  document.getElementById('employeeName').value = '';
+  document.getElementById('employeePosition').value = '';
+  document.getElementById('employeeStatus').value = 'Tetap';
+  document.getElementById('employeeContract').value = '';
+  document.getElementById('employeeSalary').value = '';
+  document.getElementById('employeeNotes').value = '';
+  document.getElementById('employeeModalTitle').textContent = 'Tambah Karyawan';
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+const pages = {
+  dashboard: { title:'Dashboard HR', sub:'Pemantau kontrak karyawan Naruna Group' },
+  employees:  { title:'Data Karyawan', sub:'Kelola seluruh data karyawan' },
+  contracts:  { title:'Monitor Kontrak', sub:'Pantau status kontrak secara detail' },
+  export:     { title:'Export & Import', sub:'Backup dan restore data HR' }
+};
+
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const page = btn.dataset.page;
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+page).classList.add('active');
+    document.getElementById('pageTitle').textContent = pages[page].title;
+    document.getElementById('pageSubtitle').textContent = pages[page].sub;
+    if(page==='contracts') renderContractTable();
+    else if(page==='employees') renderEmployeeTable('employeeTable');
+  });
+});
+
+/* ═══════════════════════════════════════
+   FILTER
+═══════════════════════════════════════ */
+function setFilter(companyId){
+  activeFilter = companyId;
+  renderFilterBar();
+  renderAll();
+}
+function clearFilter(){
+  activeFilter = null;
+  renderFilterBar();
+  renderAll();
+}
+function renderFilterBar(){
+  const bar = document.getElementById('filterBar');
+  if(!activeFilter){ bar.innerHTML=''; return; }
+  const co = AppState.companies.find(c=>c.id===activeFilter);
+  if(!co){ bar.innerHTML=''; return; }
+  bar.innerHTML = `
+    <div class="filter-badge">
+      Menampilkan: ${esc(co.name)}
+      <button onclick="clearFilter()" title="Hapus filter">✕</button>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════
+   RENDER
+═══════════════════════════════════════ */
+function renderAll(){
   renderStats();
-
   renderCompanies();
-
-  renderEmployees();
-
+  renderEmployeeTable('employeeTableDash');
+  renderEmployeeTable('employeeTable');
 }
 
 function renderStats(){
+  document.getElementById('totalEmployee').textContent = AppState.employees.length;
+  document.getElementById('totalCompany').textContent  = AppState.companies.length;
 
-  document
-    .getElementById(
-      'totalEmployee'
-    )
-    .textContent =
-      AppState.employees.length;
+  let payroll=0, warning=0;
+  AppState.employees.forEach(emp=>{
+    payroll += Number(emp.salary)||0;
+    const days = daysLeft(emp.contract);
+    if(days!==null && days>=0 && days<=30) warning++;
+  });
 
-  document
-    .getElementById(
-      'totalCompany'
-    )
-    .textContent =
-      AppState.companies.length;
-
-  let payroll = 0;
-
-  let warning = 0;
-
-  AppState.employees
-    .forEach(employee => {
-
-      payroll +=
-        Number(
-          employee.salary
-        ) || 0;
-
-      const days =
-        daysLeft(
-          employee.contract
-        );
-
-      if(
-
-        days !== null
-
-        &&
-
-        days <= 30
-
-        &&
-
-        days >= 0
-
-      ){
-
-        warning++;
-
-      }
-
-    });
-
-  document
-    .getElementById(
-      'totalPayroll'
-    )
-    .textContent =
-      currency(payroll);
-
-  document
-    .getElementById(
-      'totalWarning'
-    )
-    .textContent =
-      warning;
-
+  document.getElementById('totalPayroll').textContent = currency(payroll);
+  const wEl = document.getElementById('totalWarning');
+  wEl.textContent = warning;
+  wEl.className = 'stat-value ' + (warning>0 ? 'warning-text' : '');
 }
 
 function renderCompanies(){
-
-  const grid =
-    document.getElementById(
-      'companyGrid'
-    );
-
-  if(
-    AppState.companies.length === 0
-  ){
-
-    grid.innerHTML = `
-
-      <div class="empty">
-
-        <h3>
-          Belum Ada Anak Usaha
-        </h3>
-
-        <p>
-          Tambahkan perusahaan pertama
-        </p>
-
-      </div>
-
-    `;
-
+  const grid = document.getElementById('companyGrid');
+  if(!AppState.companies.length){
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🏢</div><p>Belum ada anak usaha.<br>Tambahkan yang pertama!</p></div>`;
     return;
-
   }
-
-  let html = '';
-
-  AppState.companies
-    .forEach(company => {
-
-      const employees =
-        AppState.employees.filter(
-          employee =>
-
-            employee.companyId
-            ===
-            company.id
-        );
-
-      const warning =
-        employees.filter(
-          employee => {
-
-            const days =
-              daysLeft(
-                employee.contract
-              );
-
-            return (
-
-              days !== null
-
-              &&
-
-              days <= 30
-
-              &&
-
-              days >= 0
-
-            );
-
-          }
-        ).length;
-
-      html += `
-
-        <div class="company">
-
-          <h4>
-            ${esc(company.name)}
-          </h4>
-
-          <p>
-            ${esc(
-              company.location
-            )}
-          </p>
-
-          <span class="
-            badge
-            ${
-              warning
-              ?
-              'warning'
-              :
-              'safe'
-            }
-          ">
-
-            ${
-              warning
-              ?
-              warning +
-              ' kontrak'
-              :
-              'Semua aman'
-            }
-
-          </span>
-
-          <div class="company-actions">
-
-            <button
-              class="detail-btn"
-            >
-
-              ${
-                employees.length
-              }
-
-              Karyawan
-
-            </button>
-
-            <button
-              class="delete-btn"
-              onclick="
-                deleteCompany(
-                  '${company.id}'
-                )
-              "
-            >
-
-              Hapus
-
-            </button>
-
-          </div>
-
-        </div>
-
-      `;
-
-    });
-
-  grid.innerHTML = html;
-
-  renderCompanyOptions();
-
-}
-function renderCompanyOptions(){
-
-  const select =
-    document.getElementById(
-      'employeeCompany'
-    );
-
-  let html = '';
-
-  AppState.companies
-    .forEach(company => {
-
-      html += `
-
-        <option
-          value="
-            ${esc(company.id)}
-          "
-        >
-
-          ${esc(company.name)}
-
-        </option>
-
-      `;
-
-    });
-
-  select.innerHTML = html;
-
-}
-
-function renderEmployees(){
-
-  const tbody =
-    document.getElementById(
-      'employeeTable'
-    );
-
-  const keyword =
-    document
-      .getElementById(
-        'searchInput'
-      )
-      .value
-      .trim()
-      .toLowerCase();
-
-  const filtered =
-    AppState.employees
-
-      .filter(employee => {
-
-        return (
-
-          (
-            employee.name || ''
-          )
-
-          .toLowerCase()
-
-          .includes(keyword)
-
-          ||
-
-          (
-            employee.position || ''
-          )
-
-          .toLowerCase()
-
-          .includes(keyword)
-
-        );
-
-      })
-
-      .sort(
-        (a,b) =>
-          sortWeight(a)
-          -
-          sortWeight(b)
-      );
-
-  if(filtered.length === 0){
-
-    tbody.innerHTML = `
-
-      <tr>
-
-        <td
-          colspan="7"
-          style="
-            text-align:center;
-            padding:40px;
-            color:#6b7280;
-          "
-        >
-
-          Belum ada data
-
-        </td>
-
-      </tr>
-
-    `;
-
-    return;
-
-  }
-
-  let html = '';
-
-  filtered.forEach(employee => {
-
-    const company =
-      AppState.companies.find(
-        item =>
-
-          item.id
-          ===
-          employee.companyId
-      );
-
-    const status =
-      contractStatus(
-        employee.contract
-      );
-
-    html += `
-
-      <tr>
-
-        <td>
-          ${esc(employee.name)}
-        </td>
-
-        <td>
-          ${esc(
-            company?.name || '-'
-          )}
-        </td>
-
-        <td>
-          ${esc(
-            employee.position
-          )}
-        </td>
-        <td>
-  ${esc(employee.status)}
-</td>
-
-        <td>
-          ${
-            employee.contract
-            ?
-            esc(employee.contract)
-            :
-            '-'
-          }
-        </td>
-
-        <td>
-
-          <span class="
-            status
-            ${status.class}
-          ">
-
-            ${status.label}
-
-          </span>
-
-        </td>
-
-        <td>
-          ${currency(
-            employee.salary
-          )}
-        </td>
-
-        <td>
-
-          <button
-            class="delete-btn"
-            onclick="
-              deleteEmployee(
-                '${employee.id}'
-              )
-            "
-          >
-
-            Hapus
-
+  grid.innerHTML = AppState.companies.map(co=>{
+    const emps = AppState.employees.filter(e=>e.companyId===co.id);
+    const warn = emps.filter(e=>{ const d=daysLeft(e.contract); return d!==null&&d>=0&&d<=30; }).length;
+    const badgeCls = warn ? 'badge-warn' : 'badge-safe';
+    const badgeTxt = warn ? `⚠ ${warn} mendesak` : `✓ Semua aman`;
+    return `
+      <div class="company-card">
+        <div class="company-name">${esc(co.name)}</div>
+        <div class="company-location">${esc(co.location)||'—'}</div>
+        ${co.description ? `<div class="company-desc">${esc(co.description)}</div>` : ''}
+        <div class="company-meta">
+          <button class="company-badge ${badgeCls}" onclick="setFilter('${co.id}')" title="Filter karyawan perusahaan ini">
+            ${emps.length} karyawan · ${badgeTxt}
           </button>
-
-        </td>
-
-      </tr>
-
-    `;
-
-  });
-
-  tbody.innerHTML = html;
-
+          <div class="company-btns">
+            <button class="btn btn-ghost btn-sm" onclick="editCompany('${co.id}')">Edit</button>
+            <button class="btn btn-danger-ghost btn-sm" onclick="deleteCompany('${co.id}')">Hapus</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  renderCompanyOptions();
 }
 
-/* =========================================================
-COMPANY
-========================================================= */
+function renderCompanyOptions(){
+  const sel = document.getElementById('employeeCompany');
+  sel.innerHTML = AppState.companies.map(co=>
+    `<option value="${esc(co.id)}">${esc(co.name)}</option>`
+  ).join('');
+}
 
-document
-  .getElementById(
-    'addCompanyBtn'
-  )
-  .addEventListener(
-    'click',
-    () =>
-      openModal(
-        'companyModal'
-      )
-  );
+function getFilteredEmployees(){
+  const kw = document.getElementById('searchInput').value.trim().toLowerCase();
+  return AppState.employees
+    .filter(e=>{
+      const matchSearch =
+        (e.name||'').toLowerCase().includes(kw) ||
+        (e.position||'').toLowerCase().includes(kw);
+      const matchFilter = !activeFilter || e.companyId === activeFilter;
+      return matchSearch && matchFilter;
+    })
+    .sort((a,b)=>sortWeight(a)-sortWeight(b));
+}
 
-document
-  .getElementById(
-    'companyForm'
-  )
-  .addEventListener(
-    'submit',
-    async event => {
+function renderEmployeeTable(tbodyId){
+  const tbody = document.getElementById(tbodyId);
+  if(!tbody) return;
+  const filtered = getFilteredEmployees();
+  if(!filtered.length){
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">👤</div><p>Tidak ada data karyawan</p></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map(emp=>{
+    const co = AppState.companies.find(c=>c.id===emp.companyId);
+    const st = contractStatus(emp.contract);
+    const days = daysLeft(emp.contract);
+    const daysStr = days===null ? '—' : days<0 ? `${Math.abs(days)}h lalu` : `${days}h`;
+    return `
+      <tr>
+        <td class="td-name">${esc(emp.name)}</td>
+        <td class="td-muted">${esc(co?.name||'—')}</td>
+        <td>${esc(emp.position||'—')}</td>
+        <td>${esc(emp.status||'—')}</td>
+        <td class="td-muted">${fmtDate(emp.contract)}</td>
+        <td><span class="status-badge ${st.cls}">${st.label}</span></td>
+        <td class="td-muted">${currency(emp.salary)}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="editEmployee('${emp.id}')">Edit</button>
+            <button class="btn btn-danger-ghost btn-sm" onclick="deleteEmployee('${emp.id}')">Hapus</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
 
-      event.preventDefault();
+function renderContractTable(){
+  const tbody = document.getElementById('contractTable');
+  if(!tbody) return;
+  // Only show employees WITH a contract date, sorted by urgency
+  const list = AppState.employees
+    .filter(e=>e.contract)
+    .sort((a,b)=>sortWeight(a)-sortWeight(b));
+  if(!list.length){
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><p>Tidak ada data kontrak</p></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(emp=>{
+    const co = AppState.companies.find(c=>c.id===emp.companyId);
+    const st = contractStatus(emp.contract);
+    const days = daysLeft(emp.contract);
+    const daysStr = days<0 ? `Expired ${Math.abs(days)} hari lalu` : days===0 ? 'Hari ini' : `${days} hari lagi`;
+    return `
+      <tr>
+        <td class="td-name">${esc(emp.name)}</td>
+        <td class="td-muted">${esc(co?.name||'—')}</td>
+        <td>${esc(emp.status||'—')}</td>
+        <td class="td-muted">${fmtDate(emp.contract)}</td>
+        <td>${daysStr}</td>
+        <td><span class="status-badge ${st.cls}">${st.label}</span></td>
+      </tr>`;
+  }).join('');
+}
 
-      const name =
-        document
-          .getElementById(
-            'companyName'
-          )
-          .value
-          .trim();
+/* ═══════════════════════════════════════
+   COMPANY CRUD
+═══════════════════════════════════════ */
+document.getElementById('addCompanyBtn').addEventListener('click',()=>{
+  resetModalForms();
+  openModal('companyModal');
+});
 
-      if(!name){
+function submitCompany(){
+  const name = document.getElementById('companyName').value.trim();
+  if(!name){ showToast('Nama perusahaan wajib diisi','error'); return; }
 
-        alert(
-          'Nama perusahaan wajib diisi'
-        );
+  const editId = document.getElementById('companyEditId').value;
 
-        return;
+  if(editId){
+    // EDIT
+    const idx = AppState.companies.findIndex(c=>c.id===editId);
+    if(idx<0){ showToast('Perusahaan tidak ditemukan','error'); return; }
+    const dupName = AppState.companies.some((c,i)=>i!==idx && (c.name||'').toLowerCase()===name.toLowerCase());
+    if(dupName){ showToast('Nama perusahaan sudah ada','error'); return; }
+    AppState.companies[idx] = {
+      ...AppState.companies[idx],
+      name,
+      location: document.getElementById('companyLocation').value.trim(),
+      description: document.getElementById('companyDescription').value.trim(),
+      updatedAt: Date.now()
+    };
+    saveAll(); renderAll();
+    showToast('Perusahaan berhasil diperbarui');
+  } else {
+    // ADD
+    const exists = AppState.companies.some(c=>(c.name||'').toLowerCase()===name.toLowerCase());
+    if(exists){ showToast('Nama perusahaan sudah ada','error'); return; }
+    AppState.companies.push({
+      id:uid(), updatedAt:Date.now(), name,
+      location: document.getElementById('companyLocation').value.trim(),
+      description: document.getElementById('companyDescription').value.trim()
+    });
+    saveAll(); renderAll();
+    showToast('Perusahaan berhasil ditambahkan');
+  }
+  closeModal('companyModal');
+  resetModalForms();
+}
 
-      }
-
-      const exists =
-        AppState.companies.some(
-          company =>
-
-            (
-              company.name || ''
-            )
-
-            .toLowerCase()
-
-            ===
-
-            name.toLowerCase()
-        );
-
-      if(exists){
-
-        alert(
-          'Nama perusahaan sudah ada'
-        );
-
-        return;
-
-      }
-
-      AppState.companies.push({
-
-        id:uid(),
-
-        updatedAt:Date.now(),
-
-        name,
-
-        location:
-          document
-            .getElementById(
-              'companyLocation'
-            )
-            .value
-            .trim(),
-
-        description:
-          document
-            .getElementById(
-              'companyDescription'
-            )
-            .value
-            .trim()
-
-      });
-
-      await saveAll();
-
-      render();
-
-      closeModal(
-        'companyModal'
-      );
-
-      event.target.reset();
-
-    }
-  );
+function editCompany(id){
+  const co = AppState.companies.find(c=>c.id===id);
+  if(!co) return;
+  document.getElementById('companyEditId').value = co.id;
+  document.getElementById('companyName').value = co.name||'';
+  document.getElementById('companyLocation').value = co.location||'';
+  document.getElementById('companyDescription').value = co.description||'';
+  document.getElementById('companyModalTitle').textContent = 'Edit Perusahaan';
+  openModal('companyModal');
+}
 
 function deleteCompany(id){
+  const co = AppState.companies.find(c=>c.id===id);
+  if(!co) return;
+  const empCount = AppState.employees.filter(e=>e.companyId===id).length;
+  const msg = empCount
+    ? `Hapus "${co.name}" beserta ${empCount} karyawan?`
+    : `Hapus perusahaan "${co.name}"?`;
+  if(!confirm(msg)) return;
+  AppState.companies = AppState.companies.filter(c=>c.id!==id);
+  AppState.employees = AppState.employees.filter(e=>e.companyId!==id);
+  if(activeFilter===id) activeFilter=null;
+  saveAll(); renderAll(); renderFilterBar();
+  showToast('Perusahaan dihapus','info');
+}
 
-  if(
-    !confirm(
-      'Hapus perusahaan beserta seluruh karyawan?'
-    )
-  ){
-
+/* ═══════════════════════════════════════
+   EMPLOYEE CRUD
+═══════════════════════════════════════ */
+// FIX: check companies before opening modal
+function openAddEmployee(){
+  if(!AppState.companies.length){
+    showToast('Tambahkan perusahaan terlebih dahulu','error');
     return;
+  }
+  resetModalForms();
+  renderCompanyOptions();
+  openModal('employeeModal');
+}
 
+document.getElementById('addEmployeeBtnDash').addEventListener('click', openAddEmployee);
+document.getElementById('addEmployeeBtn').addEventListener('click', openAddEmployee);
+
+function submitEmployee(){
+  const name = document.getElementById('employeeName').value.trim();
+  if(!name){ showToast('Nama karyawan wajib diisi','error'); return; }
+
+  const companyId = document.getElementById('employeeCompany').value;
+  if(!AppState.companies.some(c=>c.id===companyId)){
+    showToast('Pilih perusahaan yang valid','error'); return;
   }
 
-  AppState.companies =
-    AppState.companies.filter(
-      company =>
-        company.id !== id
-    );
-
-  AppState.employees =
-    AppState.employees.filter(
-      employee =>
-        employee.companyId !== id
-    );
-
-  saveAll();
-
-  render();
-
-}
-
-/* =========================================================
-EMPLOYEE
-========================================================= */
-
-document
-  .getElementById(
-    'addEmployeeBtn'
-  )
-  .addEventListener(
-    'click',
-    () => {
-
-      if(
-        AppState.companies.length === 0
-      ){
-
-        alert(
-          'Tambahkan perusahaan terlebih dahulu'
-        );
-
-        return;
-
-      }
-
-      openModal(
-        'employeeModal'
-      );
-
-    }
-  );
-
-document
-  .getElementById(
-    'employeeForm'
-  )
-  .addEventListener(
-    'submit',
-    async event => {
-
-      event.preventDefault();
-
-      const companyId =
-        document
-          .getElementById(
-            'employeeCompany'
-          )
-          .value;
-
-      const companyExists =
-        AppState.companies.some(
-          company =>
-            company.id === companyId
-        );
-
-      if(!companyExists){
-
-        alert(
-          'Perusahaan tidak valid'
-        );
-
-        return;
-
-      }
-
-      const employeeName =
-        document
-          .getElementById(
-            'employeeName'
-          )
-          .value
-          .trim();
-
-      if(!employeeName){
-
-        alert(
-          'Nama karyawan wajib diisi'
-        );
-
-        return;
-
-      }
-
-      AppState.employees.push({
-
-        id:uid(),
-
-        updatedAt:Date.now(),
-
-        companyId,
-
-        name:employeeName,
-
-        position:
-          document
-            .getElementById(
-              'employeePosition'
-            )
-            .value
-            .trim(),
-
-        status:
-          document
-            .getElementById(
-              'employeeStatus'
-            )
-            .value,
-
-        contract:
-          document
-            .getElementById(
-              'employeeContract'
-            )
-            .value,
-
-        salary:
-          Number(
-            document
-              .getElementById(
-                'employeeSalary'
-              )
-              .value
-          ) || 0
-
-      });
-
-      await saveAll();
-
-      render();
-
-      closeModal(
-        'employeeModal'
-      );
-
-      event.target.reset();
-
-    }
-  );
-
-function deleteEmployee(id){
-
-  if(
-    !confirm(
-      'Hapus karyawan?'
-    )
-  ){
-
-    return;
-
-  }
-
-  AppState.employees =
-    AppState.employees.filter(
-      employee =>
-        employee.id !== id
-    );
-
-  saveAll();
-
-  render();
-
-}
-
-/* =========================================================
-SEARCH
-========================================================= */
-
-document
-  .getElementById(
-    'searchInput'
-  )
-  .addEventListener(
-    'input',
-    renderEmployees
-  );
-
-/* =========================================================
-EXPORT EXCEL
-========================================================= */
-
-document
-  .getElementById(
-    'exportExcelBtn'
-  )
-  .addEventListener(
-    'click',
-    exportExcel
-  );
-
-function exportExcel(){
-
-  const rows =
-    AppState.employees.map(
-      employee => {
-
-        const company =
-          AppState.companies.find(
-            item =>
-              item.id ===
-              employee.companyId
-          );
-
-        return {
-
-          Nama:
-            employee.name,
-
-          Perusahaan:
-            company?.name || '-',
-
-          Jabatan:
-            employee.position,
-
-          Status:
-            employee.status,
-
-          Kontrak:
-            employee.contract,
-
-          Gaji:
-            employee.salary
-
-        };
-
-      }
-    );
-
-  const worksheet =
-    XLSX.utils.json_to_sheet(
-      rows
-    );
-
-  const workbook =
-    XLSX.utils.book_new();
-
-  XLSX.utils.book_append_sheet(
-    workbook,
-    worksheet,
-    'Karyawan'
-  );
-
-  XLSX.writeFile(
-    workbook,
-    'naruna_hr.xlsx'
-  );
-
-}
-
-/* =========================================================
-EXPORT PDF
-========================================================= */
-
-document
-  .getElementById(
-    'exportPDFBtn'
-  )
-  .addEventListener(
-    'click',
-    exportPDF
-  );
-
-function exportPDF(){
-
-  const {
-    jsPDF
-  } = window.jspdf;
-
-  const doc =
-    new jsPDF();
-
-  if(!doc.autoTable){
-
-    alert(
-      'Plugin PDF gagal dimuat'
-    );
-
-    return;
-
-  }
-
-  const rows =
-    AppState.employees.map(
-      employee => {
-
-        const company =
-          AppState.companies.find(
-            item =>
-              item.id ===
-              employee.companyId
-          );
-
-        return [
-
-          employee.name,
-
-          company?.name || '-',
-
-          employee.position,
-
-          employee.contract || '-',
-
-          currency(
-            employee.salary
-          )
-
-        ];
-
-      }
-    );
-
-  doc.text(
-    'Naruna HR Report',
-    14,
-    18
-  );
-
-  doc.autoTable({
-
-    startY:26,
-
-    head:[[
-      'Nama',
-      'Perusahaan',
-      'Jabatan',
-      'Kontrak',
-      'Gaji'
-    ]],
-
-    body:rows
-
-  });
-
-  doc.save(
-    'naruna_hr.pdf'
-  );
-
-}
-
-/* =========================================================
-EXPORT JSON
-========================================================= */
-
-document
-  .getElementById(
-    'exportJSONBtn'
-  )
-  .addEventListener(
-    'click',
-    exportJSON
-  );
-
-function exportJSON(){
-
-  const data =
-    JSON.stringify(
-      AppState,
-      null,
-      2
-    );
-
-  const blob =
-    new Blob(
-      [data],
-      {
-        type:
-          'application/json'
-      }
-    );
-
-  const a =
-    document.createElement(
-      'a'
-    );
-
-  a.href =
-    URL.createObjectURL(
-      blob
-    );
-
-  a.download =
-    'naruna_hr.json';
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  document.body.removeChild(a);
-
-  URL.revokeObjectURL(
-    a.href
-  );
-
-}
-
-/* =========================================================
-IMPORT JSON
-========================================================= */
-
-document
-  .getElementById(
-    'importJSONInput'
-  )
-  .addEventListener(
-    'change',
-    importJSON
-  );
-
-function importJSON(event){
-
-  const file =
-    event.target.files[0];
-
-  if(!file){
-
-    return;
-
-  }
-
-  const reader =
-    new FileReader();
-
-  reader.onload = async e => {
-
-    try{
-
-      const data =
-        JSON.parse(
-          e.target.result
-        );
-
-      if(
-
-        !Array.isArray(
-          data.companies
-        )
-
-        ||
-
-        !Array.isArray(
-          data.employees
-        )
-
-      ){
-
-        alert(
-          'Format JSON tidak valid'
-        );
-
-        return;
-
-      }
-
-      AppState.meta =
-        data.meta || {
-
-          updatedAt:Date.now(),
-
-          version:1
-
-        };
-
-      AppState.companies =
-        data.companies;
-
-      AppState.employees =
-        data.employees;
-
-      await saveAll();
-
-      render();
-
-      alert(
-        'Data berhasil diimport'
-      );
-
-    }catch(error){
-
-      console.error(error);
-
-      alert(
-        'Gagal import JSON'
-      );
-
-    }
-
-    event.target.value = '';
-
+  const editId = document.getElementById('employeeEditId').value;
+
+  const data = {
+    companyId,
+    name,
+    position:  document.getElementById('employeePosition').value.trim(),
+    status:    document.getElementById('employeeStatus').value,
+    contract:  document.getElementById('employeeContract').value,
+    salary:    Number(document.getElementById('employeeSalary').value)||0,
+    notes:     document.getElementById('employeeNotes').value.trim(),
+    updatedAt: Date.now()
   };
 
-  reader.readAsText(file);
-
-}
-
-/* =========================================================
-ESC CLOSE
-========================================================= */
-
-document
-  .addEventListener(
-    'keydown',
-    event => {
-
-      if(
-        event.key === 'Escape'
-      ){
-
-        document
-          .querySelectorAll(
-            '.modal.show'
-          )
-          .forEach(modal => {
-
-            modal.classList.remove(
-              'show'
-            );
-
-          });
-
-        document.body.style.overflow =
-          '';
-
-      }
-
-    }
-  );
-
-/* =========================================================
-FIREBASE PLACEHOLDER
-========================================================= */
-
-/*
-
-import {
-  initializeApp
-} from
-'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-
-import {
-  getDatabase,
-  ref,
-  set,
-  get,
-  child
-} from
-'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
-
-const firebaseConfig = {
-
-  apiKey:"",
-  authDomain:"",
-  databaseURL:"",
-  projectId:"",
-  storageBucket:"",
-  messagingSenderId:"",
-  appId:""
-
-};
-
-const app =
-  initializeApp(
-    firebaseConfig
-  );
-
-const db =
-  getDatabase(app);
-
-async function syncToFirebase(){
-
-  await set(
-    ref(db,'naruna_hr'),
-    AppState
-  );
-
-}
-
-async function loadFirebase(){
-
-  const snapshot =
-    await get(
-      child(
-        ref(db),
-        'naruna_hr'
-      )
-    );
-
-  if(snapshot.exists()){
-
-    const data =
-      snapshot.val();
-
-    AppState.meta =
-      data.meta || {
-
-        updatedAt:Date.now(),
-
-        version:1
-
-      };
-
-    AppState.companies =
-      data.companies || [];
-
-    AppState.employees =
-      data.employees || [];
-
-    render();
-
+  if(editId){
+    const idx = AppState.employees.findIndex(e=>e.id===editId);
+    if(idx<0){ showToast('Data tidak ditemukan','error'); return; }
+    AppState.employees[idx] = { ...AppState.employees[idx], ...data };
+    showToast('Data karyawan diperbarui');
+  } else {
+    AppState.employees.push({ id:uid(), ...data });
+    showToast('Karyawan berhasil ditambahkan');
   }
 
+  saveAll(); renderAll();
+  closeModal('employeeModal');
+  resetModalForms();
 }
 
-*/
+function editEmployee(id){
+  const emp = AppState.employees.find(e=>e.id===id);
+  if(!emp) return;
+  renderCompanyOptions();
+  document.getElementById('employeeEditId').value  = emp.id;
+  document.getElementById('employeeName').value    = emp.name||'';
+  document.getElementById('employeeCompany').value = emp.companyId||'';
+  document.getElementById('employeePosition').value= emp.position||'';
+  document.getElementById('employeeStatus').value  = emp.status||'Tetap';
+  document.getElementById('employeeContract').value= emp.contract||'';
+  document.getElementById('employeeSalary').value  = emp.salary||'';
+  document.getElementById('employeeNotes').value   = emp.notes||'';
+  document.getElementById('employeeModalTitle').textContent = 'Edit Karyawan';
+  openModal('employeeModal');
+}
 
-/* =========================================================
-INIT
-========================================================= */
+function deleteEmployee(id){
+  const emp = AppState.employees.find(e=>e.id===id);
+  if(!emp) return;
+  if(!confirm(`Hapus karyawan "${emp.name}"?`)) return;
+  AppState.employees = AppState.employees.filter(e=>e.id!==id);
+  saveAll(); renderAll();
+  showToast('Karyawan dihapus','info');
+}
 
+/* ═══════════════════════════════════════
+   SEARCH
+═══════════════════════════════════════ */
+document.getElementById('searchInput').addEventListener('input',()=>{
+  renderEmployeeTable('employeeTableDash');
+  renderEmployeeTable('employeeTable');
+});
+
+/* ═══════════════════════════════════════
+   EXPORT EXCEL
+═══════════════════════════════════════ */
+function exportExcel(){
+  if(!AppState.employees.length){ showToast('Tidak ada data untuk diexport','error'); return; }
+  const rows = AppState.employees.map(e=>{
+    const co = AppState.companies.find(c=>c.id===e.companyId);
+    return {
+      Nama:e.name, Perusahaan:co?.name||'-', Jabatan:e.position,
+      Tipe:e.status, 'Kontrak Berakhir':e.contract||'-',
+      'Sisa Hari':daysLeft(e.contract)??'-',
+      Status:contractStatus(e.contract).label,
+      'Gaji (IDR)':e.salary||0, Catatan:e.notes||''
+    };
+  });
+  const ws  = XLSX.utils.json_to_sheet(rows);
+  const wb  = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Karyawan');
+  XLSX.writeFile(wb,'naruna_hr.xlsx');
+  showToast('Excel berhasil diexport');
+}
+
+document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
+document.getElementById('exportExcelBtn2').addEventListener('click', exportExcel);
+
+/* ═══════════════════════════════════════
+   EXPORT PDF
+═══════════════════════════════════════ */
+function exportPDF(){
+  if(!AppState.employees.length){ showToast('Tidak ada data untuk diexport','error'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  if(!doc.autoTable){ showToast('Plugin PDF gagal dimuat','error'); return; }
+  doc.setFontSize(16);
+  doc.text('Naruna HR — Laporan Karyawan', 14, 18);
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 26);
+  const rows = AppState.employees.map(e=>{
+    const co = AppState.companies.find(c=>c.id===e.companyId);
+    const st = contractStatus(e.contract);
+    return [e.name, co?.name||'-', e.position||'-', e.status||'-', fmtDate(e.contract), st.label, currency(e.salary)];
+  });
+  doc.autoTable({
+    startY:32,
+    head:[['Nama','Perusahaan','Jabatan','Tipe','Kontrak','Status','Gaji']],
+    body:rows,
+    styles:{fontSize:9},
+    headStyles:{fillColor:[79,70,229]}
+  });
+  doc.save('naruna_hr.pdf');
+  showToast('PDF berhasil diexport');
+}
+
+document.getElementById('exportPDFBtn').addEventListener('click', exportPDF);
+document.getElementById('exportPDFBtn2').addEventListener('click', exportPDF);
+
+/* ═══════════════════════════════════════
+   EXPORT JSON
+═══════════════════════════════════════ */
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(AppState,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `naruna_hr_backup_${Date.now()}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  showToast('Backup JSON berhasil didownload');
+}
+document.getElementById('exportJSONBtn').addEventListener('click', exportJSON);
+
+/* ═══════════════════════════════════════
+   IMPORT JSON
+═══════════════════════════════════════ */
+document.getElementById('importJSONInput').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data.companies)||!Array.isArray(data.employees)){
+        showToast('Format JSON tidak valid','error'); return;
+      }
+      if(!confirm(`Import akan mengganti semua data saat ini. Lanjutkan?`)) return;
+      AppState.meta      = data.meta || { updatedAt:Date.now(), version:2 };
+      AppState.companies = data.companies;
+      AppState.employees = data.employees;
+      saveAll(); renderAll();
+      showToast(`Import berhasil: ${data.companies.length} perusahaan, ${data.employees.length} karyawan`);
+    }catch(err){
+      console.error(err);
+      showToast('Gagal membaca file JSON','error');
+    }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+});
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
 Storage.load();
-
-render();
-
+renderAll();
 </script>
 
 </body>

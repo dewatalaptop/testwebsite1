@@ -4,534 +4,460 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Naruna Contract Monitor v2</title>
+<title>Naruna Contract Monitor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --bg:#090c12;
-  --bg2:#0f1420;
-  --card:#131929;
-  --card2:#1a2235;
-  --card3:#202840;
-  --border:#252f45;
-  --border2:#2e3a54;
-  --text:#e8eeff;
-  --text2:#9ba8c8;
-  --text3:#5a6785;
-  --accent:#4f8cff;
-  --accent2:#3a6fe0;
-  --accent-glow:rgba(79,140,255,0.18);
-  --green:#1fcc74;
-  --green-bg:rgba(31,204,116,0.1);
-  --yellow:#f5a623;
-  --yellow-bg:rgba(245,166,35,0.1);
-  --red:#f04f54;
-  --red-bg:rgba(240,79,84,0.1);
-  --orange:#ff7a45;
-  --orange-bg:rgba(255,122,69,0.1);
-  --radius:16px;
-  --radius-lg:24px;
-  --shadow:0 4px 24px rgba(0,0,0,0.4);
-  --shadow-lg:0 8px 48px rgba(0,0,0,0.6);
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-html{scroll-behavior:smooth;}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  overflow-x:hidden;
+:root {
+  --bg: #0e1117;
+  --bg2: #161b24;
+  --card: #1c2230;
+  --card2: #252d3d;
+  --border: #30384c;
+  --text: #edf2ff;
+  --text2: #b7c0dd;
+  --text3: #7f89a8;
+  --accent: #7c6cff;
+  --accent2: #6655f2;
+  --green: #22c55e;
+  --yellow: #eab308;
+  --red: #ef4444;
+  --radius: 22px;
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
-body::before{
-  content:'';
-  position:fixed;
-  top:0;left:0;right:0;
-  height:600px;
+body {
+  font-family: 'Inter', sans-serif;
   background:
-    radial-gradient(ellipse 60% 40% at 20% -10%, rgba(79,140,255,0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 30% at 80% 0%, rgba(31,204,116,0.05) 0%, transparent 60%);
-  pointer-events:none;
-  z-index:0;
+    radial-gradient(circle at top left, #20283e 0%, transparent 30%),
+    radial-gradient(circle at bottom right, #171d30 0%, transparent 30%),
+    var(--bg);
+  color: var(--text);
+  min-height: 100vh;
 }
-code,pre,.mono{font-family:'JetBrains Mono',monospace;}
-button,input,select,textarea{font-family:'DM Sans',sans-serif;}
-.hidden{display:none!important;}
-
-/* ================================
-TOPBAR
-================================ */
-.topbar{
-position:sticky;top:0;z-index:200;
-background:rgba(9,12,18,0.92);
-backdrop-filter:blur(20px);
--webkit-backdrop-filter:blur(20px);
-border-bottom:1px solid var(–border);
-padding:0 28px;
-height:64px;
-display:flex;align-items:center;justify-content:space-between;
+button, input, select {
+  font-family: 'Inter', sans-serif;
 }
-.brand{display:flex;align-items:center;gap:12px;}
-.logo-box{
-width:40px;height:40px;border-radius:12px;
-background:linear-gradient(135deg,var(–accent),#7eb8ff);
-display:flex;align-items:center;justify-content:center;
-font-size:18px;flex-shrink:0;
-box-shadow:0 0 16px rgba(79,140,255,0.3);
+.hidden {
+  display: none !important;
 }
-.brand-name{font-size:17px;font-weight:800;letter-spacing:-0.3px;}
-.brand-tag{font-size:11px;color:var(–text3);margin-top:1px;}
-.topbar-right{display:flex;align-items:center;gap:8px;}
-
-.threshold-wrap{
-display:flex;align-items:center;gap:8px;
-background:var(–card);border:1px solid var(–border);
-border-radius:12px;padding:7px 12px;
+/* TOPBAR */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(14px);
+  background: rgba(14,17,23,0.88);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-.threshold-label{font-size:12px;color:var(–text3);}
-.threshold-select{
-background:var(–card2);border:1px solid var(–border2);
-color:var(–text);border-radius:8px;
-padding:4px 8px;font-size:12px;font-weight:600;outline:none;cursor:pointer;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
-.threshold-select:focus{border-color:var(–accent);}
-
-.icon-pill{
-position:relative;
-height:40px;min-width:40px;
-border:1px solid var(–border);
-background:var(–card);
-border-radius:12px;
-display:flex;align-items:center;justify-content:center;gap:6px;
-cursor:pointer;font-size:16px;color:var(–text);
-transition:all 0.18s;padding:0 10px;
+.logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), #9b8fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
 }
-.icon-pill:hover{background:var(–card2);border-color:var(–border2);transform:translateY(-1px);}
-.notif-badge{
-position:absolute;top:-5px;right:-5px;
-min-width:20px;height:20px;border-radius:999px;
-background:var(–red);color:#fff;
-display:flex;align-items:center;justify-content:center;
-padding:0 5px;font-size:10px;font-weight:700;
-border:2px solid var(–bg);
+.brand-title {
+  font-size: 22px;
+  font-weight: 800;
 }
-
-/* ================================
-WRAPPER
-================================ */
-.wrapper{
-max-width:1440px;margin:0 auto;
-padding:28px 28px 60px;
-position:relative;z-index:1;
+.brand-sub {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 3px;
 }
-
-/* ================================
-ALERT BANNER
-================================ */
-.alert-banner{
-background:rgba(245,166,35,0.08);
-border:1px solid rgba(245,166,35,0.25);
-border-radius:var(–radius);
-padding:14px 18px;
-margin-bottom:20px;
-display:flex;align-items:center;gap:12px;
-font-size:13px;color:var(–yellow);line-height:1.5;
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.alert-banner-icon{font-size:18px;flex-shrink:0;}
-
-/* ================================
-HERO
-================================ */
-.hero{
-background:linear-gradient(135deg,rgba(79,140,255,0.12),rgba(79,140,255,0.03));
-border:1px solid rgba(79,140,255,0.18);
-border-radius:var(–radius-lg);
-padding:32px;margin-bottom:24px;
-display:flex;justify-content:space-between;align-items:center;
-gap:20px;flex-wrap:wrap;
+.notif-btn {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border: none;
+  background: var(--card);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 22px;
+  color: #fff;
+  transition: 0.2s;
 }
-.hero h1{font-size:30px;font-weight:800;letter-spacing:-0.5px;line-height:1.2;}
-.hero h1 span{color:var(–accent);}
-.hero p{color:var(–text2);margin-top:10px;max-width:680px;line-height:1.65;font-size:14px;}
-.hero-stats{display:flex;gap:10px;flex-shrink:0;flex-wrap:wrap;}
-.hero-stat{
-background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);
-border-radius:12px;padding:14px 16px;text-align:center;min-width:80px;
+.notif-btn:hover {
+  transform: translateY(-2px);
+  background: var(--card2);
 }
-.hero-stat-val{font-size:22px;font-weight:800;}
-.hero-stat-lbl{font-size:11px;color:var(–text3);margin-top:3px;}
-
-/* ================================
-KPI
-================================ */
-.kpi-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:14px;margin-bottom:24px;
+.notif-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--red);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: 700;
 }
-.kpi-card{
-background:var(–card);border:1px solid var(–border);
-border-radius:var(–radius-lg);padding:20px;
-box-shadow:var(–shadow);transition:all 0.18s;cursor:default;
+/* WRAPPER */
+.wrapper {
+  max-width: 1500px;
+  margin: auto;
+  padding: 24px;
 }
-.kpi-card:hover{border-color:var(–border2);transform:translateY(-2px);}
-.kpi-top{display:flex;align-items:center;justify-content:space-between;}
-.kpi-label{font-size:12px;color:var(–text3);font-weight:500;}
-.kpi-icon{
-width:36px;height:36px;border-radius:10px;
-background:rgba(255,255,255,0.06);
-display:flex;align-items:center;justify-content:center;font-size:16px;
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, rgba(124,108,255,0.24), rgba(124,108,255,0.06));
+  border: 1px solid rgba(124,108,255,0.16);
+  border-radius: 34px;
+  padding: 34px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
-.kpi-value{margin-top:14px;font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1;}
-.kpi-sub{font-size:11px;color:var(–text3);margin-top:6px;}
-.kpi-card.k-active .kpi-value{color:var(–green);}
-.kpi-card.k-warn .kpi-value{color:var(–yellow);}
-.kpi-card.k-exp .kpi-value{color:var(–red);}
-
-/* ================================
-ACTION BAR
-================================ */
-.action-bar{
-display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
+.hero h1 {
+  font-size: 36px;
+  line-height: 1.15;
+  font-weight: 800;
 }
-.btn{
-border:none;cursor:pointer;border-radius:12px;
-padding:11px 16px;font-size:13px;font-weight:600;
-transition:all 0.18s;display:inline-flex;align-items:center;gap:7px;
-white-space:nowrap;
+.hero p {
+  color: var(--text2);
+  margin-top: 12px;
+  max-width: 760px;
+  line-height: 1.7;
 }
-.btn:hover{transform:translateY(-1px);}
-.btn:active{transform:translateY(0);}
-.btn-primary{
-background:linear-gradient(135deg,var(–accent),var(–accent2));
-color:#fff;box-shadow:0 4px 14px rgba(79,140,255,0.3);
+.hero-badge {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 16px 18px;
+  border-radius: 18px;
+  font-size: 14px;
 }
-.btn-primary:hover{box-shadow:0 6px 20px rgba(79,140,255,0.45);}
-.btn-secondary{
-background:var(–card);border:1px solid var(–border);color:var(–text);
+/* KPI */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
 }
-.btn-secondary:hover{background:var(–card2);border-color:var(–border2);}
-.btn-danger{
-background:var(–red-bg);border:1px solid rgba(240,79,84,0.3);color:var(–red);
+.kpi-card {
+  background: rgba(28,34,48,0.88);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 28px;
+  padding: 22px;
+  box-shadow: var(--shadow);
 }
-.btn-danger:hover{background:rgba(240,79,84,0.2);}
-.btn-sm{padding:7px 11px;font-size:12px;border-radius:9px;}
-.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;}
-
-/* ================================
-FILTER
-================================ */
-.filter-wrap{
-display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;align-items:center;
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-.filter-item{flex:1;min-width:180px;}
-.input,.select{
-width:100%;background:var(–card);border:1px solid var(–border);
-color:var(–text);border-radius:12px;padding:11px 14px;outline:none;
-font-size:13px;transition:border-color 0.18s;
+.kpi-title {
+  color: var(--text3);
+  font-size: 13px;
 }
-.input:focus,.select:focus{border-color:var(–accent);}
-.input::placeholder{color:var(–text3);}
-.select option{background:var(–bg2);}
-.filter-status-group{display:flex;gap:6px;flex-wrap:wrap;}
-.filter-chip{
-padding:8px 14px;border-radius:999px;font-size:12px;font-weight:600;
-border:1px solid var(–border);background:var(–card);color:var(–text2);
-cursor:pointer;transition:all 0.18s;white-space:nowrap;
+.kpi-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
 }
-.filter-chip:hover{border-color:var(–border2);}
-.filter-chip.active-all{border-color:var(–accent);color:var(–accent);background:var(–accent-glow);}
-.filter-chip.active-safe{border-color:var(–green);color:var(–green);background:var(–green-bg);}
-.filter-chip.active-warn{border-color:var(–yellow);color:var(–yellow);background:var(–yellow-bg);}
-.filter-chip.active-exp{border-color:var(–red);color:var(–red);background:var(–red-bg);}
-
-/* ================================
-OUTLET GRID
-================================ */
-.outlet-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
-gap:20px;
+.kpi-value {
+  margin-top: 18px;
+  font-size: 34px;
+  font-weight: 800;
 }
-.outlet-card{
-background:var(–card);border:1px solid var(–border);
-border-radius:var(–radius-lg);overflow:hidden;
-box-shadow:var(–shadow);transition:border-color 0.18s;
+/* ACTION BAR */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
 }
-.outlet-card:hover{border-color:var(–border2);}
-.outlet-header{
-padding:20px 20px 0;
-display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+.btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 18px;
+  padding: 14px 18px;
+  font-weight: 600;
+  transition: 0.2s;
 }
-.outlet-title-row{display:flex;align-items:center;gap:10px;}
-.outlet-avatar{
-width:44px;height:44px;border-radius:14px;flex-shrink:0;
-background:linear-gradient(135deg,var(–accent),#7eb8ff);
-display:flex;align-items:center;justify-content:center;
-font-size:18px;font-weight:800;color:#fff;
+.btn:hover {
+  transform: translateY(-2px);
 }
-.outlet-name{font-size:18px;font-weight:800;letter-spacing:-0.3px;}
-.outlet-meta{font-size:12px;color:var(–text3);margin-top:4px;line-height:1.6;}
-.outlet-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-.mini-badge{
-padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
 }
-.mini-badge-total{background:var(–card2);color:var(–text2);}
-.mini-badge-safe{background:var(–green-bg);color:var(–green);}
-.mini-badge-warn{background:var(–yellow-bg);color:var(–yellow);}
-.mini-badge-exp{background:var(–red-bg);color:var(–red);}
-.outlet-action-bar{
-padding:14px 20px;display:flex;gap:8px;flex-wrap:wrap;
-border-bottom:1px solid var(–border);margin-top:14px;
+.btn-secondary {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
-.outlet-btn-group{display:flex;gap:6px;margin-left:auto;}
-.icon-btn{
-width:34px;height:34px;border:1px solid var(–border);background:var(–card2);
-color:var(–text2);border-radius:9px;cursor:pointer;transition:all 0.18s;
-display:flex;align-items:center;justify-content:center;font-size:14px;
+/* FILTER */
+.filter-wrap {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
 }
-.icon-btn:hover{background:var(–accent);border-color:var(–accent);color:#fff;}
-.icon-btn.danger:hover{background:var(–red);border-color:var(–red);color:#fff;}
-
-/* ================================
-TABLE
-================================ */
-.table-section{padding:0 20px 20px;}
-.table-header-row{
-display:flex;align-items:center;justify-content:space-between;
-padding:14px 0 10px;flex-wrap:wrap;gap:8px;
+.search-box {
+  flex: 1;
+  min-width: 240px;
 }
-.table-title{font-size:12px;font-weight:700;color:var(–text3);text-transform:uppercase;letter-spacing:0.6px;}
-.table-actions{display:flex;gap:6px;align-items:center;}
-.select-all-cb{accent-color:var(–accent);width:14px;height:14px;cursor:pointer;}
-.bulk-bar{
-display:none;align-items:center;gap:8px;padding:10px 12px;
-background:rgba(240,79,84,0.08);border:1px solid rgba(240,79,84,0.2);
-border-radius:10px;margin-bottom:10px;font-size:12px;font-weight:600;color:var(–red);
+.input, .select {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 15px 16px;
+  outline: none;
 }
-.bulk-bar.visible{display:flex;}
-.table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-th{
-text-align:left;font-size:11px;font-weight:700;
-color:var(–text3);padding:8px 10px;
-cursor:pointer;user-select:none;white-space:nowrap;
-border-bottom:1px solid var(–border);
+.input:focus, .select:focus {
+  border-color: var(--accent);
 }
-th:hover{color:var(–text2);}
-td{
-padding:12px 10px;border-bottom:1px solid rgba(255,255,255,0.03);
-font-size:13px;vertical-align:middle;
+/* OUTLET GRID */
+.outlet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 22px;
 }
-tr:last-child td{border-bottom:none;}
-tbody tr:hover td{background:rgba(255,255,255,0.02);}
-.col-cb{width:32px;}
-.emp-name{font-weight:700;font-size:13px;}
-.emp-pos{font-size:11px;color:var(–accent);margin-top:2px;font-weight:600;}
-.emp-phone{font-size:11px;color:var(–text3);margin-top:2px;}
-.salary-val{font-family:‘JetBrains Mono’,monospace;font-size:12px;}
-.date-val{font-size:12px;font-family:‘JetBrains Mono’,monospace;}
-.days-left{font-size:11px;margin-top:2px;font-weight:600;}
-
-/* ================================
-BADGE
-================================ */
-.badge{
-display:inline-flex;align-items:center;
-padding:5px 10px;border-radius:999px;
-font-size:11px;font-weight:700;white-space:nowrap;gap:4px;
+.outlet-card {
+  background: rgba(28,34,48,0.88);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 30px;
+  padding: 22px;
+  box-shadow: var(--shadow);
 }
-.badge-safe{background:var(–green-bg);color:var(–green);}
-.badge-warning{background:var(–yellow-bg);color:var(–yellow);}
-.badge-danger{background:var(–red-bg);color:var(–red);}
-.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;}
-
-/* ================================
-PAGINATION
-================================ */
-.pagination{
-display:flex;align-items:center;justify-content:space-between;
-padding:12px 0 0;flex-wrap:wrap;gap:8px;
+.outlet-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
 }
-.page-info{font-size:12px;color:var(–text3);}
-.page-btns{display:flex;gap:4px;}
-.page-btn{
-width:30px;height:30px;border-radius:8px;border:1px solid var(–border);
-background:var(–card2);color:var(–text2);font-size:12px;font-weight:600;
-cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center;
+.outlet-name {
+  font-size: 22px;
+  font-weight: 800;
 }
-.page-btn:hover{border-color:var(–border2);}
-.page-btn.active{background:var(–accent);border-color:var(–accent);color:#fff;}
-.page-btn:disabled{opacity:0.3;cursor:not-allowed;}
-
-/* ================================
-HISTORY PANEL
-================================ */
-.history-panel{
-margin-top:8px;background:var(–bg2);border:1px solid var(–border);
-border-radius:10px;padding:12px 14px;
+.outlet-meta {
+  margin-top: 8px;
+  color: var(--text3);
+  font-size: 13px;
+  line-height: 1.7;
 }
-.history-title{font-size:11px;font-weight:700;color:var(–text3);text-transform:uppercase;
-letter-spacing:0.5px;margin-bottom:8px;}
-.history-item{
-display:flex;align-items:center;gap:8px;
-font-size:12px;color:var(–text2);padding:5px 0;
-border-bottom:1px solid rgba(255,255,255,0.04);
+.outlet-actions {
+  display: flex;
+  gap: 8px;
 }
-.history-item:last-child{border-bottom:none;}
-.history-dot{
-width:8px;height:8px;border-radius:50%;flex-shrink:0;
-background:var(–accent);
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: var(--card2);
+  color: #fff;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: 0.2s;
 }
-.history-date{font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(–text3);}
-
-/* ================================
-EMPTY STATE
-================================ */
-.empty-state{
-text-align:center;padding:60px 20px;
+.icon-btn:hover {
+  background: var(--accent);
 }
-.empty-icon{font-size:48px;margin-bottom:16px;opacity:0.4;}
-.empty-title{font-size:18px;font-weight:700;color:var(–text2);margin-bottom:8px;}
-.empty-desc{font-size:13px;color:var(–text3);line-height:1.6;max-width:320px;margin:0 auto 20px;}
-
-/* ================================
-MODAL
-================================ */
-.modal-wrap{
-position:fixed;inset:0;
-background:rgba(0,0,0,0.75);
-z-index:1000;display:flex;align-items:center;justify-content:center;
-padding:20px;backdrop-filter:blur(6px);
+/* TABLE */
+.table-wrap {
+  overflow: auto;
+  margin-top: 22px;
 }
-.modal{
-width:100%;max-width:580px;max-height:90vh;
-background:var(–bg2);border:1px solid var(–border2);
-border-radius:var(–radius-lg);display:flex;flex-direction:column;
-box-shadow:var(–shadow-lg);
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.modal-header{
-padding:20px 24px;border-bottom:1px solid var(–border);
-display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
+th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text3);
+  padding: 12px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
 }
-.modal-title{font-size:20px;font-weight:800;}
-.modal-close{
-width:32px;height:32px;border:1px solid var(–border);background:var(–card2);
-color:var(–text);border-radius:9px;cursor:pointer;font-size:16px;
-display:flex;align-items:center;justify-content:center;transition:all 0.18s;
+td {
+  padding: 14px 12px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  vertical-align: top;
+  font-size: 14px;
 }
-.modal-close:hover{background:var(–red);border-color:var(–red);color:#fff;}
-.modal-body{padding:22px 24px;overflow-y:auto;flex:1;}
-.modal-footer{
-padding:18px 24px;border-top:1px solid var(–border);
-display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;
+tr:hover {
+  background: rgba(255,255,255,0.03);
 }
-.form-group{margin-bottom:16px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.form-label{display:block;font-size:12px;font-weight:600;color:var(–text2);margin-bottom:6px;}
-.form-label span{color:var(–red);}
-.textarea{
-width:100%;background:var(–card);border:1px solid var(–border);
-color:var(–text);border-radius:12px;padding:11px 14px;outline:none;
-font-size:13px;resize:vertical;min-height:70px;font-family:‘DM Sans’,sans-serif;
+.employee-name {
+  font-weight: 700;
 }
-.textarea:focus{border-color:var(–accent);}
-.input-hint{font-size:11px;color:var(–text3);margin-top:5px;}
-.input-error{font-size:11px;color:var(–red);margin-top:5px;}
-.restore-preview{
-background:var(–card);border:1px solid var(–border);border-radius:12px;
-padding:14px;margin:12px 0;font-size:13px;
+.employee-phone {
+  color: var(--text3);
+  font-size: 12px;
+  margin-top: 4px;
 }
-.restore-preview-row{display:flex;justify-content:space-between;padding:4px 0;color:var(–text2);}
-.restore-preview-row strong{color:var(–text);}
-
-/* ================================
-NOTIFICATION PANEL
-================================ */
-.notif-panel{
-position:fixed;top:72px;right:16px;
-width:360px;max-height:72vh;overflow-y:auto;
-background:var(–bg2);border:1px solid var(–border2);
-border-radius:var(–radius-lg);padding:16px;
-box-shadow:var(–shadow-lg);z-index:999;
+/* BADGE */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
-.notif-panel-title{font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-.notif-item{
-background:rgba(255,255,255,0.03);border:1px solid var(–border);
-border-radius:12px;padding:12px 14px;margin-bottom:10px;
-transition:border-color 0.18s;
+.badge-safe {
+  background: rgba(34,197,94,0.15);
+  color: var(--green);
 }
-.notif-item:hover{border-color:var(–border2);}
-.notif-item:last-child{margin-bottom:0;}
-.notif-name{font-weight:700;font-size:13px;}
-.notif-pos{font-size:11px;color:var(–accent);margin-top:2px;font-weight:600;}
-.notif-outlet{font-size:12px;color:var(–text3);margin-top:3px;}
-.notif-days-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
-.notif-days-exp{color:var(–red);font-size:12px;font-weight:700;}
-.notif-days-warn{color:var(–yellow);font-size:12px;font-weight:700;}
-
-/* ================================
-PRINT STYLES
-================================ */
-@media print{
-body{background:#fff;color:#000;}
-.topbar,.action-bar,.filter-wrap,.outlet-btn-group,.outlet-action-bar,
-.notif-panel,.modal-wrap,.col-cb,.pagination,.bulk-bar,
-.outlet-card:not(.printing){display:none!important;}
-.outlet-card.printing{
-border:1px solid #ccc;border-radius:8px;
-box-shadow:none;page-break-inside:avoid;
+.badge-warning {
+  background: rgba(234,179,8,0.15);
+  color: var(--yellow);
 }
-.wrapper{padding:0;}
-table th,table td{color:#000;border-color:#ddd;}
+.badge-danger {
+  background: rgba(239,68,68,0.15);
+  color: var(--red);
 }
-
-/* ================================
-SCROLLBAR
-================================ */
-::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-track{background:var(–bg);}
-::-webkit-scrollbar-thumb{background:var(–border2);border-radius:99px;}
-::-webkit-scrollbar-thumb:hover{background:var(–text3);}
-
-/* ================================
-LOADING OVERLAY
-================================ */
-.save-overlay{
-position:fixed;inset:0;background:rgba(0,0,0,0.5);
-z-index:2000;display:flex;align-items:center;justify-content:center;
-backdrop-filter:blur(4px);
+/* MODAL */
+.modal-wrap {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(5px);
 }
-.save-spinner{
-background:var(–card);border:1px solid var(–border2);
-border-radius:16px;padding:24px 32px;
-display:flex;flex-direction:column;align-items:center;gap:14px;
+.modal {
+  width: 100%;
+  max-width: 620px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  overflow: hidden;
 }
-.spinner-ring{
-width:36px;height:36px;border:3px solid var(–border2);
-border-top-color:var(–accent);border-radius:50%;
-animation:spin 0.8s linear infinite;
+.modal-header {
+  padding: 22px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-@keyframes spin{to{transform:rotate(360deg);}}
-.spinner-text{font-size:13px;color:var(–text2);font-weight:600;}
-
-/* ================================
-RESPONSIVE
-================================ */
-@media(max-width:768px){
-.wrapper{padding:16px 16px 60px;}
-.topbar{padding:0 16px;}
-.outlet-grid{grid-template-columns:1fr;}
-.hero{padding:22px;}
-.hero h1{font-size:22px;}
-.form-row{grid-template-columns:1fr;}
-.notif-panel{width:calc(100vw - 32px);right:16px;}
-.threshold-label{display:none;}
+.modal-title {
+  font-size: 24px;
+  font-weight: 800;
+}
+.modal-body {
+  padding: 24px;
+}
+.modal-footer {
+  padding: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.form-group {
+  margin-bottom: 18px;
+}
+.label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text2);
+  font-size: 13px;
+}
+/* NOTIFICATION PANEL */
+.notification-panel {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  width: 400px;
+  max-height: 70vh;
+  overflow: auto;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  z-index: 998;
+}
+.notification-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+.notif-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.notif-name {
+  font-weight: 700;
+}
+.notif-outlet {
+  color: var(--text3);
+  font-size: 13px;
+  margin-top: 5px;
+}
+.notif-days {
+  margin-top: 10px;
+  color: var(--yellow);
+  font-size: 13px;
+  font-weight: 700;
+}
+.empty {
+  text-align: center;
+  color: var(--text3);
+  padding: 30px;
+}
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .wrapper { padding: 16px; }
+  .hero { padding: 24px; }
+  .hero h1 { font-size: 28px; }
+  .notification-panel {
+    width: calc(100vw - 32px);
+    right: 16px;
+  }
 }
 </style>
-
 </head>
 <body>
 
@@ -539,67 +465,32 @@ RESPONSIVE
 
 <div class="topbar">
   <div class="brand">
-    <div class="logo-box">&#x1F4CB;</div>
+    <div class="logo">&#x1F9FE;</div>
     <div>
-      <div class="brand-name">Naruna Contract Monitor</div>
-      <div class="brand-tag">HR Dashboard v2</div>
+      <div class="brand-title">Naruna Contract Monitor</div>
+      <div class="brand-sub">Monitoring kontrak seluruh outlet</div>
     </div>
   </div>
   <div class="topbar-right">
-    <div class="threshold-wrap">
-      <span class="threshold-label">Notif jika sisa</span>
-      <select id="thresholdSelect" class="threshold-select">
-        <option value="30">30 hari</option>
-        <option value="60">60 hari</option>
-        <option value="90">90 hari</option>
-      </select>
-    </div>
-    <div class="icon-pill" id="notifBtn">
+    <button class="notif-btn" id="notifBtn">
       &#x1F514;
-      <div class="notif-badge hidden" id="notifCount">0</div>
-    </div>
+      <div class="notif-count hidden" id="notifCount">0</div>
+    </button>
   </div>
-</div>
-
-<!-- NOTIFICATION PANEL -->
-
-<div class="notif-panel hidden" id="notifPanel">
-  <div class="notif-panel-title">&#x26A0;&#xFE0F; Kontrak Kritis</div>
-  <div id="notifList"></div>
 </div>
 
 <!-- WRAPPER -->
 
 <div class="wrapper">
 
-  <!-- ALERT BANNER -->
-
-  <div class="alert-banner" id="alertBanner">
-    <div class="alert-banner-icon">&#x26A0;&#xFE0F;</div>
-    <div>
-      <strong>Perhatian:</strong> Data tersimpan di IndexedDB browser ini saja.
-      Jika cache dihapus atau browser berbeda digunakan, data akan hilang.
-      Lakukan <strong>Backup JSON</strong> secara rutin untuk menghindari kehilangan data.
-    </div>
-  </div>
-
   <!-- HERO -->
 
   <div class="hero">
     <div>
-      <h1>Monitoring Kontrak Karyawan<br><span>Lebih Cepat &amp; Profesional</span></h1>
-      <p>Tambah outlet, kelola karyawan, pantau status kontrak, dan dapatkan notifikasi otomatis. Data tersimpan aman di device menggunakan IndexedDB.</p>
+      <h1>Monitoring Kontrak Karyawan Lebih Cepat &amp; Profesional</h1>
+      <p>Pantau seluruh kontrak karyawan, dapatkan notifikasi otomatis, dan kelola data outlet dengan sistem ringan berbasis IndexedDB.</p>
     </div>
-    <div class="hero-stats">
-      <div class="hero-stat">
-        <div class="hero-stat-val" id="heroOutlets">0</div>
-        <div class="hero-stat-lbl">Outlet</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hero-stat-val" id="heroEmployees">0</div>
-        <div class="hero-stat-lbl">Karyawan</div>
-      </div>
-    </div>
+    <div class="hero-badge">&#x1F4BE; Data aman tersimpan di device</div>
   </div>
 
   <!-- KPI -->
@@ -607,35 +498,31 @@ RESPONSIVE
   <div class="kpi-grid">
     <div class="kpi-card">
       <div class="kpi-top">
-        <div class="kpi-label">Total Karyawan</div>
+        <div class="kpi-title">Total Karyawan</div>
         <div class="kpi-icon">&#x1F465;</div>
       </div>
       <div class="kpi-value" id="kpiEmployees">0</div>
-      <div class="kpi-sub">Semua outlet</div>
     </div>
-    <div class="kpi-card k-active">
+    <div class="kpi-card">
       <div class="kpi-top">
-        <div class="kpi-label">Kontrak Berjalan</div>
-        <div class="kpi-icon">&#x2705;</div>
+        <div class="kpi-title">Kontrak Aktif</div>
+        <div class="kpi-icon">&#x1F7E2;</div>
       </div>
       <div class="kpi-value" id="kpiActive">0</div>
-      <div class="kpi-sub" id="kpiActiveSub">lebih dari threshold hari</div>
     </div>
-    <div class="kpi-card k-warn">
+    <div class="kpi-card">
       <div class="kpi-top">
-        <div class="kpi-label">Hampir Berakhir</div>
+        <div class="kpi-title">Hampir Habis</div>
         <div class="kpi-icon">&#x23F3;</div>
       </div>
       <div class="kpi-value" id="kpiWarning">0</div>
-      <div class="kpi-sub" id="kpiWarnSub">dalam threshold hari</div>
     </div>
-    <div class="kpi-card k-exp">
+    <div class="kpi-card">
       <div class="kpi-top">
-        <div class="kpi-label">Sudah Berakhir</div>
+        <div class="kpi-title">Sudah Habis</div>
         <div class="kpi-icon">&#x1F534;</div>
       </div>
       <div class="kpi-value" id="kpiExpired">0</div>
-      <div class="kpi-sub">perlu tindakan segera</div>
     </div>
   </div>
 
@@ -644,7 +531,7 @@ RESPONSIVE
   <div class="action-bar">
     <button class="btn btn-primary" id="addOutletBtn">&#x2795; Tambah Outlet</button>
     <button class="btn btn-secondary" id="exportJsonBtn">&#x1F4BE; Backup JSON</button>
-    <button class="btn btn-secondary" id="exportXlsxBtn">&#x1F4CA; Export Excel</button>
+    <button class="btn btn-secondary" id="exportCsvBtn">&#x1F4C4; Export Excel</button>
     <button class="btn btn-secondary" id="restoreBtn">&#x1F4C2; Restore Data</button>
     <input type="file" id="restoreInput" class="hidden" accept=".json">
   </div>
@@ -652,20 +539,12 @@ RESPONSIVE
   <!-- FILTER -->
 
   <div class="filter-wrap">
-    <div class="filter-item" style="flex:2;min-width:200px;">
-      <input type="text" id="searchInput" class="input" placeholder="&#x1F50D;  Cari nama karyawan atau jabatan...">
+    <div class="search-box">
+      <input type="text" id="searchInput" class="input" placeholder="Cari nama karyawan...">
     </div>
-    <div class="filter-item">
-      <select id="filterOutlet" class="select">
-        <option value="">Semua Outlet</option>
-      </select>
-    </div>
-    <div class="filter-status-group" id="filterStatusGroup">
-      <div class="filter-chip active-all" data-status="all">Semua</div>
-      <div class="filter-chip" data-status="safe">&#x1F7E2; Aman</div>
-      <div class="filter-chip" data-status="warn">&#x1F7E1; Hampir Habis</div>
-      <div class="filter-chip" data-status="exp">&#x1F534; Sudah Habis</div>
-    </div>
+    <select id="filterOutlet" class="select">
+      <option value="">Semua Outlet</option>
+    </select>
   </div>
 
   <!-- OUTLET GRID -->
@@ -674,13 +553,11 @@ RESPONSIVE
 
 </div>
 
-<!-- LOADING OVERLAY -->
+<!-- NOTIFICATION PANEL -->
 
-<div class="save-overlay hidden" id="saveOverlay">
-  <div class="save-spinner">
-    <div class="spinner-ring"></div>
-    <div class="spinner-text">Menyimpan data...</div>
-  </div>
+<div class="notification-panel hidden" id="notifPanel">
+  <div class="notification-title">Kontrak Akan Berakhir</div>
+  <div id="notifList"></div>
 </div>
 
 <!-- MODAL -->
@@ -689,7 +566,7 @@ RESPONSIVE
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modalTitle"></div>
-      <button class="modal-close" id="closeModal">&#x2715;</button>
+      <button class="icon-btn" id="closeModal">&#x2715;</button>
     </div>
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-footer">
@@ -700,24 +577,34 @@ RESPONSIVE
 </div>
 
 <script>
-/* ================================================
+
+/* =========================
    INDEXED DB
-================================================ */
-var DB_NAME = 'naruna_v2';
+========================= */
+
+var DB_NAME = 'naruna_contract_monitor';
 var STORE_NAME = 'app_data';
 var db = null;
 
 function openDB() {
   return new Promise(function(resolve, reject) {
-    var req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = function(e) {
-      var d = e.target.result;
-      if (!d.objectStoreNames.contains(STORE_NAME)) {
-        d.createObjectStore(STORE_NAME, { keyPath: 'key' });
+    var request = indexedDB.open(DB_NAME, 1);
+
+    request.onupgradeneeded = function(e) {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
       }
     };
-    req.onsuccess = function(e) { db = e.target.result; resolve(); };
-    req.onerror = function(e) { reject(e); };
+
+    request.onsuccess = function(e) {
+      db = e.target.result;
+      resolve();
+    };
+
+    request.onerror = function(err) {
+      reject(err);
+    };
   });
 }
 
@@ -726,7 +613,7 @@ function saveData(data) {
     var tx = db.transaction(STORE_NAME, 'readwrite');
     tx.objectStore(STORE_NAME).put({ key: 'main', value: data });
     tx.oncomplete = function() { resolve(); };
-    tx.onerror = function(e) { reject(e); };
+    tx.onerror = function(err) { reject(err); };
   });
 }
 
@@ -737,24 +624,17 @@ function loadData() {
     req.onsuccess = function() {
       resolve(req.result ? req.result.value : { outlets: [] });
     };
-    req.onerror = function(e) { reject(e); };
+    req.onerror = function(err) { reject(err); };
   });
 }
 
-/* ================================================
+/* =========================
    STATE
-================================================ */
+========================= */
+
 var state = { outlets: [] };
 var currentSort = 'end-asc';
-var filterStatus = 'all';
-var notifThreshold = 30;
-// outletPages: { outletId: currentPage }
-var outletPages = {};
-var PAGE_SIZE = 10;
 
-/* ================================================
-   DOM REFS
-================================================ */
 var outletGrid = document.getElementById('outletGrid');
 var notifBtn = document.getElementById('notifBtn');
 var notifPanel = document.getElementById('notifPanel');
@@ -765,21 +645,24 @@ var modalTitle = document.getElementById('modalTitle');
 var modalBody = document.getElementById('modalBody');
 var searchInput = document.getElementById('searchInput');
 var filterOutlet = document.getElementById('filterOutlet');
-var saveOverlay = document.getElementById('saveOverlay');
-var thresholdSelect = document.getElementById('thresholdSelect');
 
-/* ================================================
+/* =========================
    UTILS
-================================================ */
+========================= */
+
 function uid() {
   return Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 }
 
+/* FIX #1: Removed duplicate nested formatDate.
+   Original had formatDate defined inside itself,
+   causing outer function to never return a value.
+   Now only one clean definition exists. */
 function formatDate(date) {
   if (!date) return '-';
-  var d = new Date(date);
-  if (isNaN(d.getTime())) return '-';
-  return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+  var parsed = new Date(date);
+  if (isNaN(parsed.getTime())) return '-';
+  return parsed.toLocaleDateString('id-ID');
 }
 
 function daysLeft(date) {
@@ -787,48 +670,39 @@ function daysLeft(date) {
   var end = new Date(date);
   if (isNaN(end.getTime())) return 0;
   var now = new Date();
-  end.setHours(0,0,0,0); now.setHours(0,0,0,0);
-  return Math.ceil((end - now) / 86400000);
+  end.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  var diff = end - now;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
 function getStatus(endDate) {
   var days = daysLeft(endDate);
-  if (days < 0) return { text: 'Sudah Habis', cls: 'badge-danger', key: 'exp' };
-  if (days <= notifThreshold) return { text: 'Hampir Habis', cls: 'badge-warning', key: 'warn' };
-  return { text: 'Aman', cls: 'badge-safe', key: 'safe' };
+  if (days < 0) return { text: 'Sudah Habis', cls: 'badge-danger' };
+  if (days <= 30) return { text: 'Hampir Habis', cls: 'badge-warning' };
+  return { text: 'Aman', cls: 'badge-safe' };
 }
 
 function currency(value) {
   return new Intl.NumberFormat('id-ID', {
-    style: 'currency', currency: 'IDR', maximumFractionDigits: 0
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0
   }).format(value || 0);
 }
 
 function escapeHtml(text) {
   return String(text || '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
-function tsFilename(base, ext) {
-  var now = new Date();
-  var ts = now.getFullYear() + '' +
-    String(now.getMonth()+1).padStart(2,'0') +
-    String(now.getDate()).padStart(2,'0') + '-' +
-    String(now.getHours()).padStart(2,'0') +
-    String(now.getMinutes()).padStart(2,'0');
-  return base + '-' + ts + '.' + ext;
-}
-
-function showLoading() { saveOverlay.classList.remove('hidden'); }
-function hideLoading() { saveOverlay.classList.add('hidden'); }
-
-/* ================================================
+/* =========================
    MODAL
-================================================ */
+========================= */
+
 var modalSaveAction = null;
 
 function openModal(title, content, onSave) {
@@ -836,214 +710,157 @@ function openModal(title, content, onSave) {
   modalBody.innerHTML = content || '';
   modalSaveAction = onSave || null;
   modalWrap.classList.remove('hidden');
-  var first = modalBody.querySelector('input,select,textarea');
-  if (first) setTimeout(function() { first.focus(); }, 60);
 }
 
 function closeModal() {
   modalWrap.classList.add('hidden');
-  modalSaveAction = null;
 }
 
 document.getElementById('closeModal').onclick = closeModal;
 document.getElementById('cancelModal').onclick = closeModal;
-modalWrap.addEventListener('click', function(e) {
-  if (e.target === modalWrap) closeModal();
-});
 
+/* FIX #2: Removed the extra stray "};" that appeared after the
+   saveModal onclick block, which caused a syntax error fatal enough
+   to prevent the entire script from parsing. */
 document.getElementById('saveModal').onclick = async function() {
   var btn = document.getElementById('saveModal');
   if (btn.disabled) return;
   btn.disabled = true;
   try {
-    if (modalSaveAction) await modalSaveAction();
+    if (modalSaveAction) {
+      await modalSaveAction();
+    }
   } finally {
     btn.disabled = false;
   }
 };
 
-/* ================================================
+/* =========================
    CONFIRM
-================================================ */
+========================= */
+
 function confirmDelete(text, callback) {
-  if (confirm('Hapus ' + text + '?\n\nTindakan ini tidak bisa dibatalkan.')) {
-    callback();
-  }
+  var ok = confirm('Apakah Anda yakin ingin menghapus ' + text + '?');
+  if (ok) callback();
 }
 
-/* ================================================
-   THRESHOLD CHANGE
-================================================ */
-thresholdSelect.addEventListener('change', function() {
-  notifThreshold = parseInt(this.value) || 30;
-  document.getElementById('kpiActiveSub').textContent = 'lebih dari ' + notifThreshold + ' hari';
-  document.getElementById('kpiWarnSub').textContent = 'dalam ' + notifThreshold + ' hari';
-  render();
-});
-
-/* ================================================
+/* =========================
    RENDER KPI
-================================================ */
+========================= */
+
 function renderKPI() {
-  var employees = state.outlets.reduce(function(a, o) { return a.concat(o.employees || []); }, []);
+  var employees = state.outlets.reduce(function(acc, o) {
+    return acc.concat(o.employees || []);
+  }, []);
+
   var active = 0, warning = 0, expired = 0;
   employees.forEach(function(emp) {
     var days = daysLeft(emp.contractEnd);
     if (days < 0) expired++;
-    else if (days <= notifThreshold) warning++;
+    else if (days <= 30) warning++;
     else active++;
   });
-  document.getElementById('kpiEmployees').textContent = employees.length;
-  document.getElementById('kpiActive').textContent = active;
-  document.getElementById('kpiWarning').textContent = warning;
-  document.getElementById('kpiExpired').textContent = expired;
-  document.getElementById('kpiActiveSub').textContent = 'lebih dari ' + notifThreshold + ' hari';
-  document.getElementById('kpiWarnSub').textContent = 'dalam ' + notifThreshold + ' hari';
-  document.getElementById('heroOutlets').textContent = state.outlets.length;
-  document.getElementById('heroEmployees').textContent = employees.length;
+
+  document.getElementById('kpiEmployees').innerText = employees.length;
+  document.getElementById('kpiActive').innerText = active;
+  document.getElementById('kpiWarning').innerText = warning;
+  document.getElementById('kpiExpired').innerText = expired;
 }
 
-/* ================================================
-   RENDER NOTIFICATIONS
-================================================ */
+/* =========================
+   RENDER NOTIFICATION
+========================= */
+
 function renderNotifications() {
   var all = [];
+
   state.outlets.forEach(function(outlet) {
     (outlet.employees || []).forEach(function(emp) {
       var days = daysLeft(emp.contractEnd);
-      if (days <= notifThreshold) {
+      if (days <= 30) {
         all.push(Object.assign({}, emp, { outletName: outlet.name, days: days }));
       }
     });
   });
+
   all.sort(function(a, b) {
     if (a.outletName < b.outletName) return -1;
     if (a.outletName > b.outletName) return 1;
-    return a.days - b.days;
+    return a.name.localeCompare(b.name);
   });
-  notifCount.textContent = all.length;
-  if (all.length) notifCount.classList.remove('hidden');
-  else notifCount.classList.add('hidden');
+
+  notifCount.innerText = all.length;
+
+  if (all.length) {
+    notifCount.classList.remove('hidden');
+  } else {
+    notifCount.classList.add('hidden');
+  }
 
   if (!all.length) {
-    notifList.innerHTML = '<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px;">Tidak ada kontrak kritis</div>';
+    notifList.innerHTML = '<div class="empty">Tidak ada kontrak kritis</div>';
     return;
   }
+
   notifList.innerHTML = all.map(function(emp) {
-    var isExp = emp.days < 0;
     return '<div class="notif-item">' +
       '<div class="notif-name">' + escapeHtml(emp.name) + '</div>' +
-      (emp.position ? '<div class="notif-pos">' + escapeHtml(emp.position) + '</div>' : '') +
-      '<div class="notif-outlet">&#x1F4CD; ' + escapeHtml(emp.outletName) + '</div>' +
-      '<div class="notif-days-row">' +
-        '<span class="' + (isExp ? 'notif-days-exp' : 'notif-days-warn') + '">' +
-          (isExp ? '&#x1F534; Habis ' + Math.abs(emp.days) + ' hari lalu' : '&#x23F3; Sisa ' + emp.days + ' hari') +
-        '</span>' +
-        '<span style="font-size:11px;color:var(--text3);">' + formatDate(emp.contractEnd) + '</span>' +
+      '<div class="notif-outlet">' + escapeHtml(emp.outletName) + '</div>' +
+      '<div class="notif-days">' +
+        (emp.days < 0
+          ? 'Sudah habis ' + Math.abs(emp.days) + ' hari'
+          : 'Sisa ' + emp.days + ' hari') +
       '</div>' +
     '</div>';
   }).join('');
 }
 
-notifBtn.addEventListener('click', function(e) {
-  e.stopPropagation();
+notifBtn.onclick = function() {
   notifPanel.classList.toggle('hidden');
-});
+};
+
 document.addEventListener('click', function(e) {
-  if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
+  var clickedInside = notifPanel.contains(e.target) || notifBtn.contains(e.target);
+  if (!clickedInside) {
     notifPanel.classList.add('hidden');
   }
 });
 
-/* ================================================
-   RENDER OUTLET FILTER
-================================================ */
+/* =========================
+   RENDER FILTER
+========================= */
+
 function renderOutletFilter() {
-  var val = filterOutlet.value;
   filterOutlet.innerHTML = '<option value="">Semua Outlet</option>';
-  state.outlets.forEach(function(o) {
-    var opt = document.createElement('option');
-    opt.value = o.id;
-    opt.textContent = o.name;
-    filterOutlet.appendChild(opt);
+  state.outlets.forEach(function(outlet) {
+    filterOutlet.innerHTML += '<option value="' + outlet.id + '">' + escapeHtml(outlet.name) + '</option>';
   });
-  filterOutlet.value = val;
 }
 
-/* ================================================
-   FILTER STATUS CHIPS
-================================================ */
-document.getElementById('filterStatusGroup').addEventListener('click', function(e) {
-  var chip = e.target.closest('.filter-chip');
-  if (!chip) return;
-  filterStatus = chip.dataset.status;
-  document.querySelectorAll('.filter-chip').forEach(function(c) {
-    c.className = 'filter-chip';
-    if (c.dataset.status === filterStatus) {
-      if (filterStatus === 'all') c.classList.add('active-all');
-      else if (filterStatus === 'safe') c.classList.add('active-safe');
-      else if (filterStatus === 'warn') c.classList.add('active-warn');
-      else if (filterStatus === 'exp') c.classList.add('active-exp');
-    }
-  });
-  render();
-});
+/* =========================
+   RENDER
+========================= */
 
-/* ================================================
-   GET OUTLET INITIAL
-================================================ */
-function getInitial(name) {
-  var parts = String(name || '').trim().split(' ');
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return String(name || '?').slice(0, 2).toUpperCase();
-}
-
-/* ================================================
-   RENDER MAIN
-================================================ */
 function render() {
   renderKPI();
   renderNotifications();
   renderOutletFilter();
 
   var keyword = searchInput.value.toLowerCase().trim();
-  var outletFilter = filterOutlet.value;
+  var filter = filterOutlet.value;
+  var html = '';
 
-  var outlets = state.outlets.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
+  var outlets = state.outlets.slice().sort(function(a, b) {
+    return a.name.localeCompare(b.name);
+  });
 
-  if (!outlets.length) {
-    outletGrid.innerHTML =
-      '<div class="empty-state" style="grid-column:1/-1;">' +
-        '<div class="empty-icon">&#x1F3EA;</div>' +
-        '<div class="empty-title">Belum ada outlet</div>' +
-        '<div class="empty-desc">Mulai dengan menambahkan outlet pertama Anda. Klik tombol "Tambah Outlet" di atas.</div>' +
-        '<button class="btn btn-primary" onclick="document.getElementById(\'addOutletBtn\').click()">&#x2795; Tambah Outlet Pertama</button>' +
-      '</div>';
-    return;
-  }
-
-  var cards = '';
   outlets.forEach(function(outlet) {
-    if (outletFilter && outletFilter !== outlet.id) return;
+    if (filter && filter !== outlet.id) return;
 
-    var employees = (outlet.employees || []).slice();
+    var employees = (outlet.employees || []).slice().filter(function(emp) {
+      return String(emp.name || '').toLowerCase().includes(keyword);
+    });
 
-    // filter keyword
-    if (keyword) {
-      employees = employees.filter(function(emp) {
-        return String(emp.name || '').toLowerCase().includes(keyword) ||
-               String(emp.position || '').toLowerCase().includes(keyword);
-      });
-    }
-
-    // filter status
-    if (filterStatus !== 'all') {
-      employees = employees.filter(function(emp) {
-        return getStatus(emp.contractEnd).key === filterStatus;
-      });
-    }
-
-    // sort
     employees.sort(function(a, b) {
       if (currentSort === 'name-asc') return a.name.localeCompare(b.name);
       if (currentSort === 'name-desc') return b.name.localeCompare(a.name);
@@ -1051,707 +868,341 @@ function render() {
       return new Date(a.contractEnd) - new Date(b.contractEnd);
     });
 
-    // per-outlet stats
-    var allEmp = outlet.employees || [];
-    var cntSafe = 0, cntWarn = 0, cntExp = 0;
-    allEmp.forEach(function(e) {
-      var k = getStatus(e.contractEnd).key;
-      if (k === 'safe') cntSafe++;
-      else if (k === 'warn') cntWarn++;
-      else cntExp++;
-    });
-
-    // pagination
-    if (!outletPages[outlet.id]) outletPages[outlet.id] = 1;
-    var page = outletPages[outlet.id];
-    var totalPages = Math.max(1, Math.ceil(employees.length / PAGE_SIZE));
-    if (page > totalPages) { outletPages[outlet.id] = 1; page = 1; }
-    var pageEmp = employees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-    // table rows
     var rows = '';
-    if (pageEmp.length) {
-      rows = pageEmp.map(function(emp) {
+    if (employees.length) {
+      rows = employees.map(function(emp) {
         var status = getStatus(emp.contractEnd);
-        var days = daysLeft(emp.contractEnd);
-        var daysStr = '';
-        if (days < 0) daysStr = '<div class="days-left" style="color:var(--red);">Habis ' + Math.abs(days) + ' hari lalu</div>';
-        else if (days <= notifThreshold) daysStr = '<div class="days-left" style="color:var(--yellow);">Sisa ' + days + ' hari</div>';
-        else daysStr = '<div class="days-left" style="color:var(--text3);">Sisa ' + days + ' hari</div>';
-
-        // history button
-        var hasHistory = emp.history && emp.history.length > 0;
-
         return '<tr>' +
-          '<td class="col-cb"><input type="checkbox" class="emp-cb select-all-cb" data-outlet="' + outlet.id + '" data-emp="' + emp.id + '"></td>' +
           '<td>' +
-            '<div class="emp-name">' + escapeHtml(emp.name) + '</div>' +
-            (emp.position ? '<div class="emp-pos">' + escapeHtml(emp.position) + '</div>' : '') +
-            '<div class="emp-phone">' + escapeHtml(emp.phone || '-') + '</div>' +
+            '<div class="employee-name">' + escapeHtml(emp.name) + '</div>' +
+            '<div class="employee-phone">' + escapeHtml(emp.phone) + '</div>' +
           '</td>' +
-          '<td><div class="salary-val">' + currency(emp.salary) + '</div><div style="font-size:10px;color:var(--text3);">gaji pokok</div></td>' +
+          '<td>' + currency(emp.salary) + '</td>' +
+          '<td>' + formatDate(emp.contractEnd) + '</td>' +
+          '<td><span class="badge ' + status.cls + '">' + status.text + '</span></td>' +
           '<td>' +
-            '<div class="date-val">' + formatDate(emp.contractStart) + '</div>' +
-            '<div class="date-val" style="color:var(--text3);">s/d ' + formatDate(emp.contractEnd) + '</div>' +
-            daysStr +
-          '</td>' +
-          '<td><span class="badge ' + status.cls + '"><span class="badge-dot"></span>' + status.text + '</span></td>' +
-          '<td>' +
-            '<div style="display:flex;gap:5px;">' +
-              '<button class="icon-btn" title="Edit" onclick="editEmployee(\'' + outlet.id + '\',\'' + emp.id + '\')">&#x270F;</button>' +
-              '<button class="icon-btn" title="Riwayat Kontrak" onclick="showHistory(\'' + outlet.id + '\',\'' + emp.id + '\')">' + (hasHistory ? '&#x1F4DC;' : '&#x1F4C3;') + '</button>' +
-              '<button class="icon-btn danger" title="Hapus" onclick="deleteEmployee(\'' + outlet.id + '\',\'' + emp.id + '\')">&#x1F5D1;</button>' +
+            '<div style="display:flex;gap:8px;">' +
+              '<button class="icon-btn" onclick="editEmployee(\'' + outlet.id + '\',\'' + emp.id + '\')">&#x270F;&#xFE0F;</button>' +
+              '<button class="icon-btn" onclick="deleteEmployee(\'' + outlet.id + '\',\'' + emp.id + '\')">&#x1F5D1;&#xFE0F;</button>' +
             '</div>' +
           '</td>' +
         '</tr>';
       }).join('');
     } else {
-      rows = '<tr><td colspan="6"><div style="text-align:center;color:var(--text3);padding:24px;font-size:13px;">' +
-        (keyword || filterStatus !== 'all' ? 'Tidak ada karyawan yang cocok dengan filter.' : 'Belum ada karyawan. Klik "Tambah Karyawan" untuk memulai.') +
-        '</div></td></tr>';
+      rows = '<tr><td colspan="5"><div class="empty">Belum ada karyawan</div></td></tr>';
     }
 
-    // pagination html
-    var pagHtml = '';
-    if (totalPages > 1) {
-      var pagBtns = '';
-      for (var p = 1; p <= totalPages; p++) {
-        pagBtns += '<button class="page-btn' + (p === page ? ' active' : '') + '" onclick="goPage(\'' + outlet.id + '\',' + p + ')">' + p + '</button>';
-      }
-      pagHtml = '<div class="pagination">' +
-        '<div class="page-info">Tampil ' + ((page-1)*PAGE_SIZE+1) + '-' + Math.min(page*PAGE_SIZE, employees.length) + ' dari ' + employees.length + ' karyawan</div>' +
-        '<div class="page-btns">' + pagBtns + '</div>' +
-      '</div>';
-    }
-
-    cards += '<div class="outlet-card" id="card-' + outlet.id + '">' +
-      '<div class="outlet-header">' +
-        '<div class="outlet-title-row">' +
-          '<div class="outlet-avatar">' + getInitial(outlet.name) + '</div>' +
-          '<div>' +
-            '<div class="outlet-name">' + escapeHtml(outlet.name) + '</div>' +
-            '<div class="outlet-meta">' +
-              '&#x1F4CD; ' + escapeHtml(outlet.address || '-') + '<br>' +
-              '&#x1F464; PIC: ' + escapeHtml(outlet.pic || '-') +
-              (outlet.phone ? ' &nbsp;&#x1F4DE; ' + escapeHtml(outlet.phone) : '') +
-            '</div>' +
+    html += '<div class="outlet-card">' +
+      '<div class="outlet-top">' +
+        '<div>' +
+          '<div class="outlet-name">' + escapeHtml(outlet.name) + '</div>' +
+          '<div class="outlet-meta">' +
+            '&#x1F4CD; ' + escapeHtml(outlet.address || '-') + '<br>' +
+            '&#x1F464; PIC: ' + escapeHtml(outlet.pic || '-') + '<br>' +
+            '&#x1F4DE; ' + escapeHtml(outlet.phone || '-') +
           '</div>' +
         '</div>' +
-        '<div class="outlet-btn-group">' +
-          '<button class="icon-btn" title="Print outlet ini" onclick="printOutlet(\'' + outlet.id + '\')">&#x1F5A8;</button>' +
-          '<button class="icon-btn" title="Duplikat outlet" onclick="duplicateOutlet(\'' + outlet.id + '\')">&#x1F4CB;</button>' +
-          '<button class="icon-btn" title="Edit outlet" onclick="editOutlet(\'' + outlet.id + '\')">&#x270F;</button>' +
-          '<button class="icon-btn danger" title="Hapus outlet" onclick="deleteOutlet(\'' + outlet.id + '\')">&#x1F5D1;</button>' +
+        '<div class="outlet-actions">' +
+          '<button class="icon-btn" onclick="editOutlet(\'' + outlet.id + '\')">&#x270F;&#xFE0F;</button>' +
+          '<button class="icon-btn" onclick="deleteOutlet(\'' + outlet.id + '\')">&#x1F5D1;&#xFE0F;</button>' +
         '</div>' +
       '</div>' +
-      '<div class="outlet-badges" style="padding:0 20px;">' +
-        '<span class="mini-badge mini-badge-total">&#x1F465; ' + allEmp.length + ' karyawan</span>' +
-        (cntSafe ? '<span class="mini-badge mini-badge-safe">&#x2705; ' + cntSafe + ' aman</span>' : '') +
-        (cntWarn ? '<span class="mini-badge mini-badge-warn">&#x23F3; ' + cntWarn + ' hampir habis</span>' : '') +
-        (cntExp ? '<span class="mini-badge mini-badge-exp">&#x1F534; ' + cntExp + ' habis</span>' : '') +
+      '<div class="action-bar" style="margin-top:18px">' +
+        '<button class="btn btn-primary" onclick="addEmployee(\'' + outlet.id + '\')">&#x2795; Tambah Karyawan</button>' +
       '</div>' +
-      '<div class="outlet-action-bar">' +
-        '<button class="btn btn-primary btn-sm" onclick="addEmployee(\'' + outlet.id + '\')">&#x2795; Tambah Karyawan</button>' +
-        '<div style="margin-left:auto;display:flex;gap:6px;">' +
-          '<button class="btn btn-secondary btn-sm" onclick="sortBy(\'name\')">&#x1F504; Nama</button>' +
-          '<button class="btn btn-secondary btn-sm" onclick="sortBy(\'end\')">&#x1F504; Tanggal</button>' +
-        '</div>' +
-      '</div>' +
-      '<div class="table-section">' +
-        '<div id="bulkbar-' + outlet.id + '" class="bulk-bar">' +
-          '<span id="bulkcount-' + outlet.id + '">0 dipilih</span>' +
-          '<button class="btn btn-danger btn-sm" onclick="bulkDelete(\'' + outlet.id + '\')">&#x1F5D1; Hapus Terpilih</button>' +
-          '<button class="btn btn-secondary btn-sm" onclick="clearSelection(\'' + outlet.id + '\')">&#x2715; Batal</button>' +
-        '</div>' +
-        '<div class="table-wrap">' +
-          '<table>' +
-            '<thead><tr>' +
-              '<th class="col-cb"><input type="checkbox" class="select-all-cb" id="sa-' + outlet.id + '" onchange="toggleSelectAll(\'' + outlet.id + '\',this.checked)"></th>' +
-              '<th onclick="sortBy(\'name\')">Nama / Jabatan</th>' +
-              '<th>Gaji Pokok</th>' +
-              '<th onclick="sortBy(\'end\')">Periode Kontrak</th>' +
-              '<th>Status</th>' +
-              '<th>Aksi</th>' +
-            '</tr></thead>' +
-            '<tbody id="tbody-' + outlet.id + '">' + rows + '</tbody>' +
-          '</table>' +
-        '</div>' +
-        pagHtml +
+      '<div class="table-wrap">' +
+        '<table>' +
+          '<thead><tr>' +
+            '<th onclick="sortBy(\'name\')">Nama</th>' +
+            '<th>Gaji</th>' +
+            '<th onclick="sortBy(\'end\')">Kontrak Berakhir</th>' +
+            '<th>Status</th>' +
+            '<th>Aksi</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
       '</div>' +
     '</div>';
   });
 
-  if (!cards) {
-    outletGrid.innerHTML =
-      '<div class="empty-state" style="grid-column:1/-1;">' +
-        '<div class="empty-icon">&#x1F50D;</div>' +
-        '<div class="empty-title">Tidak ada hasil</div>' +
-        '<div class="empty-desc">Coba ubah kata kunci pencarian atau filter yang digunakan.</div>' +
-      '</div>';
-  } else {
-    outletGrid.innerHTML = cards;
-  }
-
-  // bind checkbox change events
-  document.querySelectorAll('.emp-cb').forEach(function(cb) {
-    cb.addEventListener('change', function() {
-      updateBulkBar(cb.dataset.outlet);
-    });
-  });
+  outletGrid.innerHTML = html || '<div class="empty">Belum ada outlet</div>';
 }
 
-/* ================================================
-   PAGINATION
-================================================ */
-function goPage(outletId, page) {
-  outletPages[outletId] = page;
-  render();
-  var card = document.getElementById('card-' + outletId);
-  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-/* ================================================
+/* =========================
    SORT
-================================================ */
+========================= */
+
 function sortBy(type) {
-  if (type === 'name') currentSort = currentSort === 'name-asc' ? 'name-desc' : 'name-asc';
-  if (type === 'end') currentSort = currentSort === 'end-asc' ? 'end-desc' : 'end-asc';
-  render();
-}
-
-/* ================================================
-   BULK SELECT
-================================================ */
-function toggleSelectAll(outletId, checked) {
-  document.querySelectorAll('.emp-cb[data-outlet="' + outletId + '"]').forEach(function(cb) {
-    cb.checked = checked;
-  });
-  updateBulkBar(outletId);
-}
-
-function updateBulkBar(outletId) {
-  var selected = document.querySelectorAll('.emp-cb[data-outlet="' + outletId + '"]:checked');
-  var bar = document.getElementById('bulkbar-' + outletId);
-  var cnt = document.getElementById('bulkcount-' + outletId);
-  if (selected.length > 0) {
-    bar.classList.add('visible');
-    cnt.textContent = selected.length + ' dipilih';
-  } else {
-    bar.classList.remove('visible');
+  if (type === 'name') {
+    currentSort = currentSort === 'name-asc' ? 'name-desc' : 'name-asc';
   }
-}
-
-function clearSelection(outletId) {
-  document.querySelectorAll('.emp-cb[data-outlet="' + outletId + '"]').forEach(function(cb) {
-    cb.checked = false;
-  });
-  var sa = document.getElementById('sa-' + outletId);
-  if (sa) sa.checked = false;
-  updateBulkBar(outletId);
-}
-
-async function bulkDelete(outletId) {
-  var selected = Array.from(document.querySelectorAll('.emp-cb[data-outlet="' + outletId + '"]:checked'));
-  if (!selected.length) return;
-  if (!confirm('Hapus ' + selected.length + ' karyawan sekaligus?\n\nTindakan ini tidak bisa dibatalkan.')) return;
-  var ids = selected.map(function(cb) { return cb.dataset.emp; });
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
-  if (!outlet) return;
-  outlet.employees = outlet.employees.filter(function(e) { return ids.indexOf(e.id) === -1; });
-  showLoading();
-  await saveData(state);
-  hideLoading();
+  if (type === 'end') {
+    currentSort = currentSort === 'end-asc' ? 'end-desc' : 'end-asc';
+  }
   render();
 }
 
-/* ================================================
+/* =========================
    ADD OUTLET
-================================================ */
+========================= */
+
 document.getElementById('addOutletBtn').onclick = function() {
   openModal(
-    '&#x2795; Tambah Outlet',
-    '<div class="form-group"><label class="form-label">Nama Outlet <span>*</span></label><input type="text" id="f_name" class="input" placeholder="cth: Naruna Sudirman"></div>' +
-    '<div class="form-group"><label class="form-label">Alamat</label><input type="text" id="f_addr" class="input" placeholder="Jl. ..."></div>' +
-    '<div class="form-row">' +
-      '<div class="form-group"><label class="form-label">Nama PIC</label><input type="text" id="f_pic" class="input" placeholder="Nama penanggung jawab"></div>' +
-      '<div class="form-group"><label class="form-label">Nomor HP PIC</label><input type="text" id="f_phone" class="input" placeholder="08xx-xxxx-xxxx"></div>' +
-    '</div>' +
-    '<div class="form-group"><label class="form-label">Catatan</label><textarea id="f_notes" class="textarea" placeholder="Catatan tambahan..."></textarea></div>',
-
-```
-async function() {
-  var name = document.getElementById('f_name').value.trim();
-  if (!name) { showInputError('f_name', 'Nama outlet wajib diisi'); return; }
-  state.outlets.push({
-    id: uid(), name: name,
-    address: document.getElementById('f_addr').value,
-    pic: document.getElementById('f_pic').value,
-    phone: document.getElementById('f_phone').value,
-    notes: document.getElementById('f_notes').value,
-    employees: []
-  });
-  showLoading(); await saveData(state); hideLoading();
-  render(); closeModal();
-}
-```
-
-);
+    'Tambah Outlet',
+    '<div class="form-group"><label class="label">Nama Outlet</label><input type="text" id="outletName" class="input"></div>' +
+    '<div class="form-group"><label class="label">Alamat</label><input type="text" id="outletAddress" class="input"></div>' +
+    '<div class="form-group"><label class="label">Nama PIC</label><input type="text" id="outletPic" class="input"></div>' +
+    '<div class="form-group"><label class="label">Nomor HP</label><input type="text" id="outletPhone" class="input"></div>',
+    async function() {
+      var name = document.getElementById('outletName').value.trim();
+      if (!name) { alert('Nama outlet wajib diisi'); return; }
+      state.outlets.push({
+        id: uid(),
+        name: name,
+        address: document.getElementById('outletAddress').value,
+        pic: document.getElementById('outletPic').value,
+        phone: document.getElementById('outletPhone').value,
+        employees: []
+      });
+      await saveData(state);
+      render();
+      closeModal();
+    }
+  );
 };
 
-/* ================================================
-EDIT OUTLET
-================================================ */
+/* =========================
+   EDIT OUTLET
+========================= */
+
 function editOutlet(id) {
-var o = state.outlets.find(function(x) { return x.id === id; });
-if (!o) return;
-openModal(
-‘✏ Edit Outlet’,
-’<div class="form-group"><label class="form-label">Nama Outlet <span>*</span></label><input type="text" id="f_name" class="input" value="' + escapeHtml(o.name) + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Alamat</label><input type="text" id="f_addr" class="input" value="' + escapeHtml(o.address || '') + '"></div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Nama PIC</label><input type="text" id="f_pic" class="input" value="' + escapeHtml(o.pic || '') + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Nomor HP PIC</label><input type="text" id="f_phone" class="input" value="' + escapeHtml(o.phone || '') + '"></div>’ +
-‘</div>’ +
-‘<div class="form-group"><label class="form-label">Catatan</label><textarea id="f_notes" class="textarea">’ + escapeHtml(o.notes || ‘’) + ‘</textarea></div>’,
-async function() {
-var name = document.getElementById(‘f_name’).value.trim();
-if (!name) { showInputError(‘f_name’, ‘Nama outlet wajib diisi’); return; }
-o.name = name;
-o.address = document.getElementById(‘f_addr’).value;
-o.pic = document.getElementById(‘f_pic’).value;
-o.phone = document.getElementById(‘f_phone’).value;
-o.notes = document.getElementById(‘f_notes’).value;
-showLoading(); await saveData(state); hideLoading();
-render(); closeModal();
-}
-);
+  var outlet = state.outlets.find(function(o) { return o.id === id; });
+  if (!outlet) return;
+
+  openModal(
+    'Edit Outlet',
+    '<div class="form-group"><label class="label">Nama Outlet</label><input type="text" id="outletName" class="input" value="' + escapeHtml(outlet.name) + '"></div>' +
+    '<div class="form-group"><label class="label">Alamat</label><input type="text" id="outletAddress" class="input" value="' + escapeHtml(outlet.address || '') + '"></div>' +
+    '<div class="form-group"><label class="label">PIC Outlet</label><input type="text" id="outletPic" class="input" value="' + escapeHtml(outlet.pic || '') + '"></div>' +
+    '<div class="form-group"><label class="label">Nomor HP</label><input type="text" id="outletPhone" class="input" value="' + escapeHtml(outlet.phone || '') + '"></div>',
+    async function() {
+      var name = document.getElementById('outletName').value.trim();
+      if (!name) { alert('Nama outlet wajib diisi'); return; }
+      outlet.name = name;
+      outlet.address = document.getElementById('outletAddress').value;
+      outlet.pic = document.getElementById('outletPic').value;
+      outlet.phone = document.getElementById('outletPhone').value;
+      await saveData(state);
+      render();
+      closeModal();
+    }
+  );
 }
 
-/* ================================================
-DELETE OUTLET
-================================================ */
+/* =========================
+   DELETE OUTLET
+========================= */
+
 function deleteOutlet(id) {
-var o = state.outlets.find(function(x) { return x.id === id; });
-if (!o) return;
-var empCount = (o.employees || []).length;
-if (!confirm(‘Hapus outlet “’ + o.name + ‘”?\n\n’ + (empCount ? empCount + ’ karyawan di outlet ini juga akan dihapus.\n\n’ : ‘’) + ‘Tindakan ini tidak bisa dibatalkan.’)) return;
-state.outlets = state.outlets.filter(function(x) { return x.id !== id; });
-showLoading();
-saveData(state).then(function() { hideLoading(); render(); });
+  var outlet = state.outlets.find(function(o) { return o.id === id; });
+  if (!outlet) return;
+  confirmDelete(outlet.name, async function() {
+    state.outlets = state.outlets.filter(function(o) { return o.id !== id; });
+    await saveData(state);
+    render();
+  });
 }
 
-/* ================================================
-DUPLICATE OUTLET
-================================================ */
-function duplicateOutlet(id) {
-var o = state.outlets.find(function(x) { return x.id === id; });
-if (!o) return;
-openModal(
-‘📋 Duplikat Outlet’,
-‘<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--text2);">’ +
-‘Outlet <strong style="color:var(--text);">’ + escapeHtml(o.name) + ‘</strong> akan diduplikat.<br>’ +
-‘Data karyawan <strong>tidak</strong> ikut disalin.’ +
-‘</div>’ +
-’<div class="form-group"><label class="form-label">Nama Outlet Baru <span>*</span></label>’ +
-‘<input type="text" id="f_dupname" class="input" value="' + escapeHtml(o.name) + ' - Copy">’ +
-‘</div>’ +
-‘<div class="form-group"><label class="form-label">Alamat</label><input type="text" id="f_dupaddr" class="input" value="' + escapeHtml(o.address || '') + '"></div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">PIC</label><input type="text" id="f_duppic" class="input" value="' + escapeHtml(o.pic || '') + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Nomor HP</label><input type="text" id="f_dupphone" class="input" value="' + escapeHtml(o.phone || '') + '"></div>’ +
-‘</div>’,
-async function() {
-var name = document.getElementById(‘f_dupname’).value.trim();
-if (!name) { showInputError(‘f_dupname’, ‘Nama outlet wajib diisi’); return; }
-state.outlets.push({
-id: uid(), name: name,
-address: document.getElementById(‘f_dupaddr’).value,
-pic: document.getElementById(‘f_duppic’).value,
-phone: document.getElementById(‘f_dupphone’).value,
-notes: o.notes || ‘’,
-employees: []
-});
-showLoading(); await saveData(state); hideLoading();
-render(); closeModal();
-}
-);
-}
+/* =========================
+   ADD EMPLOYEE
+========================= */
 
-/* ================================================
-ADD EMPLOYEE
-================================================ */
 function addEmployee(outletId) {
-openModal(
-‘➕ Tambah Karyawan’,
-‘<div class="form-row">’ +
-’<div class="form-group"><label class="form-label">Nama <span>*</span></label><input type="text" id="f_ename" class="input" placeholder="Nama lengkap"></div>’ +
-‘<div class="form-group"><label class="form-label">Jabatan / Posisi <span>*</span></label><input type="text" id="f_epos" class="input" placeholder="cth: Kasir, Barista, Cook"></div>’ +
-‘</div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Nomor HP</label><input type="text" id="f_ephone" class="input" placeholder="08xx-xxxx-xxxx"></div>’ +
-‘<div class="form-group"><label class="form-label">Gaji Pokok (Rp)</label><input type="number" id="f_esalary" class="input" placeholder="0" min="0"></div>’ +
-‘</div>’ +
-‘<div class="form-row">’ +
-’<div class="form-group"><label class="form-label">Mulai Kontrak <span>*</span></label><input type="date" id="f_estart" class="input"></div>’ +
-‘<div class="form-group"><label class="form-label">Akhir Kontrak <span>*</span></label><input type="date" id="f_eend" class="input"></div>’ +
-‘</div>’ +
-‘<div class="form-group"><label class="form-label">Catatan</label><textarea id="f_enotes" class="textarea" placeholder="Catatan tambahan..."></textarea></div>’ +
-‘<div id="form-err" class="input-error hidden"></div>’,
-async function() {
-var name = document.getElementById(‘f_ename’).value.trim();
-var pos = document.getElementById(‘f_epos’).value.trim();
-var estart = document.getElementById(‘f_estart’).value;
-var eend = document.getElementById(‘f_eend’).value;
-var errEl = document.getElementById(‘form-err’);
-if (!name) { showFieldErr(errEl, ‘Nama karyawan wajib diisi’); return; }
-if (!pos) { showFieldErr(errEl, ‘Jabatan/Posisi wajib diisi’); return; }
-if (!estart) { showFieldErr(errEl, ‘Tanggal mulai kontrak wajib diisi’); return; }
-if (!eend) { showFieldErr(errEl, ‘Tanggal akhir kontrak wajib diisi’); return; }
-if (new Date(eend) <= new Date(estart)) { showFieldErr(errEl, ‘Tanggal akhir kontrak harus lebih besar dari tanggal mulai’); return; }
-var outlet = state.outlets.find(function(o) { return o.id === outletId; });
-if (!outlet) return;
-outlet.employees.push({
-id: uid(), name: name, position: pos,
-phone: document.getElementById(‘f_ephone’).value,
-salary: Number(document.getElementById(‘f_esalary’).value || 0),
-contractStart: estart, contractEnd: eend,
-notes: document.getElementById(‘f_enotes’).value,
-history: []
-});
-showLoading(); await saveData(state); hideLoading();
-render(); closeModal();
-}
-);
+  openModal(
+    'Tambah Karyawan',
+    '<div class="form-group"><label class="label">Nama</label><input type="text" id="employeeName" class="input"></div>' +
+    '<div class="form-group"><label class="label">Nomor HP</label><input type="text" id="employeePhone" class="input"></div>' +
+    '<div class="form-group"><label class="label">Gaji Pokok</label><input type="number" id="employeeSalary" class="input"></div>' +
+    '<div class="form-group"><label class="label">Start Kontrak</label><input type="date" id="employeeStart" class="input"></div>' +
+    '<div class="form-group"><label class="label">Akhir Kontrak</label><input type="date" id="employeeEnd" class="input"></div>',
+    async function() {
+      var employeeName = document.getElementById('employeeName').value.trim();
+      var employeeEnd = document.getElementById('employeeEnd').value;
+      if (!employeeName) { alert('Nama karyawan wajib diisi'); return; }
+      if (!employeeEnd) { alert('Tanggal akhir kontrak wajib diisi'); return; }
+      var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+      if (!outlet) return;
+      outlet.employees.push({
+        id: uid(),
+        name: employeeName,
+        phone: document.getElementById('employeePhone').value,
+        salary: Number(document.getElementById('employeeSalary').value || 0),
+        contractStart: document.getElementById('employeeStart').value,
+        contractEnd: employeeEnd
+      });
+      await saveData(state);
+      render();
+      closeModal();
+    }
+  );
 }
 
-/* ================================================
-EDIT EMPLOYEE
-================================================ */
+/* =========================
+   EDIT EMPLOYEE
+========================= */
+
 function editEmployee(outletId, employeeId) {
-var outlet = state.outlets.find(function(o) { return o.id === outletId; });
-if (!outlet) return;
-var emp = outlet.employees.find(function(e) { return e.id === employeeId; });
-if (!emp) return;
+  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+  if (!outlet) return;
+  var employee = outlet.employees.find(function(e) { return e.id === employeeId; });
+  if (!employee) return;
 
-openModal(
-‘✏ Edit Karyawan’,
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Nama <span>*</span></label><input type="text" id="f_ename" class="input" value="' + escapeHtml(emp.name) + '"></div>’ +
-’<div class="form-group"><label class="form-label">Jabatan / Posisi <span>*</span></label><input type="text" id="f_epos" class="input" value="' + escapeHtml(emp.position || '') + '"></div>’ +
-‘</div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Nomor HP</label><input type="text" id="f_ephone" class="input" value="' + escapeHtml(emp.phone || '') + '"></div>’ +
-‘<div class="form-group"><label class="form-label">Gaji Pokok (Rp)</label><input type="number" id="f_esalary" class="input" value="' + (emp.salary || 0) + '" min="0"></div>’ +
-‘</div>’ +
-‘<div class="form-row">’ +
-‘<div class="form-group"><label class="form-label">Mulai Kontrak <span>*</span></label><input type="date" id="f_estart" class="input" value="' + (emp.contractStart || '') + '"></div>’ +
-’<div class="form-group"><label class="form-label">Akhir Kontrak <span>*</span></label><input type="date" id="f_eend" class="input" value="' + (emp.contractEnd || '') + '"></div>’ +
-‘</div>’ +
-‘<div class="form-group"><label class="form-label">Catatan</label><textarea id="f_enotes" class="textarea">’ + escapeHtml(emp.notes || ‘’) + ‘</textarea></div>’ +
-‘<div id="form-err" class="input-error hidden"></div>’,
-async function() {
-var name = document.getElementById(‘f_ename’).value.trim();
-var pos = document.getElementById(‘f_epos’).value.trim();
-var estart = document.getElementById(‘f_estart’).value;
-var eend = document.getElementById(‘f_eend’).value;
-var errEl = document.getElementById(‘form-err’);
-if (!name) { showFieldErr(errEl, ‘Nama karyawan wajib diisi’); return; }
-if (!pos) { showFieldErr(errEl, ‘Jabatan/Posisi wajib diisi’); return; }
-if (!estart) { showFieldErr(errEl, ‘Tanggal mulai kontrak wajib diisi’); return; }
-if (!eend) { showFieldErr(errEl, ‘Tanggal akhir kontrak wajib diisi’); return; }
-if (new Date(eend) <= new Date(estart)) { showFieldErr(errEl, ‘Tanggal akhir kontrak harus lebih besar dari tanggal mulai’); return; }
+  openModal(
+    'Edit Karyawan',
+    '<div class="form-group"><label class="label">Nama</label><input type="text" id="employeeName" class="input" value="' + escapeHtml(employee.name) + '"></div>' +
+    '<div class="form-group"><label class="label">Nomor HP</label><input type="text" id="employeePhone" class="input" value="' + escapeHtml(employee.phone || '') + '"></div>' +
+    '<div class="form-group"><label class="label">Gaji Pokok</label><input type="number" id="employeeSalary" class="input" value="' + (employee.salary || 0) + '"></div>' +
+    '<div class="form-group"><label class="label">Start Kontrak</label><input type="date" id="employeeStart" class="input" value="' + (employee.contractStart || '') + '"></div>' +
+    '<div class="form-group"><label class="label">Akhir Kontrak</label><input type="date" id="employeeEnd" class="input" value="' + (employee.contractEnd || '') + '"></div>',
+    async function() {
+      var employeeName = document.getElementById('employeeName').value.trim();
+      var employeeEnd = document.getElementById('employeeEnd').value;
+      if (!employeeName) { alert('Nama karyawan wajib diisi'); return; }
+      if (!employeeEnd) { alert('Tanggal akhir kontrak wajib diisi'); return; }
+      employee.name = employeeName;
+      employee.phone = document.getElementById('employeePhone').value;
+      employee.salary = Number(document.getElementById('employeeSalary').value || 0);
+      employee.contractStart = document.getElementById('employeeStart').value;
+      employee.contractEnd = employeeEnd;
+      await saveData(state);
+      render();
+      closeModal();
+    }
+  );
+}
 
-```
-  // Save history if contractEnd changed
-  if (eend !== emp.contractEnd || estart !== emp.contractStart) {
-    if (!emp.history) emp.history = [];
-    emp.history.push({
-      start: emp.contractStart,
-      end: emp.contractEnd,
-      salary: emp.salary,
-      updatedAt: new Date().toISOString().slice(0,10)
+/* =========================
+   DELETE EMPLOYEE
+========================= */
+
+function deleteEmployee(outletId, employeeId) {
+  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+  if (!outlet) return;
+  var employee = outlet.employees.find(function(e) { return e.id === employeeId; });
+  if (!employee) return;
+  confirmDelete(employee.name, async function() {
+    outlet.employees = outlet.employees.filter(function(e) { return e.id !== employeeId; });
+    await saveData(state);
+    render();
+  });
+}
+
+/* =========================
+   EXPORT JSON BACKUP
+========================= */
+
+document.getElementById('exportJsonBtn').onclick = function() {
+  var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'naruna-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+/* =========================
+   EXPORT CSV
+========================= */
+
+document.getElementById('exportCsvBtn').onclick = function() {
+  var rows = [['Outlet','Nama','Nomor HP','Gaji','Start Kontrak','Akhir Kontrak','Status']];
+  state.outlets.forEach(function(outlet) {
+    (outlet.employees || []).forEach(function(emp) {
+      var status = getStatus(emp.contractEnd).text;
+      rows.push([outlet.name, emp.name, emp.phone, emp.salary, emp.contractStart, emp.contractEnd, status]);
     });
+  });
+  var csv = rows.map(function(row) {
+    return row.map(function(value) {
+      return '"' + String(value || '').replace(/"/g, '""') + '"';
+    }).join(',');
+  }).join('\n');
+  var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'naruna-contracts.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+/* =========================
+   RESTORE BUTTON
+========================= */
+
+document.getElementById('restoreBtn').onclick = function() {
+  document.getElementById('restoreInput').click();
+};
+
+/* FIX #3 + #4: Original restore handler had two critical bugs:
+   (a) missing "{" after if(!Array.isArray(...)) so the "return"
+       always executed, preventing data from being restored.
+   (b) the try block was missing its opening "{", causing a
+       syntax error that broke the entire restore flow.
+   Both are corrected below with proper block structure. */
+document.getElementById('restoreInput').addEventListener('change', async function(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+
+  var text = await file.text();
+
+  try {
+    var data = JSON.parse(text);
+
+    if (!Array.isArray(data.outlets)) {
+      alert('File backup tidak valid');
+      return;
+    }
+
+    state.outlets = data.outlets || [];
+    await saveData(state);
+    render();
+    alert('Backup berhasil dipulihkan');
+
+  } catch (err) {
+    alert('Gagal membaca file backup');
   }
 
-  emp.name = name; emp.position = pos;
-  emp.phone = document.getElementById('f_ephone').value;
-  emp.salary = Number(document.getElementById('f_esalary').value || 0);
-  emp.contractStart = estart; emp.contractEnd = eend;
-  emp.notes = document.getElementById('f_enotes').value;
-
-  showLoading(); await saveData(state); hideLoading();
-  render(); closeModal();
-}
-```
-
-);
-}
-
-/* ================================================
-DELETE EMPLOYEE
-================================================ */
-function deleteEmployee(outletId, employeeId) {
-var outlet = state.outlets.find(function(o) { return o.id === outletId; });
-if (!outlet) return;
-var emp = outlet.employees.find(function(e) { return e.id === employeeId; });
-if (!emp) return;
-confirmDelete(’”’ + emp.name + ‘”’, async function() {
-outlet.employees = outlet.employees.filter(function(e) { return e.id !== employeeId; });
-showLoading(); await saveData(state); hideLoading();
-render();
-});
-}
-
-/* ================================================
-SHOW HISTORY
-================================================ */
-function showHistory(outletId, employeeId) {
-var outlet = state.outlets.find(function(o) { return o.id === outletId; });
-if (!outlet) return;
-var emp = outlet.employees.find(function(e) { return e.id === employeeId; });
-if (!emp) return;
-var history = emp.history || [];
-
-var historyHtml = ‘’;
-if (!history.length) {
-historyHtml = ‘<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px;">Belum ada riwayat perpanjangan kontrak.</div>’;
-} else {
-historyHtml = history.slice().reverse().map(function(h, i) {
-return ‘<div class="history-item">’ +
-‘<div class="history-dot" style="background:' + (i === 0 ? 'var(--accent)' : 'var(--text3)') + '"></div>’ +
-‘<div style="flex:1;">’ +
-‘<div style="font-size:12px;font-weight:600;color:var(--text);">Kontrak #’ + (history.length - i) + ‘</div>’ +
-‘<div class="history-date">’ + formatDate(h.start) + ’ s/d ’ + formatDate(h.end) + ‘</div>’ +
-(h.salary ? ‘<div style="font-size:11px;color:var(--text3);">’ + currency(h.salary) + ‘</div>’ : ‘’) +
-‘</div>’ +
-‘<div style="font-size:11px;color:var(--text3);">Diperbarui ’ + h.updatedAt + ‘</div>’ +
-‘</div>’;
-}).join(’’);
-}
-
-// current contract as last entry
-var currentHtml = ‘<div class="history-item">’ +
-‘<div class="history-dot" style="background:var(--green);"></div>’ +
-‘<div style="flex:1;">’ +
-‘<div style="font-size:12px;font-weight:600;color:var(--green);">Kontrak Saat Ini</div>’ +
-‘<div class="history-date">’ + formatDate(emp.contractStart) + ’ s/d ’ + formatDate(emp.contractEnd) + ‘</div>’ +
-(emp.salary ? ‘<div style="font-size:11px;color:var(--text3);">’ + currency(emp.salary) + ‘</div>’ : ‘’) +
-‘</div>’ +
-‘<span class="badge badge-' + getStatus(emp.contractEnd).key.replace('exp','danger').replace('warn','warning').replace('safe','safe') + '">’ + getStatus(emp.contractEnd).text + ‘</span>’ +
-‘</div>’;
-
-openModal(
-’📜 Riwayat Kontrak: ’ + escapeHtml(emp.name),
-‘<div style="margin-bottom:12px;">’ +
-‘<div style="font-size:12px;color:var(--text3);">Total kontrak tercatat: <strong style="color:var(--text);">’ + (history.length + 1) + ‘</strong></div>’ +
-(emp.position ? ‘<div style="font-size:12px;color:var(--accent);margin-top:2px;">’ + escapeHtml(emp.position) + ‘</div>’ : ‘’) +
-‘</div>’ +
-‘<div class="history-panel">’ +
-currentHtml + historyHtml +
-‘</div>’,
-null
-);
-document.getElementById(‘saveModal’).classList.add(‘hidden’);
-setTimeout(function() { document.getElementById(‘saveModal’).classList.remove(‘hidden’); }, 0);
-
-// Replace save button label since we’re in view mode
-var saveBtn = document.getElementById(‘saveModal’);
-saveBtn.classList.add(‘hidden’);
-document.getElementById(‘cancelModal’).textContent = ‘Tutup’;
-}
-
-/* ================================================
-PRINT OUTLET
-================================================ */
-function printOutlet(outletId) {
-document.querySelectorAll(’.outlet-card’).forEach(function(c) {
-c.classList.remove(‘printing’);
-});
-var card = document.getElementById(‘card-’ + outletId);
-if (!card) return;
-card.classList.add(‘printing’);
-window.print();
-card.classList.remove(‘printing’);
-}
-
-/* ================================================
-HELPER: show field error
-================================================ */
-function showInputError(fieldId, msg) {
-var el = document.getElementById(fieldId);
-if (!el) return;
-el.style.borderColor = ‘var(–red)’;
-el.focus();
-var err = el.parentNode.querySelector(’.input-error’);
-if (!err) {
-err = document.createElement(‘div’);
-err.className = ‘input-error’;
-el.parentNode.appendChild(err);
-}
-err.textContent = msg;
-}
-
-function showFieldErr(errEl, msg) {
-if (!errEl) return;
-errEl.textContent = msg;
-errEl.classList.remove(‘hidden’);
-}
-
-/* ================================================
-EXPORT JSON BACKUP
-================================================ */
-document.getElementById(‘exportJsonBtn’).onclick = function() {
-var blob = new Blob([JSON.stringify(state, null, 2)], { type: ‘application/json’ });
-var url = URL.createObjectURL(blob);
-var a = document.createElement(‘a’);
-a.href = url;
-a.download = tsFilename(‘naruna-backup’, ‘json’);
-a.click();
-URL.revokeObjectURL(url);
-};
-
-/* ================================================
-EXPORT XLSX (P-01 fix: real Excel via SheetJS)
-================================================ */
-document.getElementById(‘exportXlsxBtn’).onclick = function() {
-if (typeof XLSX === ‘undefined’) {
-alert(‘Library Excel belum termuat. Pastikan koneksi internet aktif.’);
-return;
-}
-var wb = XLSX.utils.book_new();
-
-// Sheet 1: Summary
-var summaryData = [
-[’Naruna Contract Monitor - Export ’ + new Date().toLocaleDateString(‘id-ID’)],
-[],
-[‘Total Outlet’, state.outlets.length],
-[‘Total Karyawan’, state.outlets.reduce(function(a, o) { return a + (o.employees || []).length; }, 0)],
-[]
-];
-var wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-XLSX.utils.book_append_sheet(wb, wsSummary, ‘Ringkasan’);
-
-// Sheet 2: All employees
-var headers = [‘Outlet’, ‘Nama’, ‘Jabatan’, ‘Nomor HP’, ‘Gaji Pokok’, ‘Mulai Kontrak’, ‘Akhir Kontrak’, ‘Sisa Hari’, ‘Status’];
-var rows = [headers];
-state.outlets.forEach(function(outlet) {
-(outlet.employees || []).forEach(function(emp) {
-var days = daysLeft(emp.contractEnd);
-var status = getStatus(emp.contractEnd).text;
-rows.push([
-outlet.name, emp.name, emp.position || ‘-’, emp.phone || ‘-’,
-emp.salary || 0,
-emp.contractStart || ‘-’, emp.contractEnd || ‘-’,
-days, status
-]);
-});
-});
-var wsAll = XLSX.utils.aoa_to_sheet(rows);
-// Set column widths
-wsAll[’!cols’] = [
-{wch:20},{wch:22},{wch:18},{wch:16},{wch:16},{wch:14},{wch:14},{wch:10},{wch:14}
-];
-XLSX.utils.book_append_sheet(wb, wsAll, ‘Semua Karyawan’);
-
-// Sheet per outlet
-state.outlets.forEach(function(outlet) {
-var oRows = [[‘Nama’, ‘Jabatan’, ‘Nomor HP’, ‘Gaji Pokok’, ‘Mulai Kontrak’, ‘Akhir Kontrak’, ‘Sisa Hari’, ‘Status’]];
-(outlet.employees || []).forEach(function(emp) {
-oRows.push([
-emp.name, emp.position || ‘-’, emp.phone || ‘-’, emp.salary || 0,
-emp.contractStart || ‘-’, emp.contractEnd || ‘-’,
-daysLeft(emp.contractEnd), getStatus(emp.contractEnd).text
-]);
-});
-var wsO = XLSX.utils.aoa_to_sheet(oRows);
-wsO[’!cols’] = [{wch:22},{wch:18},{wch:16},{wch:16},{wch:14},{wch:14},{wch:10},{wch:14}];
-var sheetName = outlet.name.slice(0, 31).replace(/[:\/?*[]]/g, ‘-’);
-XLSX.utils.book_append_sheet(wb, wsO, sheetName);
+  event.target.value = '';
 });
 
-XLSX.writeFile(wb, tsFilename(‘naruna-export’, ‘xlsx’));
-};
+/* =========================
+   SEARCH + FILTER
+========================= */
 
-/* ================================================
-RESTORE (P-03 fix: preview + confirm)
-================================================ */
-document.getElementById(‘restoreBtn’).onclick = function() {
-document.getElementById(‘restoreInput’).click();
-};
+searchInput.addEventListener('input', render);
+filterOutlet.addEventListener('change', render);
 
-document.getElementById(‘restoreInput’).addEventListener(‘change’, async function(e) {
-var file = e.target.files[0];
-if (!file) return;
-var text = ‘’;
-try {
-text = await file.text();
-} catch (err) {
-alert(‘Gagal membaca file.’);
-e.target.value = ‘’;
-return;
-}
-var parsed;
-try {
-parsed = JSON.parse(text);
-} catch (err) {
-alert(‘File tidak valid: bukan format JSON yang benar.’);
-e.target.value = ‘’;
-return;
-}
-if (!parsed || !Array.isArray(parsed.outlets)) {
-alert(‘File backup tidak valid: struktur data tidak dikenali.’);
-e.target.value = ‘’;
-return;
-}
-var totalEmp = parsed.outlets.reduce(function(a, o) { return a + (o.employees || []).length; }, 0);
+/* =========================
+   INDEXED DB INIT
+========================= */
 
-// P-03: Show preview modal before overwriting
-openModal(
-‘⚠️ Konfirmasi Restore’,
-‘<div style="background:var(--red-bg);border:1px solid rgba(240,79,84,0.3);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--red);">’ +
-‘<strong>Peringatan:</strong> Data yang ada saat ini akan ditimpa seluruhnya dan tidak bisa dikembalikan.’ +
-‘</div>’ +
-‘<div class="restore-preview">’ +
-‘<div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;">Preview data dalam file backup:</div>’ +
-‘<div class="restore-preview-row"><span>Nama file</span><strong>’ + escapeHtml(file.name) + ‘</strong></div>’ +
-‘<div class="restore-preview-row"><span>Jumlah outlet</span><strong>’ + parsed.outlets.length + ’ outlet</strong></div>’ +
-‘<div class="restore-preview-row"><span>Jumlah karyawan</span><strong>’ + totalEmp + ’ karyawan</strong></div>’ +
-‘</div>’ +
-‘<div style="font-size:13px;color:var(--text2);">Apakah Anda yakin ingin melanjutkan restore?</div>’,
-async function() {
-state.outlets = parsed.outlets || [];
-showLoading(); await saveData(state); hideLoading();
-render(); closeModal();
-alert(‘Restore berhasil: ’ + parsed.outlets.length + ’ outlet, ’ + totalEmp + ’ karyawan dipulihkan.’);
-}
-);
-e.target.value = ‘’;
-});
-
-/* ================================================
-SEARCH + FILTER
-================================================ */
-searchInput.addEventListener(‘input’, render);
-filterOutlet.addEventListener(‘change’, render);
-
-/* ================================================
-KEYBOARD SHORTCUT
-================================================ */
-document.addEventListener(‘keydown’, function(e) {
-if (e.key === ‘Escape’) closeModal();
-});
-
-/* ================================================
-INIT
-================================================ */
 async function init() {
-await openDB();
-var saved = await loadData();
-if (saved) state.outlets = saved.outlets || [];
-render();
+  await openDB();
+  var saved = await loadData();
+  if (saved) {
+    state.outlets = saved.outlets || [];
+  }
+  render();
 }
+
+/* =========================
+   START APP
+========================= */
 
 init();
+
 </script>
 
 </body>

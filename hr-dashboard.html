@@ -1,482 +1,613 @@
 <!DOCTYPE html>
-
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Naruna Contract Monitor</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
-:root {
-  --bg: #0e1117;
-  --bg2: #161b24;
-  --card: #1c2230;
-  --card2: #252d3d;
-  --border: #30384c;
-  --text: #edf2ff;
-  --text2: #b7c0dd;
-  --text3: #7f89a8;
-  --accent: #7c6cff;
-  --accent2: #6655f2;
-  --green: #22c55e;
-  --yellow: #eab308;
-  --red: #ef4444;
-  --radius: 22px;
-  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+
+:root{
+  --bg:#0e1117;
+  --bg2:#161b24;
+  --card:#1c2230;
+  --card2:#252d3d;
+  --border:#30384c;
+  --text:#edf2ff;
+  --text2:#b7c0dd;
+  --text3:#7f89a8;
+  --accent:#7c6cff;
+  --accent2:#6655f2;
+  --green:#22c55e;
+  --yellow:#eab308;
+  --red:#ef4444;
+  --radius:22px;
+  --shadow:0 10px 30px rgba(0,0,0,0.35);
 }
-body {
-  font-family: 'Inter', sans-serif;
+
+body{
+  font-family:'Inter',sans-serif;
   background:
-    radial-gradient(circle at top left, #20283e 0%, transparent 30%),
-    radial-gradient(circle at bottom right, #171d30 0%, transparent 30%),
+    radial-gradient(circle at top left,#20283e 0%,transparent 30%),
+    radial-gradient(circle at bottom right,#171d30 0%,transparent 30%),
     var(--bg);
-  color: var(--text);
-  min-height: 100vh;
+  color:var(--text);
+  min-height:100vh;
 }
-button, input, select {
-  font-family: 'Inter', sans-serif;
+
+button,
+input,
+select{
+  font-family:'Inter',sans-serif;
 }
-.hidden {
-  display: none !important;
+
+.hidden{
+  display:none !important;
 }
+
 /* TOPBAR */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  backdrop-filter: blur(14px);
-  background: rgba(14,17,23,0.88);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding: 16px 22px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:100;
+  backdrop-filter:blur(14px);
+  background:rgba(14,17,23,0.88);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
 }
-.logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent), #9b8fff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 800;
+
+.logo{
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  background:linear-gradient(135deg,var(--accent),#9b8fff);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:800;
 }
-.brand-title {
-  font-size: 22px;
-  font-weight: 800;
+
+.brand-title{
+  font-size:22px;
+  font-weight:800;
 }
-.brand-sub {
-  font-size: 12px;
-  color: var(--text3);
-  margin-top: 3px;
+
+.brand-sub{
+  font-size:12px;
+  color:var(--text3);
+  margin-top:3px;
 }
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
-.notif-btn {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  border: none;
-  background: var(--card);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 22px;
-  color: #fff;
-  transition: 0.2s;
+
+.notif-btn{
+  position:relative;
+  width:52px;
+  height:52px;
+  border:none;
+  background:var(--card);
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:22px;
+  color:#fff;
+  transition:0.2s;
 }
-.notif-btn:hover {
-  transform: translateY(-2px);
-  background: var(--card2);
+
+.notif-btn:hover{
+  transform:translateY(-2px);
+  background:var(--card2);
 }
-.notif-count {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  background: var(--red);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 7px;
-  font-size: 11px;
-  font-weight: 700;
+
+.notif-count{
+  position:absolute;
+  top:-6px;
+  right:-6px;
+  min-width:24px;
+  height:24px;
+  border-radius:999px;
+  background:var(--red);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 7px;
+  font-size:11px;
+  font-weight:700;
 }
+
 /* WRAPPER */
-.wrapper {
-  max-width: 1500px;
-  margin: auto;
-  padding: 24px;
+
+.wrapper{
+  max-width:1500px;
+  margin:auto;
+  padding:24px;
 }
+
 /* HERO */
-.hero {
-  background: linear-gradient(135deg, rgba(124,108,255,0.24), rgba(124,108,255,0.06));
-  border: 1px solid rgba(124,108,255,0.16);
-  border-radius: 34px;
-  padding: 34px;
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
+
+.hero{
+  background:linear-gradient(
+    135deg,
+    rgba(124,108,255,0.24),
+    rgba(124,108,255,0.06)
+  );
+
+  border:1px solid rgba(124,108,255,0.16);
+  border-radius:34px;
+  padding:34px;
+  margin-bottom:24px;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
 }
-.hero h1 {
-  font-size: 36px;
-  line-height: 1.15;
-  font-weight: 800;
+
+.hero h1{
+  font-size:36px;
+  line-height:1.15;
+  font-weight:800;
 }
-.hero p {
-  color: var(--text2);
-  margin-top: 12px;
-  max-width: 760px;
-  line-height: 1.7;
+
+.hero p{
+  color:var(--text2);
+  margin-top:12px;
+  max-width:760px;
+  line-height:1.7;
 }
-.hero-badge {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 16px 18px;
-  border-radius: 18px;
-  font-size: 14px;
+
+.hero-badge{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.08);
+  padding:16px 18px;
+  border-radius:18px;
+  font-size:14px;
 }
+
 /* KPI */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  margin-bottom: 24px;
+
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:18px;
+  margin-bottom:24px;
 }
-.kpi-card {
-  background: rgba(28,34,48,0.88);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 28px;
-  padding: 22px;
-  box-shadow: var(--shadow);
+
+.kpi-card{
+  background:rgba(28,34,48,0.88);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:28px;
+  padding:22px;
+  box-shadow:var(--shadow);
 }
-.kpi-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+
+.kpi-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
-.kpi-title {
-  color: var(--text3);
-  font-size: 13px;
+
+.kpi-title{
+  color:var(--text3);
+  font-size:13px;
 }
-.kpi-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
+
+.kpi-icon{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.06);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
 }
-.kpi-value {
-  margin-top: 18px;
-  font-size: 34px;
-  font-weight: 800;
+
+.kpi-value{
+  margin-top:18px;
+  font-size:34px;
+  font-weight:800;
 }
+
 /* ACTION BAR */
-.action-bar {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
+
+.action-bar{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:24px;
 }
-.btn {
-  border: none;
-  cursor: pointer;
-  border-radius: 18px;
-  padding: 14px 18px;
-  font-weight: 600;
-  transition: 0.2s;
+
+.btn{
+  border:none;
+  cursor:pointer;
+  border-radius:18px;
+  padding:14px 18px;
+  font-weight:600;
+  transition:0.2s;
 }
-.btn:hover {
-  transform: translateY(-2px);
+
+.btn:hover{
+  transform:translateY(-2px);
 }
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: #fff;
+
+.btn-primary{
+  background:linear-gradient(
+    135deg,
+    var(--accent),
+    var(--accent2)
+  );
+  color:#fff;
 }
-.btn-secondary {
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--text);
+
+.btn-secondary{
+  background:var(--card);
+  border:1px solid var(--border);
+  color:var(--text);
 }
+
 /* FILTER */
-.filter-wrap {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
+
+.filter-wrap{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-bottom:24px;
 }
-.search-box {
-  flex: 1;
-  min-width: 240px;
+
+.search-box{
+  flex:1;
+  min-width:240px;
 }
-.input, .select {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 18px;
-  padding: 15px 16px;
-  outline: none;
+
+.input,
+.select{
+  width:100%;
+  background:var(--card);
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:18px;
+  padding:15px 16px;
+  outline:none;
 }
-.input:focus, .select:focus {
-  border-color: var(--accent);
+
+.input:focus,
+.select:focus{
+  border-color:var(--accent);
 }
-/* OUTLET GRID */
-.outlet-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-  gap: 22px;
+
+/* OUTLET */
+
+.outlet-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(330px,1fr));
+  gap:22px;
 }
-.outlet-card {
-  background: rgba(28,34,48,0.88);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 30px;
-  padding: 22px;
-  box-shadow: var(--shadow);
+
+.outlet-card{
+  background:rgba(28,34,48,0.88);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:30px;
+  padding:22px;
+  box-shadow:var(--shadow);
 }
-.outlet-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
+
+.outlet-top{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
 }
-.outlet-name {
-  font-size: 22px;
-  font-weight: 800;
+
+.outlet-name{
+  font-size:22px;
+  font-weight:800;
 }
-.outlet-meta {
-  margin-top: 8px;
-  color: var(--text3);
-  font-size: 13px;
-  line-height: 1.7;
+
+.outlet-meta{
+  margin-top:8px;
+  color:var(--text3);
+  font-size:13px;
+  line-height:1.7;
 }
-.outlet-actions {
-  display: flex;
-  gap: 8px;
+
+.outlet-actions{
+  display:flex;
+  gap:8px;
 }
-.icon-btn {
-  width: 42px;
-  height: 42px;
-  border: none;
-  background: var(--card2);
-  color: #fff;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: 0.2s;
+
+.icon-btn{
+  width:42px;
+  height:42px;
+  border:none;
+  background:var(--card2);
+  color:#fff;
+  border-radius:14px;
+  cursor:pointer;
+  transition:0.2s;
 }
-.icon-btn:hover {
-  background: var(--accent);
+
+.icon-btn:hover{
+  background:var(--accent);
 }
+
 /* TABLE */
-.table-wrap {
-  overflow: auto;
-  margin-top: 22px;
+
+.table-wrap{
+  overflow:auto;
+  margin-top:22px;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
+
+table{
+  width:100%;
+  border-collapse:collapse;
 }
-th {
-  text-align: left;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text3);
-  padding: 12px;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
+
+th{
+  text-align:left;
+  font-size:12px;
+  font-weight:700;
+  color:var(--text3);
+  padding:12px;
+  cursor:pointer;
+  user-select:none;
+  white-space:nowrap;
 }
-td {
-  padding: 14px 12px;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  vertical-align: top;
-  font-size: 14px;
+
+td{
+  padding:14px 12px;
+  border-top:1px solid rgba(255,255,255,0.05);
+  vertical-align:top;
+  font-size:14px;
 }
-tr:hover {
-  background: rgba(255,255,255,0.03);
+
+tr:hover{
+  background:rgba(255,255,255,0.03);
 }
-.employee-name {
-  font-weight: 700;
+
+.employee-name{
+  font-weight:700;
 }
-.employee-phone {
-  color: var(--text3);
-  font-size: 12px;
-  margin-top: 4px;
+
+.employee-phone{
+  color:var(--text3);
+  font-size:12px;
+  margin-top:4px;
 }
+
 /* BADGE */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
 }
-.badge-safe {
-  background: rgba(34,197,94,0.15);
-  color: var(--green);
+
+.badge-safe{
+  background:rgba(34,197,94,0.15);
+  color:var(--green);
 }
-.badge-warning {
-  background: rgba(234,179,8,0.15);
-  color: var(--yellow);
+
+.badge-warning{
+  background:rgba(234,179,8,0.15);
+  color:var(--yellow);
 }
-.badge-danger {
-  background: rgba(239,68,68,0.15);
-  color: var(--red);
+
+.badge-danger{
+  background:rgba(239,68,68,0.15);
+  color:var(--red);
 }
+
 /* MODAL */
-.modal-wrap {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  backdrop-filter: blur(5px);
+
+.modal-wrap{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  z-index:999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  backdrop-filter:blur(5px);
 }
-.modal {
-  width: 100%;
-  max-width: 620px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 30px;
-  overflow: hidden;
+
+.modal{
+  width:100%;
+  max-width:620px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:30px;
+  overflow:hidden;
 }
-.modal-header {
-  padding: 22px 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+.modal-header{
+  padding:22px 24px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
-.modal-title {
-  font-size: 24px;
-  font-weight: 800;
+
+.modal-title{
+  font-size:24px;
+  font-weight:800;
 }
-.modal-body {
-  padding: 24px;
+
+.modal-body{
+  padding:24px;
 }
-.modal-footer {
-  padding: 24px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+
+.modal-footer{
+  padding:24px;
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
 }
-.form-group {
-  margin-bottom: 18px;
+
+.form-group{
+  margin-bottom:18px;
 }
-.label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--text2);
-  font-size: 13px;
+
+.label{
+  display:block;
+  margin-bottom:8px;
+  color:var(--text2);
+  font-size:13px;
 }
-/* NOTIFICATION PANEL */
-.notification-panel {
-  position: fixed;
-  top: 90px;
-  right: 20px;
-  width: 400px;
-  max-height: 70vh;
-  overflow: auto;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  padding: 18px;
-  box-shadow: var(--shadow);
-  z-index: 998;
+
+/* NOTIFICATION */
+
+.notification-panel{
+  position:fixed;
+  top:90px;
+  right:20px;
+  width:400px;
+  max-height:70vh;
+  overflow:auto;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:18px;
+  box-shadow:var(--shadow);
+  z-index:998;
 }
-.notification-title {
-  font-size: 20px;
-  font-weight: 800;
-  margin-bottom: 18px;
+
+.notification-title{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:18px;
 }
-.notif-item {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 12px;
+
+.notif-item{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:12px;
 }
-.notif-name {
-  font-weight: 700;
+
+.notif-name{
+  font-weight:700;
 }
-.notif-outlet {
-  color: var(--text3);
-  font-size: 13px;
-  margin-top: 5px;
+
+.notif-outlet{
+  color:var(--text3);
+  font-size:13px;
+  margin-top:5px;
 }
-.notif-days {
-  margin-top: 10px;
-  color: var(--yellow);
-  font-size: 13px;
-  font-weight: 700;
+
+.notif-days{
+  margin-top:10px;
+  color:var(--yellow);
+  font-size:13px;
+  font-weight:700;
 }
-.empty {
-  text-align: center;
-  color: var(--text3);
-  padding: 30px;
+
+.empty{
+  text-align:center;
+  color:var(--text3);
+  padding:30px;
 }
+
 /* RESPONSIVE */
-@media (max-width: 768px) {
-  .wrapper { padding: 16px; }
-  .hero { padding: 24px; }
-  .hero h1 { font-size: 28px; }
-  .notification-panel {
-    width: calc(100vw - 32px);
-    right: 16px;
+
+@media (max-width:768px){
+
+  .wrapper{
+    padding:16px;
   }
+
+  .hero{
+    padding:24px;
+  }
+
+  .hero h1{
+    font-size:28px;
+  }
+
+  .notification-panel{
+    width:calc(100vw - 32px);
+    right:16px;
+  }
+
 }
+
 </style>
 </head>
+
 <body>
 
 <!-- TOPBAR -->
 
 <div class="topbar">
+
   <div class="brand">
-    <div class="logo">&#x1F9FE;</div>
+
+    <div class="logo">🧾</div>
+
     <div>
-      <div class="brand-title">Naruna Contract Monitor</div>
-      <div class="brand-sub">Monitoring kontrak seluruh outlet</div>
+      <div class="brand-title">
+        Naruna Contract Monitor
+      </div>
+
+      <div class="brand-sub">
+        Monitoring kontrak seluruh outlet
+      </div>
     </div>
+
   </div>
+
   <div class="topbar-right">
+
     <button class="notif-btn" id="notifBtn">
-      &#x1F514;
-      <div class="notif-count hidden" id="notifCount">0</div>
+
+      🔔
+
+      <div class="notif-count hidden" id="notifCount">
+        0
+      </div>
+
     </button>
+
   </div>
+
 </div>
 
 <!-- WRAPPER -->
@@ -486,65 +617,140 @@ tr:hover {
   <!-- HERO -->
 
   <div class="hero">
+
     <div>
-      <h1>Monitoring Kontrak Karyawan Lebih Cepat &amp; Profesional</h1>
-      <p>Pantau seluruh kontrak karyawan, dapatkan notifikasi otomatis, dan kelola data outlet dengan sistem ringan berbasis IndexedDB.</p>
+
+      <h1>
+        Monitoring Kontrak Karyawan Lebih Cepat & Profesional
+      </h1>
+
+      <p>
+        Pantau seluruh kontrak karyawan,
+        dapatkan notifikasi otomatis,
+        dan kelola data outlet dengan sistem ringan berbasis IndexedDB.
+      </p>
+
     </div>
-    <div class="hero-badge">&#x1F4BE; Data aman tersimpan di device</div>
+
+    <div class="hero-badge">
+      💾 Data aman tersimpan di device
+    </div>
+
   </div>
 
   <!-- KPI -->
 
   <div class="kpi-grid">
+
     <div class="kpi-card">
+
       <div class="kpi-top">
         <div class="kpi-title">Total Karyawan</div>
-        <div class="kpi-icon">&#x1F465;</div>
+        <div class="kpi-icon">👥</div>
       </div>
+
       <div class="kpi-value" id="kpiEmployees">0</div>
+
     </div>
+
     <div class="kpi-card">
+
       <div class="kpi-top">
         <div class="kpi-title">Kontrak Aktif</div>
-        <div class="kpi-icon">&#x1F7E2;</div>
+        <div class="kpi-icon">🟢</div>
       </div>
+
       <div class="kpi-value" id="kpiActive">0</div>
+
     </div>
+
     <div class="kpi-card">
+
       <div class="kpi-top">
         <div class="kpi-title">Hampir Habis</div>
-        <div class="kpi-icon">&#x23F3;</div>
+        <div class="kpi-icon">⏳</div>
       </div>
+
       <div class="kpi-value" id="kpiWarning">0</div>
+
     </div>
+
     <div class="kpi-card">
+
       <div class="kpi-top">
         <div class="kpi-title">Sudah Habis</div>
-        <div class="kpi-icon">&#x1F534;</div>
+        <div class="kpi-icon">🔴</div>
       </div>
+
       <div class="kpi-value" id="kpiExpired">0</div>
+
     </div>
+
   </div>
 
-  <!-- ACTION BAR -->
+  <!-- ACTION -->
 
   <div class="action-bar">
-    <button class="btn btn-primary" id="addOutletBtn">&#x2795; Tambah Outlet</button>
-    <button class="btn btn-secondary" id="exportJsonBtn">&#x1F4BE; Backup JSON</button>
-    <button class="btn btn-secondary" id="exportCsvBtn">&#x1F4C4; Export Excel</button>
-    <button class="btn btn-secondary" id="restoreBtn">&#x1F4C2; Restore Data</button>
-    <input type="file" id="restoreInput" class="hidden" accept=".json">
+
+    <button class="btn btn-primary" id="addOutletBtn">
+      ➕ Tambah Outlet
+    </button>
+
+    <button class="btn btn-secondary" id="importExcelBtn">
+      📥 Import Excel
+    </button>
+
+    <button class="btn btn-secondary" id="exportJsonBtn">
+      💾 Backup JSON
+    </button>
+
+    <button class="btn btn-secondary" id="exportCsvBtn">
+      📄 Export Excel
+    </button>
+
+    <button class="btn btn-secondary" id="restoreBtn">
+      📂 Restore Data
+    </button>
+
+    <input
+      type="file"
+      id="restoreInput"
+      class="hidden"
+      accept=".json"
+    >
+
+    <input
+      type="file"
+      id="excelInput"
+      class="hidden"
+      accept=".xlsx,.xls"
+    >
+
   </div>
 
   <!-- FILTER -->
 
   <div class="filter-wrap">
+
     <div class="search-box">
-      <input type="text" id="searchInput" class="input" placeholder="Cari nama karyawan...">
+
+      <input
+        type="text"
+        id="searchInput"
+        class="input"
+        placeholder="Cari nama karyawan..."
+      >
+
     </div>
+
     <select id="filterOutlet" class="select">
-      <option value="">Semua Outlet</option>
+
+      <option value="">
+        Semua Outlet
+      </option>
+
     </select>
+
   </div>
 
   <!-- OUTLET GRID -->
@@ -553,648 +759,1583 @@ tr:hover {
 
 </div>
 
-<!-- NOTIFICATION PANEL -->
+<!-- NOTIFICATION -->
 
 <div class="notification-panel hidden" id="notifPanel">
-  <div class="notification-title">Kontrak Akan Berakhir</div>
+
+  <div class="notification-title">
+    Kontrak Akan Berakhir
+  </div>
+
   <div id="notifList"></div>
+
 </div>
 
 <!-- MODAL -->
 
 <div class="modal-wrap hidden" id="modalWrap">
+
   <div class="modal">
+
     <div class="modal-header">
+
       <div class="modal-title" id="modalTitle"></div>
-      <button class="icon-btn" id="closeModal">&#x2715;</button>
+
+      <button class="icon-btn" id="closeModal">
+        ✕
+      </button>
+
     </div>
+
     <div class="modal-body" id="modalBody"></div>
+
     <div class="modal-footer">
-      <button class="btn btn-secondary" id="cancelModal">Batal</button>
-      <button class="btn btn-primary" id="saveModal">Simpan</button>
+
+      <button class="btn btn-secondary" id="cancelModal">
+        Batal
+      </button>
+
+      <button class="btn btn-primary" id="saveModal">
+        Simpan
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
 <script>
 
 /* =========================
-   INDEXED DB
+   DATABASE
 ========================= */
 
 var DB_NAME = 'naruna_contract_monitor';
 var STORE_NAME = 'app_data';
 var db = null;
 
-function openDB() {
-  return new Promise(function(resolve, reject) {
-    var request = indexedDB.open(DB_NAME, 1);
+function openDB(){
 
-    request.onupgradeneeded = function(e) {
+  return new Promise(function(resolve,reject){
+
+    var request = indexedDB.open(DB_NAME,1);
+
+    request.onupgradeneeded = function(e){
+
       db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+
+      if(!db.objectStoreNames.contains(STORE_NAME)){
+        db.createObjectStore(STORE_NAME,{
+          keyPath:'key'
+        });
       }
+
     };
 
-    request.onsuccess = function(e) {
+    request.onsuccess = function(e){
       db = e.target.result;
       resolve();
     };
 
-    request.onerror = function(err) {
+    request.onerror = function(err){
       reject(err);
     };
+
   });
+
 }
 
-function saveData(data) {
-  return new Promise(function(resolve, reject) {
-    var tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).put({ key: 'main', value: data });
-    tx.oncomplete = function() { resolve(); };
-    tx.onerror = function(err) { reject(err); };
-  });
-}
+function saveData(data){
 
-function loadData() {
-  return new Promise(function(resolve, reject) {
-    var tx = db.transaction(STORE_NAME, 'readonly');
-    var req = tx.objectStore(STORE_NAME).get('main');
-    req.onsuccess = function() {
-      resolve(req.result ? req.result.value : { outlets: [] });
+  return new Promise(function(resolve,reject){
+
+    var tx = db.transaction(STORE_NAME,'readwrite');
+
+    tx.objectStore(STORE_NAME).put({
+      key:'main',
+      value:data
+    });
+
+    tx.oncomplete = function(){
+      resolve();
     };
-    req.onerror = function(err) { reject(err); };
+
+    tx.onerror = function(err){
+      reject(err);
+    };
+
   });
+
+}
+
+function loadData(){
+
+  return new Promise(function(resolve,reject){
+
+    var tx = db.transaction(STORE_NAME,'readonly');
+
+    var req = tx.objectStore(STORE_NAME).get('main');
+
+    req.onsuccess = function(){
+
+      resolve(
+        req.result
+        ? req.result.value
+        : { outlets:[] }
+      );
+
+    };
+
+    req.onerror = function(err){
+      reject(err);
+    };
+
+  });
+
 }
 
 /* =========================
    STATE
 ========================= */
 
-var state = { outlets: [] };
+var state = {
+  outlets:[]
+};
+
 var currentSort = 'end-asc';
 
+/* =========================
+   ELEMENTS
+========================= */
+
 var outletGrid = document.getElementById('outletGrid');
+
 var notifBtn = document.getElementById('notifBtn');
+
 var notifPanel = document.getElementById('notifPanel');
+
 var notifList = document.getElementById('notifList');
+
 var notifCount = document.getElementById('notifCount');
+
 var modalWrap = document.getElementById('modalWrap');
+
 var modalTitle = document.getElementById('modalTitle');
+
 var modalBody = document.getElementById('modalBody');
+
 var searchInput = document.getElementById('searchInput');
+
 var filterOutlet = document.getElementById('filterOutlet');
 
 /* =========================
    UTILS
 ========================= */
 
-function uid() {
-  return Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+function uid(){
+
+  return (
+    Date.now() +
+    '_' +
+    Math.random()
+      .toString(36)
+      .slice(2,8)
+  );
+
 }
 
-/* FIX #1: Removed duplicate nested formatDate.
-   Original had formatDate defined inside itself,
-   causing outer function to never return a value.
-   Now only one clean definition exists. */
-function formatDate(date) {
-  if (!date) return '-';
-  var parsed = new Date(date);
-  if (isNaN(parsed.getTime())) return '-';
-  return parsed.toLocaleDateString('id-ID');
-}
+function normalizeText(text){
 
-function daysLeft(date) {
-  if (!date) return 0;
-  var end = new Date(date);
-  if (isNaN(end.getTime())) return 0;
-  var now = new Date();
-  end.setHours(0, 0, 0, 0);
-  now.setHours(0, 0, 0, 0);
-  var diff = end - now;
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
-function getStatus(endDate) {
-  var days = daysLeft(endDate);
-  if (days < 0) return { text: 'Sudah Habis', cls: 'badge-danger' };
-  if (days <= 30) return { text: 'Hampir Habis', cls: 'badge-warning' };
-  return { text: 'Aman', cls: 'badge-safe' };
-}
-
-function currency(value) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0
-  }).format(value || 0);
-}
-
-function escapeHtml(text) {
   return String(text || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .trim()
+    .toLowerCase();
+
 }
 
+function escapeHtml(text){
+
+  return String(text || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+
+}
+
+function currency(value){
+
+  return new Intl.NumberFormat('id-ID',{
+    style:'currency',
+    currency:'IDR',
+    maximumFractionDigits:0
+  }).format(value || 0);
+
+}
+
+function formatDate(date){
+
+  if(!date) return '-';
+
+  var parsed = new Date(date);
+
+  if(isNaN(parsed.getTime())){
+    return '-';
+  }
+
+  return parsed.toLocaleDateString('id-ID');
+
+}
+
+function daysLeft(date){
+
+  if(!date) return 0;
+
+  var end = new Date(date);
+
+  if(isNaN(end.getTime())){
+    return 0;
+  }
+
+  var now = new Date();
+
+  end.setHours(0,0,0,0);
+  now.setHours(0,0,0,0);
+
+  var diff = end - now;
+
+  return Math.ceil(
+    diff / (1000 * 60 * 60 * 24)
+  );
+
+}
+
+function getStatus(endDate){
+
+  var days = daysLeft(endDate);
+
+  if(days < 0){
+    return {
+      text:'Sudah Habis',
+      cls:'badge-danger'
+    };
+  }
+
+  if(days <= 30){
+    return {
+      text:'Hampir Habis',
+      cls:'badge-warning'
+    };
+  }
+
+  return {
+    text:'Aman',
+    cls:'badge-safe'
+  };
+
+}
+
+function formatExcelDate(value){
+
+  if(!value) return '';
+
+  if(typeof value === 'number'){
+
+    var date = XLSX.SSF.parse_date_code(value);
+
+    if(!date) return '';
+
+    return (
+      date.y +
+      '-' +
+      String(date.m).padStart(2,'0') +
+      '-' +
+      String(date.d).padStart(2,'0')
+    );
+
+  }
+
+  var parsed = new Date(value);
+
+  if(isNaN(parsed.getTime())){
+    return '';
+  }
+
+  return parsed.toISOString().split('T')[0];
+
+}
 /* =========================
    MODAL
 ========================= */
 
 var modalSaveAction = null;
 
-function openModal(title, content, onSave) {
+function openModal(title,content,onSave){
+
   modalTitle.innerHTML = title || '';
+
   modalBody.innerHTML = content || '';
+
   modalSaveAction = onSave || null;
+
   modalWrap.classList.remove('hidden');
+
 }
 
-function closeModal() {
+function closeModal(){
+
   modalWrap.classList.add('hidden');
+
 }
 
 document.getElementById('closeModal').onclick = closeModal;
+
 document.getElementById('cancelModal').onclick = closeModal;
 
-/* FIX #2: Removed the extra stray "};" that appeared after the
-   saveModal onclick block, which caused a syntax error fatal enough
-   to prevent the entire script from parsing. */
-document.getElementById('saveModal').onclick = async function() {
+document.getElementById('saveModal').onclick = async function(){
+
   var btn = document.getElementById('saveModal');
-  if (btn.disabled) return;
+
+  if(btn.disabled) return;
+
   btn.disabled = true;
-  try {
-    if (modalSaveAction) {
+
+  try{
+
+    if(modalSaveAction){
       await modalSaveAction();
     }
-  } finally {
+
+  }finally{
+
     btn.disabled = false;
+
   }
+
 };
 
 /* =========================
    CONFIRM
 ========================= */
 
-function confirmDelete(text, callback) {
-  var ok = confirm('Apakah Anda yakin ingin menghapus ' + text + '?');
-  if (ok) callback();
+function confirmDelete(text,callback){
+
+  var ok = confirm(
+    'Apakah Anda yakin ingin menghapus ' +
+    text +
+    '?'
+  );
+
+  if(ok){
+    callback();
+  }
+
 }
 
 /* =========================
-   RENDER KPI
+   KPI
 ========================= */
 
-function renderKPI() {
-  var employees = state.outlets.reduce(function(acc, o) {
-    return acc.concat(o.employees || []);
-  }, []);
+function renderKPI(){
 
-  var active = 0, warning = 0, expired = 0;
-  employees.forEach(function(emp) {
+  var employees = state.outlets.reduce(function(acc,o){
+
+    return acc.concat(o.employees || []);
+
+  },[]);
+
+  var active = 0;
+  var warning = 0;
+  var expired = 0;
+
+  employees.forEach(function(emp){
+
     var days = daysLeft(emp.contractEnd);
-    if (days < 0) expired++;
-    else if (days <= 30) warning++;
-    else active++;
+
+    if(days < 0){
+      expired++;
+    }
+    else if(days <= 30){
+      warning++;
+    }
+    else{
+      active++;
+    }
+
   });
 
   document.getElementById('kpiEmployees').innerText = employees.length;
+
   document.getElementById('kpiActive').innerText = active;
+
   document.getElementById('kpiWarning').innerText = warning;
+
   document.getElementById('kpiExpired').innerText = expired;
+
 }
 
 /* =========================
-   RENDER NOTIFICATION
+   NOTIFICATION
 ========================= */
 
-function renderNotifications() {
+function renderNotifications(){
+
   var all = [];
 
-  state.outlets.forEach(function(outlet) {
-    (outlet.employees || []).forEach(function(emp) {
+  state.outlets.forEach(function(outlet){
+
+    (outlet.employees || []).forEach(function(emp){
+
       var days = daysLeft(emp.contractEnd);
-      if (days <= 30) {
-        all.push(Object.assign({}, emp, { outletName: outlet.name, days: days }));
+
+      if(days <= 30){
+
+        all.push(
+          Object.assign({},emp,{
+            outletName:outlet.name,
+            days:days
+          })
+        );
+
       }
+
     });
+
   });
 
-  all.sort(function(a, b) {
-    if (a.outletName < b.outletName) return -1;
-    if (a.outletName > b.outletName) return 1;
+  all.sort(function(a,b){
+
+    if(a.outletName < b.outletName) return -1;
+
+    if(a.outletName > b.outletName) return 1;
+
     return a.name.localeCompare(b.name);
+
   });
 
   notifCount.innerText = all.length;
 
-  if (all.length) {
+  if(all.length){
     notifCount.classList.remove('hidden');
-  } else {
+  }else{
     notifCount.classList.add('hidden');
   }
 
-  if (!all.length) {
-    notifList.innerHTML = '<div class="empty">Tidak ada kontrak kritis</div>';
+  if(!all.length){
+
+    notifList.innerHTML =
+      '<div class="empty">Tidak ada kontrak kritis</div>';
+
     return;
+
   }
 
-  notifList.innerHTML = all.map(function(emp) {
-    return '<div class="notif-item">' +
-      '<div class="notif-name">' + escapeHtml(emp.name) + '</div>' +
-      '<div class="notif-outlet">' + escapeHtml(emp.outletName) + '</div>' +
-      '<div class="notif-days">' +
-        (emp.days < 0
-          ? 'Sudah habis ' + Math.abs(emp.days) + ' hari'
-          : 'Sisa ' + emp.days + ' hari') +
-      '</div>' +
-    '</div>';
+  notifList.innerHTML = all.map(function(emp){
+
+    return (
+      '<div class="notif-item">' +
+
+        '<div class="notif-name">' +
+          escapeHtml(emp.name) +
+        '</div>' +
+
+        '<div class="notif-outlet">' +
+          escapeHtml(emp.outletName) +
+        '</div>' +
+
+        '<div class="notif-days">' +
+
+          (
+            emp.days < 0
+            ? 'Sudah habis ' + Math.abs(emp.days) + ' hari'
+            : 'Sisa ' + emp.days + ' hari'
+          ) +
+
+        '</div>' +
+
+      '</div>'
+    );
+
   }).join('');
+
 }
 
-notifBtn.onclick = function() {
+notifBtn.onclick = function(){
+
   notifPanel.classList.toggle('hidden');
+
 };
 
-document.addEventListener('click', function(e) {
-  var clickedInside = notifPanel.contains(e.target) || notifBtn.contains(e.target);
-  if (!clickedInside) {
+document.addEventListener('click',function(e){
+
+  var clickedInside =
+    notifPanel.contains(e.target) ||
+    notifBtn.contains(e.target);
+
+  if(!clickedInside){
     notifPanel.classList.add('hidden');
   }
+
 });
 
 /* =========================
-   RENDER FILTER
+   FILTER
 ========================= */
 
-function renderOutletFilter() {
-  filterOutlet.innerHTML = '<option value="">Semua Outlet</option>';
-  state.outlets.forEach(function(outlet) {
-    filterOutlet.innerHTML += '<option value="' + outlet.id + '">' + escapeHtml(outlet.name) + '</option>';
-  });
-}
+function renderOutletFilter(){
 
-/* =========================
-   RENDER
-========================= */
+  filterOutlet.innerHTML =
+    '<option value="">Semua Outlet</option>';
 
-function render() {
-  renderKPI();
-  renderNotifications();
-  renderOutletFilter();
+  state.outlets.forEach(function(outlet){
 
-  var keyword = searchInput.value.toLowerCase().trim();
-  var filter = filterOutlet.value;
-  var html = '';
+    filterOutlet.innerHTML +=
+      '<option value="' +
+      outlet.id +
+      '">' +
+      escapeHtml(outlet.name) +
+      '</option>';
 
-  var outlets = state.outlets.slice().sort(function(a, b) {
-    return a.name.localeCompare(b.name);
   });
 
-  outlets.forEach(function(outlet) {
-    if (filter && filter !== outlet.id) return;
-
-    var employees = (outlet.employees || []).slice().filter(function(emp) {
-      return String(emp.name || '').toLowerCase().includes(keyword);
-    });
-
-    employees.sort(function(a, b) {
-      if (currentSort === 'name-asc') return a.name.localeCompare(b.name);
-      if (currentSort === 'name-desc') return b.name.localeCompare(a.name);
-      if (currentSort === 'end-desc') return new Date(b.contractEnd) - new Date(a.contractEnd);
-      return new Date(a.contractEnd) - new Date(b.contractEnd);
-    });
-
-    var rows = '';
-    if (employees.length) {
-      rows = employees.map(function(emp) {
-        var status = getStatus(emp.contractEnd);
-        return '<tr>' +
-          '<td>' +
-            '<div class="employee-name">' + escapeHtml(emp.name) + '</div>' +
-            '<div class="employee-phone">' + escapeHtml(emp.phone) + '</div>' +
-          '</td>' +
-          '<td>' + currency(emp.salary) + '</td>' +
-          '<td>' + formatDate(emp.contractEnd) + '</td>' +
-          '<td><span class="badge ' + status.cls + '">' + status.text + '</span></td>' +
-          '<td>' +
-            '<div style="display:flex;gap:8px;">' +
-              '<button class="icon-btn" onclick="editEmployee(\'' + outlet.id + '\',\'' + emp.id + '\')">&#x270F;&#xFE0F;</button>' +
-              '<button class="icon-btn" onclick="deleteEmployee(\'' + outlet.id + '\',\'' + emp.id + '\')">&#x1F5D1;&#xFE0F;</button>' +
-            '</div>' +
-          '</td>' +
-        '</tr>';
-      }).join('');
-    } else {
-      rows = '<tr><td colspan="5"><div class="empty">Belum ada karyawan</div></td></tr>';
-    }
-
-    html += '<div class="outlet-card">' +
-      '<div class="outlet-top">' +
-        '<div>' +
-          '<div class="outlet-name">' + escapeHtml(outlet.name) + '</div>' +
-          '<div class="outlet-meta">' +
-            '&#x1F4CD; ' + escapeHtml(outlet.address || '-') + '<br>' +
-            '&#x1F464; PIC: ' + escapeHtml(outlet.pic || '-') + '<br>' +
-            '&#x1F4DE; ' + escapeHtml(outlet.phone || '-') +
-          '</div>' +
-        '</div>' +
-        '<div class="outlet-actions">' +
-          '<button class="icon-btn" onclick="editOutlet(\'' + outlet.id + '\')">&#x270F;&#xFE0F;</button>' +
-          '<button class="icon-btn" onclick="deleteOutlet(\'' + outlet.id + '\')">&#x1F5D1;&#xFE0F;</button>' +
-        '</div>' +
-      '</div>' +
-      '<div class="action-bar" style="margin-top:18px">' +
-        '<button class="btn btn-primary" onclick="addEmployee(\'' + outlet.id + '\')">&#x2795; Tambah Karyawan</button>' +
-      '</div>' +
-      '<div class="table-wrap">' +
-        '<table>' +
-          '<thead><tr>' +
-            '<th onclick="sortBy(\'name\')">Nama</th>' +
-            '<th>Gaji</th>' +
-            '<th onclick="sortBy(\'end\')">Kontrak Berakhir</th>' +
-            '<th>Status</th>' +
-            '<th>Aksi</th>' +
-          '</tr></thead>' +
-          '<tbody>' + rows + '</tbody>' +
-        '</table>' +
-      '</div>' +
-    '</div>';
-  });
-
-  outletGrid.innerHTML = html || '<div class="empty">Belum ada outlet</div>';
 }
 
 /* =========================
    SORT
 ========================= */
 
-function sortBy(type) {
-  if (type === 'name') {
-    currentSort = currentSort === 'name-asc' ? 'name-desc' : 'name-asc';
+function sortBy(type){
+
+  if(type === 'name'){
+
+    currentSort =
+      currentSort === 'name-asc'
+      ? 'name-desc'
+      : 'name-asc';
+
   }
-  if (type === 'end') {
-    currentSort = currentSort === 'end-asc' ? 'end-desc' : 'end-asc';
+
+  if(type === 'end'){
+
+    currentSort =
+      currentSort === 'end-asc'
+      ? 'end-desc'
+      : 'end-asc';
+
   }
+
   render();
+
+}
+
+/* =========================
+   RENDER
+========================= */
+
+function render(){
+
+  renderKPI();
+
+  renderNotifications();
+
+  renderOutletFilter();
+
+  var keyword =
+    searchInput.value
+      .toLowerCase()
+      .trim();
+
+  var filter = filterOutlet.value;
+
+  var html = '';
+
+  var outlets =
+    state.outlets
+      .slice()
+      .sort(function(a,b){
+
+        return a.name.localeCompare(b.name);
+
+      });
+
+  outlets.forEach(function(outlet){
+
+    if(filter && filter !== outlet.id){
+      return;
+    }
+
+    var employees =
+      (outlet.employees || [])
+      .slice()
+      .filter(function(emp){
+
+        return String(emp.name || '')
+          .toLowerCase()
+          .includes(keyword);
+
+      });
+
+    employees.sort(function(a,b){
+
+      if(currentSort === 'name-asc'){
+        return a.name.localeCompare(b.name);
+      }
+
+      if(currentSort === 'name-desc'){
+        return b.name.localeCompare(a.name);
+      }
+
+      if(currentSort === 'end-desc'){
+        return (
+          new Date(b.contractEnd) -
+          new Date(a.contractEnd)
+        );
+      }
+
+      return (
+        new Date(a.contractEnd) -
+        new Date(b.contractEnd)
+      );
+
+    });
+
+    var rows = '';
+
+    if(employees.length){
+
+      rows = employees.map(function(emp){
+
+        var status = getStatus(emp.contractEnd);
+
+        return (
+
+          '<tr>' +
+
+            '<td>' +
+
+              '<div class="employee-name">' +
+                escapeHtml(emp.name) +
+              '</div>' +
+
+              '<div class="employee-phone">' +
+                escapeHtml(emp.phone) +
+              '</div>' +
+
+            '</td>' +
+
+            '<td>' +
+              currency(emp.salary) +
+            '</td>' +
+
+            '<td>' +
+              formatDate(emp.contractEnd) +
+            '</td>' +
+
+            '<td>' +
+
+              '<span class="badge ' +
+                status.cls +
+              '">' +
+
+                status.text +
+
+              '</span>' +
+
+            '</td>' +
+
+            '<td>' +
+
+              '<div style="display:flex;gap:8px;">' +
+
+                '<button class="icon-btn" onclick="editEmployee(\'' +
+                  outlet.id +
+                  '\',\'' +
+                  emp.id +
+                  '\')">✏️</button>' +
+
+                '<button class="icon-btn" onclick="deleteEmployee(\'' +
+                  outlet.id +
+                  '\',\'' +
+                  emp.id +
+                  '\')">🗑️</button>' +
+
+              '</div>' +
+
+            '</td>' +
+
+          '</tr>'
+
+        );
+
+      }).join('');
+
+    }else{
+
+      rows =
+        '<tr>' +
+          '<td colspan="5">' +
+            '<div class="empty">Belum ada karyawan</div>' +
+          '</td>' +
+        '</tr>';
+
+    }
+
+    html += (
+
+      '<div class="outlet-card">' +
+
+        '<div class="outlet-top">' +
+
+          '<div>' +
+
+            '<div class="outlet-name">' +
+              escapeHtml(outlet.name) +
+            '</div>' +
+
+            '<div class="outlet-meta">' +
+
+              '📍 ' +
+              escapeHtml(outlet.address || '-') +
+
+              '<br>' +
+
+              '👤 PIC: ' +
+              escapeHtml(outlet.pic || '-') +
+
+              '<br>' +
+
+              '📞 ' +
+              escapeHtml(outlet.phone || '-') +
+
+            '</div>' +
+
+          '</div>' +
+
+          '<div class="outlet-actions">' +
+
+            '<button class="icon-btn" onclick="editOutlet(\'' +
+              outlet.id +
+              '\')">✏️</button>' +
+
+            '<button class="icon-btn" onclick="deleteOutlet(\'' +
+              outlet.id +
+              '\')">🗑️</button>' +
+
+          '</div>' +
+
+        '</div>' +
+
+        '<div class="action-bar" style="margin-top:18px">' +
+
+          '<button class="btn btn-primary" onclick="addEmployee(\'' +
+            outlet.id +
+            '\')">' +
+
+            '➕ Tambah Karyawan' +
+
+          '</button>' +
+
+        '</div>' +
+
+        '<div class="table-wrap">' +
+
+          '<table>' +
+
+            '<thead>' +
+
+              '<tr>' +
+
+                '<th onclick="sortBy(\'name\')">Nama</th>' +
+
+                '<th>Gaji</th>' +
+
+                '<th onclick="sortBy(\'end\')">Kontrak Berakhir</th>' +
+
+                '<th>Status</th>' +
+
+                '<th>Aksi</th>' +
+
+              '</tr>' +
+
+            '</thead>' +
+
+            '<tbody>' +
+
+              rows +
+
+            '</tbody>' +
+
+          '</table>' +
+
+        '</div>' +
+
+      '</div>'
+
+    );
+
+  });
+
+  outletGrid.innerHTML =
+    html ||
+    '<div class="empty">Belum ada outlet</div>';
+
 }
 
 /* =========================
    ADD OUTLET
 ========================= */
 
-document.getElementById('addOutletBtn').onclick = function() {
+document.getElementById('addOutletBtn').onclick = function(){
+
   openModal(
+
     'Tambah Outlet',
-    '<div class="form-group"><label class="label">Nama Outlet</label><input type="text" id="outletName" class="input"></div>' +
-    '<div class="form-group"><label class="label">Alamat</label><input type="text" id="outletAddress" class="input"></div>' +
-    '<div class="form-group"><label class="label">Nama PIC</label><input type="text" id="outletPic" class="input"></div>' +
-    '<div class="form-group"><label class="label">Nomor HP</label><input type="text" id="outletPhone" class="input"></div>',
-    async function() {
-      var name = document.getElementById('outletName').value.trim();
-      if (!name) { alert('Nama outlet wajib diisi'); return; }
+
+    '<div class="form-group">' +
+      '<label class="label">Nama Outlet</label>' +
+      '<input type="text" id="outletName" class="input">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Alamat</label>' +
+      '<input type="text" id="outletAddress" class="input">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Nama PIC</label>' +
+      '<input type="text" id="outletPic" class="input">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Nomor HP</label>' +
+      '<input type="text" id="outletPhone" class="input">' +
+    '</div>',
+
+    async function(){
+
+      var name =
+        document.getElementById('outletName')
+        .value
+        .trim();
+
+      if(!name){
+        alert('Nama outlet wajib diisi');
+        return;
+      }
+
       state.outlets.push({
-        id: uid(),
-        name: name,
-        address: document.getElementById('outletAddress').value,
-        pic: document.getElementById('outletPic').value,
-        phone: document.getElementById('outletPhone').value,
-        employees: []
+
+        id:uid(),
+
+        name:name,
+
+        address:
+          document.getElementById('outletAddress').value,
+
+        pic:
+          document.getElementById('outletPic').value,
+
+        phone:
+          document.getElementById('outletPhone').value,
+
+        employees:[]
+
       });
+
       await saveData(state);
+
       render();
+
       closeModal();
+
     }
+
   );
+
 };
 
 /* =========================
    EDIT OUTLET
 ========================= */
 
-function editOutlet(id) {
-  var outlet = state.outlets.find(function(o) { return o.id === id; });
-  if (!outlet) return;
+function editOutlet(id){
+
+  var outlet = state.outlets.find(function(o){
+    return o.id === id;
+  });
+
+  if(!outlet) return;
 
   openModal(
-    'Edit Outlet',
-    '<div class="form-group"><label class="label">Nama Outlet</label><input type="text" id="outletName" class="input" value="' + escapeHtml(outlet.name) + '"></div>' +
-    '<div class="form-group"><label class="label">Alamat</label><input type="text" id="outletAddress" class="input" value="' + escapeHtml(outlet.address || '') + '"></div>' +
-    '<div class="form-group"><label class="label">PIC Outlet</label><input type="text" id="outletPic" class="input" value="' + escapeHtml(outlet.pic || '') + '"></div>' +
-    '<div class="form-group"><label class="label">Nomor HP</label><input type="text" id="outletPhone" class="input" value="' + escapeHtml(outlet.phone || '') + '"></div>',
-    async function() {
-      var name = document.getElementById('outletName').value.trim();
-      if (!name) { alert('Nama outlet wajib diisi'); return; }
-      outlet.name = name;
-      outlet.address = document.getElementById('outletAddress').value;
-      outlet.pic = document.getElementById('outletPic').value;
-      outlet.phone = document.getElementById('outletPhone').value;
-      await saveData(state);
-      render();
-      closeModal();
-    }
-  );
-}
 
+    'Edit Outlet',
+
+    '<div class="form-group">' +
+      '<label class="label">Nama Outlet</label>' +
+      '<input type="text" id="outletName" class="input" value="' +
+      escapeHtml(outlet.name) +
+      '">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Alamat</label>' +
+      '<input type="text" id="outletAddress" class="input" value="' +
+      escapeHtml(outlet.address || '') +
+      '">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">PIC</label>' +
+      '<input type="text" id="outletPic" class="input" value="' +
+      escapeHtml(outlet.pic || '') +
+      '">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Nomor HP</label>' +
+      '<input type="text" id="outletPhone" class="input" value="' +
+      escapeHtml(outlet.phone || '') +
+      '">' +
+    '</div>',
+
+    async function(){
+
+      var name =
+        document.getElementById('outletName')
+        .value
+        .trim();
+
+      if(!name){
+        alert('Nama outlet wajib diisi');
+        return;
+      }
+
+      outlet.name = name;
+
+      outlet.address =
+        document.getElementById('outletAddress').value;
+
+      outlet.pic =
+        document.getElementById('outletPic').value;
+
+      outlet.phone =
+        document.getElementById('outletPhone').value;
+
+      await saveData(state);
+
+      render();
+
+      closeModal();
+
+    }
+
+  );
+
+}
 /* =========================
    DELETE OUTLET
 ========================= */
 
-function deleteOutlet(id) {
-  var outlet = state.outlets.find(function(o) { return o.id === id; });
-  if (!outlet) return;
-  confirmDelete(outlet.name, async function() {
-    state.outlets = state.outlets.filter(function(o) { return o.id !== id; });
-    await saveData(state);
-    render();
+function deleteOutlet(id){
+
+  var outlet = state.outlets.find(function(o){
+    return o.id === id;
   });
+
+  if(!outlet) return;
+
+  confirmDelete(outlet.name,async function(){
+
+    state.outlets =
+      state.outlets.filter(function(o){
+        return o.id !== id;
+      });
+
+    await saveData(state);
+
+    render();
+
+  });
+
 }
 
 /* =========================
    ADD EMPLOYEE
 ========================= */
 
-function addEmployee(outletId) {
+function addEmployee(outletId){
+
   openModal(
+
     'Tambah Karyawan',
-    '<div class="form-group"><label class="label">Nama</label><input type="text" id="employeeName" class="input"></div>' +
-    '<div class="form-group"><label class="label">Nomor HP</label><input type="text" id="employeePhone" class="input"></div>' +
-    '<div class="form-group"><label class="label">Gaji Pokok</label><input type="number" id="employeeSalary" class="input"></div>' +
-    '<div class="form-group"><label class="label">Start Kontrak</label><input type="date" id="employeeStart" class="input"></div>' +
-    '<div class="form-group"><label class="label">Akhir Kontrak</label><input type="date" id="employeeEnd" class="input"></div>',
-    async function() {
-      var employeeName = document.getElementById('employeeName').value.trim();
-      var employeeEnd = document.getElementById('employeeEnd').value;
-      if (!employeeName) { alert('Nama karyawan wajib diisi'); return; }
-      if (!employeeEnd) { alert('Tanggal akhir kontrak wajib diisi'); return; }
-      var outlet = state.outlets.find(function(o) { return o.id === outletId; });
-      if (!outlet) return;
-      outlet.employees.push({
-        id: uid(),
-        name: employeeName,
-        phone: document.getElementById('employeePhone').value,
-        salary: Number(document.getElementById('employeeSalary').value || 0),
-        contractStart: document.getElementById('employeeStart').value,
-        contractEnd: employeeEnd
+
+    '<div class="form-group">' +
+      '<label class="label">Nama</label>' +
+      '<input type="text" id="employeeName" class="input">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Nomor HP</label>' +
+      '<input type="text" id="employeePhone" class="input">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Gaji Pokok</label>' +
+      '<input type="number" id="employeeSalary" class="input">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Start Kontrak</label>' +
+      '<input type="date" id="employeeStart" class="input">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Akhir Kontrak</label>' +
+      '<input type="date" id="employeeEnd" class="input">' +
+    '</div>',
+
+    async function(){
+
+      var employeeName =
+        document.getElementById('employeeName')
+        .value
+        .trim();
+
+      var employeeEnd =
+        document.getElementById('employeeEnd')
+        .value;
+
+      if(!employeeName){
+        alert('Nama karyawan wajib diisi');
+        return;
+      }
+
+      if(!employeeEnd){
+        alert('Tanggal akhir kontrak wajib diisi');
+        return;
+      }
+
+      var outlet = state.outlets.find(function(o){
+        return o.id === outletId;
       });
+
+      if(!outlet) return;
+
+      outlet.employees.push({
+
+        id:uid(),
+
+        name:employeeName,
+
+        phone:
+          document.getElementById('employeePhone').value,
+
+        salary:Number(
+          document.getElementById('employeeSalary').value || 0
+        ),
+
+        contractStart:
+          document.getElementById('employeeStart').value,
+
+        contractEnd:employeeEnd
+
+      });
+
       await saveData(state);
+
       render();
+
       closeModal();
+
     }
+
   );
+
 }
 
 /* =========================
    EDIT EMPLOYEE
 ========================= */
 
-function editEmployee(outletId, employeeId) {
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
-  if (!outlet) return;
-  var employee = outlet.employees.find(function(e) { return e.id === employeeId; });
-  if (!employee) return;
+function editEmployee(outletId,employeeId){
+
+  var outlet = state.outlets.find(function(o){
+    return o.id === outletId;
+  });
+
+  if(!outlet) return;
+
+  var employee = outlet.employees.find(function(e){
+    return e.id === employeeId;
+  });
+
+  if(!employee) return;
 
   openModal(
+
     'Edit Karyawan',
-    '<div class="form-group"><label class="label">Nama</label><input type="text" id="employeeName" class="input" value="' + escapeHtml(employee.name) + '"></div>' +
-    '<div class="form-group"><label class="label">Nomor HP</label><input type="text" id="employeePhone" class="input" value="' + escapeHtml(employee.phone || '') + '"></div>' +
-    '<div class="form-group"><label class="label">Gaji Pokok</label><input type="number" id="employeeSalary" class="input" value="' + (employee.salary || 0) + '"></div>' +
-    '<div class="form-group"><label class="label">Start Kontrak</label><input type="date" id="employeeStart" class="input" value="' + (employee.contractStart || '') + '"></div>' +
-    '<div class="form-group"><label class="label">Akhir Kontrak</label><input type="date" id="employeeEnd" class="input" value="' + (employee.contractEnd || '') + '"></div>',
-    async function() {
-      var employeeName = document.getElementById('employeeName').value.trim();
-      var employeeEnd = document.getElementById('employeeEnd').value;
-      if (!employeeName) { alert('Nama karyawan wajib diisi'); return; }
-      if (!employeeEnd) { alert('Tanggal akhir kontrak wajib diisi'); return; }
+
+    '<div class="form-group">' +
+      '<label class="label">Nama</label>' +
+      '<input type="text" id="employeeName" class="input" value="' +
+      escapeHtml(employee.name) +
+      '">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Nomor HP</label>' +
+      '<input type="text" id="employeePhone" class="input" value="' +
+      escapeHtml(employee.phone || '') +
+      '">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Gaji Pokok</label>' +
+      '<input type="number" id="employeeSalary" class="input" value="' +
+      (employee.salary || 0) +
+      '">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Start Kontrak</label>' +
+      '<input type="date" id="employeeStart" class="input" value="' +
+      (employee.contractStart || '') +
+      '">' +
+    '</div>' +
+
+    '<div class="form-group">' +
+      '<label class="label">Akhir Kontrak</label>' +
+      '<input type="date" id="employeeEnd" class="input" value="' +
+      (employee.contractEnd || '') +
+      '">' +
+    '</div>',
+
+    async function(){
+
+      var employeeName =
+        document.getElementById('employeeName')
+        .value
+        .trim();
+
+      var employeeEnd =
+        document.getElementById('employeeEnd')
+        .value;
+
+      if(!employeeName){
+        alert('Nama karyawan wajib diisi');
+        return;
+      }
+
+      if(!employeeEnd){
+        alert('Tanggal akhir kontrak wajib diisi');
+        return;
+      }
+
       employee.name = employeeName;
-      employee.phone = document.getElementById('employeePhone').value;
-      employee.salary = Number(document.getElementById('employeeSalary').value || 0);
-      employee.contractStart = document.getElementById('employeeStart').value;
+
+      employee.phone =
+        document.getElementById('employeePhone').value;
+
+      employee.salary = Number(
+        document.getElementById('employeeSalary').value || 0
+      );
+
+      employee.contractStart =
+        document.getElementById('employeeStart').value;
+
       employee.contractEnd = employeeEnd;
+
       await saveData(state);
+
       render();
+
       closeModal();
+
     }
+
   );
+
 }
 
 /* =========================
    DELETE EMPLOYEE
 ========================= */
 
-function deleteEmployee(outletId, employeeId) {
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
-  if (!outlet) return;
-  var employee = outlet.employees.find(function(e) { return e.id === employeeId; });
-  if (!employee) return;
-  confirmDelete(employee.name, async function() {
-    outlet.employees = outlet.employees.filter(function(e) { return e.id !== employeeId; });
-    await saveData(state);
-    render();
+function deleteEmployee(outletId,employeeId){
+
+  var outlet = state.outlets.find(function(o){
+    return o.id === outletId;
   });
+
+  if(!outlet) return;
+
+  var employee = outlet.employees.find(function(e){
+    return e.id === employeeId;
+  });
+
+  if(!employee) return;
+
+  confirmDelete(employee.name,async function(){
+
+    outlet.employees =
+      outlet.employees.filter(function(e){
+        return e.id !== employeeId;
+      });
+
+    await saveData(state);
+
+    render();
+
+  });
+
 }
 
 /* =========================
-   EXPORT JSON BACKUP
+   EXPORT JSON
 ========================= */
 
-document.getElementById('exportJsonBtn').onclick = function() {
-  var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+document.getElementById('exportJsonBtn').onclick = function(){
+
+  var blob = new Blob(
+    [JSON.stringify(state,null,2)],
+    { type:'application/json' }
+  );
+
   var url = URL.createObjectURL(blob);
+
   var a = document.createElement('a');
+
   a.href = url;
+
   a.download = 'naruna-backup.json';
+
   a.click();
+
   URL.revokeObjectURL(url);
+
 };
 
 /* =========================
    EXPORT CSV
 ========================= */
 
-document.getElementById('exportCsvBtn').onclick = function() {
-  var rows = [['Outlet','Nama','Nomor HP','Gaji','Start Kontrak','Akhir Kontrak','Status']];
-  state.outlets.forEach(function(outlet) {
-    (outlet.employees || []).forEach(function(emp) {
-      var status = getStatus(emp.contractEnd).text;
-      rows.push([outlet.name, emp.name, emp.phone, emp.salary, emp.contractStart, emp.contractEnd, status]);
+document.getElementById('exportCsvBtn').onclick = function(){
+
+  var rows = [[
+    'Outlet',
+    'Nama',
+    'Nomor HP',
+    'Gaji',
+    'Start Kontrak',
+    'Akhir Kontrak',
+    'Status'
+  ]];
+
+  state.outlets.forEach(function(outlet){
+
+    (outlet.employees || []).forEach(function(emp){
+
+      var status =
+        getStatus(emp.contractEnd).text;
+
+      rows.push([
+        outlet.name,
+        emp.name,
+        emp.phone,
+        emp.salary,
+        emp.contractStart,
+        emp.contractEnd,
+        status
+      ]);
+
     });
+
   });
-  var csv = rows.map(function(row) {
-    return row.map(function(value) {
-      return '"' + String(value || '').replace(/"/g, '""') + '"';
+
+  var csv = rows.map(function(row){
+
+    return row.map(function(value){
+
+      return '"' +
+        String(value || '')
+          .replace(/"/g,'""') +
+        '"';
+
     }).join(',');
+
   }).join('\n');
-  var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv' });
+
+  var blob = new Blob(
+    ['\uFEFF' + csv],
+    { type:'text/csv' }
+  );
+
   var url = URL.createObjectURL(blob);
+
   var a = document.createElement('a');
+
   a.href = url;
+
   a.download = 'naruna-contracts.csv';
+
   a.click();
+
   URL.revokeObjectURL(url);
+
 };
 
 /* =========================
-   RESTORE BUTTON
+   IMPORT EXCEL
 ========================= */
 
-document.getElementById('restoreBtn').onclick = function() {
-  document.getElementById('restoreInput').click();
+document.getElementById('importExcelBtn').onclick = function(){
+
+  document.getElementById('excelInput').click();
+
 };
 
-/* FIX #3 + #4: Original restore handler had two critical bugs:
-   (a) missing "{" after if(!Array.isArray(...)) so the "return"
-       always executed, preventing data from being restored.
-   (b) the try block was missing its opening "{", causing a
-       syntax error that broke the entire restore flow.
-   Both are corrected below with proper block structure. */
-document.getElementById('restoreInput').addEventListener('change', async function(event) {
+document.getElementById('excelInput')
+.addEventListener('change',async function(event){
+
   var file = event.target.files[0];
-  if (!file) return;
 
-  var text = await file.text();
+  if(!file) return;
 
-  try {
-    var data = JSON.parse(text);
+  try{
 
-    if (!Array.isArray(data.outlets)) {
-      alert('File backup tidak valid');
-      return;
-    }
+    var data = await file.arrayBuffer();
 
-    state.outlets = data.outlets || [];
+    var workbook = XLSX.read(data);
+
+    var sheet =
+      workbook.Sheets[
+        workbook.SheetNames[0]
+      ];
+
+    var rows = XLSX.utils.sheet_to_json(sheet,{
+      range:1,
+      defval:''
+    });
+
+    var addedEmployees = 0;
+    var updatedEmployees = 0;
+    var addedOutlets = 0;
+
+    rows.forEach(function(row){
+
+      var outletName =
+        String(row['OUTLET'] || '')
+          .trim();
+
+      var employeeName =
+        String(row['NAMA'] || '')
+          .trim();
+
+      if(!outletName || !employeeName){
+        return;
+      }
+
+      var contractEnd =
+        formatExcelDate(
+          row['HABIS KONTRAK']
+        );
+
+      var contractStart =
+        formatExcelDate(
+          row['TGL KONTRAK']
+        );
+
+      var outlet = state.outlets.find(function(o){
+
+        return (
+          normalizeText(o.name) ===
+          normalizeText(outletName)
+        );
+
+      });
+
+      if(!outlet){
+
+        outlet = {
+
+          id:uid(),
+
+          name:outletName,
+
+          address:'',
+
+          pic:'',
+
+          phone:'',
+
+          employees:[]
+
+        };
+
+        state.outlets.push(outlet);
+
+        addedOutlets++;
+
+      }
+
+      var employee =
+        outlet.employees.find(function(emp){
+
+          return (
+            normalizeText(emp.name) ===
+            normalizeText(employeeName)
+          );
+
+        });
+
+      if(!employee){
+
+        outlet.employees.push({
+
+          id:uid(),
+
+          name:employeeName,
+
+          phone:'',
+
+          salary:0,
+
+          contractStart:contractStart,
+
+          contractEnd:contractEnd
+
+        });
+
+        addedEmployees++;
+
+      }else{
+
+        employee.contractStart = contractStart;
+
+        employee.contractEnd = contractEnd;
+
+        updatedEmployees++;
+
+      }
+
+    });
+
     await saveData(state);
-    render();
-    alert('Backup berhasil dipulihkan');
 
-  } catch (err) {
-    alert('Gagal membaca file backup');
+    render();
+
+    alert(
+      'Import Excel berhasil\n\n' +
+
+      'Outlet baru: ' + addedOutlets + '\n' +
+
+      'Karyawan baru: ' + addedEmployees + '\n' +
+
+      'Karyawan update: ' + updatedEmployees
+    );
+
+  }catch(err){
+
+    console.error(err);
+
+    alert(
+      'Gagal membaca file Excel'
+    );
+
   }
 
   event.target.value = '';
+
+});
+
+/* =========================
+   RESTORE
+========================= */
+
+document.getElementById('restoreBtn').onclick = function(){
+
+  document.getElementById('restoreInput').click();
+
+};
+
+document.getElementById('restoreInput')
+.addEventListener('change',async function(event){
+
+  var file = event.target.files[0];
+
+  if(!file) return;
+
+  var text = await file.text();
+
+  try{
+
+    var data = JSON.parse(text);
+
+    if(!Array.isArray(data.outlets)){
+
+      alert('File backup tidak valid');
+
+      return;
+
+    }
+
+    state.outlets = data.outlets || [];
+
+    await saveData(state);
+
+    render();
+
+    alert('Backup berhasil dipulihkan');
+
+  }catch(err){
+
+    alert('Gagal membaca file backup');
+
+  }
+
+  event.target.value = '';
+
 });
 
 /* =========================
    SEARCH + FILTER
 ========================= */
 
-searchInput.addEventListener('input', render);
-filterOutlet.addEventListener('change', render);
+searchInput.addEventListener('input',render);
+
+filterOutlet.addEventListener('change',render);
 
 /* =========================
-   INDEXED DB INIT
+   INIT
 ========================= */
 
-async function init() {
-  await openDB();
-  var saved = await loadData();
-  if (saved) {
-    state.outlets = saved.outlets || [];
+async function init(){
+
+  try{
+
+    await openDB();
+
+    var saved = await loadData();
+
+    if(saved){
+
+      state.outlets =
+        saved.outlets || [];
+
+    }
+
+    render();
+
+  }catch(err){
+
+    console.error(err);
+
+    alert(
+      'Gagal membuka database aplikasi'
+    );
+
   }
-  render();
+
 }
 
 /* =========================

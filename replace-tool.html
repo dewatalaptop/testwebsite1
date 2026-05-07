@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Code Replace Tool</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:20px;
+    background:#0f172a;
+    color:#f8fafc;
+    font-family:Arial,sans-serif;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+}
+
+h1{
+    margin-top:0;
+    font-size:28px;
+}
+
+.desc{
+    color:#94a3b8;
+    margin-bottom:20px;
+    line-height:1.5;
+}
+
+.section{
+    margin-bottom:20px;
+}
+
+label{
+    display:block;
+    margin-bottom:10px;
+    font-weight:bold;
+}
+
+textarea{
+    width:100%;
+    resize:vertical;
+    border:none;
+    outline:none;
+    border-radius:12px;
+    padding:16px;
+    background:#111827;
+    color:#f8fafc;
+    font-size:14px;
+    line-height:1.6;
+    font-family:Consolas,monospace;
+}
+
+#source{
+    min-height:300px;
+}
+
+#rules{
+    min-height:260px;
+}
+
+#output{
+    min-height:300px;
+}
+
+.actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+button{
+    border:none;
+    cursor:pointer;
+    border-radius:10px;
+    padding:12px 18px;
+    font-weight:bold;
+    background:#2563eb;
+    color:white;
+    transition:0.2s;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+#log{
+    background:#111827;
+    padding:16px;
+    border-radius:12px;
+    white-space:pre-wrap;
+    line-height:1.6;
+    font-family:Consolas,monospace;
+    color:#cbd5e1;
+    min-height:120px;
+}
+
+.small{
+    color:#94a3b8;
+    font-size:13px;
+    margin-top:8px;
+    line-height:1.5;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Code Replace Tool</h1>
+
+    <div class="desc">
+        Tool sederhana untuk replace karakter, kode, CSS, HTML, atau blok panjang sekaligus.
+        Mendukung multiline replace dan ribuan baris kode.
+    </div>
+
+    <div class="section">
+        <label>Source Code</label>
+
+        <textarea id="source" spellcheck="false"></textarea>
+
+        <div class="small">
+            Paste seluruh kode website di sini.
+        </div>
+    </div>
+
+    <div class="section">
+        <label>Replace Rules</label>
+
+        <textarea id="rules" spellcheck="false"></textarea>
+
+        <div class="small">
+            Format:<br><br>
+
+            =====RULE=====<br>
+            kode_lama|||kode_baru
+        </div>
+    </div>
+
+    <div class="actions">
+        <button onclick="runReplace()">Replace All</button>
+
+        <button onclick="copyOutput()">Copy Result</button>
+
+        <button onclick="clearAll()">Clear</button>
+
+        <button onclick="loadPreset()">Load Default Preset</button>
+    </div>
+
+    <div class="section">
+        <label>Replace Log</label>
+
+        <div id="log"></div>
+    </div>
+
+    <div class="section">
+        <label>Output</label>
+
+        <textarea id="output" spellcheck="false"></textarea>
+    </div>
+
+</div>
+
+<script>
+
+const defaultPreset = `=====RULE=====
+âœ…|||✅
+
+=====RULE=====
+â€”|||—
+
+=====RULE=====
+â€œ|||“
+
+=====RULE=====
+â€|||”
+
+=====RULE=====
+â€™|||’
+
+=====RULE=====
+.old-class|||.new-class
+
+=====RULE=====
+background:white;|||background:#0f172a;
+`;
+
+const sourceEl = document.getElementById("source");
+const rulesEl = document.getElementById("rules");
+const outputEl = document.getElementById("output");
+const logEl = document.getElementById("log");
+
+loadPreset();
+
+function loadPreset(){
+
+    rulesEl.value = defaultPreset;
+
+    logEl.textContent = "Preset loaded.";
+}
+
+function runReplace(){
+
+    let text = sourceEl.value;
+
+    const rawRules = rulesEl.value;
+
+    if(!text.trim()){
+
+        alert("Source code kosong.");
+
+        return;
+    }
+
+    if(!rawRules.trim()){
+
+        alert("Rules kosong.");
+
+        return;
+    }
+
+    const rules = rawRules
+        .split("=====RULE=====")
+        .map(rule => rule.trim())
+        .filter(rule => rule);
+
+    let logs = [];
+
+    let totalReplace = 0;
+
+    rules.forEach((rule,index)=>{
+
+        const separatorIndex = rule.indexOf("|||");
+
+        if(separatorIndex === -1){
+
+            logs.push(`⚠️ Rule ${index+1} invalid`);
+
+            return;
+        }
+
+        const find = rule.substring(0,separatorIndex);
+
+        const replace = rule.substring(separatorIndex + 3);
+
+        if(find === ""){
+
+            logs.push(`⚠️ Rule ${index+1} kosong`);
+
+            return;
+        }
+
+        const count = text.split(find).length - 1;
+
+        if(count > 0){
+
+            text = text.split(find).join(replace);
+
+            totalReplace += count;
+
+            logs.push(
+                `✅ Rule ${index+1}: ${count} replace`
+            );
+
+        }else{
+
+            logs.push(
+                `⚠️ Rule ${index+1}: not found`
+            );
+        }
+
+    });
+
+    outputEl.value = text;
+
+    logs.unshift(
+        `TOTAL REPLACE: ${totalReplace}\n`
+    );
+
+    logEl.textContent = logs.join("\n");
+}
+
+function copyOutput(){
+
+    const text = outputEl.value;
+
+    if(!text){
+
+        alert("Output kosong.");
+
+        return;
+    }
+
+    navigator.clipboard.writeText(text);
+
+    alert("Output copied.");
+}
+
+function clearAll(){
+
+    sourceEl.value = "";
+
+    outputEl.value = "";
+
+    logEl.textContent = "Cleared.";
+}
+
+</script>
+
+</body>
+</html>

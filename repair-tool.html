@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Code Repair Tool</title>
+
+<style>
+:root{
+  --bg:#0f172a;
+  --panel:#111827;
+  --panel2:#1e293b;
+  --border:#334155;
+  --text:#f8fafc;
+  --text2:#94a3b8;
+  --blue:#3b82f6;
+  --green:#22c55e;
+  --red:#ef4444;
+  --amber:#f59e0b;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,sans-serif;
+  min-height:100vh;
+  padding:20px;
+}
+
+.container{
+  max-width:1600px;
+  margin:auto;
+}
+
+.header{
+  margin-bottom:18px;
+}
+
+.title{
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:-0.5px;
+}
+
+.subtitle{
+  color:var(--text2);
+  margin-top:6px;
+  line-height:1.6;
+  font-size:14px;
+}
+
+.toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.btn{
+  border:none;
+  background:var(--panel2);
+  color:var(--text);
+  padding:11px 16px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:13px;
+  transition:0.15s;
+  border:1px solid var(--border);
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+  border-color:#475569;
+}
+
+.btn.primary{
+  background:var(--blue);
+  border-color:var(--blue);
+}
+
+.btn.green{
+  background:var(--green);
+  border-color:var(--green);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+@media(max-width:900px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+}
+
+.panel-header{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.panel-title{
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:0.4px;
+  text-transform:uppercase;
+}
+
+.panel-body{
+  padding:14px;
+}
+
+textarea{
+  width:100%;
+  min-height:70vh;
+  resize:vertical;
+  border:none;
+  outline:none;
+  background:#020617;
+  color:#e2e8f0;
+  border-radius:14px;
+  padding:16px;
+  font-size:13px;
+  line-height:1.6;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+
+.stats{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.stat{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px 14px;
+  min-width:160px;
+}
+
+.stat-label{
+  color:var(--text2);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  font-weight:700;
+}
+
+.stat-value{
+  margin-top:6px;
+  font-size:24px;
+  font-weight:800;
+}
+
+.detect-box{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+.detect-title{
+  font-weight:800;
+  margin-bottom:10px;
+  font-size:14px;
+}
+
+.detect-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.detect-item{
+  font-size:13px;
+  color:#cbd5e1;
+}
+
+.footer{
+  margin-top:20px;
+  text-align:center;
+  color:var(--text2);
+  font-size:12px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(34,197,94,0.1);
+  color:#4ade80;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  border:1px solid rgba(34,197,94,0.2);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="title">Smart Code Repair Tool</div>
+    <div class="subtitle">
+      Automatically detects and repairs broken characters, mojibake UTF-8, smart quotes,
+      invalid dashes, invisible unicode characters, broken CSS variables, and corrupted HTML/CSS/JS syntax.
+    </div>
+  </div>
+
+  <div class="stats">
+
+    <div class="stat">
+      <div class="stat-label">Characters Fixed</div>
+      <div class="stat-value" id="fixedCount">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">Input Lines</div>
+      <div class="stat-value" id="lineCount">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">Detected Issues</div>
+      <div class="stat-value" id="issueCount">0</div>
+    </div>
+
+  </div>
+
+  <div class="detect-box">
+    <div class="detect-title">Detected Problems</div>
+
+    <div class="detect-list" id="detectList">
+      <div class="detect-item">No issues detected yet.</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" id="pasteBtn">📋 Paste</button>
+    <button class="btn primary" id="repairBtn">⚡ Repair Code</button>
+    <button class="btn green" id="copyBtn">✅ Copy Result</button>
+    <button class="btn" id="clearBtn">🗑 Clear</button>
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Input Code</div>
+        <div class="badge">Broken / Raw</div>
+      </div>
+
+      <div class="panel-body">
+        <textarea
+          id="inputCode"
+          placeholder="Paste broken code here..."
+          spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Repaired Result</div>
+        <div class="badge">Fixed</div>
+      </div>
+
+      <div class="panel-body">
+        <textarea
+          id="outputCode"
+          placeholder="Repaired code will appear here..."
+          spellcheck="false"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Smart UTF-8 / Mojibake / Typography / Syntax Repair Engine
+  </div>
+
+</div>
+
+<script>
+const inputCode = document.getElementById('inputCode');
+const outputCode = document.getElementById('outputCode');
+
+const fixedCount = document.getElementById('fixedCount');
+const lineCount = document.getElementById('lineCount');
+const issueCount = document.getElementById('issueCount');
+const detectList = document.getElementById('detectList');
+
+function safeDecode(text){
+  try{
+    return decodeURIComponent(escape(text));
+  }catch(e){
+    return text;
+  }
+}
+
+function multiPassUTF8(text){
+  let prev = text;
+
+  for(let i=0;i<3;i++){
+    let next = safeDecode(prev);
+
+    if(next === prev){
+      break;
+    }
+
+    prev = next;
+  }
+
+  return prev;
+}
+
+function normalizeQuotes(text){
+  return text
+    .replace(/[“”„‟]/g,'"')
+    .replace(/[‘’‚‛]/g,"'");
+}
+
+function normalizeDashes(text){
+
+  text = text.replace(
+    /(^|\s)[–—]([a-zA-Z0-9_-]+\s*:)/gm,
+    '$1--$2'
+  );
+
+  return text
+    .replace(/[–—−]/g,'-');
+}
+
+function cleanInvisible(text){
+  return text.replace(/[\u200B-\u200D\uFEFF]/g,'');
+}
+
+function normalizeHTML(text){
+
+  text = text.replace(
+    /([a-zA-Z0-9_-]+)=“([^”]*)”/g,
+    '$1="$2"'
+  );
+
+  text = text.replace(
+    /([a-zA-Z0-9_-]+)=‘([^’]*)’/g,
+    "$1='$2'"
+  );
+
+  return text;
+}
+
+function normalizeCSSVariables(text){
+
+  return text.replace(
+    /(^|\s)-([a-zA-Z0-9_-]+\s*:)/gm,
+    '$1--$2'
+  );
+}
+
+function fixMojibake(text){
+
+  const map = {
+    'â€œ':'"',
+    'â€':'"',
+    'â€˜':"'",
+    'â€™':"'",
+    'â€”':'-',
+    'â€“':'-',
+    'â€¢':'•',
+    'âœ…':'✅',
+    'Â ':' ',
+    'Ã©':'é'
+  };
+
+  for(const bad in map){
+    text = text.split(bad).join(map[bad]);
+  }
+
+  return text;
+}
+
+function detectIssues(text){
+
+  const issues = [];
+
+  const smartQuotes =
+    (text.match(/[“”‘’]/g)||[]).length;
+
+  const badDashes =
+    (text.match(/[–—−]/g)||[]).length;
+
+  const mojibake =
+    (text.match(/â|Ã|Â/g)||[]).length;
+
+  const invisible =
+    (text.match(/[\u200B-\u200D\uFEFF]/g)||[]).length;
+
+  if(smartQuotes){
+    issues.push(
+      `✓ ${smartQuotes} smart quotes detected`
+    );
+  }
+
+  if(badDashes){
+    issues.push(
+      `✓ ${badDashes} invalid dashes detected`
+    );
+  }
+
+  if(mojibake){
+    issues.push(
+      `✓ ${mojibake} mojibake UTF-8 sequences detected`
+    );
+  }
+
+  if(invisible){
+    issues.push(
+      `✓ ${invisible} invisible unicode characters detected`
+    );
+  }
+
+  if(/–[a-zA-Z0-9_-]+\s*:/.test(text)){
+    issues.push(
+      '✓ Broken CSS variables detected'
+    );
+  }
+
+  return issues;
+}
+
+function repairCode(){
+
+  let text = inputCode.value;
+
+  const original = text;
+
+  const issues = detectIssues(text);
+
+  detectList.innerHTML = '';
+
+  if(issues.length){
+    issues.forEach(issue=>{
+      const div = document.createElement('div');
+      div.className = 'detect-item';
+      div.textContent = issue;
+      detectList.appendChild(div);
+    });
+  }else{
+    detectList.innerHTML =
+      '<div class="detect-item">No issues detected.</div>';
+  }
+
+  text = multiPassUTF8(text);
+
+  text = fixMojibake(text);
+
+  text = normalizeQuotes(text);
+
+  text = normalizeDashes(text);
+
+  text = normalizeHTML(text);
+
+  text = normalizeCSSVariables(text);
+
+  text = cleanInvisible(text);
+
+  outputCode.value = text;
+
+  const diff =
+    Math.abs(original.length - text.length);
+
+  fixedCount.textContent =
+    diff + issues.length;
+
+  lineCount.textContent =
+    text.split('\n').length;
+
+  issueCount.textContent =
+    issues.length;
+}
+
+async function pasteClipboard(){
+
+  try{
+    const text =
+      await navigator.clipboard.readText();
+
+    inputCode.value = text;
+
+    repairCode();
+
+  }catch(e){
+    alert('Clipboard access denied.');
+  }
+}
+
+async function copyResult(){
+
+  try{
+    await navigator.clipboard.writeText(
+      outputCode.value
+    );
+
+    const btn =
+      document.getElementById('copyBtn');
+
+    const old = btn.innerHTML;
+
+    btn.innerHTML = '✅ Copied';
+
+    setTimeout(()=>{
+      btn.innerHTML = old;
+    },1200);
+
+  }catch(e){
+    alert('Failed to copy.');
+  }
+}
+
+function clearAll(){
+
+  inputCode.value = '';
+  outputCode.value = '';
+
+  fixedCount.textContent = '0';
+  lineCount.textContent = '0';
+  issueCount.textContent = '0';
+
+  detectList.innerHTML =
+    '<div class="detect-item">No issues detected yet.</div>';
+}
+
+document
+  .getElementById('repairBtn')
+  .addEventListener('click',repairCode);
+
+document
+  .getElementById('pasteBtn')
+  .addEventListener('click',pasteClipboard);
+
+document
+  .getElementById('copyBtn')
+  .addEventListener('click',copyResult);
+
+document
+  .getElementById('clearBtn')
+  .addEventListener('click',clearAll);
+
+inputCode.addEventListener('input',()=>{
+
+  clearTimeout(window.__repairTimer);
+
+  window.__repairTimer =
+    setTimeout(repairCode,250);
+
+});
+</script>
+
+</body>
+</html>

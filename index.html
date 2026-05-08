@@ -508,10 +508,11 @@ box-shadow:0 0 0 3px rgba(37,99,235,0.1);
 
 /* ===================== OUTLET GRID ===================== */
 
+
 .outlet-grid{
 display:grid;
-grid-template-columns:repeat(3,minmax(0,1fr));
-gap:18px;
+grid-template-columns:repeat(auto-fit,minmax(760px,1fr));
+gap:20px;
 align-items:start;
 }
 
@@ -1389,8 +1390,8 @@ box-shadow:0 2px 8px rgba(124,58,237,0.3);
             <input type="number" id="contractDurationNum" class="input" placeholder="Contoh: 3" min="1" max="120" style="font-size:22px;font-weight:800;font-family:var(--font-display);height:56px;text-align:center;">
           </div>
           <div style="display:flex;gap:6px;">
-            <button type="button" class="unit-pill active" id="unitBulan" data-unit="bulan">.Bulan</button>
-            <button type="button" class="unit-pill" id="unitTahun" data-unit="tahun">.Tahun</button>
+            <button type="button" class="unit-pill active" id="unitBulan" data-unit="bulan">Bulan</button>
+            <button type="button" class="unit-pill" id="unitTahun" data-unit="tahun">Tahun</button>
           </div>
         </div>
       </div>
@@ -2081,9 +2082,17 @@ var _updateContractContext = { outletId: null, employeeId: null };
 var _selectedUnit = 'bulan';
 
 function openUpdateContractModal(outletId, employeeId) {
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+  var outlet = state.outlets.
+
+
+replace|||
+find(function(o) { return o.id === outletId; });
   if (!outlet) return;
-  var emp = (outlet.employees || []).find(function(e) { return e.id === employeeId; });
+  var emp = (outlet.employees || []).
+
+
+replace|||
+find(function(e) { return e.id === employeeId; });
   if (!emp) return;
 
   _updateContractContext = { outletId: outletId, employeeId: employeeId };
@@ -2128,9 +2137,27 @@ function updateContractPreview() {
     return;
   }
 
-  var outlet = state.outlets.find(function(o) { return o.id === _updateContractContext.outletId; });
+  var outlet = state.outlets.
+
+
+replace|||
+table{
+width:100%;
+border-collapse:collapse;
+min-width:980px;
+table-layout:auto;
+}(function(o) { return o.id === _updateContractContext.outletId; });
   if (!outlet) return;
-  var emp = (outlet.employees || []).find(function(e) { return e.id === _updateContractContext.employeeId; });
+  var emp = (outlet.employees || []).
+
+
+replace|||
+table{
+width:100%;
+border-collapse:collapse;
+min-width:980px;
+table-layout:auto;
+}(function(e) { return e.id === _updateContractContext.employeeId; });
   if (!emp) return;
 
   var baseDate = emp.contractEnd || new Date().toISOString().split('T')[0];
@@ -2153,9 +2180,17 @@ async function saveUpdateContract() {
   var outletId = _updateContractContext.outletId;
   var employeeId = _updateContractContext.employeeId;
 
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+  var outlet = state.outlets.
+
+
+replace|||
+find(function(o) { return o.id === outletId; });
   if (!outlet) { showToast('Outlet tidak ditemukan.', 'error'); return; }
-  var emp = (outlet.employees || []).find(function(e) { return e.id === employeeId; });
+  var emp = (outlet.employees || []).
+
+
+replace|||
+find(function(e) { return e.id === employeeId; });
   if (!emp) { showToast('Karyawan tidak ditemukan.', 'error'); return; }
 
   var baseDate = emp.contractEnd || new Date().toISOString().split('T')[0];
@@ -2191,9 +2226,17 @@ async function saveUpdateContract() {
    HISTORY MODAL
 ========================= */
 function openHistoryModal(outletId, employeeId) {
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+  var outlet = state.outlets.
+
+
+replace|||
+find(function(o) { return o.id === outletId; });
   if (!outlet) return;
-  var emp = (outlet.employees || []).find(function(e) { return e.id === employeeId; });
+  var emp = (outlet.employees || []).
+
+
+replace|||
+find(function(e) { return e.id === employeeId; });
   if (!emp) return;
 
   var nameEl = document.getElementById('historyEmpName');
@@ -2754,7 +2797,16 @@ function doAddOutlet() {
 }
 
 function doEditOutlet(id) {
-  var outlet = state.outlets.find(function(o) { return o.id === id; });
+  var outlet = state.outlets.
+
+
+replace|||
+table{
+width:100%;
+border-collapse:collapse;
+min-width:980px;
+table-layout:auto;
+}(function(o) { return o.id === id; });
   if (!outlet) return;
 
   openModal('Edit Outlet', function(container) { buildOutletForm(container, outlet); }, async function() {
@@ -2773,7 +2825,16 @@ function doEditOutlet(id) {
 }
 
 function doDeleteOutlet(id) {
-  var outlet = state.outlets.find(function(o) { return o.id === id; });
+  var outlet = state.outlets.
+
+
+replace|||
+table{
+width:100%;
+border-collapse:collapse;
+min-width:980px;
+table-layout:auto;
+}(function(o) { return o.id === id; });
   if (!outlet) return;
   var empCount = (outlet.employees||[]).length;
   var msg = 'Hapus outlet "' + outlet.name + '"?';
@@ -2806,7 +2867,11 @@ function validateEmployeeForm() {
 }
 
 function doAddEmployee(outletId) {
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+  var outlet = state.outlets.
+
+
+replace|||
+find(function(o) { return o.id === outletId; });
   if (!outlet) return;
 
   openModal('Tambah Karyawan', buildEmployeeForm, async function() {
@@ -2825,9 +2890,17 @@ function doAddEmployee(outletId) {
 }
 
 function doEditEmployee(outletId, employeeId) {
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+  var outlet = state.outlets.
+
+
+replace|||
+find(function(o) { return o.id === outletId; });
   if (!outlet) return;
-  var employee = outlet.employees.find(function(e) { return e.id === employeeId; });
+  var employee = outlet.employees.
+
+
+replace|||
+find(function(e) { return e.id === employeeId; });
   if (!employee) return;
 
   openModal('Edit Karyawan', function(container) { buildEmployeeForm(container, employee); }, async function() {
@@ -2846,9 +2919,17 @@ function doEditEmployee(outletId, employeeId) {
 }
 
 function doDeleteEmployee(outletId, employeeId) {
-  var outlet = state.outlets.find(function(o) { return o.id === outletId; });
+  var outlet = state.outlets.
+
+
+replace|||
+find(function(o) { return o.id === outletId; });
   if (!outlet) return;
-  var employee = outlet.employees.find(function(e) { return e.id === employeeId; });
+  var employee = outlet.employees.
+
+
+replace|||
+find(function(e) { return e.id === employeeId; });
   if (!employee) return;
   if (!confirm('Hapus karyawan "' + employee.name + '"?')) return;
 
@@ -2974,13 +3055,21 @@ async function doImportExcel(event) {
         return;
       }
 
-      var outlet = state.outlets.find(function(o) { return normalizeText(o.name) === normalizeText(outletName); });
+      var outlet = state.outlets.
+
+
+replace|||
+find(function(o) { return normalizeText(o.name) === normalizeText(outletName); });
       if (!outlet) {
         outlet = {id:uid(), name:outletName, address:'', pic:'', phone:'', employees:[]};
         state.outlets.push(outlet); addedOutlets++;
       }
 
-      var employee = outlet.employees.find(function(emp) { return normalizeText(emp.name) === normalizeText(employeeName); });
+      var employee = outlet.employees.
+
+
+replace|||
+find(function(emp) { return normalizeText(emp.name) === normalizeText(employeeName); });
       if (!employee) {
         outlet.employees.push({id:uid(), name:employeeName, phone:'', salary:0, contractStart:contractStart, contractEnd:contractEnd, contractHistory:[]});
         addedEmployees++;

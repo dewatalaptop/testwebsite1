@@ -1582,6 +1582,24 @@ function normalizeText(text) {
   return String(text || '').trim().toLowerCase();
 }
 
+function getColumn(row, aliases) {
+
+  for (var i = 0; i < aliases.length; i++) {
+
+    var key = aliases[i];
+
+    if (
+      row[key] !== undefined &&
+      row[key] !== null &&
+      String(row[key]).trim() !== ''
+    ) {
+      return row[key];
+    }
+  }
+
+  return '';
+}
+
 function escapeHtml(text) {
   var s = String(text === null || text === undefined ? '' : text);
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -2878,7 +2896,7 @@ async function doImportExcel(event) {
     if (!workbook.SheetNames || !workbook.SheetNames.length) throw new Error('File Excel kosong.');
     var sheet = workbook.Sheets[workbook.SheetNames[0]];
     var rows = XLSX.utils.sheet_to_json(sheet, {
-  range:1,
+  
   defval:'',
   raw:false
 
@@ -2895,12 +2913,51 @@ async function doImportExcel(event) {
 
     var addedEmployees=0, updatedEmployees=0, addedOutlets=0, skipped=0;
     rows.forEach(function(row) {
-      var outletName = String(row['OUTLET']||'').trim();
-      var employeeName = String(row['NAMA']||'').trim();
-      if (!outletName || !employeeName) { skipped++; return; }
+      var outletName = String(
+        getColumn(row, [
+          'OUTLET',
+          'NAMA OUTLET',
+          'STORE',
+          'CABANG'
+        ]) || ''
+      ).trim();
 
-      var contractEnd = formatExcelDate(row['HABIS KONTRAK']);
-      var contractStart = formatExcelDate(row['TGL KONTRAK']);
+      var employeeName = String(
+        getColumn(row, [
+          'NAMA',
+          'NAMA KARYAWAN',
+          'KARYAWAN',
+          'EMPLOYEE'
+        ]) || ''
+      ).trim();
+
+      if (!outletName || !employeeName) {
+        skipped++;
+        return;
+      }
+
+      var contractEnd = formatExcelDate(
+        getColumn(row, [
+          'HABIS KONTRAK',
+          'AKHIR KONTRAK',
+          'END DATE',
+          'KONTRAK END'
+        ])
+      );
+
+      var contractStart = formatExcelDate(
+        getColumn(row, [
+          'TGL KONTRAK',
+          'TANGGAL KONTRAK',
+          'START DATE',
+          'KONTRAK MULAI'
+        ])
+      );
+
+      if (!contractEnd) {
+        skipped++;
+        return;
+      }
 
       var outlet = state.outlets.find(function(o) { return normalizeText(o.name) === normalizeText(outletName); });
       if (!outlet) {

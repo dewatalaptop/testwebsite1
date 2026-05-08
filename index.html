@@ -749,7 +749,7 @@ table{min-width:980px;}
 
   <div class="wrapper">
 
-```
+
 <!-- HERO -->
 <div class="hero">
   <div class="hero-left">
@@ -821,7 +821,7 @@ table{min-width:980px;}
 
 <!-- OUTLET GRID -->
 <div class="outlet-grid" id="outletGrid" role="main"></div>
-```
+
 
   </div>
 </div>
@@ -1100,21 +1100,21 @@ function currency(value) {
 
 function formatDate(date) {
   if (!date) return '-';
-  var parsed = new Date(date + ’T12:00:00’);
+  var parsed = new Date(date + 'T12:00:00');
   if (isNaN(parsed.getTime())) return '-';
   return parsed.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
 }
 
 function formatDateLong(date) {
   if (!date) return '-';
-  var parsed = new Date(date + ’T12:00:00’);
+  var parsed = new Date(date + 'T12:00:00');
   if (isNaN(parsed.getTime())) return '-';
   return parsed.toLocaleDateString('id-ID', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
 }
 
 function daysLeft(date) {
   if (!date) return Infinity;
-  var end = new Date(date + ’T12:00:00’);
+  var end = new Date(date + 'T12:00:00');
   if (isNaN(end.getTime())) return Infinity;
   var now = new Date();
   end.setHours(0,0,0,0); now.setHours(0,0,0,0);
@@ -1257,7 +1257,7 @@ async function doRegister() {
     var existing = await dbGetUserByEmail(email);
     if (existing) { showAuthMsg('registerError','Email sudah terdaftar.'); return; }
 
-    var newUser = { id:uid(), name:name, email:email, password:password, createdAt:new Date().toISOString() };
+    var newUser = { id:uid(), name:name, email:email, password:btoa(password), createdAt:new Date().toISOString() };
     await dbPut(STORE_USERS, newUser);
 
     state.currentUser = newUser; state.outlets = [];
@@ -1291,7 +1291,7 @@ async function doLogin() {
 
   try {
     var user = await dbGetUserByEmail(email);
-    if (!user || user.password !== password) {
+    if (!user || user.password !== btoa(password)) {
       showAuthMsg('loginError','Email atau password salah.'); return;
     }
     state.currentUser = user;
@@ -1386,7 +1386,7 @@ async function doReset() {
     }
     var user = await dbGetUserByEmail(tokenObj.email);
     if (!user) { showAuthMsg('resetError','Akun tidak ditemukan.'); return; }
-    user.password = newPass;
+    user.password = btoa(newPass);
     await dbPut(STORE_USERS, user);
     await dbDelete(STORE_TOKENS, token);
     showAuthMsg('resetSuccess','Password berhasil diubah. Silakan login.');
@@ -1831,6 +1831,9 @@ function debouncedRender() {
    RENDER
 ========================= */
 function render() {
+if (render._busy) return;
+render._busy = true;
+try {
   renderKPI();
   renderNotifications();
   renderOutletFilter();
@@ -1880,7 +1883,11 @@ function render() {
     return;
   }
 
-  outletGrid.appendChild(fragment);
+    outletGrid.appendChild(fragment);
+
+} finally {
+render._busy = false;
+}
 }
 
 /* =========================
@@ -2416,7 +2423,7 @@ function wireAppButtons() {
   document.getElementById('closeUpdateContract').onclick = closeUpdateContractModal;
   document.getElementById('cancelUpdateContract').onclick = closeUpdateContractModal;
   document.getElementById('updateContractWrap').addEventListener('click', function(e) {
-    if (e.target === this) closeUpdateContractModal(); requestAnimationFrame(render);
+    if (e.target === this) { closeUpdateContractModal(); requestAnimationFrame(render); }
   });
 
   document.getElementById('contractDurationNum').addEventListener('input', updateContractPreview);

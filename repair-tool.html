@@ -2,17 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Code Repair Tool</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Ultra Smart Code Repair Tool</title>
 
 <style>
 :root{
-  --bg:#0f172a;
-  --panel:#111827;
-  --panel2:#1e293b;
-  --border:#334155;
+  --bg:#020617;
+  --panel:#0f172a;
+  --panel2:#111827;
+  --border:#1e293b;
   --text:#f8fafc;
-  --text2:#94a3b8;
+  --muted:#94a3b8;
   --blue:#3b82f6;
   --green:#22c55e;
   --red:#ef4444;
@@ -29,55 +30,54 @@ body{
   background:var(--bg);
   color:var(--text);
   font-family:Inter,system-ui,sans-serif;
-  min-height:100vh;
   padding:20px;
+  min-height:100vh;
 }
 
 .container{
-  max-width:1600px;
+  max-width:1800px;
   margin:auto;
 }
 
 .header{
-  margin-bottom:18px;
+  margin-bottom:20px;
 }
 
 .title{
-  font-size:28px;
-  font-weight:800;
-  letter-spacing:-0.5px;
+  font-size:32px;
+  font-weight:900;
+  letter-spacing:-1px;
 }
 
 .subtitle{
-  color:var(--text2);
-  margin-top:6px;
-  line-height:1.6;
-  font-size:14px;
+  margin-top:8px;
+  color:var(--muted);
+  line-height:1.7;
+  max-width:1100px;
 }
 
 .toolbar{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
-  margin-bottom:16px;
+  margin-bottom:18px;
 }
 
 .btn{
   border:none;
   background:var(--panel2);
-  color:var(--text);
-  padding:11px 16px;
-  border-radius:12px;
-  cursor:pointer;
+  color:white;
+  padding:12px 18px;
+  border-radius:14px;
   font-weight:700;
-  font-size:13px;
-  transition:0.15s;
+  cursor:pointer;
+  transition:.18s;
   border:1px solid var(--border);
 }
 
 .btn:hover{
   transform:translateY(-1px);
-  border-color:#475569;
+  opacity:.95;
 }
 
 .btn.primary{
@@ -90,104 +90,51 @@ body{
   border-color:var(--green);
 }
 
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-}
-
-@media(max-width:900px){
-  .grid{
-    grid-template-columns:1fr;
-  }
-}
-
-.panel{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:18px;
-  overflow:hidden;
-}
-
-.panel-header{
-  padding:14px 16px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-
-.panel-title{
-  font-size:13px;
-  font-weight:800;
-  letter-spacing:0.4px;
-  text-transform:uppercase;
-}
-
-.panel-body{
-  padding:14px;
-}
-
-textarea{
-  width:100%;
-  min-height:70vh;
-  resize:vertical;
-  border:none;
-  outline:none;
-  background:#020617;
-  color:#e2e8f0;
-  border-radius:14px;
-  padding:16px;
-  font-size:13px;
-  line-height:1.6;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    monospace;
+.btn.red{
+  background:var(--red);
+  border-color:var(--red);
 }
 
 .stats{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-bottom:16px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;
+  margin-bottom:18px;
 }
 
 .stat{
   background:var(--panel);
   border:1px solid var(--border);
-  border-radius:14px;
-  padding:12px 14px;
-  min-width:160px;
+  border-radius:18px;
+  padding:16px;
 }
 
 .stat-label{
-  color:var(--text2);
   font-size:11px;
+  color:var(--muted);
   text-transform:uppercase;
-  letter-spacing:0.5px;
-  font-weight:700;
+  letter-spacing:.6px;
+  font-weight:800;
 }
 
 .stat-value{
-  margin-top:6px;
-  font-size:24px;
-  font-weight:800;
+  font-size:30px;
+  font-weight:900;
+  margin-top:8px;
 }
 
 .detect-box{
   background:var(--panel);
   border:1px solid var(--border);
   border-radius:18px;
-  padding:16px;
-  margin-bottom:16px;
+  padding:18px;
+  margin-bottom:18px;
 }
 
 .detect-title{
-  font-weight:800;
-  margin-bottom:10px;
   font-size:14px;
+  font-weight:900;
+  margin-bottom:12px;
 }
 
 .detect-list{
@@ -201,24 +148,72 @@ textarea{
   color:#cbd5e1;
 }
 
-.footer{
-  margin-top:20px;
-  text-align:center;
-  color:var(--text2);
-  font-size:12px;
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+@media(max-width:1000px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.panel-header{
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.panel-title{
+  font-size:13px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.5px;
 }
 
 .badge{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  background:rgba(34,197,94,0.1);
-  color:#4ade80;
-  padding:5px 10px;
+  background:rgba(59,130,246,.15);
+  color:#93c5fd;
+  padding:6px 10px;
   border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+}
+
+textarea{
+  width:100%;
+  min-height:75vh;
+  resize:vertical;
+  border:none;
+  outline:none;
+  background:#000814;
+  color:#e2e8f0;
+  padding:18px;
+  font-size:13px;
+  line-height:1.7;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+
+.footer{
+  margin-top:20px;
+  text-align:center;
+  color:var(--muted);
   font-size:12px;
-  font-weight:700;
-  border:1px solid rgba(34,197,94,0.2);
 }
 </style>
 </head>
@@ -228,333 +223,501 @@ textarea{
 <div class="container">
 
   <div class="header">
-    <div class="title">Smart Code Repair Tool</div>
+    <div class="title">
+      Ultra Smart Code Repair Tool
+    </div>
+
     <div class="subtitle">
-      Automatically detects and repairs broken characters, mojibake UTF-8, smart quotes,
-      invalid dashes, invisible unicode characters, broken CSS variables, and corrupted HTML/CSS/JS syntax.
+      Advanced repair engine for HTML, CSS, JS, JSON, UTF-8 mojibake,
+      invisible unicode corruption, malformed syntax, broken quotes,
+      broken attributes, CSS variables, malformed tags, and unsafe formatting.
     </div>
   </div>
 
   <div class="stats">
 
     <div class="stat">
-      <div class="stat-label">Characters Fixed</div>
+      <div class="stat-label">Repairs</div>
       <div class="stat-value" id="fixedCount">0</div>
     </div>
 
     <div class="stat">
-      <div class="stat-label">Input Lines</div>
+      <div class="stat-label">Lines</div>
       <div class="stat-value" id="lineCount">0</div>
     </div>
 
     <div class="stat">
-      <div class="stat-label">Detected Issues</div>
+      <div class="stat-label">Issues</div>
       <div class="stat-value" id="issueCount">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">Characters</div>
+      <div class="stat-value" id="charCount">0</div>
     </div>
 
   </div>
 
   <div class="detect-box">
-    <div class="detect-title">Detected Problems</div>
+    <div class="detect-title">
+      Detected Problems
+    </div>
 
     <div class="detect-list" id="detectList">
-      <div class="detect-item">No issues detected yet.</div>
+      <div class="detect-item">
+        No issues detected yet.
+      </div>
     </div>
   </div>
 
   <div class="toolbar">
     <button class="btn" id="pasteBtn">📋 Paste</button>
-    <button class="btn primary" id="repairBtn">⚡ Repair Code</button>
-    <button class="btn green" id="copyBtn">✅ Copy Result</button>
-    <button class="btn" id="clearBtn">🗑 Clear</button>
+    <button class="btn primary" id="repairBtn">⚡ Repair</button>
+    <button class="btn green" id="copyBtn">✅ Copy</button>
+    <button class="btn red" id="clearBtn">🗑 Clear</button>
   </div>
 
   <div class="grid">
 
     <div class="panel">
       <div class="panel-header">
-        <div class="panel-title">Input Code</div>
-        <div class="badge">Broken / Raw</div>
+        <div class="panel-title">Input</div>
+        <div class="badge">Raw / Broken</div>
       </div>
 
-      <div class="panel-body">
-        <textarea
-          id="inputCode"
-          placeholder="Paste broken code here..."
-          spellcheck="false"></textarea>
-      </div>
+      <textarea
+        id="inputCode"
+        placeholder="Paste corrupted code here..."
+        spellcheck="false"></textarea>
     </div>
 
     <div class="panel">
       <div class="panel-header">
-        <div class="panel-title">Repaired Result</div>
-        <div class="badge">Fixed</div>
+        <div class="panel-title">Output</div>
+        <div class="badge">Repaired</div>
       </div>
 
-      <div class="panel-body">
-        <textarea
-          id="outputCode"
-          placeholder="Repaired code will appear here..."
-          spellcheck="false"></textarea>
-      </div>
+      <textarea
+        id="outputCode"
+        placeholder="Repaired code..."
+        spellcheck="false"></textarea>
     </div>
 
   </div>
 
   <div class="footer">
-    Smart UTF-8 / Mojibake / Typography / Syntax Repair Engine
+    Ultra Smart Multi-Engine Repair Pipeline
   </div>
 
 </div>
 
 <script>
-const inputCode = document.getElementById('inputCode');
-const outputCode = document.getElementById('outputCode');
+'use strict';
 
-const fixedCount = document.getElementById('fixedCount');
-const lineCount = document.getElementById('lineCount');
-const issueCount = document.getElementById('issueCount');
-const detectList = document.getElementById('detectList');
+const els = {
+  input:document.getElementById('inputCode'),
+  output:document.getElementById('outputCode'),
+  fixed:document.getElementById('fixedCount'),
+  lines:document.getElementById('lineCount'),
+  issues:document.getElementById('issueCount'),
+  chars:document.getElementById('charCount'),
+  detect:document.getElementById('detectList')
+};
 
-function safeDecode(text){
-  try{
-    return decodeURIComponent(escape(text));
-  }catch(e){
-    return text;
-  }
-}
+const RepairEngine = {
 
-function multiPassUTF8(text){
-  let prev = text;
+  repairCount:0,
 
-  for(let i=0;i<3;i++){
-    let next = safeDecode(prev);
-
-    if(next === prev){
-      break;
-    }
-
-    prev = next;
-  }
-
-  return prev;
-}
-
-function normalizeQuotes(text){
-  return text
-    .replace(/[“”„‟]/g,'"')
-    .replace(/[‘’‚‛]/g,"'");
-}
-
-function normalizeDashes(text){
-
-  text = text.replace(
-    /(^|\s)[–—]([a-zA-Z0-9_-]+\s*:)/gm,
-    '$1--$2'
-  );
-
-  return text
-    .replace(/[–—−]/g,'-');
-}
-
-function cleanInvisible(text){
-  return text.replace(/[\u200B-\u200D\uFEFF]/g,'');
-}
-
-function normalizeHTML(text){
-
-  text = text.replace(
-    /([a-zA-Z0-9_-]+)=“([^”]*)”/g,
-    '$1="$2"'
-  );
-
-  text = text.replace(
-    /([a-zA-Z0-9_-]+)=‘([^’]*)’/g,
-    "$1='$2'"
-  );
-
-  return text;
-}
-
-function normalizeCSSVariables(text){
-
-  return text.replace(
-    /(^|\s)-([a-zA-Z0-9_-]+\s*:)/gm,
-    '$1--$2'
-  );
-}
-
-function fixMojibake(text){
-
-  const map = {
+  mojibakeMap:{
     'â€œ':'"',
     'â€':'"',
     'â€˜':"'",
     'â€™':"'",
-    'â€”':'-',
     'â€“':'-',
+    'â€”':'-',
     'â€¢':'•',
-    'âœ…':'✅',
     'Â ':' ',
-    'Ã©':'é'
-  };
+    'Ã ':'à',
+    'Ã¡':'á',
+    'Ã©':'é',
+    'Ã¨':'è',
+    'Ã¢':'â',
+    'Ãª':'ê',
+    'Ã®':'î',
+    'Ã´':'ô',
+    'Ã»':'û',
+    'Ã±':'ñ'
+  },
 
-  for(const bad in map){
-    text = text.split(bad).join(map[bad]);
+  detect(text){
+
+    const issues=[];
+
+    const tests = [
+      {
+        label:'Smart quotes',
+        regex:/[“”‘’]/g
+      },
+      {
+        label:'Invalid dashes',
+        regex:/[–—−]/g
+      },
+      {
+        label:'Mojibake UTF-8',
+        regex:/â|Ã|Â/g
+      },
+      {
+        label:'Invisible unicode',
+        regex:/[\u200B-\u200D\uFEFF]/g
+      },
+      {
+        label:'Broken CSS variables',
+        regex:/(^|\s)-[a-zA-Z0-9_-]+\s*:/gm
+      },
+      {
+        label:'Broken HTML attributes',
+        regex:/=\s*[“”‘’]/g
+      },
+      {
+        label:'Multiple semicolons',
+        regex:/;{2,}/g
+      },
+      {
+        label:'Mixed line endings',
+        regex:/\r\n|\r/g
+      }
+    ];
+
+    tests.forEach(t=>{
+      const count=(text.match(t.regex)||[]).length;
+
+      if(count){
+        issues.push({
+          label:t.label,
+          count
+        });
+      }
+    });
+
+    return issues;
+  },
+
+  safeDecode(text){
+
+    try{
+      return decodeURIComponent(escape(text));
+    }catch{
+      return text;
+    }
+  },
+
+  deepDecode(text){
+
+    let current=text;
+
+    for(let i=0;i<5;i++){
+
+      const next=this.safeDecode(current);
+
+      if(next===current){
+        break;
+      }
+
+      current=next;
+    }
+
+    return current;
+  },
+
+  normalizeQuotes(text){
+
+    return text
+      .replace(/[“”„‟]/g,'"')
+      .replace(/[‘’‚‛]/g,"'");
+  },
+
+  normalizeDashes(text){
+
+    return text
+      .replace(/[–—−]/g,'-');
+  },
+
+  removeInvisible(text){
+
+    return text.replace(
+      /[\u200B-\u200D\uFEFF]/g,
+      ''
+    );
+  },
+
+  repairMojibake(text){
+
+    Object.entries(this.mojibakeMap)
+      .forEach(([bad,good])=>{
+
+        text=text.split(bad).join(good);
+
+      });
+
+    return text;
+  },
+
+  normalizeLineEndings(text){
+
+    return text.replace(/\r\n/g,'\n')
+               .replace(/\r/g,'\n');
+  },
+
+  fixBrokenAttributes(text){
+
+    return text
+      .replace(
+        /([a-zA-Z0-9:_-]+)=“([^"]*?)”/g,
+        '$1="$2"'
+      )
+      .replace(
+        /([a-zA-Z0-9:_-]+)=‘([^']*?)’/g,
+        "$1='$2'"
+      );
+  },
+
+  fixCSSVariables(text){
+
+    return text.replace(
+      /(^|\s)-([a-zA-Z0-9_-]+\s*:)/gm,
+      '$1--$2'
+    );
+  },
+
+  fixSemicolons(text){
+
+    return text.replace(/;{2,}/g,';');
+  },
+
+  fixTrailingSpaces(text){
+
+    return text.replace(/[ \t]+$/gm,'');
+  },
+
+  fixTabs(text){
+
+    return text.replace(/\t/g,'  ');
+  },
+
+  balanceHTML(text){
+
+    const opens = (text.match(/</g)||[]).length;
+    const closes = (text.match(/>/g)||[]).length;
+
+    if(opens > closes){
+
+      text += '>'.repeat(opens - closes);
+
+    }
+
+    return text;
+  },
+
+  fixBrokenTags(text){
+
+    return text
+      .replace(/<\s+/g,'<')
+      .replace(/\s+>/g,'>');
+  },
+
+  fixBrokenJSON(text){
+
+    return text
+      .replace(/,\s*}/g,'}')
+      .replace(/,\s*]/g,']');
+  },
+
+  fixDuplicateBlank(text){
+
+    return text.replace(/\n{4,}/g,'\n\n\n');
+  },
+
+  indentHTML(text){
+
+    const lines=text.split('\n');
+
+    let indent=0;
+
+    return lines.map(line=>{
+
+      const trimmed=line.trim();
+
+      if(/^<\/.+>/.test(trimmed)){
+        indent=Math.max(indent-1,0);
+      }
+
+      const out='  '.repeat(indent)+trimmed;
+
+      if(
+        /^<[^!/].*[^/]>$/.test(trimmed) &&
+        !/^<.*<\/.*>$/.test(trimmed) &&
+        !trimmed.startsWith('</')
+      ){
+        indent++;
+      }
+
+      return out;
+
+    }).join('\n');
+  },
+
+  run(text){
+
+    const original=text;
+
+    text=this.deepDecode(text);
+    text=this.repairMojibake(text);
+    text=this.normalizeQuotes(text);
+    text=this.normalizeDashes(text);
+    text=this.removeInvisible(text);
+    text=this.normalizeLineEndings(text);
+    text=this.fixBrokenAttributes(text);
+    text=this.fixCSSVariables(text);
+    text=this.fixSemicolons(text);
+    text=this.fixTrailingSpaces(text);
+    text=this.fixTabs(text);
+    text=this.balanceHTML(text);
+    text=this.fixBrokenTags(text);
+    text=this.fixBrokenJSON(text);
+    text=this.fixDuplicateBlank(text);
+    text=this.indentHTML(text);
+
+    this.repairCount += Math.abs(
+      original.length - text.length
+    );
+
+    return text;
   }
 
-  return text;
+};
+
+function renderIssues(issues){
+
+  els.detect.innerHTML='';
+
+  if(!issues.length){
+
+    els.detect.innerHTML=`
+      <div class="detect-item">
+        No issues detected.
+      </div>
+    `;
+
+    return;
+  }
+
+  issues.forEach(issue=>{
+
+    const div=document.createElement('div');
+
+    div.className='detect-item';
+
+    div.textContent=
+      `✓ ${issue.count} ${issue.label}`;
+
+    els.detect.appendChild(div);
+
+  });
 }
 
-function detectIssues(text){
+function updateStats(text,issues){
 
-  const issues = [];
+  els.fixed.textContent =
+    RepairEngine.repairCount;
 
-  const smartQuotes =
-    (text.match(/[“”‘’]/g)||[]).length;
+  els.lines.textContent =
+    text.split('\n').length;
 
-  const badDashes =
-    (text.match(/[–—−]/g)||[]).length;
+  els.issues.textContent =
+    issues.length;
 
-  const mojibake =
-    (text.match(/â|Ã|Â/g)||[]).length;
-
-  const invisible =
-    (text.match(/[\u200B-\u200D\uFEFF]/g)||[]).length;
-
-  if(smartQuotes){
-    issues.push(
-      `✓ ${smartQuotes} smart quotes detected`
-    );
-  }
-
-  if(badDashes){
-    issues.push(
-      `✓ ${badDashes} invalid dashes detected`
-    );
-  }
-
-  if(mojibake){
-    issues.push(
-      `✓ ${mojibake} mojibake UTF-8 sequences detected`
-    );
-  }
-
-  if(invisible){
-    issues.push(
-      `✓ ${invisible} invisible unicode characters detected`
-    );
-  }
-
-  if(/–[a-zA-Z0-9_-]+\s*:/.test(text)){
-    issues.push(
-      '✓ Broken CSS variables detected'
-    );
-  }
-
-  return issues;
+  els.chars.textContent =
+    text.length.toLocaleString();
 }
 
 function repairCode(){
 
-  let text = inputCode.value;
+  const source=els.input.value;
 
-  const original = text;
+  const issues=
+    RepairEngine.detect(source);
 
-  const issues = detectIssues(text);
+  renderIssues(issues);
 
-  detectList.innerHTML = '';
+  const repaired=
+    RepairEngine.run(source);
 
-  if(issues.length){
-    issues.forEach(issue=>{
-      const div = document.createElement('div');
-      div.className = 'detect-item';
-      div.textContent = issue;
-      detectList.appendChild(div);
-    });
-  }else{
-    detectList.innerHTML =
-      '<div class="detect-item">No issues detected.</div>';
-  }
+  els.output.value=repaired;
 
-  text = multiPassUTF8(text);
-
-  text = fixMojibake(text);
-
-  text = normalizeQuotes(text);
-
-  text = normalizeDashes(text);
-
-  text = normalizeHTML(text);
-
-  text = normalizeCSSVariables(text);
-
-  text = cleanInvisible(text);
-
-  outputCode.value = text;
-
-  const diff =
-    Math.abs(original.length - text.length);
-
-  fixedCount.textContent =
-    diff + issues.length;
-
-  lineCount.textContent =
-    text.split('\n').length;
-
-  issueCount.textContent =
-    issues.length;
+  updateStats(repaired,issues);
 }
 
 async function pasteClipboard(){
 
   try{
-    const text =
+
+    const text=
       await navigator.clipboard.readText();
 
-    inputCode.value = text;
+    els.input.value=text;
 
     repairCode();
 
-  }catch(e){
-    alert('Clipboard access denied.');
+  }catch{
+
+    alert('Clipboard permission denied.');
+
   }
 }
 
 async function copyResult(){
 
   try{
+
     await navigator.clipboard.writeText(
-      outputCode.value
+      els.output.value
     );
 
-    const btn =
+    const btn=
       document.getElementById('copyBtn');
 
-    const old = btn.innerHTML;
+    const old=btn.innerHTML;
 
-    btn.innerHTML = '✅ Copied';
+    btn.innerHTML='✅ Copied';
 
     setTimeout(()=>{
-      btn.innerHTML = old;
+      btn.innerHTML=old;
     },1200);
 
-  }catch(e){
-    alert('Failed to copy.');
+  }catch{
+
+    alert('Copy failed.');
+
   }
 }
 
 function clearAll(){
 
-  inputCode.value = '';
-  outputCode.value = '';
+  els.input.value='';
+  els.output.value='';
 
-  fixedCount.textContent = '0';
-  lineCount.textContent = '0';
-  issueCount.textContent = '0';
+  els.fixed.textContent='0';
+  els.lines.textContent='0';
+  els.issues.textContent='0';
+  els.chars.textContent='0';
 
-  detectList.innerHTML =
-    '<div class="detect-item">No issues detected yet.</div>';
+  els.detect.innerHTML=`
+    <div class="detect-item">
+      No issues detected yet.
+    </div>
+  `;
+
+  RepairEngine.repairCount=0;
 }
 
 document
@@ -573,12 +736,16 @@ document
   .getElementById('clearBtn')
   .addEventListener('click',clearAll);
 
-inputCode.addEventListener('input',()=>{
+let repairTimer;
 
-  clearTimeout(window.__repairTimer);
+els.input.addEventListener('input',()=>{
 
-  window.__repairTimer =
-    setTimeout(repairCode,250);
+  clearTimeout(repairTimer);
+
+  repairTimer=setTimeout(
+    repairCode,
+    180
+  );
 
 });
 </script>

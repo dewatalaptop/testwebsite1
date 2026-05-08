@@ -9,17 +9,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<script>
+var FIREBASE_CONFIG = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+var FIREBASE_ENABLED = false;
+</script>
+
 <style>
-/* ====================================================
-   RESET
-==================================================== */
 *{margin:0;padding:0;box-sizing:border-box;}
 button,input,select,textarea{font-family:inherit;}
 .hidden{display:none!important;}
 
-/* ====================================================
-LIGHT THEME (DEFAULT)
-==================================================== */
 :root,[data-theme="light"]{
 --bg:         #F4F3EF;
 --bg2:        #FAFAF8;
@@ -29,51 +36,39 @@ LIGHT THEME (DEFAULT)
 --surface3:   rgba(0,0,0,0.055);
 --border:     rgba(0,0,0,0.08);
 --border2:    rgba(0,0,0,0.14);
-
 --text:       #1A1915;
 --text2:      #4A4742;
 --text3:      #7A7770;
 --text4:      #AEABA4;
 --ink:        #0D0D0B;
-
 --blue:       #1D6BE4;
 --blue-light: rgba(29,107,228,0.09);
 --blue-mid:   rgba(29,107,228,0.18);
 --blue-dark:  #1558C7;
 --blue-glow:  0 4px 16px rgba(29,107,228,0.22);
-
 --green:      #15803D;
 --green-light:rgba(21,128,61,0.09);
 --green-mid:  rgba(21,128,61,0.2);
-
 --amber:      #B45309;
 --amber-light:rgba(180,83,9,0.09);
 --amber-mid:  rgba(180,83,9,0.2);
-
 --red:        #DC2626;
 --red-light:  rgba(220,38,38,0.09);
 --red-mid:    rgba(220,38,38,0.2);
-
 --purple:     #6D28D9;
 --purple-light:rgba(109,40,217,0.09);
 --purple-mid: rgba(109,40,217,0.2);
-
 --teal:       #0D7377;
 --teal-light: rgba(13,115,119,0.09);
 --teal-mid:   rgba(13,115,119,0.2);
-
 --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
 --shadow:     0 4px 14px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
 --shadow-lg:  0 16px 48px rgba(0,0,0,0.14), 0 4px 10px rgba(0,0,0,0.07);
 --overlay:    rgba(0,0,0,0.5);
-
 --topbar-bg:  rgba(244,243,239,0.88);
 --loading-bg: #F4F3EF;
 }
 
-/* ====================================================
-DARK THEME
-==================================================== */
 [data-theme="dark"]{
 --bg:         #0E0F0D;
 --bg2:        #161714;
@@ -83,51 +78,39 @@ DARK THEME
 --surface3:   rgba(255,255,255,0.07);
 --border:     rgba(255,255,255,0.08);
 --border2:    rgba(255,255,255,0.14);
-
 --text:       #E8E6E1;
 --text2:      #9A9790;
 --text3:      #6A6760;
 --text4:      #454340;
 --ink:        #F2F0EB;
-
 --blue:       #4D8EF0;
 --blue-light: rgba(77,142,240,0.12);
 --blue-mid:   rgba(77,142,240,0.24);
 --blue-dark:  #3A7CE0;
 --blue-glow:  0 4px 20px rgba(77,142,240,0.3);
-
 --green:      #22C55E;
 --green-light:rgba(34,197,94,0.1);
 --green-mid:  rgba(34,197,94,0.22);
-
 --amber:      #F59E0B;
 --amber-light:rgba(245,158,11,0.1);
 --amber-mid:  rgba(245,158,11,0.22);
-
 --red:        #F87171;
 --red-light:  rgba(248,113,113,0.1);
 --red-mid:    rgba(248,113,113,0.22);
-
 --purple:     #A78BFA;
 --purple-light:rgba(167,139,250,0.1);
 --purple-mid: rgba(167,139,250,0.22);
-
 --teal:       #2DD4BF;
 --teal-light: rgba(45,212,191,0.1);
 --teal-mid:   rgba(45,212,191,0.22);
-
 --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
 --shadow:     0 4px 16px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
 --shadow-lg:  0 20px 60px rgba(0,0,0,0.65), 0 4px 12px rgba(0,0,0,0.4);
 --overlay:    rgba(0,0,0,0.65);
-
 --topbar-bg:  rgba(14,15,13,0.88);
 --loading-bg: #0E0F0D;
 }
 
-/* ====================================================
-BASE
-==================================================== */
 html{scroll-behavior:smooth;}
 body{
 font-family:'Geist',system-ui,sans-serif;
@@ -138,8 +121,6 @@ overflow-x:hidden;
 -webkit-font-smoothing:antialiased;
 transition:background 0.3s ease, color 0.3s ease;
 }
-
-/* Grain texture overlay */
 body::after{
 content:'';
 position:fixed;inset:0;
@@ -149,156 +130,50 @@ pointer-events:none;z-index:0;opacity:0.4;
 }
 [data-theme="dark"] body::after{opacity:0.25;}
 
-/* ====================================================
-LOADING SCREEN
-==================================================== */
-.loading-screen{
-position:fixed;inset:0;
-background:var(--loading-bg);
-display:flex;flex-direction:column;
-align-items:center;justify-content:center;
-z-index:9999;
-transition:opacity 0.4s ease;
-}
+.loading-screen{position:fixed;inset:0;background:var(--loading-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.4s ease;}
 .loading-screen.fade-out{opacity:0;pointer-events:none;}
-
-.loading-logo{
-width:56px;height:56px;border-radius:18px;
-background:linear-gradient(135deg,var(--blue),#818CF8);
-display:flex;align-items:center;justify-content:center;
-font-size:26px;margin-bottom:20px;
-animation:pulse 1.8s ease-in-out infinite;
-}
+.loading-logo{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,var(--blue),#818CF8);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:20px;animation:pulse 1.8s ease-in-out infinite;}
 @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
-
 .loading-dots{display:flex;gap:6px;margin-top:4px;}
-.loading-dot{
-width:6px;height:6px;border-radius:50%;background:var(--text3);
-animation:dotBounce 1.2s ease-in-out infinite;
-}
+.loading-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:dotBounce 1.2s ease-in-out infinite;}
 .loading-dot:nth-child(2){animation-delay:0.2s;}
 .loading-dot:nth-child(3){animation-delay:0.4s;}
 @keyframes dotBounce{0%,80%,100%{transform:scale(0.6);opacity:0.4;}40%{transform:scale(1);opacity:1;}}
 
-/* ====================================================
-TOPBAR
-==================================================== */
-.topbar{
-position:sticky;top:0;z-index:200;
-height:60px;
-background:var(--topbar-bg);
-backdrop-filter:blur(20px) saturate(1.3);
--webkit-backdrop-filter:blur(20px) saturate(1.3);
-border-bottom:1px solid var(--border);
-display:flex;align-items:center;justify-content:space-between;
-padding:0 20px;gap:12px;
-transition:background 0.3s ease,border-color 0.3s ease;
-}
+.firebase-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid;cursor:default;}
+.firebase-badge.online{background:var(--green-light);border-color:var(--green-mid);color:var(--green);}
+.firebase-badge.offline{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber);}
+.firebase-badge.connecting{background:var(--blue-light);border-color:var(--blue-mid);color:var(--blue);}
 
+.topbar{position:sticky;top:0;z-index:200;height:60px;background:var(--topbar-bg);backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px;transition:background 0.3s ease,border-color 0.3s ease;}
 .brand{display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.logo{
-width:34px;height:34px;border-radius:9px;flex-shrink:0;
-background:linear-gradient(135deg,var(--blue),#818CF8);
-display:flex;align-items:center;justify-content:center;
-font-size:16px;box-shadow:var(--blue-glow);
-}
-.brand-name{
-font-family:'Instrument Serif',Georgia,serif;
-font-size:16px;color:var(--ink);letter-spacing:-0.2px;
-}
+.logo{width:34px;height:34px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,var(--blue),#818CF8);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:var(--blue-glow);}
+.brand-name{font-family:'Instrument Serif',Georgia,serif;font-size:16px;color:var(--ink);letter-spacing:-0.2px;}
 .brand-sub{font-size:10.5px;color:var(--text3);font-weight:500;margin-top:0.5px;}
-
-/* Tab navigation inside topbar */
-.topbar-tabs{
-display:flex;gap:2px;background:var(--surface2);
-border:1px solid var(--border);border-radius:9px;padding:3px;
-}
-.topbar-tab{
-padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;
-cursor:pointer;border:none;background:none;color:var(--text3);
-transition:all 0.15s ease;white-space:nowrap;
-}
+.topbar-tabs{display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:3px;}
+.topbar-tab{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text3);transition:all 0.15s ease;white-space:nowrap;}
 .topbar-tab:hover{color:var(--text);background:var(--surface3);}
 .topbar-tab.active{background:var(--bg3);color:var(--ink);box-shadow:var(--shadow-sm);}
-
-/* Col switcher */
-.col-switcher{
-display:flex;gap:4px;align-items:center;flex-shrink:0;
-}
-.col-pill{
-width:30px;height:30px;border:1px solid var(--border);
-background:var(--surface2);border-radius:7px;
-cursor:pointer;display:flex;align-items:center;justify-content:center;
-transition:all 0.15s;color:var(--text3);
-}
+.col-switcher{display:flex;gap:4px;align-items:center;flex-shrink:0;}
+.col-pill{width:30px;height:30px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;color:var(--text3);}
 .col-pill:hover{border-color:var(--border2);background:var(--surface3);color:var(--text);}
 .col-pill.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:var(--blue-glow);}
-
 .topbar-right{display:flex;align-items:center;gap:6px;}
-
-/* Theme toggle */
-.theme-toggle{
-width:34px;height:34px;border:1px solid var(--border);
-background:var(--surface2);border-radius:7px;
-cursor:pointer;display:flex;align-items:center;justify-content:center;
-font-size:15px;transition:all 0.2s;color:var(--text2);
-}
+.theme-toggle{width:34px;height:34px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all 0.2s;color:var(--text2);}
 .theme-toggle:hover{border-color:var(--border2);background:var(--surface3);}
-
-.notif-btn{
-position:relative;width:34px;height:34px;
-border:1px solid var(--border);background:var(--surface2);
-border-radius:7px;cursor:pointer;
-display:flex;align-items:center;justify-content:center;
-font-size:14px;transition:all 0.15s;color:var(--text2);
-}
+.notif-btn{position:relative;width:34px;height:34px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.15s;color:var(--text2);}
 .notif-btn:hover{border-color:var(--border2);background:var(--surface3);}
-.notif-count{
-position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;
-border-radius:999px;background:var(--red);color:#fff;
-display:flex;align-items:center;justify-content:center;
-padding:0 3px;font-size:9.5px;font-weight:700;
-border:2px solid var(--bg);
-}
-
-.user-chip{
-display:flex;align-items:center;gap:7px;
-background:var(--surface2);border:1px solid var(--border);
-border-radius:999px;padding:3px 10px 3px 3px;
-transition:all 0.15s;flex-shrink:0;
-}
-.user-avatar{
-width:28px;height:28px;border-radius:50%;
-background:linear-gradient(135deg,var(--blue),#818CF8);
-display:flex;align-items:center;justify-content:center;
-font-size:11px;font-weight:700;color:#fff;flex-shrink:0;
-}
+.notif-count{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;border-radius:999px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;padding:0 3px;font-size:9.5px;font-weight:700;border:2px solid var(--bg);}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:3px 10px 3px 3px;transition:all 0.15s;flex-shrink:0;}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#818CF8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
 .user-name{font-size:12.5px;font-weight:500;color:var(--text);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .logout-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:2px;border-radius:5px;transition:color 0.15s;display:flex;align-items:center;}
 .logout-btn:hover{color:var(--red);}
 
-/* ====================================================
-AUTH
-==================================================== */
-.auth-page{
-min-height:100vh;display:flex;align-items:center;justify-content:center;
-padding:24px;position:relative;z-index:1;
-}
-.auth-box{
-width:100%;max-width:400px;
-background:var(--bg3);
-border:1px solid var(--border);
-border-radius:20px;padding:36px 32px;
-box-shadow:var(--shadow-lg);
-animation:authIn 0.4s cubic-bezier(0.34,1.4,0.64,1) both;
-position:relative;overflow:hidden;
-}
-.auth-box::before{
-content:'';position:absolute;top:0;left:0;right:0;height:2px;
-background:linear-gradient(90deg,var(--blue),#818CF8,var(--teal));
-}
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;z-index:1;}
+.auth-box{width:100%;max-width:400px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:36px 32px;box-shadow:var(--shadow-lg);animation:authIn 0.4s cubic-bezier(0.34,1.4,0.64,1) both;position:relative;overflow:hidden;}
+.auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),#818CF8,var(--teal));}
 @keyframes authIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-
 .auth-logo{width:44px;height:44px;border-radius:12px;margin-bottom:18px;background:linear-gradient(135deg,var(--blue),#818CF8);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:var(--blue-glow);}
 .auth-title{font-family:'Instrument Serif',serif;font-size:22px;color:var(--ink);margin-bottom:4px;}
 .auth-sub{color:var(--text3);font-size:13px;margin-bottom:24px;line-height:1.6;}
@@ -309,19 +184,15 @@ background:linear-gradient(90deg,var(--blue),#818CF8,var(--teal));
 .auth-link:hover{color:var(--blue-dark);}
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
 
-/* ====================================================
-FORMS
-==================================================== */
+.user-count-bar{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:var(--text3);}
+.user-count-bar strong{color:var(--text);}
+.user-count-dots{display:flex;gap:4px;}
+.ucd{width:9px;height:9px;border-radius:50%;background:var(--border2);transition:background 0.2s;}
+.ucd.filled{background:var(--blue);}
+
 .form-group{margin-bottom:12px;}
 .label{display:block;margin-bottom:5px;color:var(--text3);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.55px;}
-.input,.select{
-width:100%;background:var(--bg);
-border:1px solid var(--border);color:var(--text);
-border-radius:8px;padding:9px 12px;outline:none;
-font-size:13.5px;font-family:inherit;
-transition:border-color 0.15s, box-shadow 0.15s, background 0.3s;
-font-weight:400;
-}
+.input,.select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;outline:none;font-size:13.5px;font-family:inherit;transition:border-color 0.15s, box-shadow 0.15s, background 0.3s;font-weight:400;}
 .input::placeholder{color:var(--text4);}
 .input:focus,.select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light);}
 .input.has-icon{padding-left:34px;}
@@ -329,19 +200,10 @@ font-weight:400;
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text4);font-size:13px;pointer-events:none;}
 select.input,.select{cursor:pointer;}
 
-/* ====================================================
-BUTTONS
-==================================================== */
-.btn{
-border:none;cursor:pointer;border-radius:8px;
-padding:8px 14px;font-weight:600;font-size:12.5px;
-transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;
-white-space:nowrap;line-height:1.3;font-family:inherit;
-}
+.btn{border:none;cursor:pointer;border-radius:8px;padding:8px 14px;font-weight:600;font-size:12.5px;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:1.3;font-family:inherit;}
 .btn:hover:not(:disabled){transform:translateY(-1px);}
 .btn:active:not(:disabled){transform:translateY(0);}
 .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important;}
-
 .btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px var(--blue-light);}
 .btn-primary:hover:not(:disabled){background:var(--blue-dark);box-shadow:var(--blue-glow);}
 .btn-secondary{background:var(--surface3);color:var(--text2);border:1px solid var(--border);}
@@ -352,97 +214,41 @@ white-space:nowrap;line-height:1.3;font-family:inherit;
 .btn-danger:hover:not(:disabled){background:var(--red-mid);}
 .btn-sm{padding:6px 11px;font-size:12px;border-radius:6px;}
 .btn-xs{padding:4px 8px;font-size:11px;border-radius:5px;}
-
-.icon-btn{
-width:28px;height:28px;border:1px solid var(--border);
-background:var(--surface2);color:var(--text3);
-border-radius:6px;cursor:pointer;
-display:flex;align-items:center;justify-content:center;font-size:12px;
-transition:all 0.15s;flex-shrink:0;
-}
+.icon-btn{width:28px;height:28px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.15s;flex-shrink:0;}
 .icon-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:var(--blue-glow);}
 .icon-btn.danger:hover{background:var(--red);border-color:var(--red);color:#fff;}
-
 .spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,0.25);border-top-color:currentColor;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ====================================================
-WRAPPER & VIEWS
-==================================================== */
 .wrapper{max-width:1920px;margin:auto;padding:20px 20px 48px;position:relative;z-index:1;}
-
 .view{display:none;}
 .view.active{display:block;}
 
-/* ====================================================
-HERO
-==================================================== */
-.hero{
-background:var(--bg3);border:1px solid var(--border);
-border-radius:18px;padding:24px 28px;margin-bottom:16px;
-display:flex;justify-content:space-between;align-items:center;
-gap:18px;flex-wrap:wrap;position:relative;overflow:hidden;
-box-shadow:var(--shadow-sm);
-}
-.hero::before{
-content:'';position:absolute;
-top:-80px;right:-80px;
-width:240px;height:240px;
-background:radial-gradient(circle,var(--blue-light) 0%,transparent 70%);
-pointer-events:none;
-}
+.hero{background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:24px 28px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:240px;height:240px;background:radial-gradient(circle,var(--blue-light) 0%,transparent 70%);pointer-events:none;}
 .hero-left{position:relative;z-index:1;}
-.hero h1{
-font-family:'Instrument Serif',serif;
-font-size:24px;line-height:1.15;color:var(--ink);
-}
-.hero h1 em{
-font-style:italic;
-background:linear-gradient(135deg,var(--blue),#818CF8);
--webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
+.hero h1{font-family:'Instrument Serif',serif;font-size:24px;line-height:1.15;color:var(--ink);}
+.hero h1 em{font-style:italic;background:linear-gradient(135deg,var(--blue),#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .hero p{color:var(--text3);margin-top:6px;font-size:13px;line-height:1.7;max-width:480px;}
 .hero-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
-.hero-pill{
-display:inline-flex;align-items:center;gap:5px;
-background:var(--surface2);border:1px solid var(--border);
-border-radius:999px;padding:4px 10px;font-size:11px;font-weight:500;color:var(--text3);
-}
-.today-badge{
-display:inline-flex;align-items:center;gap:5px;
-background:var(--blue-light);border:1px solid var(--blue-mid);
-border-radius:999px;padding:4px 12px;font-size:11.5px;font-weight:600;color:var(--blue);
-margin-top:10px;
-}
+.hero-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:500;color:var(--text3);}
+.today-badge{display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:999px;padding:4px 12px;font-size:11.5px;font-weight:600;color:var(--blue);margin-top:10px;}
 .hero-stats{display:flex;gap:10px;flex-shrink:0;}
-.hero-stat{
-background:var(--surface2);border:1px solid var(--border);
-border-radius:14px;padding:14px 18px;text-align:center;min-width:90px;
-}
+.hero-stat{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 18px;text-align:center;min-width:90px;}
 .hero-stat-num{font-family:'Instrument Serif',serif;font-size:32px;line-height:1;color:var(--blue);}
 .hero-stat-num.green{color:var(--green);}
 .hero-stat-num.red{color:var(--red);}
 .hero-stat-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-top:3px;}
 
-/* ====================================================
-KPI
-==================================================== */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
-
-.kpi-card{
-background:var(--bg3);border:1px solid var(--border);
-border-radius:14px;padding:14px 16px;
-transition:all 0.2s;position:relative;overflow:hidden;
-box-shadow:var(--shadow-sm);
-}
+.kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;transition:all 0.2s;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);}
 .kpi-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow);}
 .kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .kpi-card:nth-child(1)::after{background:linear-gradient(90deg,var(--blue),#818CF8);}
 .kpi-card:nth-child(2)::after{background:linear-gradient(90deg,var(--green),#4ADE80);}
 .kpi-card:nth-child(3)::after{background:linear-gradient(90deg,var(--amber),#FCD34D);}
 .kpi-card:nth-child(4)::after{background:linear-gradient(90deg,var(--red),#F87171);}
-
 .kpi-top{display:flex;align-items:flex-start;justify-content:space-between;}
 .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.55px;color:var(--text3);}
 .kpi-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
@@ -452,36 +258,15 @@ box-shadow:var(--shadow-sm);
 .kpi-card:nth-child(4) .kpi-icon{background:var(--red-light);}
 .kpi-value{font-family:'Instrument Serif',serif;font-size:30px;line-height:1;letter-spacing:-0.5px;margin-top:10px;color:var(--ink);}
 
-/* ====================================================
-SECTION HEADER
-==================================================== */
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
 .section-title{font-family:'Instrument Serif',serif;font-size:16px;color:var(--ink);display:flex;align-items:center;gap:7px;}
 .section-count{background:var(--blue-light);color:var(--blue);border-radius:999px;padding:1px 7px;font-size:10.5px;font-weight:700;font-family:'Geist',sans-serif;}
 
-/* ====================================================
-FILTER BAR
-==================================================== */
-.filter-bar{
-display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
-background:var(--bg3);border:1px solid var(--border);
-border-radius:12px;padding:10px 12px;
-box-shadow:var(--shadow-sm);
-align-items:center;
-}
-.filter-clear{
-padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;
-cursor:pointer;border:1px solid var(--border);
-background:var(--surface2);color:var(--text3);
-transition:all 0.15s;white-space:nowrap;
-display:none;align-items:center;gap:4px;
-}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow-sm);align-items:center;}
+.filter-clear{padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text3);transition:all 0.15s;white-space:nowrap;display:none;align-items:center;gap:4px;}
 .filter-clear.visible{display:flex;}
 .filter-clear:hover{background:var(--red-light);color:var(--red);border-color:var(--red-mid);}
 
-/* ====================================================
-OUTLET GRID
-==================================================== */
 .outlet-grid{display:grid;gap:14px;align-items:start;}
 .outlet-grid[data-cols="1"]{grid-template-columns:1fr;}
 .outlet-grid[data-cols="2"]{grid-template-columns:repeat(2,1fr);}
@@ -489,132 +274,54 @@ OUTLET GRID
 @media(max-width:1200px){.outlet-grid[data-cols="3"]{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:700px){.outlet-grid[data-cols="2"],.outlet-grid[data-cols="3"]{grid-template-columns:1fr;}}
 
-/* ====================================================
-OUTLET CARD
-==================================================== */
-.outlet-card{
-background:var(--bg3);border:1px solid var(--border);
-border-radius:18px;overflow:hidden;
-transition:border-color 0.2s,box-shadow 0.2s;
-animation:cardIn 0.25s ease both;
-box-shadow:var(--shadow-sm);
-}
+.outlet-card{background:var(--bg3);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;animation:cardIn 0.25s ease both;box-shadow:var(--shadow-sm);}
 @keyframes cardIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 .outlet-card:hover{border-color:var(--border2);box-shadow:var(--shadow);}
-
-/* outlet header */
-.outlet-card-header{
-padding:12px 14px 10px;border-bottom:1px solid var(--border);
-display:flex;align-items:flex-start;justify-content:space-between;gap:8px;
-background:var(--surface2);
-}
+.outlet-card-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px;background:var(--surface2);}
 .outlet-header-left{display:flex;gap:10px;align-items:flex-start;min-width:0;}
-.outlet-avatar{
-width:36px;height:36px;border-radius:8px;flex-shrink:0;
-background:linear-gradient(135deg,var(--blue-light),var(--blue-mid));
-border:1px solid var(--blue-mid);
-display:flex;align-items:center;justify-content:center;font-size:14px;
-}
+.outlet-avatar{width:36px;height:36px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,var(--blue-light),var(--blue-mid));border:1px solid var(--blue-mid);display:flex;align-items:center;justify-content:center;font-size:14px;}
 .outlet-info{min-width:0;}
 .outlet-name{font-weight:700;font-size:13.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .outlet-meta{color:var(--text3);font-size:11px;margin-top:2px;line-height:1.7;}
 .outlet-mini-kpi{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;}
-.outlet-mini-pill{
-display:inline-flex;align-items:center;gap:3px;
-padding:2px 7px;border-radius:999px;
-font-size:10px;font-weight:700;
-}
+.outlet-mini-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;}
 .outlet-mini-pill.ok{background:var(--green-light);color:var(--green);}
 .outlet-mini-pill.warn{background:var(--amber-light);color:var(--amber);}
 .outlet-mini-pill.exp{background:var(--red-light);color:var(--red);}
-
+.outlet-mini-pill.unk{background:var(--surface3);color:var(--text3);}
 .outlet-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start;}
-
-/* Collapse/expand */
-.outlet-toggle{
-width:26px;height:26px;border:1px solid var(--border);
-background:var(--surface2);border-radius:5px;
-cursor:pointer;display:flex;align-items:center;justify-content:center;
-font-size:11px;color:var(--text3);transition:all 0.15s;
-flex-shrink:0;
-}
+.outlet-toggle{width:26px;height:26px;border:1px solid var(--border);background:var(--surface2);border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);transition:all 0.15s;flex-shrink:0;}
 .outlet-toggle:hover{background:var(--surface3);}
 .outlet-toggle.collapsed{transform:rotate(-90deg);}
-
 .outlet-card-body{padding:10px 12px 12px;overflow:hidden;transition:max-height 0.35s ease,opacity 0.25s ease,padding 0.3s ease;}
 .outlet-card-body.collapsed{max-height:0!important;padding-top:0;padding-bottom:0;opacity:0;}
-
 .outlet-add-bar{margin-bottom:8px;}
 
-/* ====================================================
-EMPLOYEE ROWS
-==================================================== */
 .emp-list{display:flex;flex-direction:column;gap:5px;}
-
-.emp-sort-row{
-display:flex;gap:4px;padding:0 10px 4px;
-}
-.emp-sort-btn{
-background:none;border:none;color:var(--text4);font-size:10px;font-weight:700;
-text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;
-font-family:inherit;padding:0;display:flex;align-items:center;gap:2px;
-transition:color 0.15s;
-}
+.emp-sort-row{display:flex;gap:4px;padding:0 10px 4px;}
+.emp-sort-btn{background:none;border:none;color:var(--text4);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;padding:0;display:flex;align-items:center;gap:2px;transition:color 0.15s;}
 .emp-sort-btn:hover{color:var(--text2);}
 .emp-sort-btn.end-sort{margin-left:auto;}
-
-/* Employee row - 4-col grid */
-.emp-row{
-display:grid;
-grid-template-columns: minmax(0,2fr) minmax(0,1fr) auto auto;
-align-items:center;
-gap:8px;
-background:var(--surface2);
-border:1px solid var(--border);
-border-radius:8px;
-padding:9px 10px;
-transition:border-color 0.15s,background 0.15s;
-position:relative;
-}
+.emp-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto auto;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;transition:border-color 0.15s,background 0.15s;position:relative;}
 .emp-row:hover{background:var(--surface3);border-color:var(--border2);}
-.emp-row.highlight{
-border-color:var(--blue-mid);background:var(--blue-light);
-animation:highlightFade 2.5s ease forwards;
-}
+.emp-row.highlight{border-color:var(--blue-mid);background:var(--blue-light);animation:highlightFade 2.5s ease forwards;}
 @keyframes highlightFade{0%,30%{background:var(--blue-light);border-color:var(--blue-mid);}100%{background:var(--surface2);border-color:var(--border);}}
-
-/* urgency left-border */
 .emp-row.exp-row{border-left:3px solid var(--red);}
 .emp-row.warn-row{border-left:3px solid var(--amber);}
 .emp-row.ok-row{border-left:3px solid var(--green);}
-
-/* 3-col compact: hide salary on small cards */
-.outlet-grid[data-cols="3"] .emp-row{
-grid-template-columns: minmax(0,1fr) auto auto;
-}
+.emp-row.unk-row{border-left:3px solid var(--text4);}
+.outlet-grid[data-cols="3"] .emp-row{grid-template-columns:minmax(0,1fr) auto auto;}
 .outlet-grid[data-cols="3"] .emp-salary-cell{display:none;}
-
 .emp-name-cell{min-width:0;}
 .emp-name{font-weight:600;font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .emp-phone{font-size:11px;color:var(--text3);margin-top:1px;}
-
-.emp-salary-cell{}
 .emp-salary{font-size:12px;color:var(--text2);font-weight:500;}
-.emp-days-left{
-font-size:10.5px;font-weight:700;margin-top:1px;
-display:flex;align-items:center;gap:3px;
-}
+.emp-days-left{font-size:10.5px;font-weight:700;margin-top:1px;display:flex;align-items:center;gap:3px;}
 .emp-days-left.danger{color:var(--red);}
 .emp-days-left.warn{color:var(--amber);}
 .emp-days-left.ok{color:var(--green);}
 .emp-days-left.unknown{color:var(--text3);}
-
-.emp-badge-cell{}
-.badge{
-display:inline-flex;align-items:center;gap:3px;
-padding:3px 8px;border-radius:999px;
-font-size:10px;font-weight:700;white-space:nowrap;
-}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;}
 .badge::before{content:'';width:4px;height:4px;border-radius:50%;flex-shrink:0;}
 .badge-safe{background:var(--green-light);color:var(--green);}
 .badge-safe::before{background:var(--green);}
@@ -622,98 +329,45 @@ font-size:10px;font-weight:700;white-space:nowrap;
 .badge-warning::before{background:var(--amber);}
 .badge-danger{background:var(--red-light);color:var(--red);}
 .badge-danger::before{background:var(--red);}
-
+.badge-unknown{background:var(--surface3);color:var(--text3);}
+.badge-unknown::before{background:var(--text4);}
 .emp-actions-cell{display:flex;gap:3px;align-items:center;flex-shrink:0;}
-
-.emp-btn{
-display:inline-flex;align-items:center;gap:3px;
-padding:4px 7px;border-radius:5px;
-font-size:10px;font-weight:700;cursor:pointer;border:none;
-transition:all 0.15s;white-space:nowrap;font-family:inherit;
-}
+.emp-btn{display:inline-flex;align-items:center;gap:3px;padding:4px 7px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s;white-space:nowrap;font-family:inherit;}
 .emp-btn-contract{background:var(--teal-light);color:var(--teal);border:1px solid var(--teal-mid);}
 .emp-btn-contract:hover{background:var(--teal);color:#fff;}
 .emp-btn-history{background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-mid);}
 .emp-btn-history:hover{background:var(--purple);color:#fff;}
-
 .emp-empty{text-align:center;padding:20px 12px;color:var(--text3);font-size:12.5px;}
 .emp-empty-icon{display:block;font-size:24px;margin-bottom:6px;opacity:0.25;}
 
-/* ====================================================
-GLOBAL DASHBOARD VIEW
-==================================================== */
 #viewDashboard .dash-section{margin-bottom:24px;}
-#viewDashboard .dash-section-title{
-font-family:'Instrument Serif',serif;
-font-size:15px;color:var(--ink);margin-bottom:10px;
-display:flex;align-items:center;gap:6px;
-}
+#viewDashboard .dash-section-title{font-family:'Instrument Serif',serif;font-size:15px;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .global-emp-list{display:flex;flex-direction:column;gap:5px;}
-.global-emp-row{
-display:grid;
-grid-template-columns:minmax(0,2.5fr) minmax(0,1.5fr) auto auto;
-align-items:center;gap:8px;
-background:var(--bg3);border:1px solid var(--border);
-border-radius:8px;padding:10px 12px;
-transition:all 0.15s;
-position:relative;
-}
+.global-emp-row{display:grid;grid-template-columns:minmax(0,2.5fr) minmax(0,1.5fr) auto auto;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:all 0.15s;position:relative;}
 .global-emp-row:hover{border-color:var(--border2);box-shadow:var(--shadow-sm);}
 .global-emp-row.exp-row{border-left:3px solid var(--red);}
 .global-emp-row.warn-row{border-left:3px solid var(--amber);}
 .global-emp-outlet{font-size:10.5px;color:var(--text3);margin-top:1px;}
 
-/* ====================================================
-MODAL
-==================================================== */
-.modal-wrap{
-position:fixed;inset:0;background:var(--overlay);
-z-index:900;display:flex;align-items:center;justify-content:center;
-padding:20px;backdrop-filter:blur(6px);
-animation:fadeIn 0.15s ease both;
-}
+.modal-wrap{position:fixed;inset:0;background:var(--overlay);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);animation:fadeIn 0.15s ease both;}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-
-.modal{
-width:100%;max-width:480px;
-background:var(--bg3);border:1px solid var(--border);
-border-radius:18px;overflow:hidden;
-animation:modalIn 0.25s cubic-bezier(0.34,1.4,0.64,1) both;
-box-shadow:var(--shadow-lg);
-}
+.modal{width:100%;max-width:480px;background:var(--bg3);border:1px solid var(--border);border-radius:18px;overflow:hidden;animation:modalIn 0.25s cubic-bezier(0.34,1.4,0.64,1) both;box-shadow:var(--shadow-lg);}
 @keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
-
 .modal-header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--surface2);}
 .modal-title{font-family:'Instrument Serif',serif;font-size:17px;color:var(--ink);}
 .modal-body{padding:18px;max-height:70vh;overflow-y:auto;scrollbar-width:thin;}
 .modal-footer{padding:12px 18px;display:flex;justify-content:flex-end;gap:7px;border-top:1px solid var(--border);background:var(--surface2);}
-
-/* update contract */
 .update-contract-modal{max-width:380px;}
-.unit-pill{
-flex:1;border:1px solid var(--border);border-radius:6px;
-padding:6px 4px;font-size:11.5px;font-weight:600;color:var(--text3);
-background:var(--surface2);cursor:pointer;transition:all 0.15s;text-align:center;font-family:inherit;
-}
+.unit-pill{flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 4px;font-size:11.5px;font-weight:600;color:var(--text3);background:var(--surface2);cursor:pointer;transition:all 0.15s;text-align:center;font-family:inherit;}
 .unit-pill:hover{border-color:var(--blue);color:var(--blue);}
 .unit-pill.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:var(--blue-glow);}
-
-.contract-preview{
-margin-top:12px;background:var(--green-light);
-border:1px solid var(--green-mid);border-radius:8px;padding:12px 14px;
-}
+.contract-preview{margin-top:12px;background:var(--green-light);border:1px solid var(--green-mid);border-radius:8px;padding:12px 14px;}
 .contract-preview-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.45px;color:var(--green);margin-bottom:3px;}
 .contract-preview-date{font-family:'Instrument Serif',serif;font-size:17px;color:var(--green);}
 .contract-preview-detail{font-size:11px;color:var(--text3);margin-top:2px;}
-
-/* history */
 .history-modal{max-width:500px;}
 .history-list{display:flex;flex-direction:column;gap:7px;}
-.history-item{
-background:var(--surface2);border:1px solid var(--border);
-border-radius:8px;padding:11px 12px;
-border-left:3px solid var(--blue);transition:all 0.15s;
-}
+.history-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 12px;border-left:3px solid var(--blue);transition:all 0.15s;}
 .history-item:hover{border-color:var(--border2);background:var(--surface3);}
 .history-item-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;}
 .history-item-title{font-weight:600;font-size:12px;color:var(--ink);}
@@ -724,8 +378,6 @@ border-left:3px solid var(--blue);transition:all 0.15s;
 .history-arrow{color:var(--text4);font-size:12px;}
 .history-duration{display:inline-flex;align-items:center;gap:3px;background:var(--purple-light);border:1px solid var(--purple-mid);border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--purple);margin-top:5px;}
 .history-empty{text-align:center;padding:28px 16px;color:var(--text3);font-size:12.5px;}
-
-/* import preview */
 .import-modal{max-width:560px;}
 .import-summary{background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:8px;padding:12px 14px;margin-bottom:12px;}
 .import-summary-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;}
@@ -744,18 +396,9 @@ border-left:3px solid var(--blue);transition:all 0.15s;
 .import-preview-item .pi-outlet{color:var(--text3);margin-top:1px;font-size:10.5px;}
 .status-new{color:var(--green);font-weight:700;}
 .status-update{color:var(--blue);font-weight:700;}
+.status-nodate{color:var(--amber);font-weight:700;font-size:10px;}
 
-/* ====================================================
-NOTIFICATION PANEL
-==================================================== */
-.notif-panel{
-position:fixed;top:66px;right:14px;width:300px;
-max-height:calc(100vh - 80px);overflow-y:auto;
-background:var(--bg3);border:1px solid var(--border);
-border-radius:16px;padding:14px;
-box-shadow:var(--shadow-lg);z-index:300;
-animation:slideDown 0.2s cubic-bezier(0.34,1.4,0.64,1) both;
-}
+.notif-panel{position:fixed;top:66px;right:14px;width:300px;max-height:calc(100vh - 80px);overflow-y:auto;background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow-lg);z-index:300;animation:slideDown 0.2s cubic-bezier(0.34,1.4,0.64,1) both;}
 @keyframes slideDown{from{opacity:0;transform:translateY(-6px) scale(0.98);}to{opacity:1;transform:translateY(0) scale(1);}}
 .notif-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .notif-title{font-family:'Instrument Serif',serif;font-size:13.5px;color:var(--ink);}
@@ -770,34 +413,18 @@ animation:slideDown 0.2s cubic-bezier(0.34,1.4,0.64,1) both;
 .empty{text-align:center;padding:20px;color:var(--text3);font-size:12.5px;}
 .empty-icon{font-size:20px;margin-bottom:5px;display:block;opacity:0.35;}
 
-/* ====================================================
-TOAST
-==================================================== */
 .toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:5px;align-items:center;pointer-events:none;}
-.toast{
-background:var(--bg3);border:1px solid var(--border);
-border-radius:8px;padding:9px 16px;
-font-size:12px;font-weight:600;
-box-shadow:var(--shadow-lg);
-animation:toastIn 0.3s cubic-bezier(0.34,1.4,0.64,1) both;
-pointer-events:none;max-width:88vw;text-align:center;color:var(--text);
-}
+.toast{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:12px;font-weight:600;box-shadow:var(--shadow-lg);animation:toastIn 0.3s cubic-bezier(0.34,1.4,0.64,1) both;pointer-events:none;max-width:88vw;text-align:center;color:var(--text);}
 .toast-success{background:var(--green-light);border-color:var(--green-mid);color:var(--green);}
 .toast-error{background:var(--red-light);border-color:var(--red-mid);color:var(--red);}
 .toast-info{background:var(--blue-light);border-color:var(--blue-mid);color:var(--blue);}
 @keyframes toastIn{from{opacity:0;transform:translateY(8px) scale(0.95);}to{opacity:1;transform:translateY(0) scale(1);}}
 
-/* ====================================================
-EMPTY STATE
-==================================================== */
 .empty-state{text-align:center;padding:44px 24px;grid-column:1/-1;}
 .empty-state-icon{font-size:40px;margin-bottom:10px;display:block;opacity:0.18;}
 .empty-state h3{font-family:'Instrument Serif',serif;font-size:16px;color:var(--text2);margin-bottom:5px;}
 .empty-state p{color:var(--text3);font-size:12.5px;}
 
-/* ====================================================
-RESPONSIVE
-==================================================== */
 @media(max-width:768px){
 .wrapper{padding:12px 12px 40px;}
 .hero{padding:18px 18px;}
@@ -813,9 +440,6 @@ RESPONSIVE
 .global-emp-row{grid-template-columns:minmax(0,1fr) auto auto;}
 }
 
-/* ====================================================
-SCROLLBAR
-==================================================== */
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
@@ -825,8 +449,6 @@ SCROLLBAR
 </head>
 <body>
 
-<!-- LOADING SCREEN -->
-
 <div id="loadingScreen" class="loading-screen">
   <div class="loading-logo">📋</div>
   <div class="loading-dots">
@@ -835,8 +457,6 @@ SCROLLBAR
     <div class="loading-dot"></div>
   </div>
 </div>
-
-<!-- AUTH: LOGIN -->
 
 <div id="pageLogin" class="auth-page hidden">
   <div class="auth-box">
@@ -853,14 +473,21 @@ SCROLLBAR
   </div>
 </div>
 
-<!-- AUTH: REGISTER -->
-
 <div id="pageRegister" class="auth-page hidden">
   <div class="auth-box">
     <div class="auth-logo">📋</div>
     <div class="auth-title">Buat akun baru</div>
     <div class="auth-sub">Daftar untuk mulai memantau kontrak karyawan.</div>
     <div id="registerError" class="auth-error hidden"></div>
+    <div class="user-count-bar">
+      <span>Slot pengguna: <strong id="userCountText">Loading...</strong></span>
+      <div class="user-count-dots" id="userCountDots">
+        <div class="ucd" id="ucd1"></div>
+        <div class="ucd" id="ucd2"></div>
+        <div class="ucd" id="ucd3"></div>
+        <div class="ucd" id="ucd4"></div>
+      </div>
+    </div>
     <div class="form-group"><label class="label">Nama Lengkap</label><input type="text" id="registerName" class="input" placeholder="Nama Anda" autocomplete="name"></div>
     <div class="form-group"><label class="label">Email</label><input type="email" id="registerEmail" class="input" placeholder="email@contoh.com" autocomplete="email"></div>
     <div class="form-group"><label class="label">Password</label><input type="password" id="registerPassword" class="input" placeholder="Min. 6 karakter" autocomplete="new-password"></div>
@@ -870,8 +497,6 @@ SCROLLBAR
     <div class="auth-link-row">Sudah punya akun? <button class="auth-link" id="goLoginFromRegisterBtn">Masuk</button></div>
   </div>
 </div>
-
-<!-- AUTH: FORGOT -->
 
 <div id="pageForgot" class="auth-page hidden">
   <div class="auth-box">
@@ -886,8 +511,6 @@ SCROLLBAR
     <div class="auth-link-row"><button class="auth-link" id="goLoginFromForgotBtn">← Kembali ke Login</button></div>
   </div>
 </div>
-
-<!-- AUTH: RESET -->
 
 <div id="pageReset" class="auth-page hidden">
   <div class="auth-box">
@@ -905,12 +528,7 @@ SCROLLBAR
   </div>
 </div>
 
-<!-- MAIN APP -->
-
 <div id="appMain" class="hidden">
-
-  <!-- TOPBAR -->
-
   <div class="topbar">
     <div class="brand">
       <div class="logo">📋</div>
@@ -927,22 +545,22 @@ SCROLLBAR
 </div>
 
 <div style="display:flex;align-items:center;gap:8px;">
-  <!-- Col switcher (outlet view only) -->
-  <div class="col-switcher" id="colSwitcher" title="Pilih tampilan kolom">
-    <button class="col-pill active" id="col1Btn" data-cols="1" title="1 Kolom">
+  <div class="col-switcher" id="colSwitcher">
+    <button class="col-pill active" id="col1Btn" data-cols="1">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="2" y="2" width="9" height="9" rx="1.5"/></svg>
     </button>
-    <button class="col-pill" id="col2Btn" data-cols="2" title="2 Kolom">
+    <button class="col-pill" id="col2Btn" data-cols="2">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="1" y="2" width="4.5" height="9" rx="1"/><rect x="7.5" y="2" width="4.5" height="9" rx="1"/></svg>
     </button>
-    <button class="col-pill" id="col3Btn" data-cols="3" title="3 Kolom">
+    <button class="col-pill" id="col3Btn" data-cols="3">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="1" y="2" width="3" height="9" rx="1"/><rect x="5" y="2" width="3" height="9" rx="1"/><rect x="9" y="2" width="3" height="9" rx="1"/></svg>
     </button>
   </div>
 
   <div class="topbar-right">
+    <span class="firebase-badge offline" id="syncBadge" title="Status sinkronisasi">💾 Lokal</span>
     <button class="theme-toggle" id="themeToggle" title="Ganti tema">🌙</button>
-    <button class="notif-btn" id="notifBtn" title="Notifikasi">
+    <button class="notif-btn" id="notifBtn">
       🔔<div class="notif-count hidden" id="notifCount">0</div>
     </button>
     <div class="user-chip">
@@ -958,33 +576,27 @@ SCROLLBAR
 
   </div>
 
-  <!-- WRAPPER -->
-
   <div class="wrapper">
-
-
-<!-- ======== VIEW: OUTLETS ======== -->
-<div id="viewOutlets" class="view active">
-
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-left">
-      <h1>Monitoring Kontrak <em>Karyawan</em></h1>
-      <p>Pantau seluruh kontrak dari semua outlet dalam satu dashboard. Notifikasi otomatis sebelum habis.</p>
-      <div class="today-badge" id="todayBadge">📅 -</div>
-      <div class="hero-pills" style="margin-top:8px;">
-        <span class="hero-pill">💾 Data lokal & aman</span>
-        <span class="hero-pill">🔐 Per akun</span>
+    <div id="viewOutlets" class="view active">
+      <div class="hero">
+        <div class="hero-left">
+          <h1>Monitoring Kontrak <em>Karyawan</em></h1>
+          <p>Pantau seluruh kontrak dari semua outlet dalam satu dashboard. Notifikasi otomatis sebelum habis.</p>
+          <div class="today-badge" id="todayBadge">📅 -</div>
+          <div class="hero-pills" style="margin-top:8px;">
+            <span class="hero-pill">💾 Data lokal &amp; aman</span>
+            <span class="hero-pill">🔐 Per akun</span>
+            <span class="hero-pill" id="modeBadgePill">📡 Mode Offline</span>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-num" id="heroEmployees">0</div><div class="hero-stat-label">Karyawan</div></div>
+          <div class="hero-stat"><div class="hero-stat-num green" id="heroActive">0</div><div class="hero-stat-label">Aktif</div></div>
+          <div class="hero-stat"><div class="hero-stat-num red" id="heroUrgent">0</div><div class="hero-stat-label">Kritis</div></div>
+        </div>
       </div>
-    </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><div class="hero-stat-num" id="heroEmployees">0</div><div class="hero-stat-label">Karyawan</div></div>
-      <div class="hero-stat"><div class="hero-stat-num green" id="heroActive">0</div><div class="hero-stat-label">Aktif</div></div>
-      <div class="hero-stat"><div class="hero-stat-num red" id="heroUrgent">0</div><div class="hero-stat-label">Kritis</div></div>
-    </div>
-  </div>
 
-  <!-- KPI -->
+
   <div class="kpi-grid">
     <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Total Karyawan</div><div class="kpi-icon">👥</div></div><div class="kpi-value" id="kpiEmployees">0</div></div>
     <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Kontrak Aktif</div><div class="kpi-icon">✅</div></div><div class="kpi-value" id="kpiActive">0</div></div>
@@ -992,7 +604,6 @@ SCROLLBAR
     <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Sudah Habis</div><div class="kpi-icon">🔴</div></div><div class="kpi-value" id="kpiExpired">0</div></div>
   </div>
 
-  <!-- ACTION BAR -->
   <div class="section-header">
     <div class="section-title">🏢 Daftar Outlet <span class="section-count" id="outletCount">0</span></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -1010,39 +621,32 @@ SCROLLBAR
   <input type="file" id="restoreInput" class="hidden" accept=".json">
   <input type="file" id="excelInput" class="hidden" accept=".xlsx,.xls,.csv">
 
-  <!-- FILTER BAR -->
   <div class="filter-bar">
     <div class="search-box">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" class="input has-icon" placeholder="Cari nama karyawan...">
     </div>
-    <select id="filterOutlet" class="select" style="min-width:160px;flex-shrink:0;">
-      <option value="">Semua Outlet</option>
-    </select>
+    <select id="filterOutlet" class="select" style="min-width:160px;flex-shrink:0;"><option value="">Semua Outlet</option></select>
     <select id="filterStatus" class="select" style="min-width:140px;flex-shrink:0;">
       <option value="">Semua Status</option>
       <option value="active">Aktif</option>
       <option value="warning">Hampir Habis</option>
       <option value="expired">Sudah Habis</option>
+      <option value="unknown">Tanggal Kosong</option>
     </select>
     <button class="filter-clear" id="filterClearBtn">✕ Reset Filter</button>
   </div>
 
-  <!-- OUTLET GRID -->
   <div class="outlet-grid" id="outletGrid" data-cols="2" role="main"></div>
+</div>
 
-</div><!-- /viewOutlets -->
-
-<!-- ======== VIEW: DASHBOARD ======== -->
 <div id="viewDashboard" class="view">
   <div id="dashboardContent"></div>
 </div>
 
 
-  </div><!-- /wrapper -->
-</div><!-- /appMain -->
-
-<!-- NOTIFICATION PANEL -->
+  </div>
+</div>
 
 <div class="notif-panel hidden" id="notifPanel">
   <div class="notif-header">
@@ -1050,8 +654,6 @@ SCROLLBAR
   </div>
   <div id="notifList"></div>
 </div>
-
-<!-- MODAL: GENERAL -->
 
 <div class="modal-wrap hidden" id="modalWrap">
   <div class="modal">
@@ -1061,8 +663,6 @@ SCROLLBAR
   </div>
 </div>
 
-<!-- MODAL: UPDATE CONTRACT -->
-
 <div class="modal-wrap hidden" id="updateContractWrap">
   <div class="modal update-contract-modal">
     <div class="modal-header">
@@ -1070,7 +670,6 @@ SCROLLBAR
       <button class="icon-btn" id="closeUpdateContract">✕</button>
     </div>
     <div class="modal-body">
-      <!-- Base date selector -->
       <div class="form-group">
         <div class="label">Hitung perpanjangan dari</div>
         <div style="display:flex;gap:6px;margin-bottom:12px;">
@@ -1081,8 +680,7 @@ SCROLLBAR
       <div class="form-group">
         <div class="label">Durasi Perpanjangan</div>
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
-          <input type="number" id="contractDurationNum" class="input" placeholder="Contoh: 3" min="1" max="120"
-            style="font-size:22px;font-weight:700;font-family:'Instrument Serif',serif;height:48px;text-align:center;flex:1;">
+          <input type="number" id="contractDurationNum" class="input" placeholder="Contoh: 3" min="1" max="120" style="font-size:22px;font-weight:700;font-family:'Instrument Serif',serif;height:48px;text-align:center;flex:1;">
           <div style="display:flex;gap:5px;">
             <button type="button" class="unit-pill active" id="unitBulan">Bulan</button>
             <button type="button" class="unit-pill" id="unitTahun">Tahun</button>
@@ -1108,8 +706,6 @@ SCROLLBAR
   </div>
 </div>
 
-<!-- MODAL: HISTORY -->
-
 <div class="modal-wrap hidden" id="historyWrap">
   <div class="modal history-modal">
     <div class="modal-header">
@@ -1120,8 +716,6 @@ SCROLLBAR
     <div class="modal-footer"><button class="btn btn-secondary" id="cancelHistory">Tutup</button></div>
   </div>
 </div>
-
-<!-- MODAL: IMPORT PREVIEW -->
 
 <div class="modal-wrap hidden" id="importPreviewWrap">
   <div class="modal import-modal">
@@ -1146,13 +740,248 @@ SCROLLBAR
 var EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';
 var EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
 var EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';
-var DB_NAME='naruna_v5'; var DB_VERSION=1;
+
+var DB_NAME='naruna_v6'; var DB_VERSION=2;
 var STORE_USERS='users'; var STORE_DATA='app_data'; var STORE_TOKENS='reset_tokens';
-var SESSION_KEY='naruna_session_v5'; var PREFS_KEY='naruna_prefs_v5';
+var SESSION_KEY='naruna_session_v6'; var PREFS_KEY='naruna_prefs_v6';
 var WARNING_DAYS=30;
+var MAX_USERS=4;
 
 /* ============================================================
-   PREFERENCES (localStorage)
+   FIX #1: safeText() — sanitasi string agar tidak crash
+============================================================ */
+function safeText(val, maxLen) {
+  if (val === null || val === undefined) return '';
+  var s = String(val).trim();
+  // Hapus karakter kontrol berbahaya (kecuali newline biasa)
+  s = s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  if (maxLen && s.length > maxLen) s = s.slice(0, maxLen);
+  return s;
+}
+
+/* ============================================================
+   FIX #2: safeNumber() — konversi aman ke angka
+============================================================ */
+function safeNumber(val) {
+  var n = Number(val);
+  if (isNaN(n) || !isFinite(n) || n < 0) return 0;
+  if (n > 999999999999) return 999999999999;
+  return Math.round(n);
+}
+
+/* ============================================================
+   FIX #3: debounce() — dipanggil di window resize tapi tidak ada
+============================================================ */
+function debounce(fn, wait) {
+  var timer;
+  return function() {
+    var ctx = this, args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(function() { fn.apply(ctx, args); }, wait || 200);
+  };
+}
+
+/* ============================================================
+   FIX #4: hashPassword() & verifyPassword()
+   Menggunakan Web Crypto API (SHA-256) dengan salt per-password.
+   Format simpan: "sha256:salt:hash"
+============================================================ */
+async function hashPassword(password) {
+  // Generate random salt (16 bytes → 32 hex chars)
+  var saltArr = new Uint8Array(16);
+  crypto.getRandomValues(saltArr);
+  var salt = Array.from(saltArr).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+
+  var encoded = new TextEncoder().encode(salt + password);
+  var hashBuf = await crypto.subtle.digest('SHA-256', encoded);
+  var hashArr = Array.from(new Uint8Array(hashBuf));
+  var hashHex = hashArr.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+
+  return 'sha256:' + salt + ':' + hashHex;
+}
+
+async function verifyPassword(password, stored) {
+  if (!stored || typeof stored !== 'string') return false;
+
+  // Format baru: sha256:salt:hash
+  if (stored.startsWith('sha256:')) {
+    var parts = stored.split(':');
+    if (parts.length !== 3) return false;
+    var salt = parts[1];
+    var expectedHash = parts[2];
+
+    var encoded = new TextEncoder().encode(salt + password);
+    var hashBuf = await crypto.subtle.digest('SHA-256', encoded);
+    var hashArr = Array.from(new Uint8Array(hashBuf));
+    var actualHash = hashArr.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+
+    return actualHash === expectedHash;
+  }
+
+  // Fallback: plaintext (untuk data lama / dev mode)
+  return stored === password;
+}
+
+/* ============================================================
+   BACKEND ADAPTER
+============================================================ */
+var Backend = (function(){
+  var _idb = null;
+  var _db = null;
+  var _mode = 'idb';
+
+  function isFirebaseConfigured(){
+    return (
+      typeof FIREBASE_ENABLED !== 'undefined' &&
+      FIREBASE_ENABLED === true &&
+      FIREBASE_CONFIG &&
+      FIREBASE_CONFIG.apiKey &&
+      FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY'
+    );
+  }
+
+  function openIDB(){
+    return new Promise(function(res, rej){
+      var r = indexedDB.open(DB_NAME, DB_VERSION);
+      r.onupgradeneeded = function(e){
+        var idb = e.target.result;
+        if(!idb.objectStoreNames.contains(STORE_USERS))
+          idb.createObjectStore(STORE_USERS, {keyPath:'id'}).createIndex('email','email',{unique:true});
+        if(!idb.objectStoreNames.contains(STORE_DATA))
+          idb.createObjectStore(STORE_DATA, {keyPath:'key'});
+        if(!idb.objectStoreNames.contains(STORE_TOKENS))
+          idb.createObjectStore(STORE_TOKENS, {keyPath:'token'});
+      };
+      r.onsuccess = function(e){
+        _idb = e.target.result;
+        _idb.onversionchange = function(){ _idb.close(); _idb = null; };
+        res();
+      };
+      r.onerror = function(){ rej(new Error('Gagal buka IDB: ' + (r.error && r.error.message))); };
+      r.onblocked = function(){ rej(new Error('IDB diblok. Tutup tab lain.')); };
+    });
+  }
+
+  function idbGet(store, key){
+    return new Promise(function(res,rej){
+      var tx = _idb.transaction(store,'readonly');
+      var r = tx.objectStore(store).get(key);
+      r.onsuccess = function(){ res(r.result||null); };
+      r.onerror = function(){ rej(r.error); };
+    });
+  }
+  function idbPut(store, val){
+    return new Promise(function(res,rej){
+      var tx = _idb.transaction(store,'readwrite');
+      tx.objectStore(store).put(val);
+      tx.oncomplete = res;
+      tx.onerror = function(){ rej(tx.error); };
+    });
+  }
+  function idbDelete(store, key){
+    return new Promise(function(res,rej){
+      var tx = _idb.transaction(store,'readwrite');
+      tx.objectStore(store).delete(key);
+      tx.oncomplete = res;
+      tx.onerror = function(){ rej(tx.error); };
+    });
+  }
+  function idbGetByEmail(email){
+    return new Promise(function(res,rej){
+      var tx = _idb.transaction(STORE_USERS,'readonly');
+      var r = tx.objectStore(STORE_USERS).index('email').get(email);
+      r.onsuccess = function(){ res(r.result||null); };
+      r.onerror = function(){ rej(r.error); };
+    });
+  }
+  function idbCountUsers(){
+    return new Promise(function(res,rej){
+      var tx = _idb.transaction(STORE_USERS,'readonly');
+      var r = tx.objectStore(STORE_USERS).count();
+      r.onsuccess = function(){ res(r.result||0); };
+      r.onerror = function(){ rej(r.error); };
+    });
+  }
+
+  function loadFirebaseSDKs(){
+    return new Promise(function(resolve, reject){
+      var loaded = 0;
+      var needed = 3;
+      function check(){ loaded++; if(loaded===needed) resolve(); }
+      var scripts = [
+        'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+        'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
+        'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js'
+      ];
+      scripts.forEach(function(src){
+        var s = document.createElement('script');
+        s.src = src;
+        s.onload = check;
+        s.onerror = function(){ reject(new Error('Gagal load Firebase SDK')); };
+        document.head.appendChild(s);
+      });
+    });
+  }
+
+  function fsGetUser(userId){ return _db.collection('users').doc(userId).get().then(function(d){ return d.exists ? Object.assign({id:d.id}, d.data()) : null; }); }
+  function fsFindUserByEmail(email){ return _db.collection('users').where('email','==',email).limit(1).get().then(function(snap){ if(snap.empty)return null; var d=snap.docs[0]; return Object.assign({id:d.id}, d.data()); }); }
+  function fsPutUser(user){ return _db.collection('users').doc(user.id).set(user); }
+  function fsCountUsers(){ return _db.collection('users').get().then(function(s){ return s.size; }); }
+  function fsGetData(userId){ return _db.collection('app_data').doc('data_'+userId).get().then(function(d){ return d.exists ? d.data() : {outlets:[]}; }); }
+  function fsPutData(userId, data){ return _db.collection('app_data').doc('data_'+userId).set(data); }
+  function fsGetToken(token){ return _db.collection('reset_tokens').doc(token).get().then(function(d){ return d.exists ? d.data() : null; }); }
+  function fsPutToken(tokenObj){ return _db.collection('reset_tokens').doc(tokenObj.token).set(tokenObj); }
+  function fsDeleteToken(token){ return _db.collection('reset_tokens').doc(token).delete(); }
+
+  return {
+    mode: function(){ return _mode; },
+    init: function(){
+      if(!isFirebaseConfigured()){
+        _mode = 'idb';
+        updateSyncBadge('offline');
+        return openIDB();
+      }
+      _mode = 'firebase';
+      updateSyncBadge('connecting');
+      return loadFirebaseSDKs().then(function(){
+        if(typeof firebase === 'undefined') throw new Error('Firebase SDK gagal dimuat');
+        var app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+        _db = firebase.firestore();
+        return _db.enablePersistence({synchronizeTabs:true}).catch(function(){});
+      }).then(function(){
+        updateSyncBadge('online');
+        return openIDB().catch(function(){});
+      }).catch(function(err){
+        console.warn('Firebase gagal, fallback ke IDB:', err);
+        _mode = 'idb';
+        _db = null;
+        updateSyncBadge('offline');
+        return openIDB();
+      });
+    },
+    getUser: function(id){ if(_mode==='firebase') return fsGetUser(id); return idbGet(STORE_USERS, id); },
+    findUserByEmail: function(email){ if(_mode==='firebase') return fsFindUserByEmail(email); return idbGetByEmail(email); },
+    putUser: function(user){ if(_mode==='firebase') return fsPutUser(user); return idbPut(STORE_USERS, user); },
+    countUsers: function(){ if(_mode==='firebase') return fsCountUsers(); return idbCountUsers(); },
+    loadData: function(userId){ if(_mode==='firebase') return fsGetData(userId); return idbGet(STORE_DATA,'data_'+userId).then(function(r){ return r?r.value:{outlets:[]}; }); },
+    saveData: function(userId, data){ if(_mode==='firebase') return fsPutData(userId, {outlets:data.outlets||[]}); return idbPut(STORE_DATA, {key:'data_'+userId, value:{outlets:data.outlets||[]}}); },
+    getToken: function(token){ if(_mode==='firebase') return fsGetToken(token); return idbGet(STORE_TOKENS, token); },
+    putToken: function(tokenObj){ if(_mode==='firebase') return fsPutToken(tokenObj); return idbPut(STORE_TOKENS, tokenObj); },
+    deleteToken: function(token){ if(_mode==='firebase') return fsDeleteToken(token); return idbDelete(STORE_TOKENS, token); }
+  };
+})();
+
+function updateSyncBadge(status){
+  var b = document.getElementById('syncBadge');
+  if(!b) return;
+  b.className = 'firebase-badge ' + status;
+  if(status==='online') b.innerHTML = '☁️ Firebase';
+  else if(status==='connecting') b.innerHTML = '⟳ Connecting...';
+  else b.innerHTML = '💾 Lokal';
+}
+
+/* ============================================================
+   PREFERENCES
 ============================================================ */
 var prefs={theme:'light',cols:2};
 function loadPrefs(){
@@ -1170,35 +999,7 @@ function applyTheme(theme){
   if(btn) btn.textContent=theme==='dark'?'☀️':'🌙';
   savePrefs();
 }
-function toggleTheme(){applyTheme(prefs.theme==='dark'?'light':'dark');}
-
-/* ============================================================
-   DATABASE
-============================================================ */
-var db=null;
-function openDB(){
-  return new Promise(function(res,rej){
-    var r=indexedDB.open(DB_NAME,DB_VERSION);
-    r.onupgradeneeded=function(e){
-      var idb=e.target.result;
-      if(!idb.objectStoreNames.contains(STORE_USERS))
-        idb.createObjectStore(STORE_USERS,{keyPath:'id'}).createIndex('email','email',{unique:true});
-      if(!idb.objectStoreNames.contains(STORE_DATA))
-        idb.createObjectStore(STORE_DATA,{keyPath:'key'});
-      if(!idb.objectStoreNames.contains(STORE_TOKENS))
-        idb.createObjectStore(STORE_TOKENS,{keyPath:'token'});
-    };
-    r.onsuccess=function(e){db=e.target.result;db.onversionchange=function(){db.close();db=null;showToast('DB ditutup tab lain. Refresh.','error');};res();};
-    r.onerror=function(){rej(new Error('Gagal buka DB: '+(r.error&&r.error.message)));};
-    r.onblocked=function(){rej(new Error('DB diblok. Tutup tab lain.'));};
-  });
-}
-function dbGet(store,key){return new Promise(function(res,rej){if(!db){rej(new Error('DB belum siap'));return;}var tx=db.transaction(store,'readonly');var r=tx.objectStore(store).get(key);r.onsuccess=function(){res(r.result||null);};r.onerror=function(){rej(r.error);};});}
-function dbPut(store,val){return new Promise(function(res,rej){if(!db){rej(new Error('DB belum siap'));return;}var tx=db.transaction(store,'readwrite');tx.objectStore(store).put(val);tx.oncomplete=res;tx.onerror=function(){rej(tx.error);};});}
-function dbDelete(store,key){return new Promise(function(res,rej){if(!db){rej(new Error('DB belum siap'));return;}var tx=db.transaction(store,'readwrite');tx.objectStore(store).delete(key);tx.oncomplete=res;tx.onerror=function(){rej(tx.error);};});}
-function dbGetByEmail(email){return new Promise(function(res,rej){if(!db){rej(new Error('DB belum siap'));return;}var tx=db.transaction(STORE_USERS,'readonly');var r=tx.objectStore(STORE_USERS).index('email').get(email);r.onsuccess=function(){res(r.result||null);};r.onerror=function(){rej(r.error);};});}
-function saveData(data,userId){return dbPut(STORE_DATA,{key:'data_'+userId,value:{outlets:data.outlets||[]}});}
-function loadData(userId){return dbGet(STORE_DATA,'data_'+userId).then(function(r){return r?r.value:{outlets:[]};});}
+function toggleTheme(){ applyTheme(prefs.theme==='dark'?'light':'dark'); }
 
 /* ============================================================
    SESSION
@@ -1213,7 +1014,7 @@ function clearSession(){try{localStorage.removeItem(SESSION_KEY);}catch(e){}}
 var state={currentUser:null,outlets:[]};
 var currentSort='end-asc';
 var _ucUnit='bulan';
-var _ucBase='end'; // 'end' or 'today'
+var _ucBase='end';
 var _pendingImport=null;
 var _lastChangedEmpId=null;
 var _activeView='viewOutlets';
@@ -1225,106 +1026,93 @@ var _collapsedOutlets={};
 function uid(){return Date.now()+'_'+Math.random().toString(36).slice(2,9);}
 function generateToken(){var c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',t='';for(var i=0;i<48;i++)t+=c[Math.floor(Math.random()*c.length)];return t;}
 function normalizeText(t){
-  return String(t||'')
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^\w\s]/g,' ')
-    .replace(/\s+/g,' ')
-    .trim();
+  return String(t||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim().slice(0,300);
 }
 function escapeHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim());}
-
 function currency(v){var n=Number(v);if(isNaN(n))n=0;return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n);}
-
-function formatDate(d){if(!d)return '-';var p=new Date(d+'T12:00:00');if(isNaN(p.getTime()))return '-';return p.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});}
-function formatDateLong(d){if(!d)return '-';var p=new Date(d+'T12:00:00');if(isNaN(p.getTime()))return '-';return p.toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});}
-
+function formatDate(d){
+  if(!d || typeof d!=='string') return '-';
+  var p=new Date(d+'T12:00:00');
+  if(isNaN(p.getTime())) return '-';
+  return p.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+}
+function formatDateLong(d){
+  if(!d || typeof d!=='string') return '-';
+  var p=new Date(d+'T12:00:00');
+  if(isNaN(p.getTime())) return '-';
+  return p.toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
 function todayISO(){var n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
-
 function daysLeft(d){
-  if(!d)return Infinity;
-  var end=new Date(d+'T12:00:00');if(isNaN(end.getTime()))return Infinity;
+  if(!d) return Infinity;
+  var end=new Date(d+'T12:00:00');if(isNaN(end.getTime())) return Infinity;
   var now=new Date();end.setHours(0,0,0,0);now.setHours(0,0,0,0);
   return Math.ceil((end-now)/86400000);
 }
-
 function getStatus(endDate){
   var d=daysLeft(endDate);
-  if(d===Infinity)return{text:'Tdk Diketahui',cls:'badge-warning',key:'unknown'};
+  if(d===Infinity)return{text:'Tdk Diketahui',cls:'badge-unknown',key:'unknown'};
   if(d<0)return{text:'Sudah Habis',cls:'badge-danger',key:'expired'};
   if(d<=WARNING_DAYS)return{text:'Hampir Habis',cls:'badge-warning',key:'warning'};
   return{text:'Aktif',cls:'badge-safe',key:'active'};
 }
-
-function getInitial(n){return String(n||'U').trim().charAt(0).toUpperCase();}
-
-/* ============================================================
-   DATE PARSING
-============================================================ */
-function parseExcelDate(val){
-  if(val===null||val===undefined||val==='')return'';
-  if(typeof val==='number'){
-    try{var d=XLSX.SSF.parse_date_code(val);if(d)return d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0');}catch(e){}
-    return'';
-  }
-  var s=String(val).trim();
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
-  var m=s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
-  if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
-  var idMonths={januari:1,februari:2,maret:3,april:4,mei:5,juni:6,juli:7,agustus:8,september:9,oktober:10,november:11,desember:12};
-  var m2=s.toLowerCase().match(/^(\d{1,2})\s+([a-z]+)\s+(\d{4})$/);
-  if(m2&&idMonths[m2[2]])return m2[3]+'-'+String(idMonths[m2[2]]).padStart(2,'0')+'-'+m2[1].padStart(2,'0');
-  var p=new Date(s);
-  if(!isNaN(p.getTime()))return p.getFullYear()+'-'+String(p.getMonth()+1).padStart(2,'0')+'-'+String(p.getDate()).padStart(2,'0');
-  return'';
+function getInitial(n){
+  var s=safeText(n,50);
+  return s?s.charAt(0).toUpperCase():'U';
 }
 
-/* Smart column finder with fuzzy match */
-function smartFind(row,candidates){
-  if(!row)return'';
+/* ============================================================
+   EXCEL DATE PARSER
+============================================================ */
+function clampDateToValidDay(year, month, day){
+  var maxDay = new Date(year, month, 0).getDate();
+  if(day > maxDay) day = maxDay;
+  return year + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+}
 
+function parseExcelDate(val){
+  if(val === null || val === undefined || val === '') return '';
+  if(val instanceof Date){
+    if(isNaN(val.getTime())) return '';
+    var y=val.getFullYear(), m=val.getMonth()+1, d=val.getDate();
+    if(y<1900||y>2100) return '';
+    return clampDateToValidDay(y,m,d);
+  }
+  if(typeof val === 'number'){
+    if(val<1||val>100000) return '';
+    try{
+      var dt=XLSX.SSF.parse_date_code(val);
+      if(dt&&dt.y&&dt.m&&dt.d) return clampDateToValidDay(dt.y,dt.m,dt.d);
+    }catch(e){}
+    return '';
+  }
+  var s=String(val).trim();
+  if(!s) return '';
+  var m1=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m1){var y2=parseInt(m1[1]),mo2=parseInt(m1[2]),d2=parseInt(m1[3]);if(y2>=1900&&y2<=2100&&mo2>=1&&mo2<=12&&d2>=1)return clampDateToValidDay(y2,mo2,d2);}
+  var m2=s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  if(m2){var d3=parseInt(m2[1]),mo3=parseInt(m2[2]),y3=parseInt(m2[3]);if(d3>=1&&d3<=31&&mo3>=1&&mo3<=12&&y3>=1900&&y3<=2100)return clampDateToValidDay(y3,mo3,d3);}
+  var m3=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m3){var a=parseInt(m3[1]),b=parseInt(m3[2]),y4=parseInt(m3[3]);if(y4>=1900&&y4<=2100){if(a>12&&b>=1&&b<=12)return clampDateToValidDay(y4,b,a);if(b>12&&a>=1&&a<=12)return clampDateToValidDay(y4,a,b);return clampDateToValidDay(y4,a,b);}}
+  var idMonths={jan:1,feb:2,mar:3,apr:4,mei:5,jun:6,jul:7,agu:8,sep:9,okt:10,nov:11,des:12,januari:1,februari:2,maret:3,april:4,juni:6,juli:7,agustus:8,september:9,oktober:10,november:11,desember:12,january:1,march:3,may:5,june:6,july:7,august:8,october:10,december:12};
+  var m4=s.toLowerCase().match(/^(\d{1,2})\s+([a-z]+)\s+(\d{4})$/);
+  if(m4){var d4=parseInt(m4[1]),mname=m4[2],y5=parseInt(m4[3]);var mo4=idMonths[mname]||idMonths[mname.slice(0,3)];if(mo4&&y5>=1900&&y5<=2100)return clampDateToValidDay(y5,mo4,d4);}
+  var p2=new Date(s);
+  if(!isNaN(p2.getTime())&&p2.getFullYear()>=1900) return clampDateToValidDay(p2.getFullYear(),p2.getMonth()+1,p2.getDate());
+  return '';
+}
+
+/* ============================================================
+   SMART COLUMN FINDER
+============================================================ */
+function smartFind(row, candidates){
+  if(!row) return '';
   var keys=Object.keys(row);
-
-  function clean(t){
-    return String(t||'')
-      .toUpperCase()
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g,'')
-      .replace(/[^\w\s]/g,' ')
-      .replace(/\s+/g,' ')
-      .trim();
-  }
-
-  for(var i=0;i<candidates.length;i++){
-    var ck=clean(candidates[i]);
-
-    for(var k=0;k<keys.length;k++){
-      var rk=clean(keys[k]);
-
-      var score=0;
-
-      if(rk===ck)score=100;
-      else if(rk.includes(ck))score=90;
-      else if(ck.includes(rk))score=80;
-      else if(rk.replace(/\s/g,'')===ck.replace(/\s/g,''))score=95;
-
-      if(score>=80){
-        var val=row[keys[k]];
-
-        if(
-          val!==null&&
-          val!==undefined&&
-          String(val).trim()!==''
-        ){
-          return val;
-        }
-      }
-    }
-  }
-
-  return'';
+  function clean(t){return String(t||'').toUpperCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim();}
+  for(var i=0;i<candidates.length;i++){var ck=clean(candidates[i]);for(var k=0;k<keys.length;k++){if(clean(keys[k])===ck){var v=row[keys[k]];if(v!==null&&v!==undefined&&String(v).trim()!=='')return v;}}}
+  for(var i2=0;i2<candidates.length;i2++){var ck2=clean(candidates[i2]);for(var k2=0;k2<keys.length;k2++){var rk=clean(keys[k2]);if(rk.includes(ck2)||ck2.includes(rk)){var v2=row[keys[k2]];if(v2!==null&&v2!==undefined&&String(v2).trim()!=='')return v2;}}}
+  return '';
 }
 
 /* ============================================================
@@ -1343,9 +1131,15 @@ function describeDuration(a,u){return u==='tahun'?a+' tahun ('+a*12+' bulan)':a+
    TOAST
 ============================================================ */
 function showToast(msg,type,duration){
-  var w=document.getElementById('toastWrap');if(!w)return;
-  var t=document.createElement('div');t.className='toast toast-'+(type||'info');t.textContent=msg;
-  w.appendChild(t);setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},duration||3500);
+  var w=document.getElementById('toastWrap');
+  if(!w) return;
+  var oldToasts=w.querySelectorAll('.toast');
+  if(oldToasts.length>5) oldToasts[0].remove();
+  var t=document.createElement('div');
+  t.className='toast toast-'+(type||'info');
+  t.textContent=safeText(msg,300);
+  w.appendChild(t);
+  setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, duration||3500);
 }
 
 /* ============================================================
@@ -1356,16 +1150,31 @@ function hideAuthMsg(id){var el=document.getElementById(id);if(!el)return;el.tex
 function setBtnLoading(btn,loading){if(!btn)return;if(loading){btn.disabled=true;btn._t=btn.innerHTML;btn.innerHTML='<span class="spinner"></span> Mohon tunggu...';}else{btn.disabled=false;if(btn._t!==undefined){btn.innerHTML=btn._t;delete btn._t;}}}
 
 /* ============================================================
+   USER COUNT DISPLAY
+============================================================ */
+async function refreshUserCountUI(){
+  try{
+    var count=await Backend.countUsers();
+    var txt=document.getElementById('userCountText');
+    var registerBtn=document.getElementById('registerSubmitBtn');
+    if(txt) txt.textContent=count+' / '+MAX_USERS+' terpakai';
+    for(var i=1;i<=MAX_USERS;i++){var dot=document.getElementById('ucd'+i);if(dot)dot.classList.toggle('filled',i<=count);}
+    if(registerBtn) registerBtn.disabled=(count>=MAX_USERS);
+    if(count>=MAX_USERS) showAuthMsg('registerError','Slot pengguna sudah penuh (maks '+MAX_USERS+'). Hubungi admin.');
+  }catch(e){}
+}
+
+/* ============================================================
    PAGE ROUTER
 ============================================================ */
 var PAGES=['pageLogin','pageRegister','pageForgot','pageReset','appMain'];
 function showPage(name){
   PAGES.forEach(function(p){var el=document.getElementById(p);if(el)el.classList.add('hidden');});
   var t=document.getElementById(name);
-  if(t){t.classList.remove('hidden');var fi=t.querySelector('input');if(fi)setTimeout(function(){fi.focus();},100);}
-  // Hide loading screen
+  if(t){t.classList.remove('hidden');var fi=t.querySelector('input');if(fi) setTimeout(function(){fi.focus();},100);}
   var ls=document.getElementById('loadingScreen');
   if(ls&&!ls.classList.contains('fade-out')){ls.classList.add('fade-out');setTimeout(function(){ls.style.display='none';},420);}
+  if(name==='pageRegister') refreshUserCountUI();
 }
 
 /* ============================================================
@@ -1392,20 +1201,23 @@ async function doRegister(){
   var conf=document.getElementById('registerPasswordConfirm').value;
   if(!name){showAuthMsg('registerError','Nama wajib diisi.');return;}
   if(name.length>100){showAuthMsg('registerError','Nama terlalu panjang.');return;}
-  if(!isValidEmail(email)){showAuthMsg('registerError','Format email tidak valid.');return;}
+  if(!isValidEmail(email)){showAuthMsg('registerError','Format email tidak valid.'); return;}
   if(pass.length<6){showAuthMsg('registerError','Password minimal 6 karakter.');return;}
   if(pass.length>128){showAuthMsg('registerError','Password terlalu panjang.');return;}
   if(pass!==conf){showAuthMsg('registerError','Konfirmasi tidak cocok.');return;}
   var btn=document.getElementById('registerSubmitBtn');setBtnLoading(btn,true);
   try{
-    if(await dbGetByEmail(email)){showAuthMsg('registerError','Email sudah terdaftar.');return;}
-    var user={id:uid(),name:name,email:email,password:btoa(pass),createdAt:new Date().toISOString()};
-    await dbPut(STORE_USERS,user);
+    var count=await Backend.countUsers();
+    if(count>=MAX_USERS){showAuthMsg('registerError','Slot pengguna penuh (maks '+MAX_USERS+'). Hubungi admin.');return;}
+    if(await Backend.findUserByEmail(email)){showAuthMsg('registerError','Email sudah terdaftar.');return;}
+    var hashed=await hashPassword(pass);
+    var user={id:uid(),name:safeText(name,100),email:email,password:hashed,createdAt:new Date().toISOString()};
+    await Backend.putUser(user);
     state.currentUser=user;state.outlets=[];saveSession(user.id);
     ['registerName','registerEmail','registerPassword','registerPasswordConfirm'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
     renderApp();showPage('appMain');
     showToast('Akun berhasil dibuat. Selamat datang!','success');
-  }catch(err){console.error(err);showAuthMsg('registerError','Terjadi kesalahan. Coba lagi.');}
+  }catch(err){console.error(err);showAuthMsg('registerError','Terjadi kesalahan: '+(err.message||'Coba lagi.'));}
   finally{setBtnLoading(btn,false);}
 }
 
@@ -1416,17 +1228,17 @@ async function doLogin(){
   hideAuthMsg('loginError');
   var email=document.getElementById('loginEmail').value.trim().toLowerCase();
   var pass=document.getElementById('loginPassword').value;
-  if(!isValidEmail(email)){showAuthMsg('loginError','Format email tidak valid.');return;}
-  if(!pass){showAuthMsg('loginError','Password wajib diisi.');return;}
+  if(!isValidEmail(email)){showAuthMsg('loginError','Format email tidak valid.'); return;}
+  if(!pass){showAuthMsg('loginError','Password wajib diisi.'); return;}
   var btn=document.getElementById('loginSubmitBtn');setBtnLoading(btn,true);
   try{
-    var user=await dbGetByEmail(email);
-    if(!user||user.password!==btoa(pass)){showAuthMsg('loginError','Email atau password salah.');return;}
+    var user=await Backend.findUserByEmail(email);
+    if(!user||!(await verifyPassword(pass,user.password))){showAuthMsg('loginError','Email atau password salah.');return;}
     state.currentUser=user;
-    var saved=await loadData(user.id);state.outlets=saved.outlets||[];
+    var saved=await Backend.loadData(user.id);state.outlets=Array.isArray(saved.outlets)?saved.outlets:[];
     saveSession(user.id);document.getElementById('loginPassword').value='';
     renderApp();showPage('appMain');
-  }catch(err){console.error(err);showAuthMsg('loginError','Terjadi kesalahan. Coba lagi.');}
+  }catch(err){console.error(err);showAuthMsg('loginError','Terjadi kesalahan: '+(err.message||'Coba lagi.'));}
   finally{setBtnLoading(btn,false);}
 }
 
@@ -1434,7 +1246,7 @@ async function doLogin(){
    AUTH: LOGOUT
 ============================================================ */
 function doLogout(){
-  if(!confirm('Anda yakin ingin logout?'))return;
+  if(!window.confirm('Anda yakin ingin logout?')) return;
   clearSession();state.currentUser=null;state.outlets=[];currentSort='end-asc';
   var np=document.getElementById('notifPanel');if(np)np.classList.add('hidden');
   hideAuthMsg('loginError');showPage('pageLogin');
@@ -1446,16 +1258,23 @@ function doLogout(){
 async function doForgot(){
   hideAuthMsg('forgotError');hideAuthMsg('forgotSuccess');
   var email=document.getElementById('forgotEmail').value.trim().toLowerCase();
-  if(!isValidEmail(email)){showAuthMsg('forgotError','Format email tidak valid.');return;}
+  if(!isValidEmail(email)){showAuthMsg('forgotError','Format email tidak valid.'); return;}
   var btn=document.getElementById('forgotSubmitBtn');setBtnLoading(btn,true);
   try{
-    var user=await dbGetByEmail(email);
+    var user=await Backend.findUserByEmail(email);
     if(!user){showAuthMsg('forgotSuccess','Jika email terdaftar, token telah dikirim.');return;}
     var token=generateToken(),expiry=Date.now()+3600000;
-    await dbPut(STORE_TOKENS,{token:token,userId:user.id,email:email,expiry:expiry});
+    await Backend.putToken({token:token,userId:user.id,email:email,expiry:expiry});
     var ok=(EMAILJS_PUBLIC_KEY!=='YOUR_PUBLIC_KEY');
-    if(ok){try{emailjs.init(EMAILJS_PUBLIC_KEY);await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,to_name:user.name,reset_token:token});showAuthMsg('forgotSuccess','Token dikirim ke email.');}catch(ee){showAuthMsg('forgotError','Gagal kirim email.');await dbDelete(STORE_TOKENS,token);}}
-    else{showAuthMsg('forgotSuccess','[DEV] Token: '+token);}
+    if(ok){
+      try{
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:email,to_name:user.name,reset_token:token});
+        showAuthMsg('forgotSuccess','Token dikirim ke email.');
+      }catch(ee){showAuthMsg('forgotError','Gagal kirim email.');await Backend.deleteToken(token);}
+    } else {
+      showAuthMsg('forgotSuccess','[DEV] Token: '+token);
+    }
   }catch(err){console.error(err);showAuthMsg('forgotError','Terjadi kesalahan.');}
   finally{setBtnLoading(btn,false);}
 }
@@ -1468,17 +1287,19 @@ async function doReset(){
   var token=document.getElementById('resetToken').value.trim();
   var newP=document.getElementById('resetPassword').value;
   var conf=document.getElementById('resetPasswordConfirm').value;
-  if(!token){showAuthMsg('resetError','Token wajib diisi.');return;}
+  if(!token){showAuthMsg('resetError','Token wajib diisi.'); return;}
   if(newP.length<6){showAuthMsg('resetError','Password minimal 6 karakter.');return;}
   if(newP!==conf){showAuthMsg('resetError','Konfirmasi tidak cocok.');return;}
   var btn=document.getElementById('resetSubmitBtn');setBtnLoading(btn,true);
   try{
-    var to=await dbGet(STORE_TOKENS,token);
+    var to=await Backend.getToken(token);
     if(!to){showAuthMsg('resetError','Token tidak valid.');return;}
-    if(Date.now()>to.expiry){await dbDelete(STORE_TOKENS,token);showAuthMsg('resetError','Token kadaluarsa.');return;}
-    var user=await dbGetByEmail(to.email);
+    if(Date.now()>to.expiry){await Backend.deleteToken(token);showAuthMsg('resetError','Token kadaluarsa.');return;}
+    var user=await Backend.findUserByEmail(to.email);
     if(!user){showAuthMsg('resetError','Akun tidak ditemukan.');return;}
-    user.password=btoa(newP);await dbPut(STORE_USERS,user);await dbDelete(STORE_TOKENS,token);
+    user.password=await hashPassword(newP);
+    await Backend.putUser(user);
+    await Backend.deleteToken(token);
     showAuthMsg('resetSuccess','Password diubah. Silakan login.');
     ['resetToken','resetPassword','resetPasswordConfirm'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   }catch(err){console.error(err);showAuthMsg('resetError','Terjadi kesalahan.');}
@@ -1514,6 +1335,8 @@ function renderApp(){
   var un=document.getElementById('userName');if(un)un.textContent=state.currentUser.name;
   var tb=document.getElementById('todayBadge');
   if(tb)tb.textContent='📅 Hari ini: '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var mb=document.getElementById('modeBadgePill');
+  if(mb) mb.textContent=Backend.mode()==='firebase'?'☁️ Firebase Sync':'📡 Mode Offline';
   requestAnimationFrame(render);
 }
 
@@ -1530,7 +1353,7 @@ function openModal(title,buildFn,onSave){
   if(sb){sb.disabled=false;sb.innerHTML='Simpan';}
   document.getElementById('modalWrap').classList.remove('hidden');
   var fi=mb.querySelector('input,select,textarea');
-  if(fi)setTimeout(function(){fi.focus();},80);
+  if(fi) setTimeout(function(){fi.focus();},80);
 }
 function closeModal(){
   document.getElementById('modalWrap').classList.add('hidden');
@@ -1542,7 +1365,6 @@ function closeModal(){
    UPDATE CONTRACT MODAL
 ============================================================ */
 var _ucCtx={outletId:null,employeeId:null};
-
 function openUpdateContractModal(outletId,employeeId){
   var outlet=state.outlets.find(function(o){return o.id===outletId;});if(!outlet)return;
   var emp=(outlet.employees||[]).find(function(e){return e.id===employeeId;});if(!emp)return;
@@ -1557,7 +1379,6 @@ function openUpdateContractModal(outletId,employeeId){
   setTimeout(function(){document.getElementById('contractDurationNum').focus();},80);
 }
 function closeUpdateContractModal(){document.getElementById('updateContractWrap').classList.add('hidden');_ucCtx={outletId:null,employeeId:null};}
-
 function updateContractPreview(){
   var ni=document.getElementById('contractDurationNum');
   var pb=document.getElementById('contractPreviewBlock');
@@ -1574,7 +1395,6 @@ function updateContractPreview(){
   if(pdt)pdt.textContent='Dari '+(_ucBase==='today'?'hari ini':formatDate(base))+' + '+describeDuration(amount,_ucUnit);
   pb.style.display='block';
 }
-
 async function saveUpdateContract(){
   var ni=document.getElementById('contractDurationNum');
   var amount=parseInt(ni?ni.value:'',10);
@@ -1588,8 +1408,9 @@ async function saveUpdateContract(){
   emp.contractEnd=newEnd;
   _lastChangedEmpId=emp.id;
   try{
-    await saveData(state,state.currentUser.id);
-    closeUpdateContractModal();requestAnimationFrame(render);
+    await Backend.saveData(state.currentUser.id,{outlets:state.outlets});
+    closeUpdateContractModal();
+    requestAnimationFrame(render);
     showToast('Kontrak '+emp.name+' diperbarui hingga '+formatDate(newEnd)+'.','success',5000);
     setTimeout(function(){_lastChangedEmpId=null;},3000);
   }catch(err){console.error(err);showToast('Gagal menyimpan.','error');}
@@ -1649,9 +1470,18 @@ function buildEmployeeForm(container,data){
   buildField(container,'Nomor HP','fEmpPhone',{type:'text',placeholder:'Nomor telepon',value:data.phone||''});
   buildField(container,'Gaji Pokok (Rp)','fEmpSalary',{type:'number',placeholder:'0',value:data.salary||'0',min:'0',step:'1000'});
   buildField(container,'Tanggal Mulai Kontrak','fEmpStart',{type:'date',value:data.contractStart||''});
-  buildField(container,'Tanggal Akhir Kontrak','fEmpEnd',{type:'date',value:data.contractEnd||'',required:''});
+  buildField(container,'Tanggal Akhir Kontrak','fEmpEnd',{type:'date',value:data.contractEnd||''});
+  if(!data.contractEnd){
+    var note=document.createElement('div');
+    note.style.cssText='font-size:11px;color:var(--amber);background:var(--amber-light);border:1px solid var(--amber-mid);border-radius:6px;padding:7px 10px;margin-top:-6px;';
+    note.textContent='⚠️ Isi tanggal akhir kontrak agar monitoring bisa berjalan.';
+    container.appendChild(note);
+  }
 }
-function readVal(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+function readVal(id,max){
+  var el=document.getElementById(id);
+  return el?safeText(el.value,max||255):'';
+}
 
 /* ============================================================
    KPI
@@ -1730,16 +1560,15 @@ function clearFilters(){
 }
 
 /* ============================================================
-   OUTLET MINI-KPI CALCULATOR
+   OUTLET MINI-KPI
 ============================================================ */
 function outletMiniKpi(outlet){
-  var active=0,warning=0,expired=0;
+  var active=0,warning=0,expired=0,unknown=0;
   (outlet.employees||[]).forEach(function(emp){
     var d=daysLeft(emp.contractEnd);
-    if(d===Infinity)return;
-    if(d<0)expired++;else if(d<=WARNING_DAYS)warning++;else active++;
+    if(d===Infinity)unknown++;else if(d<0)expired++;else if(d<=WARNING_DAYS)warning++;else active++;
   });
-  return{active:active,warning:warning,expired:expired};
+  return{active:active,warning:warning,expired:expired,unknown:unknown};
 }
 
 /* ============================================================
@@ -1755,29 +1584,27 @@ function sortBy(type){
    RENDER
 ============================================================ */
 var _renderBusy=false;
+var _renderQueued=false;
 function render(){
-  if(_renderBusy)return;_renderBusy=true;
+  if(_renderBusy){_renderQueued=true;return;}
+  _renderBusy=true;
   try{
     renderKPI();renderNotifications();renderOutletFilter();updateFilterClear();
-
     var grid=document.getElementById('outletGrid');
     var si=document.getElementById('searchInput');
     var fo=document.getElementById('filterOutlet');
     var fs=document.getElementById('filterStatus');
     if(!grid||!si||!fo)return;
-
-    var keyword=si.value.toLowerCase().trim();
+    var keyword=normalizeText(si.value);
     var filterOutlet=fo.value;
     var filterStatus=fs?fs.value:'';
-
     var outlets=state.outlets.slice().sort(function(a,b){return a.name.localeCompare(b.name,'id');});
     var frag=document.createDocumentFragment();var anyVisible=false;
-
     outlets.forEach(function(outlet){
       if(filterOutlet&&filterOutlet!==outlet.id)return;
       var employees=(outlet.employees||[]).slice().filter(function(emp){
         if(keyword&&!normalizeText(emp.name).includes(keyword))return false;
-        if(filterStatus){var st=getStatus(emp.contractEnd);if(filterStatus!==st.key&&!(filterStatus==='warning'&&st.key==='warning'))return false;if(filterStatus==='active'&&st.key!=='active')return false;if(filterStatus==='expired'&&st.key!=='expired')return false;}
+        if(filterStatus){var st=getStatus(emp.contractEnd);if(filterStatus==='active'&&st.key!=='active')return false;if(filterStatus==='warning'&&st.key!=='warning')return false;if(filterStatus==='expired'&&st.key!=='expired')return false;if(filterStatus==='unknown'&&st.key!=='unknown')return false;}
         return true;
       });
       if((keyword||filterStatus)&&employees.length===0)return;
@@ -1790,14 +1617,16 @@ function render(){
       });
       frag.appendChild(buildOutletCard(outlet,employees));
     });
-
     grid.innerHTML='';
     if(!anyVisible){
       var es=document.createElement('div');es.className='empty-state';
       es.innerHTML='<span class="empty-state-icon">🏢</span><h3>'+(filterOutlet||keyword?'Tidak ada hasil ditemukan.':'Belum ada outlet')+'</h3><p>'+(filterOutlet||keyword?'Coba ubah atau reset filter.':'Klik "Outlet" untuk menambahkan outlet pertama.')+'</p>';
       grid.appendChild(es);
     }else{grid.appendChild(frag);}
-  }finally{_renderBusy=false;}
+  }finally{
+    _renderBusy=false;
+    if(_renderQueued){_renderQueued=false;requestAnimationFrame(render);}
+  }
 }
 
 /* ============================================================
@@ -1807,7 +1636,6 @@ function buildOutletCard(outlet,employees){
   var card=document.createElement('div');card.className='outlet-card';
   var mini=outletMiniKpi(outlet);
 
-  /* HEADER */
   var header=document.createElement('div');header.className='outlet-card-header';
   var hl=document.createElement('div');hl.className='outlet-header-left';
   var avatar=document.createElement('div');avatar.className='outlet-avatar';avatar.innerHTML='🏢';
@@ -1819,6 +1647,7 @@ function buildOutletCard(outlet,employees){
   if(mini.active>0){var p1=document.createElement('span');p1.className='outlet-mini-pill ok';p1.textContent='✓ '+mini.active+' aktif';miniKpi.appendChild(p1);}
   if(mini.warning>0){var p2=document.createElement('span');p2.className='outlet-mini-pill warn';p2.textContent='⚠ '+mini.warning+' kritis';miniKpi.appendChild(p2);}
   if(mini.expired>0){var p3=document.createElement('span');p3.className='outlet-mini-pill exp';p3.textContent='✕ '+mini.expired+' habis';miniKpi.appendChild(p3);}
+  if(mini.unknown>0){var p4=document.createElement('span');p4.className='outlet-mini-pill unk';p4.textContent='? '+mini.unknown+' tdk ada tgl';miniKpi.appendChild(p4);}
   info.appendChild(miniKpi);
 
   if(outlet.address||outlet.pic){
@@ -1831,28 +1660,19 @@ function buildOutletCard(outlet,employees){
 
   var actions=document.createElement('div');actions.className='outlet-actions';
   var isCollapsed=_collapsedOutlets[outlet.id];
-
   var toggleBtn=document.createElement('button');
   toggleBtn.className='outlet-toggle'+(isCollapsed?' collapsed':'');
-  toggleBtn.title=isCollapsed?'Tampilkan':'Sembunyikan';
   toggleBtn.innerHTML='▾';
-  toggleBtn.addEventListener('click',function(){
-    _collapsedOutlets[outlet.id]=!_collapsedOutlets[outlet.id];
-    requestAnimationFrame(render);
-  });
-
+  toggleBtn.addEventListener('click',function(){_collapsedOutlets[outlet.id]=!_collapsedOutlets[outlet.id];requestAnimationFrame(render);});
   var editBtn=document.createElement('button');editBtn.className='icon-btn';editBtn.title='Edit outlet';
   editBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   editBtn.addEventListener('click',function(){doEditOutlet(outlet.id);});
-
   var delBtn=document.createElement('button');delBtn.className='icon-btn danger';delBtn.title='Hapus outlet';
   delBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
   delBtn.addEventListener('click',function(){doDeleteOutlet(outlet.id);});
-
   actions.appendChild(toggleBtn);actions.appendChild(editBtn);actions.appendChild(delBtn);
   header.appendChild(hl);header.appendChild(actions);
 
-  /* BODY */
   var body=document.createElement('div');
   body.className='outlet-card-body'+(isCollapsed?' collapsed':'');
   if(!isCollapsed)body.style.maxHeight='10000px';
@@ -1864,8 +1684,6 @@ function buildOutletCard(outlet,employees){
   addBar.appendChild(addEmpBtn);
 
   var empList=document.createElement('div');empList.className='emp-list';
-
-  /* Sort header */
   var sortRow=document.createElement('div');sortRow.className='emp-sort-row';
   var sb1=document.createElement('button');sb1.className='emp-sort-btn';
   sb1.textContent='Karyawan '+(currentSort==='name-asc'?'↑':currentSort==='name-desc'?'↓':'');
@@ -1885,16 +1703,15 @@ function buildOutletCard(outlet,employees){
       if(status.key==='expired')rowClass+=' exp-row';
       else if(status.key==='warning')rowClass+=' warn-row';
       else if(status.key==='active')rowClass+=' ok-row';
+      else rowClass+=' unk-row';
       if(_lastChangedEmpId===emp.id)rowClass+=' highlight';
       row.className=rowClass;
 
-      /* Name */
-      var nc=document.createElement('div');nc.className='emp-name-cell';
+      var nc2=document.createElement('div');nc2.className='emp-name-cell';
       var nm=document.createElement('div');nm.className='emp-name';nm.textContent=emp.name;
       var ph=document.createElement('div');ph.className='emp-phone';ph.textContent=emp.phone||'-';
-      nc.appendChild(nm);nc.appendChild(ph);
+      nc2.appendChild(nm);nc2.appendChild(ph);
 
-      /* Salary + days */
       var sc=document.createElement('div');sc.className='emp-salary-cell';
       var sal=document.createElement('div');sal.className='emp-salary';sal.textContent=currency(emp.salary);
       var dl=document.createElement('div');
@@ -1904,23 +1721,21 @@ function buildOutletCard(outlet,employees){
       else if(days<=WARNING_DAYS)dlClass+=' warn';
       else dlClass+=' ok';
       dl.className=dlClass;
-      if(days===Infinity)dl.textContent='Tdk diketahui';
+      if(days===Infinity)dl.innerHTML='<span title="Isi tanggal akhir kontrak">? Tdk ada tgl</span>';
       else if(days<0)dl.textContent='⚠ '+Math.abs(days)+'h lalu';
       else if(days===0)dl.textContent='⚠ Hari ini!';
       else dl.textContent=(days<=WARNING_DAYS?'⚠ ':'')+days+' hari lagi';
       sc.appendChild(sal);sc.appendChild(dl);
 
-      /* Badge */
       var bc=document.createElement('div');bc.className='emp-badge-cell';
       var badge=document.createElement('span');badge.className='badge '+status.cls;badge.textContent=status.text;
       bc.appendChild(badge);
 
-      /* Actions */
       var ac=document.createElement('div');ac.className='emp-actions-cell';
       var ucBtn=document.createElement('button');ucBtn.className='emp-btn emp-btn-contract';ucBtn.title='Update Kontrak';ucBtn.textContent='🔄 Update';
       ucBtn.addEventListener('click',function(){openUpdateContractModal(outlet.id,emp.id);});
       var hc=(emp.contractHistory||[]).length;
-      var hBtn=document.createElement('button');hBtn.className='emp-btn emp-btn-history';hBtn.title='History';
+      var hBtn=document.createElement('button');hBtn.className='emp-btn emp-btn-history';
       hBtn.textContent='📜'+(hc>0?' ('+hc+')':'');
       hBtn.addEventListener('click',function(){openHistoryModal(outlet.id,emp.id);});
       var eEdit=document.createElement('button');eEdit.className='icon-btn';eEdit.title='Edit';
@@ -1931,7 +1746,7 @@ function buildOutletCard(outlet,employees){
       eDel.addEventListener('click',function(){doDeleteEmployee(outlet.id,emp.id);});
       ac.appendChild(ucBtn);ac.appendChild(hBtn);ac.appendChild(eEdit);ac.appendChild(eDel);
 
-      row.appendChild(nc);row.appendChild(sc);row.appendChild(bc);row.appendChild(ac);
+      row.appendChild(nc2);row.appendChild(sc);row.appendChild(bc);row.appendChild(ac);
       empList.appendChild(row);
     });
   }else{
@@ -1952,20 +1767,16 @@ function renderDashboard(){
   var container=document.getElementById('dashboardContent');
   if(!container)return;
   container.innerHTML='';
-
-  /* Collect all employees */
   var allEmps=[];
   state.outlets.forEach(function(outlet){
     (outlet.employees||[]).forEach(function(emp){
       allEmps.push(Object.assign({},emp,{outletName:outlet.name,outletId:outlet.id}));
     });
   });
-
-  /* Kritis section */
   var kritis=allEmps.filter(function(e){var d=daysLeft(e.contractEnd);return d!==Infinity&&d<=WARNING_DAYS;}).sort(function(a,b){return daysLeft(a.contractEnd)-daysLeft(b.contractEnd);});
   var ok=allEmps.filter(function(e){var d=daysLeft(e.contractEnd);return d!==Infinity&&d>WARNING_DAYS;}).sort(function(a,b){return daysLeft(a.contractEnd)-daysLeft(b.contractEnd);});
+  var nodate=allEmps.filter(function(e){return !e.contractEnd;});
 
-  /* Header */
   var heroDiv=document.createElement('div');heroDiv.className='hero';heroDiv.style.marginBottom='16px';
   heroDiv.innerHTML='<div class="hero-left"><h1>Dashboard <em>Global</em></h1><p>Semua karyawan lintas outlet, diurutkan berdasarkan urgensi kontrak.</p><div class="today-badge">📅 '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div></div>'+
     '<div class="hero-stats"><div class="hero-stat"><div class="hero-stat-num red">'+kritis.length+'</div><div class="hero-stat-label">Kritis</div></div><div class="hero-stat"><div class="hero-stat-num green">'+ok.length+'</div><div class="hero-stat-label">Aman</div></div><div class="hero-stat"><div class="hero-stat-num">'+allEmps.length+'</div><div class="hero-stat-label">Total</div></div></div>';
@@ -1991,37 +1802,29 @@ function renderDashboard(){
       else if(status.key==='warning')rc+=' warn-row';
       else if(status.key==='active')rc+=' ok-row';
       row.className=rc;
-
-      var nc=document.createElement('div');
+      var nc3=document.createElement('div');
       var nm=document.createElement('div');nm.className='emp-name';nm.textContent=emp.name;
-      var ot=document.createElement('div');ot.className='global-emp-outlet';ot.textContent='🏢 '+emp.outletName+' · '+currency(emp.salary);
-      nc.appendChild(nm);nc.appendChild(ot);
-
+      var ot=document.createElement('div');ot.className='global-emp-outlet';ot.textContent='🏢 '+emp.outletName+(emp.salary?' · '+currency(emp.salary):'');
+      nc3.appendChild(nm);nc3.appendChild(ot);
       var sc=document.createElement('div');
-      var sal=document.createElement('div');sal.className='emp-salary';sal.textContent=formatDate(emp.contractEnd);
+      var sal=document.createElement('div');sal.className='emp-salary';sal.textContent=formatDate(emp.contractEnd)||'Belum ada tanggal';
       var dl=document.createElement('div');
       var dlClass='emp-days-left';
-      if(days===Infinity)dlClass+=' unknown';
-      else if(days<0)dlClass+=' danger';
-      else if(days<=WARNING_DAYS)dlClass+=' warn';
-      else dlClass+=' ok';
+      if(days===Infinity)dlClass+=' unknown';else if(days<0)dlClass+=' danger';else if(days<=WARNING_DAYS)dlClass+=' warn';else dlClass+=' ok';
       dl.className=dlClass;
-      if(days===Infinity)dl.textContent='Tdk diketahui';
+      if(days===Infinity)dl.textContent='? Tdk ada tgl kontrak';
       else if(days<0)dl.textContent='⚠ '+Math.abs(days)+'h lalu';
       else if(days===0)dl.textContent='⚠ Hari ini!';
       else dl.textContent=(days<=WARNING_DAYS?'⚠ ':'')+days+' hari lagi';
       sc.appendChild(sal);sc.appendChild(dl);
-
       var bc=document.createElement('div');
       var badge=document.createElement('span');badge.className='badge '+status.cls;badge.textContent=status.text;
       bc.appendChild(badge);
-
       var ac=document.createElement('div');ac.className='emp-actions-cell';
-      var ucBtn=document.createElement('button');ucBtn.className='emp-btn emp-btn-contract';ucBtn.title='Update Kontrak';ucBtn.textContent='🔄 Update';
+      var ucBtn=document.createElement('button');ucBtn.className='emp-btn emp-btn-contract';ucBtn.textContent='🔄 Update';
       ucBtn.addEventListener('click',function(){switchView('viewOutlets');setTimeout(function(){openUpdateContractModal(emp.outletId,emp.id);},100);});
       ac.appendChild(ucBtn);
-
-      row.appendChild(nc);row.appendChild(sc);row.appendChild(bc);row.appendChild(ac);
+      row.appendChild(nc3);row.appendChild(sc);row.appendChild(bc);row.appendChild(ac);
       list.appendChild(row);
     });
     sec.appendChild(list);container.appendChild(sec);
@@ -2029,39 +1832,34 @@ function renderDashboard(){
 
   buildGlobalSection('🚨 Perlu Perhatian Segera',kritis,'Tidak ada kontrak kritis. Semua aman!');
   buildGlobalSection('✅ Kontrak Aman',ok.slice(0,30),'');
+  if(ok.length>30){var more=document.createElement('div');more.style.cssText='text-align:center;padding:12px;font-size:12px;color:var(--text3);';more.textContent='... dan '+(ok.length-30)+' karyawan lainnya dengan kontrak aman.';container.appendChild(more);}
+  if(nodate.length){buildGlobalSection('❓ Belum Ada Tanggal Kontrak',nodate,'');}
 
-  if(ok.length>30){
-    var more=document.createElement('div');more.style.cssText='text-align:center;padding:12px;font-size:12px;color:var(--text3);';
-    more.textContent='... dan '+(ok.length-30)+' karyawan lainnya dengan kontrak aman.';
-    container.appendChild(more);
-  }
-
-  /* Per-outlet analytics */
   if(state.outlets.length>1){
     var anaSec=document.createElement('div');anaSec.className='dash-section';
     var anaTitle=document.createElement('div');anaTitle.className='dash-section-title';anaTitle.innerHTML='📊 Statistik Per Outlet';
     anaSec.appendChild(anaTitle);
-
     var anaGrid=document.createElement('div');anaGrid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;';
     state.outlets.forEach(function(outlet){
       var mini=outletMiniKpi(outlet);
       var total=(outlet.employees||[]).length;
       if(!total)return;
-      var card=document.createElement('div');
-      card.style.cssText='background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;';
+      var card2=document.createElement('div');
+      card2.style.cssText='background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;';
       var urgency=mini.expired+mini.warning;
       var pct=total>0?Math.round((mini.active/total)*100):0;
-      card.innerHTML='<div style="font-weight:700;font-size:13px;color:var(--ink);margin-bottom:8px;">'+escapeHtml(outlet.name)+'</div>'+
-        '<div style="display:flex;gap:8px;margin-bottom:8px;">'+
-        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(--green);">'+mini.active+'</div><div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;">Aktif</div></div>'+
-        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(--amber);">'+mini.warning+'</div><div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;">Kritis</div></div>'+
-        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(--red);">'+mini.expired+'</div><div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;">Habis</div></div>'+
+      card2.innerHTML='<div style="font-weight:700;font-size:13px;color:var(--ink);margin-bottom:8px;">'+escapeHtml(outlet.name)+'</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px;">'+
+        '<div style="text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:18px;color:var(--green);">'+mini.active+'</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Aktif</div></div>'+
+        '<div style="text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:18px;color:var(--amber);">'+mini.warning+'</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Kritis</div></div>'+
+        '<div style="text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:18px;color:var(--red);">'+mini.expired+'</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Habis</div></div>'+
+        '<div style="text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:18px;color:var(--text3);">'+mini.unknown+'</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Tdk ada tgl</div></div>'+
         '</div>'+
         '<div style="background:var(--border);border-radius:999px;height:4px;overflow:hidden;">'+
         '<div style="height:100%;border-radius:999px;background:'+(urgency>0?'linear-gradient(90deg,var(--green),var(--amber))':'var(--green)')+';width:'+pct+'%;transition:width 0.5s;"></div>'+
         '</div>'+
         '<div style="font-size:10px;color:var(--text3);margin-top:4px;">'+pct+'% aktif dari '+total+' karyawan</div>';
-      anaGrid.appendChild(card);
+      anaGrid.appendChild(card2);
     });
     anaSec.appendChild(anaGrid);container.appendChild(anaSec);
   }
@@ -2073,11 +1871,12 @@ function renderDashboard(){
 function doAddOutlet(){
   openModal('Tambah Outlet',buildOutletForm,async function(){
     var name=readVal('fOutletName');
-    if(!name){showToast('Nama outlet wajib diisi.','error');return;}
+    if(!name){showToast('Nama outlet wajib diisi.','error'); return;}
     if(name.length>100){showToast('Nama terlalu panjang.','error');return;}
     if(state.outlets.some(function(o){return normalizeText(o.name)===normalizeText(name);})){showToast('Outlet sudah ada.','error');return;}
-    state.outlets.push({id:uid(),name:name,address:readVal('fOutletAddress'),pic:readVal('fOutletPic'),phone:readVal('fOutletPhone'),employees:[]});
-    await saveData(state,state.currentUser.id);requestAnimationFrame(render);closeModal();
+    state.outlets.push({id:uid(),name:safeText(name,100),address:safeText(readVal('fOutletAddress',200),200),pic:safeText(readVal('fOutletPic',100),100),phone:safeText(readVal('fOutletPhone',30),30),employees:[]});
+    await Backend.saveData(state.currentUser.id,{outlets:state.outlets});
+    requestAnimationFrame(render);closeModal();
     showToast('Outlet "'+name+'" ditambahkan.','success');
   });
 }
@@ -2085,20 +1884,26 @@ function doEditOutlet(id){
   var outlet=state.outlets.find(function(o){return o.id===id;});if(!outlet)return;
   openModal('Edit Outlet',function(c){buildOutletForm(c,outlet);},async function(){
     var name=readVal('fOutletName');
-    if(!name){showToast('Nama outlet wajib diisi.','error');return;}
-    if(name.length>100){showToast('Nama terlalu panjang.','error');return;}
+    if(!name){showToast('Nama outlet wajib diisi.','error'); return;}
     if(state.outlets.some(function(o){return o.id!==id&&normalizeText(o.name)===normalizeText(name);})){showToast('Outlet sudah ada.','error');return;}
-    outlet.name=name;outlet.address=readVal('fOutletAddress');outlet.pic=readVal('fOutletPic');outlet.phone=readVal('fOutletPhone');
-    await saveData(state,state.currentUser.id);requestAnimationFrame(render);closeModal();
+    outlet.name=safeText(name,100);outlet.address=safeText(readVal('fOutletAddress',200),200);outlet.pic=safeText(readVal('fOutletPic',100),100);outlet.phone=safeText(readVal('fOutletPhone',30),30);
+    await Backend.saveData(state.currentUser.id,{outlets:state.outlets});
+    requestAnimationFrame(render);closeModal();
     showToast('Outlet diperbarui.','success');
   });
 }
+
+/* ============================================================
+   FIX #5: doDeleteOutlet — passing {outlets} bukan state
+============================================================ */
 function doDeleteOutlet(id){
   var outlet=state.outlets.find(function(o){return o.id===id;});if(!outlet)return;
   var cnt=(outlet.employees||[]).length;
-  if(!confirm('Hapus outlet "'+outlet.name+'"?'+(cnt>0?'\n\n'+cnt+' karyawan juga terhapus.':'')))return;
+  if(!window.confirm('Hapus outlet "'+safeText(outlet.name,100)+'"?'+(cnt>0?'\n\n'+cnt+' karyawan juga terhapus.':'')))return;
   state.outlets=state.outlets.filter(function(o){return o.id!==id;});
-  saveData(state,state.currentUser.id).then(function(){requestAnimationFrame(render);showToast('Outlet dihapus.','info');}).catch(function(e){console.error(e);showToast('Gagal.','error');});
+  Backend.saveData(state.currentUser.id,{outlets:state.outlets}).then(function(){
+    requestAnimationFrame(render);showToast('Outlet dihapus.','info');
+  }).catch(function(e){console.error(e);showToast('Gagal.','error');});
 }
 
 /* ============================================================
@@ -2107,21 +1912,22 @@ function doDeleteOutlet(id){
 function validateEmployeeForm(){
   var name=readVal('fEmpName'),end=readVal('fEmpEnd'),start=readVal('fEmpStart');
   var salEl=document.getElementById('fEmpSalary'),salary=Number(salEl?salEl.value:'0');
-  if(!name){showToast('Nama wajib diisi.','error');return null;}
+  if(!name){showToast('Nama wajib diisi.','error'); return null;}
   if(name.length>100){showToast('Nama terlalu panjang.','error');return null;}
-  if(!end){showToast('Tanggal akhir wajib diisi.','error');return null;}
   if(start&&end&&start>end){showToast('Tanggal mulai tidak boleh melebihi akhir.','error');return null;}
   if(isNaN(salary)||salary<0){showToast('Gaji tidak boleh negatif.','error');return null;}
   if(salary>999999999999){showToast('Nilai gaji tidak masuk akal.','error');return null;}
-  return{name:name,phone:readVal('fEmpPhone'),salary:salary,contractStart:start,contractEnd:end};
+  return{name:name,phone:safeText(readVal('fEmpPhone',30),30),salary:safeNumber(salary),contractStart:start,contractEnd:end};
 }
 function doAddEmployee(outletId){
   var outlet=state.outlets.find(function(o){return o.id===outletId;});if(!outlet)return;
   openModal('Tambah Karyawan',buildEmployeeForm,async function(){
     var d=validateEmployeeForm();if(!d)return;
     if(outlet.employees.some(function(e){return normalizeText(e.name)===normalizeText(d.name);})){showToast('Karyawan sudah ada di outlet ini.','error');return;}
-    d.id=uid();d.contractHistory=[];outlet.employees.push(d);
-    await saveData(state,state.currentUser.id);requestAnimationFrame(render);closeModal();
+    d.id=uid();d.contractHistory=[];d.name=safeText(d.name,100);d.phone=safeText(d.phone,30);d.salary=safeNumber(d.salary);
+    outlet.employees.push(d);
+    await Backend.saveData(state.currentUser.id,{outlets:state.outlets});
+    requestAnimationFrame(render);closeModal();
     showToast('Karyawan berhasil ditambahkan.','success');
   });
 }
@@ -2131,26 +1937,33 @@ function doEditEmployee(outletId,employeeId){
   openModal('Edit Karyawan',function(c){buildEmployeeForm(c,emp);},async function(){
     var d=validateEmployeeForm();if(!d)return;
     if(outlet.employees.some(function(e){return e.id!==employeeId&&normalizeText(e.name)===normalizeText(d.name);})){showToast('Nama sudah ada.','error');return;}
-    emp.name=d.name;emp.phone=d.phone;emp.salary=d.salary;emp.contractStart=d.contractStart;emp.contractEnd=d.contractEnd;
+    emp.name=safeText(d.name,100);emp.phone=safeText(d.phone,30);emp.salary=safeNumber(d.salary);emp.contractStart=d.contractStart;emp.contractEnd=d.contractEnd;
     _lastChangedEmpId=emp.id;
-    await saveData(state,state.currentUser.id);requestAnimationFrame(render);closeModal();
+    await Backend.saveData(state.currentUser.id,{outlets:state.outlets});
+    requestAnimationFrame(render);closeModal();
     showToast('Karyawan diperbarui.','success');
     setTimeout(function(){_lastChangedEmpId=null;},3000);
   });
 }
+
+/* ============================================================
+   FIX #5 (lanjutan): doDeleteEmployee — passing {outlets} bukan state
+============================================================ */
 function doDeleteEmployee(outletId,employeeId){
   var outlet=state.outlets.find(function(o){return o.id===outletId;});if(!outlet)return;
   var emp=outlet.employees.find(function(e){return e.id===employeeId;});if(!emp)return;
-  if(!confirm('Hapus karyawan "'+emp.name+'"?'))return;
+  if(!window.confirm('Hapus karyawan "'+safeText(emp.name,100)+'"?')) return;
   outlet.employees=outlet.employees.filter(function(e){return e.id!==employeeId;});
-  saveData(state,state.currentUser.id).then(function(){requestAnimationFrame(render);showToast('Karyawan dihapus.','info');}).catch(function(e){console.error(e);showToast('Gagal.','error');});
+  Backend.saveData(state.currentUser.id,{outlets:state.outlets}).then(function(){
+    requestAnimationFrame(render);showToast('Karyawan dihapus.','info');
+  }).catch(function(e){console.error(e);showToast('Gagal.','error');});
 }
 
 /* ============================================================
    EXPORT
 ============================================================ */
 function doExportJson(){
-  var blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),version:3,outlets:state.outlets},null,2)],{type:'application/json'});
+  var blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),version:4,outlets:state.outlets},null,2)],{type:'application/json'});
   var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='naruna-backup-'+new Date().toISOString().slice(0,10)+'.json';
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   showToast('Backup berhasil diunduh.','success');
@@ -2159,8 +1972,7 @@ function doExportCsv(){
   var rows=[['Outlet','Nama','Nomor HP','Gaji','Gaji (Formatted)','Start Kontrak','Akhir Kontrak','Sisa Hari','Status','Jumlah Update']];
   state.outlets.forEach(function(outlet){
     (outlet.employees||[]).forEach(function(emp){
-      var d=daysLeft(emp.contractEnd);
-      var dStr=d===Infinity?'N/A':String(d);
+      var d=daysLeft(emp.contractEnd);var dStr=d===Infinity?'N/A':String(d);
       rows.push([outlet.name,emp.name,emp.phone||'',emp.salary||0,currency(emp.salary||0),emp.contractStart||'',emp.contractEnd||'',dStr,getStatus(emp.contractEnd).text,(emp.contractHistory||[]).length]);
     });
   });
@@ -2180,200 +1992,84 @@ async function doImportExcel(event){
   var btn=document.getElementById('importExcelBtn');setBtnLoading(btn,true);
   try{
     var data=await file.arrayBuffer();
-    var workbook=XLSX.read(data,{
-  type:'array',
-  cellDates:true,
-  cellNF:true,
-  cellText:false,
-  raw:false
-});
-    if(!workbook.SheetNames||!workbook.SheetNames.length)throw new Error('File Excel kosong.');
+    var workbook=XLSX.read(data,{type:'array',cellDates:true,cellNF:false,cellText:false,raw:true});
+    if(!workbook.SheetNames || !workbook.SheetNames.length) throw new Error('File Excel kosong.');
+
     var allRows=[];
-    workbook.SheetNames.forEach(function(sn){
+    var sheetNameForFallback='';
+    workbook.SheetNames.filter(function(sn){
       var sheet=workbook.Sheets[sn];
-      var rowsRaw=XLSX.utils.sheet_to_json(sheet,{
-        defval:'',
-        raw:false,
-        cellDates:true,
-        blankrows:false
-      });
-
-      rowsRaw.forEach(function(row){
-        var norm={};
-
-        Object.keys(row).forEach(function(k){
-          var cleanKey=String(k)
-            .replace(/\n/g,' ')
-            .replace(/\s+/g,' ')
-            .trim()
-            .toUpperCase();
-
-          norm[cleanKey]=row[k];
-        });
-
-        var hasValue=Object.values(norm).some(function(v){
-          return v!==null&&
-            v!==undefined&&
-            String(v)
-              .replace(/\s+/g,'')
-              .trim()!=='';
-        });
-
-        if(hasValue)allRows.push(norm);
-      });
+      if(!sheet || !sheet['!ref']) return false;
+      var range=XLSX.utils.decode_range(sheet['!ref']);
+      return range.e.r>0;
+    }).forEach(function(sn){
+      sheetNameForFallback=sn;
+      var sheet=workbook.Sheets[sn];
+      var rawRows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:null,blankrows:false,raw:true,cellDates:true});
+      if(!rawRows.length)return;
+      var headerRowIdx=-1;
+      var headers=[];
+      var HEADER_KEYWORDS=['NAMA','OUTLET','HABIS','KONTRAK','NAMA KARYAWAN','EMPLOYEE'];
+      for(var ri=0;ri<Math.min(rawRows.length,5);ri++){
+        var row=rawRows[ri];
+        var rowStr=row.map(function(v){return String(v||'').toUpperCase();}).join(' ');
+        var hasKeyword=HEADER_KEYWORDS.some(function(k){return rowStr.includes(k);});
+        if(hasKeyword){headerRowIdx=ri;headers=row.map(function(v){return String(v||'').replace(/\n/g,' ').replace(/\s+/g,' ').trim().toUpperCase();});break;}
+      }
+      if(headerRowIdx===-1){headerRowIdx=0;headers=rawRows[0].map(function(v){return String(v||'').replace(/\n/g,' ').replace(/\s+/g,' ').trim().toUpperCase();});}
+      for(var ri2=headerRowIdx+1;ri2<rawRows.length;ri2++){
+        var row2=rawRows[ri2];
+        if(!row2 || row2.every(function(c){return c===null || c===undefined || String(c).trim()==='';})) continue;
+        var obj={};headers.forEach(function(h,i){obj[h]=row2[i];});obj['__SHEET__']=sn;
+        if(Object.keys(obj).length)allRows.push(obj);
+      }
     });
-    if(!allRows.length)throw new Error('Tidak ada data.');
-    var parsed=[],skipped=0;
+
+    if(!allRows.length) throw new Error('Tidak ada baris data.');
+
+    var parsed=[],skipped=[],noDateCount=0;
+    var seenImportKeys=new Set();
     allRows.forEach(function(row){
-      var outletName=smartFind(row,[
-        'OUTLET',
-        'NAMA OUTLET',
-        'NAMA CABANG',
-        'STORE',
-        'STORE NAME',
-        'CABANG',
-        'TOKO',
-        'LOKASI',
-        'BRANCH',
-        'UNIT',
-        'DIVISI',
-        'DEPARTEMEN',
-        'PENEMPATAN',
-        'SITE',
-        'AREA',
-        'KOTA'
-      ]).trim();
-
-      if(!outletName&&sn){
-        outletName=String(sn)
-          .replace(/template/gi,'')
-          .replace(/kontrak/gi,'')
-          .replace(/[^\w\s]/g,' ')
-          .replace(/\s+/g,' ')
-          .trim();
+      var outletName=String(smartFind(row,['OUTLET','NAMA OUTLET','NAMA CABANG','STORE','STORE NAME','CABANG','TOKO','LOKASI','BRANCH','UNIT','DIVISI','DEPARTEMEN','PENEMPATAN','SITE','AREA'])||'').trim();
+      if(!outletName&&row['__SHEET__']){
+        var sh=String(row['__SHEET__']).replace(/template/gi,'').replace(/kontrak/gi,'').replace(/karyawan/gi,'').replace(/[_\-]/g,' ').replace(/\s+/g,' ').trim();
+        if(sh.length>1)outletName=sh;
       }
-      var empName=smartFind(row,[
-        'NAMA',
-        'NAMA KARYAWAN',
-        'NAMA PEGAWAI',
-        'NAMA STAFF',
-        'KARYAWAN',
-        'PEGAWAI',
-        'STAFF',
-        'EMPLOYEE',
-        'EMPLOYEE NAME',
-        'FULL NAME',
-        'NAME',
-        'NAMA LENGKAP'
-      ]).trim();
-      if(
-        !outletName||
-        !empName||
-        normalizeText(empName)==='nama'||
-        normalizeText(empName)==='employee'||
-        normalizeText(empName)==='karyawan'
-      ){
-        skipped++;
-        return;
-      }
-      var rawEnd=smartFind(row,[
-        'HABIS KONTRAK',
-        'AKHIR KONTRAK',
-        'END DATE',
-        'KONTRAK END',
-        'BERAKHIR',
-        'TANGGAL AKHIR',
-        'TGL AKHIR',
-        'EXPIRE',
-        'EXPIRY',
-        'CONTRACT END',
-        'SELESAI',
-        'MASA AKHIR',
-        'VALID SAMPAI',
-        'KONTRAK HABIS',
-        'TERMINATE'
-      ]);
-
-      var rawStart=smartFind(row,[
-        'TGL KONTRAK',
-        'TANGGAL KONTRAK',
-        'START DATE',
-        'MULAI',
-        'TANGGAL MULAI',
-        'TGL MULAI',
-        'CONTRACT START',
-        'AWAL',
-        'JOIN DATE',
-        'MASUK',
-        'TMT'
-      ]);
-
-      var rawPhone=smartFind(row,[
-        'HP',
-        'TELP',
-        'TELEPON',
-        'NO HP',
-        'PHONE',
-        'NOHP',
-        'HANDPHONE',
-        'NOMOR HP',
-        'NO TELP',
-        'MOBILE',
-        'WHATSAPP',
-        'WA'
-      ]);
-
-      var rawSalary=smartFind(row,[
-        'GAJI',
-        'SALARY',
-        'GAJI POKOK',
-        'UPAH',
-        'WAGE',
-        'GAJI BASIC',
-        'BASIC SALARY',
-        'PENDAPATAN',
-        'TAKE HOME PAY',
-        'THP',
-        'GAJI NET',
-        'GAJI GROSS',
-        'PENGHASILAN',
-        'INSENTIF'
-      ]);
+      var empName=String(smartFind(row,['NAMA','NAMA KARYAWAN','NAMA PEGAWAI','NAMA STAFF','KARYAWAN','PEGAWAI','STAFF','EMPLOYEE','EMPLOYEE NAME','FULL NAME','NAME','NAMA LENGKAP'])||'').trim();
+      if(!outletName || !empName || normalizeText(empName)==='nama' || normalizeText(empName)==='employee' || normalizeText(empName)==='karyawan' || normalizeText(empName)==='nama karyawan'){skipped.push({reason:'Header/kosong',raw:empName||'?'}); return;}
+      var rawEnd=smartFind(row,['HABIS KONTRAK','AKHIR KONTRAK','END DATE','KONTRAK END','BERAKHIR','TANGGAL AKHIR','TGL AKHIR','EXPIRE','EXPIRY','CONTRACT END','SELESAI','MASA AKHIR','VALID SAMPAI','KONTRAK HABIS','TERMINATE','BERAKHIRNYA KONTRAK','S.D']);
+      var rawStart=smartFind(row,['TGL KONTRAK','TANGGAL KONTRAK','START DATE','MULAI','TANGGAL MULAI','TGL MULAI','CONTRACT START','AWAL','JOIN DATE','MASUK','TMT','TANGGAL KERJA']);
+      var rawPhone=smartFind(row,['HP','TELP','TELEPON','NO HP','PHONE','NOHP','HANDPHONE','NOMOR HP','NO TELP','MOBILE','WHATSAPP','WA']);
+      var rawSalary=smartFind(row,['GAJI','SALARY','GAJI POKOK','UPAH','WAGE','GAJI BASIC','BASIC SALARY','PENDAPATAN','TAKE HOME PAY','THP','GAJI NET','GAJI GROSS','PENGHASILAN']);
       var contractEnd=parseExcelDate(rawEnd);
-      if(!contractEnd){
-        contractEnd=parseExcelDate(rawEnd);
-
-        if(!contractEnd){
-          skipped++;
-          return;
-        }
-      }
       var contractStart=parseExcelDate(rawStart);
+      if(!contractEnd)noDateCount++;
       var salary=0;
-
       if(rawSalary!==null&&rawSalary!==undefined&&rawSalary!==''){
-        if(typeof rawSalary==='number'){
-          salary=Math.round(rawSalary);
-        }else{
-          var cl=String(rawSalary)
-            .replace(/[^\d,.-]/g,'')
-            .replace(/.(?=\d{3})/g,'')
-            .replace(',', '.');
-
-          salary=Math.round(parseFloat(cl)||0);
-        }
+        if(typeof rawSalary==='number')salary=Math.round(Math.abs(rawSalary));
+        else{var salStr=String(rawSalary).replace(/[^\d]/g,'');salary=parseInt(salStr,10)||0;}
       }
-      parsed.push({outletName:outletName,empName:empName,contractEnd:contractEnd,contractStart:contractStart,phone:rawPhone.replace(/[^\d+\s\-]/g,'').trim(),salary:salary});
+      var phone=String(rawPhone||'').replace(/[^\d+\s\-]/g,'').trim();
+      var dedupeKey=normalizeText(outletName)+'__'+normalizeText(empName);
+      if(seenImportKeys.has(dedupeKey)) return;
+      seenImportKeys.add(dedupeKey);
+      parsed.push({outletName:outletName,empName:empName,contractEnd:contractEnd,contractStart:contractStart,phone:phone,salary:salary,hasDate:!!contractEnd});
     });
-    if(!parsed.length){showToast('Tidak ada baris valid. Cek kolom OUTLET, NAMA, HABIS KONTRAK.','error',6000);return;}
-    var preview=buildImportPreview(parsed,skipped);
-    _pendingImport={parsed:parsed,skipped:skipped};
+
+    if(!parsed.length){showToast('Tidak ada baris valid. Pastikan file punya kolom OUTLET, NAMA, dan HABIS KONTRAK.','error',7000); return;}
+    var preview=buildImportPreview(parsed,skipped.length,noDateCount);
+    _pendingImport={parsed:parsed,skippedCount:skipped.length,noDateCount:noDateCount};
     showImportPreview(preview);
-  }catch(err){console.error(err);showToast('Gagal baca file: '+(err.message||'Format tidak dikenali.'),'error',6000);}
-  finally{setBtnLoading(btn,false);event.target.value='';}
+  }catch(err){
+    console.error(err);
+    showToast('Gagal baca file: '+(err.message||'Format tidak dikenali.'),'error',7000);
+  }finally{
+    setBtnLoading(btn,false);
+    event.target.value='';
+  }
 }
 
-function buildImportPreview(parsed,skipped){
+function buildImportPreview(parsed,skippedCount,noDateCount){
   var simOut=state.outlets.map(function(o){return{id:o.id,name:normalizeText(o.name),emps:o.employees.map(function(e){return normalizeText(e.name);})};});
   var newOutlets=0,newEmps=0,updateEmps=0,items=[];
   parsed.forEach(function(row){
@@ -2381,29 +2077,30 @@ function buildImportPreview(parsed,skipped){
     if(oi===-1){simOut.push({id:'sim',name:normalizeText(row.outletName),emps:[]});oi=simOut.length-1;newOutlets++;}
     var isNew=simOut[oi].emps.indexOf(normalizeText(row.empName))===-1;
     if(isNew){simOut[oi].emps.push(normalizeText(row.empName));newEmps++;}else updateEmps++;
-    if(items.length<10)items.push({name:row.empName,outlet:row.outletName,isNew:isNew,end:row.contractEnd});
+    if(items.length<10)items.push({name:row.empName,outlet:row.outletName,isNew:isNew,end:row.contractEnd,hasDate:row.hasDate});
   });
-  return{newOutlets:newOutlets,newEmps:newEmps,updateEmps:updateEmps,skipped:skipped,items:items,total:parsed.length};
+  return{newOutlets:newOutlets,newEmps:newEmps,updateEmps:updateEmps,skipped:skippedCount,noDate:noDateCount,items:items,total:parsed.length};
 }
 
 function showImportPreview(p){
   var body=document.getElementById('importPreviewBody');if(!body)return;body.innerHTML='';
   var summary=document.createElement('div');summary.className='import-summary';
   summary.innerHTML='<div class="import-summary-title">Ringkasan Import</div><div class="import-summary-grid">'+
-    '<div class="import-stat"><div class="import-stat-num">'+p.total+'</div><div class="import-stat-label">Baris valid</div></div>'+
+    '<div class="import-stat"><div class="import-stat-num">'+p.total+'</div><div class="import-stat-label">Total karyawan</div></div>'+
     '<div class="import-stat"><div class="import-stat-num green">+'+p.newOutlets+'</div><div class="import-stat-label">Outlet baru</div></div>'+
     '<div class="import-stat"><div class="import-stat-num green">+'+p.newEmps+'</div><div class="import-stat-label">Karyawan baru</div></div>'+
-    '<div class="import-stat"><div class="import-stat-num blue">'+p.updateEmps+'</div><div class="import-stat-label">Diperbarui</div></div>'+
-    '</div>';
+    '<div class="import-stat"><div class="import-stat-num blue">'+p.updateEmps+'</div><div class="import-stat-label">Diperbarui</div></div></div>';
   body.appendChild(summary);
-  if(p.skipped>0){var w=document.createElement('div');w.className='import-warn';w.textContent='⚠️ '+p.skipped+' baris dilewati (data tidak lengkap atau tanggal tidak valid).';body.appendChild(w);}
-  var pl=document.createElement('div');pl.style.cssText='font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text3);margin-bottom:5px;';
-  pl.textContent='Preview ('+Math.min(p.items.length,10)+' dari '+p.total+'):';body.appendChild(pl);
+  if(p.skipped>0){var w=document.createElement('div');w.className='import-warn';w.textContent='⚠️ '+p.skipped+' baris dilewati (header atau data tidak lengkap).';body.appendChild(w);}
+  if(p.noDate>0){var nd=document.createElement('div');nd.style.cssText='background:var(--purple-light);border:1px solid var(--purple-mid);border-radius:6px;padding:8px 10px;font-size:11.5px;color:var(--purple);margin-bottom:10px;';nd.textContent='ℹ️ '+p.noDate+' karyawan tidak punya tanggal akhir kontrak - tetap diimport dengan status "Tdk ada tgl". Lengkapi via tombol Edit.';body.appendChild(nd);}
+  var pl=document.createElement('div');pl.style.cssText='font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text3);margin-bottom:5px;';pl.textContent='Preview ('+Math.min(p.items.length,10)+' dari '+p.total+'):';body.appendChild(pl);
   var list=document.createElement('div');list.className='import-preview-list';
   p.items.forEach(function(item){
     var row=document.createElement('div');row.className='import-preview-item';
-    row.innerHTML='<div><div class="pi-name">'+escapeHtml(item.name)+'</div><div class="pi-outlet">'+escapeHtml(item.outlet)+'</div></div>'+
-      '<div>'+(item.isNew?'<span class="status-new">Baru</span>':'<span class="status-update">Update</span>')+'</div>';
+    var statusEl='';
+    if(item.isNew)statusEl='<span class="status-new">Baru</span>';else statusEl='<span class="status-update">Update</span>';
+    if(!item.hasDate)statusEl+=' <span class="status-nodate">Tdk ada tgl</span>';
+    row.innerHTML='<div><div class="pi-name">'+escapeHtml(item.name)+'</div><div class="pi-outlet">'+escapeHtml(item.outlet)+(item.end?' · '+escapeHtml(formatDate(item.end)):'')+'</div></div><div>'+statusEl+'</div>';
     list.appendChild(row);
   });
   if(p.total>10){var more=document.createElement('div');more.style.cssText='text-align:center;padding:7px;font-size:11px;color:var(--text3);';more.textContent='... dan '+(p.total-10)+' baris lainnya';list.appendChild(more);}
@@ -2420,11 +2117,22 @@ async function doConfirmImport(){
     var outlet=state.outlets.find(function(o){return normalizeText(o.name)===normalizeText(row.outletName);});
     if(!outlet){outlet={id:uid(),name:row.outletName,address:'',pic:'',phone:'',employees:[]};state.outlets.push(outlet);addedOutlets++;}
     var emp=outlet.employees.find(function(e){return normalizeText(e.name)===normalizeText(row.empName);});
-    if(!emp){outlet.employees.push({id:uid(),name:row.empName,phone:row.phone||'',salary:row.salary||0,contractStart:row.contractStart,contractEnd:row.contractEnd,contractHistory:[]});addedEmps++;}
-    else{if(row.contractStart)emp.contractStart=row.contractStart;if(row.contractEnd)emp.contractEnd=row.contractEnd;if(row.phone)emp.phone=row.phone;if(row.salary)emp.salary=row.salary;updatedEmps++;}
+    if(!emp){
+      outlet.employees.push({id:uid(),name:row.empName,phone:row.phone||'',salary:row.salary||0,contractStart:row.contractStart||'',contractEnd:row.contractEnd||'',contractHistory:[]});
+      addedEmps++;
+    }else{
+      if(row.contractStart)emp.contractStart=row.contractStart;
+      if(row.contractEnd)emp.contractEnd=row.contractEnd;
+      if(row.phone)emp.phone=row.phone;
+      if(row.salary)emp.salary=row.salary;
+      updatedEmps++;
+    }
   });
-  try{await saveData(state,state.currentUser.id);requestAnimationFrame(render);showToast('Import selesai! +'+addedOutlets+' outlet, +'+addedEmps+' karyawan, '+updatedEmps+' diperbarui.','success',6000);}
-  catch(err){console.error(err);showToast('Gagal simpan import.','error');}
+  try{
+    await Backend.saveData(state.currentUser.id,{outlets:state.outlets});
+    requestAnimationFrame(render);
+    showToast('Import selesai! +'+addedOutlets+' outlet, +'+addedEmps+' karyawan, '+updatedEmps+' diperbarui.','success',6000);
+  }catch(err){console.error(err);showToast('Gagal simpan import.','error');}
 }
 
 /* ============================================================
@@ -2437,15 +2145,21 @@ async function doRestoreJson(event){
     var text=await file.text();var data=JSON.parse(text);
     if(!Array.isArray(data.outlets)){showToast('Format backup tidak valid.','error');event.target.value='';return;}
     var sanitized=data.outlets.filter(function(o){return o&&o.name;}).map(function(o){
-      return{id:o.id||uid(),name:String(o.name||'').trim(),address:String(o.address||'').trim(),pic:String(o.pic||'').trim(),phone:String(o.phone||'').trim(),
+      return{id:o.id||uid(),name:safeText(o.name,100),address:safeText(o.address||'',200),pic:safeText(o.pic||'',100),phone:safeText(o.phone||'',30),
         employees:Array.isArray(o.employees)?o.employees.filter(function(e){return e&&e.name;}).map(function(e){
-          return{id:e.id||uid(),name:String(e.name||'').trim(),phone:String(e.phone||'').trim(),salary:Number(e.salary)||0,contractStart:String(e.contractStart||''),contractEnd:String(e.contractEnd||''),contractHistory:Array.isArray(e.contractHistory)?e.contractHistory:[]};
+          return{id:e.id||uid(),name:safeText(e.name,100),phone:safeText(e.phone||'',30),salary:safeNumber(e.salary||0),contractStart:String(e.contractStart||''),contractEnd:String(e.contractEnd||''),contractHistory:Array.isArray(e.contractHistory)?e.contractHistory:[]};
         }):[]};
     });
-    if(!confirm('Restore akan menggantikan semua data.\nFile berisi '+sanitized.length+' outlet.\n\nLanjutkan?')){event.target.value='';return;}
-    state.outlets=sanitized;await saveData(state,state.currentUser.id);requestAnimationFrame(render);
+    if(!window.confirm('Restore akan menggantikan semua data.\nFile berisi '+sanitized.length+' outlet.\n\nLanjutkan?')){event.target.value=''; return;}
+    state.outlets=sanitized.slice(0,1000);
+    await Backend.saveData(state.currentUser.id,{outlets:state.outlets});
+    requestAnimationFrame(render);
     showToast('Data dipulihkan ('+sanitized.length+' outlet).','success');
-  }catch(err){console.error(err);if(err instanceof SyntaxError)showToast('File rusak atau bukan JSON.','error');else showToast('Gagal restore: '+(err.message||'Error'),'error');}
+  }catch(err){
+    console.error(err);
+    if(err instanceof SyntaxError)showToast('File rusak atau bukan JSON.','error');
+    else showToast('Gagal restore: '+(err.message||'Error'),'error');
+  }
   event.target.value='';
 }
 
@@ -2453,7 +2167,6 @@ async function doRestoreJson(event){
    WIRE APP
 ============================================================ */
 function wireAppButtons(){
-  /* General modal */
   document.getElementById('closeModal').onclick=closeModal;
   document.getElementById('cancelModal').onclick=closeModal;
   document.getElementById('modalWrap').addEventListener('click',function(e){if(e.target===this)closeModal();});
@@ -2464,7 +2177,6 @@ function wireAppButtons(){
     finally{modalSaveInProgress=false;btn.disabled=false;btn.innerHTML='Simpan';}
   };
 
-  /* Update contract */
   document.getElementById('closeUpdateContract').onclick=closeUpdateContractModal;
   document.getElementById('cancelUpdateContract').onclick=closeUpdateContractModal;
   document.getElementById('updateContractWrap').addEventListener('click',function(e){if(e.target===this){closeUpdateContractModal();requestAnimationFrame(render);}});
@@ -2475,51 +2187,40 @@ function wireAppButtons(){
   document.getElementById('baseFromToday').addEventListener('click',function(){_ucBase='today';document.getElementById('baseFromToday').classList.add('active');document.getElementById('baseFromEnd').classList.remove('active');updateContractPreview();});
   document.getElementById('saveUpdateContract').onclick=saveUpdateContract;
 
-  /* History */
   document.getElementById('closeHistory').onclick=closeHistoryModal;
   document.getElementById('cancelHistory').onclick=closeHistoryModal;
   document.getElementById('historyWrap').addEventListener('click',function(e){if(e.target===this)closeHistoryModal();});
 
-  /* Import preview */
   document.getElementById('closeImportPreview').onclick=function(){document.getElementById('importPreviewWrap').classList.add('hidden');_pendingImport=null;};
   document.getElementById('cancelImport').onclick=function(){document.getElementById('importPreviewWrap').classList.add('hidden');_pendingImport=null;};
   document.getElementById('confirmImport').onclick=doConfirmImport;
   document.getElementById('importPreviewWrap').addEventListener('click',function(e){if(e.target===this){document.getElementById('importPreviewWrap').classList.add('hidden');_pendingImport=null;}});
 
-  /* ESC */
   document.addEventListener('keydown',function(e){
     if(e.key!=='Escape')return;
-    var mw=document.getElementById('modalWrap');if(mw&&!mw.classList.contains('hidden')){closeModal();return;}
-    var uw=document.getElementById('updateContractWrap');if(uw&&!uw.classList.contains('hidden')){closeUpdateContractModal();requestAnimationFrame(render);return;}
-    var hw=document.getElementById('historyWrap');if(hw&&!hw.classList.contains('hidden')){closeHistoryModal();return;}
-    var ip=document.getElementById('importPreviewWrap');if(ip&&!ip.classList.contains('hidden')){ip.classList.add('hidden');_pendingImport=null;return;}
+    var mw=document.getElementById('modalWrap');if(mw && !mw.classList.contains('hidden')){closeModal();return;}
+    var uw=document.getElementById('updateContractWrap');if(uw && !uw.classList.contains('hidden')){closeUpdateContractModal();requestAnimationFrame(render);return;}
+    var hw=document.getElementById('historyWrap');if(hw && !hw.classList.contains('hidden')){closeHistoryModal();return;}
+    var ip=document.getElementById('importPreviewWrap');if(ip && !ip.classList.contains('hidden')){ip.classList.add('hidden');_pendingImport=null;return;}
   });
 
-  /* Notification */
   document.getElementById('notifBtn').onclick=function(e){e.stopPropagation();document.getElementById('notifPanel').classList.toggle('hidden');};
   document.addEventListener('click',function(e){
     var p=document.getElementById('notifPanel'),b=document.getElementById('notifBtn');
-    if(!p||!b)return;if(!p.contains(e.target)&&!b.contains(e.target))p.classList.add('hidden');
+    if(!p || !b)return;if(!p.contains(e.target) && !b.contains(e.target))p.classList.add('hidden');
   });
 
-  /* Theme toggle */
   document.getElementById('themeToggle').onclick=toggleTheme;
+  document.querySelectorAll('.topbar-tab').forEach(function(tab){tab.onclick=function(){switchView(this.dataset.view);};});
 
-  /* View tabs */
-  document.querySelectorAll('.topbar-tab').forEach(function(tab){
-    tab.onclick=function(){switchView(this.dataset.view);};
-  });
-
-  /* Main actions */
   document.getElementById('addOutletBtn').onclick=doAddOutlet;
   document.getElementById('importExcelBtn').onclick=function(){document.getElementById('excelInput').click();};
   document.getElementById('exportJsonBtn').onclick=doExportJson;
   document.getElementById('exportCsvBtn').onclick=doExportCsv;
   document.getElementById('restoreBtn').onclick=function(){document.getElementById('restoreInput').click();};
-  document.getElementById('excelInput').onchange=doImportExcel;
-  document.getElementById('restoreInput').onchange=doRestoreJson;
+  document.getElementById('excelInput').addEventListener('change',doImportExcel,{passive:true});
+  document.getElementById('restoreInput').addEventListener('change',doRestoreJson,{passive:true});
 
-  /* Column switcher */
   ['col1Btn','col2Btn','col3Btn'].forEach(function(id){
     document.getElementById(id).onclick=function(){
       var cols=parseInt(this.dataset.cols,10);prefs.cols=cols;savePrefs();
@@ -2528,14 +2229,17 @@ function wireAppButtons(){
     };
   });
 
-  /* Search / filter */
   var dbt=null;
   document.getElementById('searchInput').oninput=function(){clearTimeout(dbt);dbt=setTimeout(render,120);updateFilterClear();};
   document.getElementById('filterOutlet').onchange=function(){render();updateFilterClear();};
   document.getElementById('filterStatus').onchange=function(){render();updateFilterClear();};
   document.getElementById('filterClearBtn').onclick=clearFilters;
 
-  window.addEventListener('resize',function(){var p=document.getElementById('notifPanel');if(p)p.classList.add('hidden');});
+  /* FIX #3: debounce() sekarang sudah didefinisikan di atas */
+  window.addEventListener('resize',debounce(function(){
+    var p=document.getElementById('notifPanel');
+    if(p)p.classList.add('hidden');
+  },100));
 }
 
 /* ============================================================
@@ -2545,19 +2249,21 @@ async function init(){
   loadPrefs();
   applyTheme(prefs.theme);
 
-  /* Apply saved cols */
   var grid=document.getElementById('outletGrid');
   if(grid){
     grid.setAttribute('data-cols',prefs.cols);
     ['col1Btn','col2Btn','col3Btn'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.toggle('active',b.dataset.cols===String(prefs.cols));});
   }
 
-  try{await openDB();}
-  catch(err){
-    console.error(err);showPage('pageLogin');
+  try{
+    await Backend.init();
+  }catch(err){
+    console.error('Backend init failed:', err);
+    showPage('pageLogin');
     var errEl=document.getElementById('loginError');
     if(errEl){errEl.textContent='Gagal membuka database: '+(err.message||'Error')+'. Coba refresh.';errEl.classList.remove('hidden');}
-    wireAuthButtons();wireAppButtons();return;
+    wireAuthButtons();wireAppButtons();
+    return;
   }
 
   wireAuthButtons();
@@ -2567,12 +2273,14 @@ async function init(){
   if(!session||!session.userId){showPage('pageLogin');return;}
 
   try{
-    var user=await dbGet(STORE_USERS,session.userId);
+    var user=await Backend.getUser(session.userId);
     if(!user){clearSession();showPage('pageLogin');return;}
     state.currentUser=user;
-    var saved=await loadData(user.id);state.outlets=saved.outlets||[];
+    var saved=await Backend.loadData(user.id);state.outlets=Array.isArray(saved.outlets)?saved.outlets:[];
     renderApp();showPage('appMain');
-  }catch(err){console.error(err);clearSession();showPage('pageLogin');}
+  }catch(err){
+    console.error(err);clearSession();showPage('pageLogin');
+  }
 }
 
 init();

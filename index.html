@@ -1965,7 +1965,8 @@ function openUpdateContractModal(outletId, employeeId) {
   _selectedUnit = 'bulan';
 
   var nameEl = document.getElementById('updateContractEmpName');
-  if (nameEl) nameEl.textContent = emp.name + '  — + outlet.name;
+  if (nameEl) nameEl.textContent = emp.name + ' — ' + outlet.name;
+
 
   // Reset inputs
   var numInput = document.getElementById('contractDurationNum');
@@ -2071,7 +2072,8 @@ function openHistoryModal(outletId, employeeId) {
   if (!emp) return;
 
   var nameEl = document.getElementById('historyEmpName');
-  if (nameEl) nameEl.textContent = emp.name + '  — + outlet.name;
+  if (nameEl) nameEl.textContent = emp.name + ' — ' + outlet.name;
+
 
   var body = document.getElementById('historyBody');
   if (!body) return;

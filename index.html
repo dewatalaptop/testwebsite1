@@ -264,9 +264,9 @@ border:2px solid var(--bg);
 
 /* ===================== WRAPPER ===================== */
 .wrapper{
-max-width:1800px;
+max-width:100%;
 margin:auto;
-padding:28px 28px 48px;
+padding:28px 32px 48px;
 position:relative;
 z-index:1;
 }
@@ -275,14 +275,13 @@ z-index:1;
 .hero{
 background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.92));
 border-radius:24px;
-padding:26px 28px;
+padding:34px 36px;
 margin-bottom:24px;
 display:flex;justify-content:space-between;align-items:center;
 gap:24px;flex-wrap:wrap;
 position:relative;overflow:hidden;
 box-shadow:var(--shadow-sm);
-}.
-
+}
 .hero::after{
 content:'';
 position:absolute;
@@ -344,7 +343,7 @@ color:var(--accent);letter-spacing:-1px;
 .kpi-grid{
 display:grid;
 grid-template-columns:repeat(4,1fr);
-gap:10px;margin-bottom:24px;
+gap:14px;margin-bottom:24px;
 }
 
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
@@ -510,8 +509,8 @@ box-shadow:0 0 0 3px rgba(37,99,235,0.1);
 /* ===================== OUTLET GRID ===================== */
 .outlet-grid{
 display:grid;
-grid-template-columns:repeat(auto-fill,minmax(620px,1fr));
-gap:16px;
+grid-template-columns:1fr;
+gap:18px;
 align-items:start;
 }
 
@@ -520,9 +519,10 @@ align-items:start;
 .outlet-card{
 background:var(--surface);
 border-radius:24px;
-overflow:hidden;
+overflow:visible;
 transition:all var(--transition);
 box-shadow:var(--shadow-sm);
+width:100%;
 }
 .outlet-card:hover{
 box-shadow:0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04);
@@ -531,8 +531,7 @@ transform:translateY(-1px);
 }
 
 .outlet-card-header{
-padding:16px 18px 14px;
-border-bottom:1px solid var(--border);
+padding:20px 22px 18px;border-bottom:1px solid var(--border);
 display:flex;
 align-items:flex-start;
 justify-content:space-between;
@@ -582,7 +581,9 @@ border-color:var(--red);
 box-shadow:0 2px 8px rgba(220,38,38,0.25);
 }
 
-.outlet-card-body{padding:16px 20px 20px;}
+.outlet-card-body{
+padding:20px 22px 24px;
+}
 
 .outlet-add-bar{
 margin-bottom:14px;
@@ -591,6 +592,8 @@ margin-bottom:14px;
 /* ===================== TABLE ===================== */
 .table-wrap{
 overflow:auto;
+-webkit-overflow-scrolling:touch;
+scrollbar-gutter:stable;
 border-radius:var(--radius);
 background:var(--surface);
 }
@@ -598,16 +601,20 @@ background:var(--surface);
 table{
 width:100%;
 border-collapse:collapse;
-min-width:100%;
+min-width:1350px;
+table-layout:auto;
 }
 
 th{
 text-align:left;
 font-size:11px;font-weight:800;
 color:var(--text3);
-padding:10px 14px;
-cursor:pointer;user-select:none;white-space:nowrap;
-text-transform:uppercase;letter-spacing:0.6px;
+padding:12px 16px;
+cursor:pointer;
+user-select:none;
+white-space:nowrap;
+text-transform:uppercase;
+letter-spacing:0.6px;
 background:rgba(255,255,255,0.72);
 border-bottom:1px solid var(--border);
 }
@@ -616,10 +623,10 @@ th[data-nosort]{cursor:default;}
 th[data-nosort]:hover{color:var(--text3);}
 
 td{
-padding:10px 10px;
+padding:16px 16px;
 border-bottom:1px solid rgba(26,25,22,0.04);
 vertical-align:middle;
-font-size:12.5px;
+font-size:13px;
 }
 tr:last-child td{border-bottom:none;}
 tbody tr{transition:all var(--transition);}
@@ -633,6 +640,7 @@ background:rgba(37,99,235,0.045);
 /* ===================== BADGE ===================== */
 .badge{
 display:inline-flex;align-items:center;justify-content:center;
+min-width:110px;
 padding:4px 10px;border-radius:999px;
 font-size:11px;font-weight:800;
 white-space:nowrap;letter-spacing:0.3px;
@@ -659,8 +667,7 @@ border-radius:24px;
 overflow:hidden;
 animation:slideUp 0.22s cubic-bezier(0.34,1.4,0.64,1) both;
 box-shadow:0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04);
-}.
-@keyframes slideUp{
+}@keyframes slideUp{
 from{opacity:0;transform:translateY(24px) scale(0.97);}
 to{opacity:1;transform:translateY(0) scale(1);}
 }
@@ -676,7 +683,12 @@ font-family:var(--font-display);
 font-size:19px;font-weight:800;
 color:var(--ink);letter-spacing:-0.3px;
 }
-.modal-body{padding:22px;max-height:60vh;overflow-y:auto;}
+.modal-body{
+padding:22px;
+max-height:60vh;
+overflow-y:auto;
+scrollbar-width:thin;
+}
 .modal-footer{
 padding:16px 22px;
 display:flex;justify-content:flex-end;gap:9px;
@@ -879,10 +891,13 @@ color:var(--text3);
 
 /* ===================== NOTIFICATION PANEL ===================== */
 .notification-panel{
-position:fixed;top:72px;right:20px;
-width:340px;max-height:65vh;
-overflow:auto;
-background:var(--surface);border-radius:24px;
+position:fixed;
+top:72px;
+right:20px;
+bottom:20px;
+width:340px;
+max-height:65vh;
+overflow:auto;background:var(--surface);border-radius:24px;
 padding:18px;
 box-shadow:0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04);
 z-index:998;
@@ -1003,6 +1018,14 @@ color:var(--text3);font-size:13px;font-weight:500;
 .outlet-card-header{padding:15px 16px 13px;}
 .outlet-card-body{padding:14px 16px 16px;}
 .brand-sub{display:none;}
+
+table{
+min-width:980px;
+}
+
+.emp-action-row{
+min-width:360px;
+}
 }
 
 @media(max-width:400px){
@@ -1019,19 +1042,21 @@ color:var(--text3);font-size:13px;font-weight:500;
 /* ===================== ACTION BUTTONS ROW ===================== */
 .emp-action-row{
 display:flex;
-gap:6px;
+gap:8px;
 align-items:center;
-flex-wrap:wrap;
-}.
-
+flex-wrap:nowrap;
+min-width:390px;
+}
 .btn-update-contract{
-display:inline-flex;align-items:center;gap:5px;
+display:inline-flex;
+align-items:center;
+gap:5px;
 background:linear-gradient(135deg,#ECFEFF,#CCFBF1);
 border:1.5px solid rgba(13,148,136,0.3);
 color:var(--teal);
 border-radius:var(--radius-sm);
-padding:5px 9px;
-font-size:10px;
+padding:8px 12px;
+font-size:11px;
 font-weight:800;
 letter-spacing:0.15px;
 cursor:pointer;
@@ -1047,13 +1072,15 @@ box-shadow:0 2px 8px rgba(13,148,136,0.3);
 }
 
 .btn-history{
-display:inline-flex;align-items:center;gap:5px;
+display:inline-flex;
+align-items:center;
+gap:5px;
 background:linear-gradient(135deg,var(--purple-light),#F3E8FF);
 border:1.5px solid var(--purple-mid);
 color:var(--purple);
 border-radius:var(--radius-sm);
-padding:5px 9px;
-font-size:10px;
+padding:8px 12px;
+font-size:11px;
 font-weight:800;
 letter-spacing:0.15px;
 cursor:pointer;
@@ -1682,6 +1709,7 @@ function getInitial(name) {
  * @param {string} unit - 'bulan' atau 'tahun'
  * @returns {string} - YYYY-MM-DD hari terakhir bulan target
  */
+
 function calcNewContractEnd(fromDateStr, amount, unit) {
   var from = fromDateStr ? new Date(fromDateStr + 'T00:00:00') : new Date();
 
@@ -1703,26 +1731,7 @@ function calcNewContractEnd(fromDateStr, amount, unit) {
     String(endDate.getMonth() + 1).padStart(2, '0') + '-' +
     String(endDate.getDate()).padStart(2, '0')
   );
-}.
-  var from = fromDateStr ? new Date(fromDateStr) : new Date();
-  if (isNaN(from.getTime())) from = new Date();
-
-  var totalMonths = unit === 'tahun' ? amount * 12 : amount;
-
-  // Tambah bulan
-  var year = from.getFullYear();
-  var month = from.getMonth() + 1; // 1-indexed
-
-  month += totalMonths;
-  while (month > 12) { month -= 12; year++; }
-  while (month < 1) { month += 12; year--; }
-
-  // Hari terakhir bulan target
-  var lastDay = new Date(year, month, 0).getDate();
-
-  return year + '-' + String(month).padStart(2,'0') + '-' + String(lastDay).padStart(2,'0');
 }
-
 function describeDuration(amount, unit) {
   if (unit === 'tahun') return amount + ' tahun (' + (amount * 12) + ' bulan)';
   return amount + ' bulan';
@@ -1997,7 +2006,7 @@ function renderApp() {
   var nameEl = document.getElementById('userName');
   if (avatarEl) avatarEl.textContent = getInitial(state.currentUser.name);
   if (nameEl) nameEl.textContent = state.currentUser.name;
-  render();
+  requestAnimationFrame(render);
 }
 
 /* =========================
@@ -2136,7 +2145,7 @@ async function saveUpdateContract() {
 
   try {
     await saveData(state, state.currentUser.id);
-    render();
+    requestAnimationFrame(render);
     closeUpdateContractModal();
     showToast('Kontrak ' + emp.name + ' berhasil diperbarui hingga ' + formatDate(newEnd) + '.', 'success', 5000);
   } catch(err) {
@@ -2390,7 +2399,7 @@ function renderOutletFilter() {
 function sortBy(type) {
   if (type === 'name') currentSort = currentSort === 'name-asc' ? 'name-desc' : 'name-asc';
   else if (type === 'end') currentSort = currentSort === 'end-asc' ? 'end-desc' : 'end-asc';
-  render();
+  requestAnimationFrame(render);
 }
 
 /* =========================
@@ -2465,10 +2474,11 @@ function buildOutletCard(outlet, employees) {
   var card = document.createElement('div');
   card.className = 'outlet-card';
 
-  /* =========================
+  
+/* =========================
    HEADER
-========================= */  var header = document.createElement('div');
-  header.className = 'outlet-card-header';
+========================= */
+  var header = document.createElement('div');  header.className = 'outlet-card-header';
 
   var headerLeft = document.createElement('div');
   headerLeft.style.display = 'flex';
@@ -2595,11 +2605,13 @@ function buildOutletCard(outlet, employees) {
       tdSalary.style.whiteSpace = 'nowrap';
 
       var tdEnd = document.createElement('td');
-      tdEnd.textContent =
+      
+tdEnd.textContent =
   emp.contractEnd
     ? formatDate(emp.contractEnd)
-    : 'Belum diisi';      tdEnd.style.whiteSpace = 'nowrap';
+    : 'Belum diisi';
 
+tdEnd.style.whiteSpace = 'nowrap';
       var tdStatus = document.createElement('td');
       var badge = document.createElement('span');
       badge.className = 'badge ' + status.cls;
@@ -2608,7 +2620,8 @@ function buildOutletCard(outlet, employees) {
 
       /* Action cell with all buttons */
       var tdAction = document.createElement('td');
-tdAction.style.width = '250px';
+tdAction.style.width = '420px';
+tdAction.style.minWidth = '420px';
 tdAction.style.whiteSpace = 'nowrap';
       var btnWrap = document.createElement('div');
       btnWrap.className = 'emp-action-row';
@@ -2702,7 +2715,7 @@ function doAddOutlet() {
 
     state.outlets.push({ id:uid(), name:name, address:readVal('fOutletAddress'), pic:readVal('fOutletPic'), phone:readVal('fOutletPhone'), employees:[] });
     await saveData(state, state.currentUser.id);
-    render(); closeModal();
+    requestAnimationFrame(render); closeModal();
     showToast('Outlet "' + name + '" berhasil ditambahkan.','success');
   });
 }
@@ -2721,7 +2734,7 @@ function doEditOutlet(id) {
     outlet.name = name; outlet.address = readVal('fOutletAddress');
     outlet.pic = readVal('fOutletPic'); outlet.phone = readVal('fOutletPhone');
     await saveData(state, state.currentUser.id);
-    render(); closeModal();
+    requestAnimationFrame(render); closeModal();
     showToast('Outlet berhasil diperbarui.','success');
   });
 }
@@ -2736,7 +2749,7 @@ function doDeleteOutlet(id) {
 
   state.outlets = state.outlets.filter(function(o) { return o.id !== id; });
   saveData(state, state.currentUser.id).then(function() {
-    render(); showToast('Outlet berhasil dihapus.','info');
+    requestAnimationFrame(render); showToast('Outlet berhasil dihapus.','info');
   }).catch(function(err) { console.error(err); showToast('Gagal menyimpan perubahan.','error'); });
 }
 
@@ -2773,7 +2786,7 @@ function doAddEmployee(outletId) {
     data.contractHistory = [];
     outlet.employees.push(data);
     await saveData(state, state.currentUser.id);
-    render(); closeModal();
+    requestAnimationFrame(render); closeModal();
     showToast('Karyawan berhasil ditambahkan.','success');
   });
 }
@@ -2794,7 +2807,7 @@ function doEditEmployee(outletId, employeeId) {
     employee.salary = data.salary; employee.contractStart = data.contractStart;
     employee.contractEnd = data.contractEnd;
     await saveData(state, state.currentUser.id);
-    render(); closeModal();
+    requestAnimationFrame(render); closeModal();
     showToast('Data karyawan berhasil diperbarui.','success');
   });
 }
@@ -2808,7 +2821,7 @@ function doDeleteEmployee(outletId, employeeId) {
 
   outlet.employees = outlet.employees.filter(function(e) { return e.id !== employeeId; });
   saveData(state, state.currentUser.id).then(function() {
-    render(); showToast('Karyawan berhasil dihapus.','info');
+    requestAnimationFrame(render); showToast('Karyawan berhasil dihapus.','info');
   }).catch(function(err) { console.error(err); showToast('Gagal menyimpan perubahan.','error'); });
 }
 
@@ -2868,6 +2881,7 @@ async function doImportExcel(event) {
   range:1,
   defval:'',
   raw:false
+
 }).map(function(row) {
 
   var normalized = {};
@@ -2877,8 +2891,7 @@ async function doImportExcel(event) {
   });
 
   return normalized;
-});.
-    if (!rows.length) { showToast('Sheet Excel kosong atau tidak ada data di baris 2+.','error'); return; }
+});    if (!rows.length) { showToast('Sheet Excel kosong atau tidak ada data di baris 2+.','error'); return; }
 
     var addedEmployees=0, updatedEmployees=0, addedOutlets=0, skipped=0;
     rows.forEach(function(row) {
@@ -2900,12 +2913,20 @@ async function doImportExcel(event) {
         outlet.employees.push({id:uid(), name:employeeName, phone:'', salary:0, contractStart:contractStart, contractEnd:contractEnd, contractHistory:[]});
         addedEmployees++;
       } else {
-        employee.contractStart = contractStart; employee.contractEnd = contractEnd; updatedEmployees++;
+        if(contractStart){
+  employee.contractStart = contractStart;
+}
+
+if(contractEnd){
+  employee.contractEnd = contractEnd;
+}
+
+updatedEmployees++;
       }
     });
 
     await saveData(state, state.currentUser.id);
-    render();
+    requestAnimationFrame(render);
     showToast('Import selesai! Outlet: +' + addedOutlets + ', Karyawan baru: +' + addedEmployees + ', Diperbarui: ' + updatedEmployees + (skipped>0?', Dilewati: '+skipped:'') + '.', 'success', 6000);
 
   } catch(err) {
@@ -2950,7 +2971,7 @@ async function doRestoreJson(event) {
 
     state.outlets = sanitizedOutlets;
     await saveData(state, state.currentUser.id);
-    render();
+    requestAnimationFrame(render);
     showToast('Data berhasil dipulihkan (' + sanitizedOutlets.length + ' outlet).','success');
 
   } catch(err) {
@@ -3052,13 +3073,12 @@ function wireAppButtons() {
   document.getElementById('searchInput').oninput = debouncedRender;
   document.getElementById('filterOutlet').onchange = render;
 
+
 window.addEventListener('resize', function() {
   var panel = document.getElementById('notifPanel');
   if (panel) panel.classList.add('hidden');
 });
-}.
-
-/* =========================
+}/* =========================
    INIT
 ========================= */
 async function init() {

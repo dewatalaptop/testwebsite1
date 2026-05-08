@@ -131,7 +131,7 @@ BASE
 html{scroll-behavior:smooth;}
 body{
 font-family:'Geist',system-ui,sans-serif;
-background:var(---bg);
+background:var(--bg);
 color:var(--text);
 min-height:100vh;
 overflow-x:hidden;
@@ -258,7 +258,7 @@ position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;
 border-radius:999px;background:var(--red);color:#fff;
 display:flex;align-items:center;justify-content:center;
 padding:0 3px;font-size:9.5px;font-weight:700;
-border:2px solid var(---bg);
+border:2px solid var(--bg);
 }
 
 .user-chip{
@@ -315,7 +315,7 @@ FORMS
 .form-group{margin-bottom:12px;}
 .label{display:block;margin-bottom:5px;color:var(--text3);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.55px;}
 .input,.select{
-width:100%;background:var(---bg);
+width:100%;background:var(--bg);
 border:1px solid var(--border);color:var(--text);
 border-radius:8px;padding:9px 12px;outline:none;
 font-size:13.5px;font-family:inherit;
@@ -399,7 +399,7 @@ font-size:24px;line-height:1.15;color:var(--ink);
 .hero h1 em{
 font-style:italic;
 background:linear-gradient(135deg,var(--blue),#818CF8);
---webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .hero p{color:var(--text3);margin-top:6px;font-size:13px;line-height:1.7;max-width:480px;}
 .hero-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
@@ -719,7 +719,7 @@ border-left:3px solid var(--blue);transition:all 0.15s;
 .history-item-title{font-weight:600;font-size:12px;color:var(--ink);}
 .history-item-date{font-size:10.5px;color:var(--text3);}
 .history-dates{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-.history-chip{background:var(---bg);border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:11px;color:var(--text2);}
+.history-chip{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:11px;color:var(--text2);}
 .history-chip-new{background:var(--green-light);border-color:var(--green-mid);color:var(--green);}
 .history-arrow{color:var(--text4);font-size:12px;}
 .history-duration{display:inline-flex;align-items:center;gap:3px;background:var(--purple-light);border:1px solid var(--purple-mid);border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--purple);margin-top:5px;}
@@ -737,7 +737,7 @@ border-left:3px solid var(--blue);transition:all 0.15s;
 .import-stat-num.amber{color:var(--amber);}
 .import-stat-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-top:1px;}
 .import-warn{background:var(--amber-light);border:1px solid var(--amber-mid);border-radius:6px;padding:8px 10px;font-size:11.5px;color:var(--amber);margin-bottom:10px;}
-.import-preview-list{background:var(---bg);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;}
+.import-preview-list{background:var(--bg);border:1px solid var(--border);border-radius:8px;max-height:180px;overflow-y:auto;}
 .import-preview-item{display:flex;align-items:center;justify-content:space-between;padding:6px 11px;border-bottom:1px solid var(--border);font-size:11.5px;}
 .import-preview-item:last-child{border-bottom:none;}
 .import-preview-item .pi-name{color:var(--ink);font-weight:500;}
@@ -1066,7 +1066,7 @@ SCROLLBAR
 <div class="modal-wrap hidden" id="updateContractWrap">
   <div class="modal update-contract-modal">
     <div class="modal-header">
-      <div><div class="modal-title">🔄 Update Kontrak</div><div style="font-size:11px;color:var(---text3);margin-top:2px;" id="updateContractEmpName"></div></div>
+      <div><div class="modal-title">🔄 Update Kontrak</div><div style="font-size:11px;color:var(--text3);margin-top:2px;" id="updateContractEmpName"></div></div>
       <button class="icon-btn" id="closeUpdateContract">✕</button>
     </div>
     <div class="modal-body">
@@ -1094,7 +1094,7 @@ SCROLLBAR
         <div class="contract-preview-date" id="contractPreviewDate">--</div>
         <div class="contract-preview-detail" id="contractPreviewDetail"></div>
       </div>
-      <div style="margin-top:10px;padding:9px 11px;background:var(---amber-light);border:1px solid var(---amber-mid);border-radius:7px;font-size:11px;color:var(---amber);line-height:1.6;">
+      <div style="margin-top:10px;padding:9px 11px;background:var(--amber-light);border:1px solid var(--amber-mid);border-radius:7px;font-size:11px;color:var(--amber);line-height:1.6;">
         ⚠️ Hasil dibulatkan ke hari terakhir bulan tersebut.
       </div>
     </div>
@@ -1113,7 +1113,7 @@ SCROLLBAR
 <div class="modal-wrap hidden" id="historyWrap">
   <div class="modal history-modal">
     <div class="modal-header">
-      <div><div class="modal-title">📜 History Kontrak</div><div style="font-size:11px;color:var(---text3);margin-top:2px;" id="historyEmpName"></div></div>
+      <div><div class="modal-title">📜 History Kontrak</div><div style="font-size:11px;color:var(--text3);margin-top:2px;" id="historyEmpName"></div></div>
       <button class="icon-btn" id="closeHistory">✕</button>
     </div>
     <div class="modal-body" id="historyBody" style="max-height:72vh;"></div>
@@ -1569,7 +1569,7 @@ function openHistoryModal(outletId,employeeId){
       var hd=document.createElement('div');hd.className='history-item-date';hd.textContent=h.updatedAt?formatDate(h.updatedAt.split('T')[0]):'-';
       hdr.appendChild(ht);hdr.appendChild(hd);
       var dates=document.createElement('div');dates.className='history-dates';
-      if(h.oldEnd){var oc=document.createElement('div');oc.className='history-chip';oc.innerHTML='<span style="font-size:9.5px;color:var(---text3);">Sebelum</span><br>'+escapeHtml(formatDate(h.oldEnd));dates.appendChild(oc);var ar=document.createElement('span');ar.className='history-arrow';ar.innerHTML='→';dates.appendChild(ar);}
+      if(h.oldEnd){var oc=document.createElement('div');oc.className='history-chip';oc.innerHTML='<span style="font-size:9.5px;color:var(--text3);">Sebelum</span><br>'+escapeHtml(formatDate(h.oldEnd));dates.appendChild(oc);var ar=document.createElement('span');ar.className='history-arrow';ar.innerHTML='→';dates.appendChild(ar);}
       var nc=document.createElement('div');nc.className='history-chip history-chip-new';nc.innerHTML='<span style="font-size:9.5px;">Sesudah</span><br>'+escapeHtml(formatDate(h.newEnd));dates.appendChild(nc);
       var db=document.createElement('div');db.className='history-duration';db.innerHTML='⏱ '+escapeHtml(describeDuration(h.duration,h.unit));
       item.appendChild(hdr);item.appendChild(dates);item.appendChild(db);list.appendChild(item);
@@ -1890,7 +1890,7 @@ function buildOutletCard(outlet,employees){
     });
   }else{
     var emptyD=document.createElement('div');emptyD.className='emp-empty';
-    emptyD.innerHTML='<span class="emp-empty-icon">👤</span>'+(keyword?'Tidak ada karyawan cocok.':'Belum ada karyawan.');
+    emptyD.innerHTML='<span class="emp-empty-icon">👤</span>Belum ada karyawan.';
     empList.appendChild(emptyD);
   }
 
@@ -1932,7 +1932,7 @@ function renderDashboard(){
     sec.appendChild(stitle);
     if(!emps.length){
       var em=document.createElement('div');em.className='empty-state';em.style.padding='24px';
-      em.innerHTML='<span style="font-size:28px;opacity:0.2;display:block;margin-bottom:8px;">✅</span><p style="color:var(---text3);font-size:13px;">'+emptyMsg+'</p>';
+      em.innerHTML='<span style="font-size:28px;opacity:0.2;display:block;margin-bottom:8px;">✅</span><p style="color:var(--text3);font-size:13px;">'+emptyMsg+'</p>';
       sec.appendChild(em);container.appendChild(sec);return;
     }
     var list=document.createElement('div');list.className='global-emp-list';
@@ -1985,7 +1985,7 @@ function renderDashboard(){
   buildGlobalSection('✅ Kontrak Aman',ok.slice(0,30),'');
 
   if(ok.length>30){
-    var more=document.createElement('div');more.style.cssText='text-align:center;padding:12px;font-size:12px;color:var(---text3);';
+    var more=document.createElement('div');more.style.cssText='text-align:center;padding:12px;font-size:12px;color:var(--text3);';
     more.textContent='... dan '+(ok.length-30)+' karyawan lainnya dengan kontrak aman.';
     container.appendChild(more);
   }
@@ -2002,19 +2002,19 @@ function renderDashboard(){
       var total=(outlet.employees||[]).length;
       if(!total)return;
       var card=document.createElement('div');
-      card.style.cssText='background:var(---bg3);border:1px solid var(---border);border-radius:12px;padding:14px 16px;';
+      card.style.cssText='background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;';
       var urgency=mini.expired+mini.warning;
       var pct=total>0?Math.round((mini.active/total)*100):0;
-      card.innerHTML='<div style="font-weight:700;font-size:13px;color:var(---ink);margin-bottom:8px;">'+escapeHtml(outlet.name)+'</div>'+
+      card.innerHTML='<div style="font-weight:700;font-size:13px;color:var(--ink);margin-bottom:8px;">'+escapeHtml(outlet.name)+'</div>'+
         '<div style="display:flex;gap:8px;margin-bottom:8px;">'+
-        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(---green);">'+mini.active+'</div><div style="font-size:9.5px;color:var(---text3);text-transform:uppercase;letter-spacing:0.4px;">Aktif</div></div>'+
-        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(---amber);">'+mini.warning+'</div><div style="font-size:9.5px;color:var(---text3);text-transform:uppercase;letter-spacing:0.4px;">Kritis</div></div>'+
-        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(---red);">'+mini.expired+'</div><div style="font-size:9.5px;color:var(---text3);text-transform:uppercase;letter-spacing:0.4px;">Habis</div></div>'+
+        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(--green);">'+mini.active+'</div><div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;">Aktif</div></div>'+
+        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(--amber);">'+mini.warning+'</div><div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;">Kritis</div></div>'+
+        '<div style="flex:1;text-align:center;"><div style="font-family:Instrument Serif,serif;font-size:20px;color:var(--red);">'+mini.expired+'</div><div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;">Habis</div></div>'+
         '</div>'+
-        '<div style="background:var(---border);border-radius:999px;height:4px;overflow:hidden;">'+
-        '<div style="height:100%;border-radius:999px;background:'+(urgency>0?'linear-gradient(90deg,var(---green),var(---amber))':'var(---green)')+';width:'+pct+'%;transition:width 0.5s;"></div>'+
+        '<div style="background:var(--border);border-radius:999px;height:4px;overflow:hidden;">'+
+        '<div style="height:100%;border-radius:999px;background:'+(urgency>0?'linear-gradient(90deg,var(--green),var(--amber))':'var(--green)')+';width:'+pct+'%;transition:width 0.5s;"></div>'+
         '</div>'+
-        '<div style="font-size:10px;color:var(---text3);margin-top:4px;">'+pct+'% aktif dari '+total+' karyawan</div>';
+        '<div style="font-size:10px;color:var(--text3);margin-top:4px;">'+pct+'% aktif dari '+total+' karyawan</div>';
       anaGrid.appendChild(card);
     });
     anaSec.appendChild(anaGrid);container.appendChild(anaSec);
@@ -2192,7 +2192,7 @@ function showImportPreview(p){
     '</div>';
   body.appendChild(summary);
   if(p.skipped>0){var w=document.createElement('div');w.className='import-warn';w.textContent='⚠️ '+p.skipped+' baris dilewati (data tidak lengkap atau tanggal tidak valid).';body.appendChild(w);}
-  var pl=document.createElement('div');pl.style.cssText='font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(---text3);margin-bottom:5px;';
+  var pl=document.createElement('div');pl.style.cssText='font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:var(--text3);margin-bottom:5px;';
   pl.textContent='Preview ('+Math.min(p.items.length,10)+' dari '+p.total+'):';body.appendChild(pl);
   var list=document.createElement('div');list.className='import-preview-list';
   p.items.forEach(function(item){
@@ -2201,7 +2201,7 @@ function showImportPreview(p){
       '<div>'+(item.isNew?'<span class="status-new">Baru</span>':'<span class="status-update">Update</span>')+'</div>';
     list.appendChild(row);
   });
-  if(p.total>10){var more=document.createElement('div');more.style.cssText='text-align:center;padding:7px;font-size:11px;color:var(---text3);';more.textContent='... dan '+(p.total-10)+' baris lainnya';list.appendChild(more);}
+  if(p.total>10){var more=document.createElement('div');more.style.cssText='text-align:center;padding:7px;font-size:11px;color:var(--text3);';more.textContent='... dan '+(p.total-10)+' baris lainnya';list.appendChild(more);}
   body.appendChild(list);
   document.getElementById('importPreviewWrap').classList.remove('hidden');
 }

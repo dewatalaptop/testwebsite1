@@ -273,8 +273,7 @@ z-index:1;
 
 /* ===================== HERO ===================== */
 .hero{
-background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9));
-background:var(--surface);
+background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.92));
 border-radius:24px;
 padding:26px 28px;
 margin-bottom:24px;
@@ -282,7 +281,7 @@ display:flex;justify-content:space-between;align-items:center;
 gap:24px;flex-wrap:wrap;
 position:relative;overflow:hidden;
 box-shadow:var(--shadow-sm);
-}
+}.
 
 .hero::after{
 content:'';
@@ -660,8 +659,7 @@ border-radius:24px;
 overflow:hidden;
 animation:slideUp 0.22s cubic-bezier(0.34,1.4,0.64,1) both;
 box-shadow:0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04);
-background:var(--surface);
-}
+}.
 @keyframes slideUp{
 from{opacity:0;transform:translateY(24px) scale(0.97);}
 to{opacity:1;transform:translateY(0) scale(1);}
@@ -837,9 +835,7 @@ flex-wrap:wrap;
 display:inline-flex;
 align-items:center;
 gap:5px;
-background:var(--surface);
-background:var(--surface);
-border-radius:var(--radius-sm);
+background:var(--surface);border-radius:var(--radius-sm);
 padding:6px 11px;
 font-size:12px;
 font-weight:600;
@@ -886,9 +882,7 @@ color:var(--text3);
 position:fixed;top:72px;right:20px;
 width:340px;max-height:65vh;
 overflow:auto;
-background:var(--surface);
-background:var(--surface);
-border-radius:24px;
+background:var(--surface);border-radius:24px;
 padding:18px;
 box-shadow:0 10px 30px rgba(15,23,42,0.08),0 2px 8px rgba(15,23,42,0.04);
 z-index:998;
@@ -1025,11 +1019,10 @@ color:var(--text3);font-size:13px;font-weight:500;
 /* ===================== ACTION BUTTONS ROW ===================== */
 .emp-action-row{
 display:flex;
-gap:4px;
+gap:6px;
 align-items:center;
-flex-wrap:nowrap;
-white-space:nowrap;
-}
+flex-wrap:wrap;
+}.
 
 .btn-update-contract{
 display:inline-flex;align-items:center;gap:5px;
@@ -1354,8 +1347,8 @@ box-shadow:0 2px 8px rgba(124,58,237,0.3);
             <input type="number" id="contractDurationNum" class="input" placeholder="Contoh: 3" min="1" max="120" style="font-size:22px;font-weight:800;font-family:var(--font-display);height:56px;text-align:center;">
           </div>
           <div style="display:flex;gap:6px;">
-            <button class="unit-pill active" id="unitBulan" data-unit="bulan">Bulan</button>
-            <button class="unit-pill" id="unitTahun" data-unit="tahun">Tahun</button>
+            <button type="button" class="unit-pill active" id="unitBulan" data-unit="bulan">.Bulan</button>
+            <button type="button" class="unit-pill" id="unitTahun" data-unit="tahun">.Tahun</button>
           </div>
         </div>
       </div>
@@ -1609,19 +1602,71 @@ function getStatus(endDate) {
 }
 
 function formatExcelDate(value) {
-  if (value === null || value === undefined || value === '') return '';
-  if (typeof value === 'number') {
-    try {
-      var date = XLSX.SSF.parse_date_code(value);
-      if (!date) return '';
-      return date.y + '-' + String(date.m).padStart(2,'0') + '-' + String(date.d).padStart(2,'0');
-    } catch(e) { return ''; }
-  }
-  var parsed = new Date(value);
-  if (isNaN(parsed.getTime())) return '';
-  return parsed.toISOString().split('T')[0];
-}
 
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+
+  // Excel serial number
+  if (typeof value === 'number') {
+
+    try {
+
+      var date = XLSX.SSF.parse_date_code(value);
+
+      if (!date) return '';
+
+      return (
+        date.y + '-' +
+        String(date.m).padStart(2, '0') + '-' +
+        String(date.d).padStart(2, '0')
+      );
+
+    } catch(e) {
+
+      return '';
+    }
+  }
+
+  // String cleanup
+  value = String(value).trim();
+
+  // Format DD/MM/YYYY atau DD-MM-YYYY
+  var indoMatch = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+
+  if (indoMatch) {
+
+    var d = indoMatch[1];
+    var m = indoMatch[2];
+    var y = indoMatch[3];
+
+    return (
+      y + '-' +
+      String(m).padStart(2, '0') + '-' +
+      String(d).padStart(2, '0')
+    );
+  }
+
+  // Format YYYY-MM-DD
+  var isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (isoMatch) {
+    return value;
+  }
+
+  // fallback parsing
+  var parsed = new Date(value);
+
+  if (isNaN(parsed.getTime())) {
+    return '';
+  }
+
+  return (
+    parsed.getFullYear() + '-' +
+    String(parsed.getMonth() + 1).padStart(2, '0') + '-' +
+    String(parsed.getDate()).padStart(2, '0')
+  );
+}
 function getInitial(name) {
   return String(name || 'U').trim().charAt(0).toUpperCase();
 }
@@ -1638,6 +1683,27 @@ function getInitial(name) {
  * @returns {string} - YYYY-MM-DD hari terakhir bulan target
  */
 function calcNewContractEnd(fromDateStr, amount, unit) {
+  var from = fromDateStr ? new Date(fromDateStr + 'T00:00:00') : new Date();
+
+  if (isNaN(from.getTime())) {
+    from = new Date();
+  }
+
+  var totalMonths = unit === 'tahun'
+    ? amount * 12
+    : amount;
+
+  var targetYear = from.getFullYear();
+  var targetMonth = from.getMonth() + totalMonths + 1;
+
+  var endDate = new Date(targetYear, targetMonth, 0);
+
+  return (
+    endDate.getFullYear() + '-' +
+    String(endDate.getMonth() + 1).padStart(2, '0') + '-' +
+    String(endDate.getDate()).padStart(2, '0')
+  );
+}.
   var from = fromDateStr ? new Date(fromDateStr) : new Date();
   if (isNaN(from.getTime())) from = new Date();
 
@@ -2399,8 +2465,9 @@ function buildOutletCard(outlet, employees) {
   var card = document.createElement('div');
   card.className = 'outlet-card';
 
-  /* Header */
-  var header = document.createElement('div');
+  /* =========================
+   HEADER
+========================= */  var header = document.createElement('div');
   header.className = 'outlet-card-header';
 
   var headerLeft = document.createElement('div');
@@ -2528,8 +2595,10 @@ function buildOutletCard(outlet, employees) {
       tdSalary.style.whiteSpace = 'nowrap';
 
       var tdEnd = document.createElement('td');
-      tdEnd.textContent = formatDate(emp.contractEnd);
-      tdEnd.style.whiteSpace = 'nowrap';
+      tdEnd.textContent =
+  emp.contractEnd
+    ? formatDate(emp.contractEnd)
+    : 'Belum diisi';      tdEnd.style.whiteSpace = 'nowrap';
 
       var tdStatus = document.createElement('td');
       var badge = document.createElement('span');
@@ -2795,7 +2864,20 @@ async function doImportExcel(event) {
     var workbook = XLSX.read(data, {type:'array'});
     if (!workbook.SheetNames || !workbook.SheetNames.length) throw new Error('File Excel kosong.');
     var sheet = workbook.Sheets[workbook.SheetNames[0]];
-    var rows = XLSX.utils.sheet_to_json(sheet, {range:1, defval:''});
+    var rows = XLSX.utils.sheet_to_json(sheet, {
+  range:1,
+  defval:'',
+  raw:false
+}).map(function(row) {
+
+  var normalized = {};
+
+  Object.keys(row).forEach(function(key) {
+    normalized[String(key).trim().toUpperCase()] = row[key];
+  });
+
+  return normalized;
+});.
     if (!rows.length) { showToast('Sheet Excel kosong atau tidak ada data di baris 2+.','error'); return; }
 
     var addedEmployees=0, updatedEmployees=0, addedOutlets=0, skipped=0;
@@ -2969,7 +3051,12 @@ function wireAppButtons() {
   document.getElementById('restoreInput').onchange = doRestoreJson;
   document.getElementById('searchInput').oninput = debouncedRender;
   document.getElementById('filterOutlet').onchange = render;
-}
+
+window.addEventListener('resize', function() {
+  var panel = document.getElementById('notifPanel');
+  if (panel) panel.classList.add('hidden');
+});
+}.
 
 /* =========================
    INIT

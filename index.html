@@ -1224,7 +1224,15 @@ var _collapsedOutlets={};
 ============================================================ */
 function uid(){return Date.now()+'_'+Math.random().toString(36).slice(2,9);}
 function generateToken(){var c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',t='';for(var i=0;i<48;i++)t+=c[Math.floor(Math.random()*c.length)];return t;}
-function normalizeText(t){return String(t||'').trim().toLowerCase();}
+function normalizeText(t){
+  return String(t||'')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^\w\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
 function escapeHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim());}
 
@@ -1277,41 +1285,40 @@ function parseExcelDate(val){
 function smartFind(row,candidates){
   if(!row)return'';
 
-  for(var i=0;i<candidates.length;i++){
-    var k=candidates[i].toUpperCase().trim();
-
-    if(row[k]!==undefined&&row[k]!==null&&String(row[k]).trim()!==''){
-      return row[k];
-    }
-  }
-
   var keys=Object.keys(row);
 
-  for(var c=0;c<candidates.length;c++){
-    var cand=candidates[c]
+  function clean(t){
+    return String(t||'')
       .toUpperCase()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g,'')
       .replace(/[^\w\s]/g,' ')
       .replace(/\s+/g,' ')
       .trim();
+  }
 
-    for(var ki=0;ki<keys.length;ki++){
-      var rk=String(keys[ki])
-        .toUpperCase()
-        .replace(/[^\w\s]/g,' ')
-        .replace(/\s+/g,' ')
-        .trim();
+  for(var i=0;i<candidates.length;i++){
+    var ck=clean(candidates[i]);
 
-      var similar=
-        rk===cand||
-        rk.includes(cand)||
-        cand.includes(rk)||
-        rk.replace(/\s/g,'')===cand.replace(/\s/g,'');
+    for(var k=0;k<keys.length;k++){
+      var rk=clean(keys[k]);
 
-      if(similar){
-        var v=row[keys[ki]];
+      var score=0;
 
-        if(v!==null&&v!==undefined&&String(v).trim()!==''){
-          return v;
+      if(rk===ck)score=100;
+      else if(rk.includes(ck))score=90;
+      else if(ck.includes(rk))score=80;
+      else if(rk.replace(/\s/g,'')===ck.replace(/\s/g,''))score=95;
+
+      if(score>=80){
+        var val=row[keys[k]];
+
+        if(
+          val!==null&&
+          val!==undefined&&
+          String(val).trim()!==''
+        ){
+          return val;
         }
       }
     }
@@ -2173,16 +2180,25 @@ async function doImportExcel(event){
   var btn=document.getElementById('importExcelBtn');setBtnLoading(btn,true);
   try{
     var data=await file.arrayBuffer();
-    var workbook=XLSX.read(data,{type:'array',cellDates:true});
+    var workbook=XLSX.read(data,{
+  type:'array',
+  cellDates:true,
+  cellNF:true,
+  cellText:false,
+  raw:false
+});
     if(!workbook.SheetNames||!workbook.SheetNames.length)throw new Error('File Excel kosong.');
     var allRows=[];
     workbook.SheetNames.forEach(function(sn){
       var sheet=workbook.Sheets[sn];
-      XLSX.utils.sheet_to_json(sheet,{
+      var rowsRaw=XLSX.utils.sheet_to_json(sheet,{
         defval:'',
-        raw:true,
-        cellDates:true
-      }).forEach(function(row){
+        raw:false,
+        cellDates:true,
+        blankrows:false
+      });
+
+      rowsRaw.forEach(function(row){
         var norm={};
 
         Object.keys(row).forEach(function(k){
@@ -2196,7 +2212,11 @@ async function doImportExcel(event){
         });
 
         var hasValue=Object.values(norm).some(function(v){
-          return v!==null&&v!==undefined&&String(v).trim()!=='';
+          return v!==null&&
+            v!==undefined&&
+            String(v)
+              .replace(/\s+/g,'')
+              .trim()!=='';
         });
 
         if(hasValue)allRows.push(norm);
@@ -2205,9 +2225,57 @@ async function doImportExcel(event){
     if(!allRows.length)throw new Error('Tidak ada data.');
     var parsed=[],skipped=0;
     allRows.forEach(function(row){
-      var outletName=smartFind(row,['OUTLET','NAMA OUTLET','STORE','CABANG','TOKO','LOKASI','BRANCH']).trim();
-      var empName=smartFind(row,['NAMA','NAMA KARYAWAN','KARYAWAN','EMPLOYEE','PEGAWAI','STAFF','NAME','NAMA PEGAWAI']).trim();
-      if(!outletName||!empName){skipped++;return;}
+      var outletName=smartFind(row,[
+        'OUTLET',
+        'NAMA OUTLET',
+        'NAMA CABANG',
+        'STORE',
+        'STORE NAME',
+        'CABANG',
+        'TOKO',
+        'LOKASI',
+        'BRANCH',
+        'UNIT',
+        'DIVISI',
+        'DEPARTEMEN',
+        'PENEMPATAN',
+        'SITE',
+        'AREA',
+        'KOTA'
+      ]).trim();
+
+      if(!outletName&&sn){
+        outletName=String(sn)
+          .replace(/template/gi,'')
+          .replace(/kontrak/gi,'')
+          .replace(/[^\w\s]/g,' ')
+          .replace(/\s+/g,' ')
+          .trim();
+      }
+      var empName=smartFind(row,[
+        'NAMA',
+        'NAMA KARYAWAN',
+        'NAMA PEGAWAI',
+        'NAMA STAFF',
+        'KARYAWAN',
+        'PEGAWAI',
+        'STAFF',
+        'EMPLOYEE',
+        'EMPLOYEE NAME',
+        'FULL NAME',
+        'NAME',
+        'NAMA LENGKAP'
+      ]).trim();
+      if(
+        !outletName||
+        !empName||
+        normalizeText(empName)==='nama'||
+        normalizeText(empName)==='employee'||
+        normalizeText(empName)==='karyawan'
+      ){
+        skipped++;
+        return;
+      }
       var rawEnd=smartFind(row,[
         'HABIS KONTRAK',
         'AKHIR KONTRAK',
@@ -2263,7 +2331,13 @@ async function doImportExcel(event){
         'WAGE',
         'GAJI BASIC',
         'BASIC SALARY',
-        'PENDAPATAN'
+        'PENDAPATAN',
+        'TAKE HOME PAY',
+        'THP',
+        'GAJI NET',
+        'GAJI GROSS',
+        'PENGHASILAN',
+        'INSENTIF'
       ]);
       var contractEnd=parseExcelDate(rawEnd);
       if(!contractEnd){
@@ -2275,7 +2349,20 @@ async function doImportExcel(event){
         }
       }
       var contractStart=parseExcelDate(rawStart);
-      var salary=0;if(rawSalary){var cl=String(rawSalary).replace(/[^0-9]/g,'');salary=parseInt(cl,10)||0;}
+      var salary=0;
+
+      if(rawSalary!==null&&rawSalary!==undefined&&rawSalary!==''){
+        if(typeof rawSalary==='number'){
+          salary=Math.round(rawSalary);
+        }else{
+          var cl=String(rawSalary)
+            .replace(/[^\d,.-]/g,'')
+            .replace(/.(?=\d{3})/g,'')
+            .replace(',', '.');
+
+          salary=Math.round(parseFloat(cl)||0);
+        }
+      }
       parsed.push({outletName:outletName,empName:empName,contractEnd:contractEnd,contractStart:contractStart,phone:rawPhone.replace(/[^\d+\s\-]/g,'').trim(),salary:salary});
     });
     if(!parsed.length){showToast('Tidak ada baris valid. Cek kolom OUTLET, NAMA, HABIS KONTRAK.','error',6000);return;}

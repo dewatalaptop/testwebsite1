@@ -472,13 +472,13 @@ select.input,.select{cursor:pointer;}
 /* ============================================================
    OUTLET GRID
 ============================================================ */
-.outlet-grid{display:grid;gap:14px;align-items:start;}
-.outlet-grid[data-cols="1"]{grid-template-columns:1fr;}
-.outlet-grid[data-cols="2"]{grid-template-columns:repeat(2,1fr);}
-.outlet-grid[data-cols="3"]{grid-template-columns:repeat(3,1fr);}
-@media(max-width:1200px){.outlet-grid[data-cols="3"]{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:700px){.outlet-grid[data-cols="2"],.outlet-grid[data-cols="3"]{grid-template-columns:1fr;}}
-
+.outlet-grid{gap:0;}
+.outlet-grid[data-cols="1"]{column-count:1;}
+.outlet-grid[data-cols="2"]{column-count:2;}
+.outlet-grid[data-cols="3"]{column-count:3;}
+.outlet-grid .outlet-card{break-inside:avoid;margin-bottom:14px;display:inline-block;width:100%;}
+@media(max-width:1200px){.outlet-grid[data-cols="3"]{column-count:2;}}
+@media(max-width:700px){.outlet-grid[data-cols="2"],.outlet-grid[data-cols="3"]{column-count:1;}}
 /* ============================================================
    OUTLET CARD
 ============================================================ */
@@ -965,7 +965,7 @@ select.input,.select{cursor:pointer;}
     <button class="filter-clear" id="filterClearBtn">✕ Reset Filter</button>
   </div>
 
-  <div class="outlet-grid" id="outletGrid" data-cols="2" role="main"></div>
+   <div class="outlet-grid" id="outletGrid" data-cols="3" role="main"></div>
 </div>
 
 <!-- DASHBOARD VIEW -->
@@ -1367,7 +1367,7 @@ function updateSyncBadge(status) {
 /* ============================================================
    PREFERENCES
 ============================================================ */
-var prefs = { theme: 'light', cols: 2 };
+var prefs = { theme: 'light', cols: 3 };
 
 function loadPrefs() {
   try {

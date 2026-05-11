@@ -363,12 +363,13 @@ select.input,.select{cursor:pointer;}
 /* ============================================================
    GENDER ICON
 ============================================================ */
-.gender-icon{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:4px;font-size:10px;font-weight:800;flex-shrink:0;line-height:1;position:relative;}
-.gender-m{background:rgba(29,107,228,0.12);color:#1D6BE4;}
-.gender-f{background:rgba(236,72,153,0.12);color:#EC4899;}
-.gender-u{background:var(--surface3);color:var(--text3);}
-/* dot kuning kecil di pojok kanan atas gender icon (bila tebakan) */
-.gender-guess-dot{position:absolute;top:-2px;right:-2px;width:5px;height:5px;border-radius:50%;background:#F59E0B;border:1px solid var(--bg3);}
+
+.gender-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;font-size:13px;font-weight:900;flex-shrink:0;line-height:1;position:relative;letter-spacing:0;}
+.gender-m{background:#1D6BE4;color:#fff;}
+.gender-f{background:#EC4899;color:#fff;}
+.gender-u{background:var(--border2);color:var(--text3);}
+.gender-guess-dot{position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:#F59E0B;border:2px solid var(--bg3);}
+
 
 /* ============================================================
    GENDER SELECT DI FORM KARYAWAN
@@ -1028,7 +1029,7 @@ function outletColorIndex(id) {
 function getOutletPalette(id) { return OUTLET_PALETTES[outletColorIndex(id)]; }
 
 /* ============================================================
-   PERUBAHAN #4 — GENDER DICTIONARY & HELPERS
+   PERUBAHAN #4 - GENDER DICTIONARY & HELPERS
 ============================================================ */
 
 /* Kamus 166 nama Naruna terverifikasi + ~100 nama umum Indonesia
@@ -1038,7 +1039,7 @@ var GENDER_NAMES = {
   'DWI':null,'WAHYU':null,'TRI':null,'EKA':null,'ANDRI':null,
   'NUR':null,'ANDI':null,'DIAN':null,
 
-  /* ---- PEREMPUAN — Naruna terverifikasi ---- */
+  /* ---- PEREMPUAN - Naruna terverifikasi ---- */
   'MARPIYANTI':'P','FEBRIASTUTI':'P','ROHMAHDHONA':'P','NAFIAH':'P',
   'WARTINI':'P','ANAWATI':'P','MUSRINI':'P','TUGIYEM':'P','ULFIYA':'P',
   'TUKINAH':'P','KAMIYAH':'P','DJASMI':'P','SUMIYATI':'P','MUNJAINAH':'P',
@@ -1055,7 +1056,7 @@ var GENDER_NAMES = {
   'SINDRANG':'P','NOVITASARI':'P','LESTARI':'P','CLARISSA':'P',
   'YUSNITA':'P','ADIANA':'P','YUNITASARI':'P',
 
-  /* ---- LAKI-LAKI — Naruna terverifikasi ---- */
+  /* ---- LAKI-LAKI - Naruna terverifikasi ---- */
   'PRAYOGO':'L','SUDOPO':'L','TATAG':'L','GAYUH':'L','NAYKODA':'L',
   'ARDIYANSYAH':'L','AFIYONO':'L','PRASDIKA':'L','FATHONI':'L',
   'SRIWIYONO':'L','HENDRI':'L','DAMAR':'L','PRADIPTA':'L','PANGESTU':'L',
@@ -1067,7 +1068,7 @@ var GENDER_NAMES = {
   'ARIANTO':'L','ARTANTO':'L','MASROKHAN':'L','KRISTIYANTORO':'L',
   'SAPUNDANI':'L','WIBISONO':'L','CAHYONO':'L',
 
-  /* ---- PEREMPUAN — nama umum Indonesia ---- */
+  /* ---- PEREMPUAN - nama umum Indonesia ---- */
   'SITI':'P','SRI':'P','DEWI':'P','ENDAH':'P','PUTRI':'P','RINI':'P',
   'YUNI':'P','INDAH':'P','FITRI':'P','NURUL':'P','RATNA':'P','WATI':'P',
   'NINGSIH':'P','ANIK':'P','ANIS':'P','NANIK':'P','NANI':'P','YANTI':'P',
@@ -1084,7 +1085,7 @@ var GENDER_NAMES = {
   'LESTARININGSIH':'P','WAHYUNINGSIH':'P','RETNO':'P','NIKEN':'P',
   'DYAH':'P','DIAH':'P','TITIN':'P','TATIK':'P','TUTIK':'P',
 
-  /* ---- LAKI-LAKI — nama umum Indonesia ---- */
+  /* ---- LAKI-LAKI - nama umum Indonesia ---- */
   'BUDI':'L','AGUS':'L','BAMBANG':'L','JOKO':'L','SLAMET':'L','MULYONO':'L',
   'SUPRAPTO':'L','HERI':'L','HERY':'L','SIGIT':'L','TEGUH':'L','ARIF':'L',
   'REZA':'L','RIZAL':'L','RIZKY':'L','FAJAR':'L','FAJRI':'L','IWAN':'L',
@@ -1104,7 +1105,7 @@ var GENDER_NAMES = {
   'ADINDA':'L' /* Adinda Prayogo terverifikasi L */
 };
 
-/* Tebak gender dari nama — token per token, skip ambigu */
+/* Tebak gender dari nama - token per token, skip ambigu */
 function guessGender(name) {
   if (!name) return '';
   var tokens = String(name).toUpperCase()
@@ -1136,7 +1137,7 @@ function parseGenderFromExcel(val) {
   return '';
 }
 
-/* Render HTML icon gender — guessed = boolean apakah dari tebakan */
+/* Render HTML icon gender - guessed = boolean apakah dari tebakan */
 function genderIcon(gender, guessed) {
   if (gender === 'L') {
     return '<span class="gender-icon gender-m" title="Laki-laki'+(guessed?' (tebakan)':'')+'">♂'+(guessed?'<span class="gender-guess-dot"></span>':'')+'</span>';
@@ -1736,7 +1737,7 @@ function openHistoryModal(outletId,employeeId){
 function closeHistoryModal(){document.getElementById('historyWrap').classList.add('hidden');}
 
 /* ============================================================
-   PERUBAHAN #5 — FORM BUILDERS (dengan field gender)
+   PERUBAHAN #5 - FORM BUILDERS (dengan field gender)
 ============================================================ */
 function buildField(container,labelText,inputId,props){
   var g=document.createElement('div');g.className='form-group';
@@ -1825,7 +1826,7 @@ function buildEmployeeForm(container,data){
   }
 }
 
-/* Perubahan #6 — Baca gender dari form */
+/* Perubahan #6 - Baca gender dari form */
 function readGenderFromForm(){
   var row=document.querySelector('.gender-select-row');if(!row)return'';
   var active=row.querySelector('.gender-pill-btn.active-m,.gender-pill-btn.active-f,.gender-pill-btn.active-u');
@@ -1836,7 +1837,7 @@ function readGenderFromForm(){
 function readVal(id,max){var el=document.getElementById(id);return el?safeText(el.value,max||255):'';}
 
 /* ============================================================
-   PERUBAHAN #7 — KPI RENDER (termasuk gender)
+   PERUBAHAN #7 - KPI RENDER (termasuk gender)
 ============================================================ */
 function renderKPI(){
   var emps=state.outlets.reduce(function(acc,o){return acc.concat(o.employees||[]);},[]);
@@ -1902,7 +1903,7 @@ function renderOutletFilter(){
 }
 
 /* ============================================================
-   PERUBAHAN #9 — FILTER CLEAR (tambah filterGender)
+   PERUBAHAN #9 - FILTER CLEAR (tambah filterGender)
 ============================================================ */
 function updateFilterClear(){
   var si=document.getElementById('searchInput'),fo=document.getElementById('filterOutlet'),
@@ -1939,7 +1940,7 @@ function sortBy(type){
 }
 
 /* ============================================================
-   PERUBAHAN #8 — MAIN RENDER (tambah filter gender)
+   PERUBAHAN #8 - MAIN RENDER (tambah filter gender)
 ============================================================ */
 var _renderBusy=false,_renderQueued=false;
 function render(){
@@ -1993,7 +1994,7 @@ function render(){
 }
 
 /* ============================================================
-   PERUBAHAN #10 — BUILD OUTLET CARD (name cell dengan gender icon)
+   PERUBAHAN #10 - BUILD OUTLET CARD (name cell dengan gender icon)
 ============================================================ */
 function buildOutletCard(outlet,employees){
   var palette=getOutletPalette(outlet.id);
@@ -2273,7 +2274,7 @@ function doDeleteOutlet(id){
 }
 
 /* ============================================================
-   PERUBAHAN #6 — EMPLOYEE CRUD (simpan gender)
+   PERUBAHAN #6 - EMPLOYEE CRUD (simpan gender)
 ============================================================ */
 function validateEmployeeForm(){
   var name=readVal('fEmpName'),end=readVal('fEmpEnd'),start=readVal('fEmpStart');
@@ -2321,7 +2322,7 @@ function doDeleteEmployee(outletId,employeeId){
 }
 
 /* ============================================================
-   PERUBAHAN #11 — EXPORT CSV (tambah kolom gender)
+   PERUBAHAN #11 - EXPORT CSV (tambah kolom gender)
 ============================================================ */
 function doExportJson(){
   var payload=JSON.stringify({exportedAt:new Date().toISOString(),version:4,outlets:state.outlets},null,2);
@@ -2350,7 +2351,7 @@ function doExportCsv(){
 }
 
 /* ============================================================
-   PERUBAHAN #12 — IMPORT EXCEL (parsing gender + simpan ke data)
+   PERUBAHAN #12 - IMPORT EXCEL (parsing gender + simpan ke data)
 ============================================================ */
 function detectHeaderRow(rawRows){
   var HEADER_KEYWORDS=['NAMA','OUTLET','HABIS','KONTRAK','NAMA KARYAWAN','EMPLOYEE'];
@@ -2516,7 +2517,7 @@ async function doRestoreJson(event){
 }
 
 /* ============================================================
-   PERUBAHAN #13 — WIRE APP BUTTONS (tambah filterGender)
+   PERUBAHAN #13 - WIRE APP BUTTONS (tambah filterGender)
 ============================================================ */
 function wireAppButtons(){
   /* General modal */

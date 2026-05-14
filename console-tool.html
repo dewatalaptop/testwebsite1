@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Live Console Inspector</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#0f1117;
+    color:#fff;
+    font-family:Arial, sans-serif;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+.topbar{
+    display:flex;
+    gap:10px;
+    padding:12px;
+    background:#161b22;
+    border-bottom:1px solid #2d333b;
+}
+
+.topbar input{
+    flex:1;
+    background:#0d1117;
+    border:1px solid #30363d;
+    color:#fff;
+    padding:12px;
+    border-radius:8px;
+    outline:none;
+}
+
+.topbar button{
+    background:#238636;
+    border:none;
+    color:#fff;
+    padding:12px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.topbar button:hover{
+    opacity:0.9;
+}
+
+.main{
+    flex:1;
+    display:flex;
+    overflow:hidden;
+}
+
+.viewer{
+    flex:1;
+    background:#000;
+    position:relative;
+}
+
+iframe{
+    width:100%;
+    height:100%;
+    border:none;
+    background:#fff;
+}
+
+.panel{
+    width:420px;
+    background:#161b22;
+    border-left:1px solid #30363d;
+    display:flex;
+    flex-direction:column;
+}
+
+.tabs{
+    display:flex;
+    border-bottom:1px solid #30363d;
+}
+
+.tab{
+    flex:1;
+    text-align:center;
+    padding:12px;
+    cursor:pointer;
+    background:#161b22;
+    border-right:1px solid #30363d;
+    font-size:14px;
+}
+
+.tab.active{
+    background:#21262d;
+    color:#58a6ff;
+}
+
+.logs{
+    flex:1;
+    overflow:auto;
+    padding:10px;
+    font-family:monospace;
+    font-size:12px;
+}
+
+.log{
+    padding:8px;
+    margin-bottom:6px;
+    border-radius:6px;
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.log-log{
+    background:#0d1117;
+    color:#c9d1d9;
+}
+
+.log-error{
+    background:#2d0d0d;
+    color:#ff7b72;
+}
+
+.log-warn{
+    background:#332701;
+    color:#f2cc60;
+}
+
+.log-network{
+    background:#0d1f2d;
+    color:#79c0ff;
+}
+
+.bottom{
+    padding:10px;
+    border-top:1px solid #30363d;
+    display:flex;
+    gap:10px;
+}
+
+.bottom button{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    background:#30363d;
+    color:#fff;
+}
+
+.bottom button:hover{
+    background:#484f58;
+}
+
+.status{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:#161b22;
+    padding:8px 12px;
+    border-radius:6px;
+    font-size:12px;
+    border:1px solid #30363d;
+}
+
+@media(max-width:900px){
+    .main{
+        flex-direction:column;
+    }
+
+    .panel{
+        width:100%;
+        height:40%;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <input type="text" id="urlInput" placeholder="https://example.com">
+    <button onclick="loadWebsite()">OPEN</button>
+</div>
+
+<div class="main">
+
+    <div class="viewer">
+        <iframe id="viewer"></iframe>
+        <div class="status" id="status">
+            Ready
+        </div>
+    </div>
+
+    <div class="panel">
+
+        <div class="tabs">
+            <div class="tab active" data-type="all">ALL</div>
+            <div class="tab" data-type="log">LOGS</div>
+            <div class="tab" data-type="error">ERRORS</div>
+            <div class="tab" data-type="network">NETWORK</div>
+        </div>
+
+        <div class="logs" id="logs"></div>
+
+        <div class="bottom">
+            <button onclick="copyLogs()">COPY</button>
+            <button onclick="clearLogs()">CLEAR</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const iframe = document.getElementById('viewer');
+const logsContainer = document.getElementById('logs');
+const statusBox = document.getElementById('status');
+
+let allLogs = [];
+let currentFilter = 'all';
+
+function setStatus(text){
+    statusBox.textContent = text;
+}
+
+function addLog(type, message){
+
+    const entry = {
+        type,
+        message,
+        time:new Date().toLocaleTimeString()
+    };
+
+    allLogs.push(entry);
+
+    renderLogs();
+}
+
+function renderLogs(){
+
+    logsContainer.innerHTML = '';
+
+    const filtered = allLogs.filter(log => {
+        if(currentFilter === 'all') return true;
+        return log.type === currentFilter;
+    });
+
+    filtered.forEach(log => {
+
+        const div = document.createElement('div');
+
+        div.className = `log log-${log.type}`;
+
+        div.textContent =
+`[${log.time}] [${log.type.toUpperCase()}]
+
+${log.message}`;
+
+        logsContainer.appendChild(div);
+
+    });
+
+    logsContainer.scrollTop = logsContainer.scrollHeight;
+}
+
+function clearLogs(){
+    allLogs = [];
+    renderLogs();
+}
+
+async function copyLogs(){
+
+    const text = allLogs.map(log => {
+        return `[${log.time}] [${log.type}] ${log.message}`;
+    }).join('\n\n');
+
+    await navigator.clipboard.writeText(text);
+
+    alert('Logs copied');
+}
+
+function loadWebsite(){
+
+    const url = document.getElementById('urlInput').value.trim();
+
+    if(!url){
+        alert('Enter URL');
+        return;
+    }
+
+    setStatus('Loading...');
+
+    iframe.src = url;
+
+    addLog('network', `Opening ${url}`);
+
+}
+
+iframe.onload = () => {
+
+    setStatus('Loaded');
+
+    addLog('log', 'Website loaded successfully');
+
+    try {
+
+        const win = iframe.contentWindow;
+
+        injectDebugger(win);
+
+    } catch(err){
+
+        addLog(
+            'error',
+            'Cannot inject debugger due to cross-origin restrictions.\n\nUse same-origin website or local testing.'
+        );
+
+    }
+
+};
+
+function injectDebugger(win){
+
+    const oldLog = win.console.log;
+    const oldError = win.console.error;
+    const oldWarn = win.console.warn;
+
+    win.console.log = (...args) => {
+
+        addLog(
+            'log',
+            args.map(a => stringify(a)).join(' ')
+        );
+
+        oldLog.apply(win.console,args);
+    };
+
+    win.console.error = (...args) => {
+
+        addLog(
+            'error',
+            args.map(a => stringify(a)).join(' ')
+        );
+
+        oldError.apply(win.console,args);
+    };
+
+    win.console.warn = (...args) => {
+
+        addLog(
+            'warn',
+            args.map(a => stringify(a)).join(' ')
+        );
+
+        oldWarn.apply(win.console,args);
+    };
+
+    win.addEventListener('error',(e)=>{
+
+        addLog(
+            'error',
+            `${e.message}\n${e.filename}:${e.lineno}`
+        );
+
+    });
+
+    win.addEventListener('unhandledrejection',(e)=>{
+
+        addLog(
+            'error',
+            `Unhandled Promise Rejection:\n${stringify(e.reason)}`
+        );
+
+    });
+
+    const oldFetch = win.fetch;
+
+    win.fetch = async (...args) => {
+
+        const start = performance.now();
+
+        try{
+
+            const response = await oldFetch(...args);
+
+            const end = performance.now();
+
+            addLog(
+                'network',
+                `${args[0]}\nStatus: ${response.status}\n${Math.round(end-start)}ms`
+            );
+
+            return response;
+
+        }catch(err){
+
+            addLog(
+                'error',
+                `Fetch Error:\n${err.message}`
+            );
+
+            throw err;
+        }
+
+    };
+
+    addLog(
+        'log',
+        'Debugger injected successfully'
+    );
+
+}
+
+function stringify(value){
+
+    if(typeof value === 'object'){
+
+        try{
+            return JSON.stringify(value,null,2);
+        }catch{
+            return '[Object]';
+        }
+
+    }
+
+    return String(value);
+
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+
+    tab.onclick = () => {
+
+        document.querySelectorAll('.tab')
+            .forEach(t => t.classList.remove('active'));
+
+        tab.classList.add('active');
+
+        currentFilter = tab.dataset.type;
+
+        renderLogs();
+
+    };
+
+});
+
+addLog(
+    'log',
+    'Live Console Inspector Ready'
+);
+
+</script>
+
+</body>
+</html>

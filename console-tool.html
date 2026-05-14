@@ -1,461 +1,1000 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Live Console Inspector</title>
-
+<title>Console Inspector Pro</title>
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap');
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+–bg:        #0a0b0e;
+–surface:   #111318;
+–surface2:  #181b22;
+–border:    #252932;
+–border2:   #2e3340;
+–text:      #e2e8f0;
+–muted:     #6b7585;
+–accent:    #4ade80;
+–accent-d:  #166534;
+–blue:      #60a5fa;
+–yellow:    #fbbf24;
+–red:       #f87171;
+–orange:    #fb923c;
+–purple:    #a78bfa;
+–cyan:      #22d3ee;
+–mono: ‘JetBrains Mono’, monospace;
+–sans: ‘Syne’, sans-serif;
 }
 
-body{
-    background:#0f1117;
-    color:#fff;
-    font-family:Arial, sans-serif;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
+body {
+background: var(–bg);
+color: var(–text);
+font-family: var(–sans);
+height: 100vh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
 }
 
-.topbar{
-    display:flex;
-    gap:10px;
-    padding:12px;
-    background:#161b22;
-    border-bottom:1px solid #2d333b;
+/* ── TOPBAR ── */
+.topbar {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 10px 14px;
+background: var(–surface);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
 }
 
-.topbar input{
-    flex:1;
-    background:#0d1117;
-    border:1px solid #30363d;
-    color:#fff;
-    padding:12px;
-    border-radius:8px;
-    outline:none;
+.topbar-logo {
+font-family: var(–sans);
+font-weight: 800;
+font-size: 13px;
+color: var(–accent);
+letter-spacing: 0.05em;
+white-space: nowrap;
+padding-right: 8px;
+border-right: 1px solid var(–border2);
 }
 
-.topbar button{
-    background:#238636;
-    border:none;
-    color:#fff;
-    padding:12px 18px;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
+.mode-switch {
+display: flex;
+background: var(–bg);
+border: 1px solid var(–border2);
+border-radius: 6px;
+overflow: hidden;
+flex-shrink: 0;
 }
 
-.topbar button:hover{
-    opacity:0.9;
+.mode-btn {
+padding: 7px 13px;
+font-size: 11px;
+font-family: var(–sans);
+font-weight: 600;
+cursor: pointer;
+background: transparent;
+border: none;
+color: var(–muted);
+letter-spacing: 0.04em;
+transition: all .15s;
 }
 
-.main{
-    flex:1;
-    display:flex;
-    overflow:hidden;
+.mode-btn.active {
+background: var(–surface2);
+color: var(–accent);
 }
 
-.viewer{
-    flex:1;
-    background:#000;
-    position:relative;
+.url-bar {
+flex: 1;
+display: flex;
+gap: 8px;
 }
 
-iframe{
-    width:100%;
-    height:100%;
-    border:none;
-    background:#fff;
+.url-bar input {
+flex: 1;
+background: var(–bg);
+border: 1px solid var(–border2);
+color: var(–text);
+padding: 8px 12px;
+border-radius: 6px;
+outline: none;
+font-family: var(–mono);
+font-size: 12px;
+transition: border-color .2s;
 }
 
-.panel{
-    width:420px;
-    background:#161b22;
-    border-left:1px solid #30363d;
-    display:flex;
-    flex-direction:column;
+.url-bar input:focus { border-color: var(–accent); }
+
+.btn-load {
+background: var(–accent);
+border: none;
+color: #0a0b0e;
+padding: 8px 16px;
+border-radius: 6px;
+cursor: pointer;
+font-family: var(–sans);
+font-weight: 700;
+font-size: 12px;
+letter-spacing: 0.06em;
+transition: opacity .15s;
+white-space: nowrap;
 }
 
-.tabs{
-    display:flex;
-    border-bottom:1px solid #30363d;
+.btn-load:hover { opacity: .85; }
+
+/* ── MAIN ── */
+.main {
+flex: 1;
+display: flex;
+overflow: hidden;
 }
 
-.tab{
-    flex:1;
-    text-align:center;
-    padding:12px;
-    cursor:pointer;
-    background:#161b22;
-    border-right:1px solid #30363d;
-    font-size:14px;
+/* ── VIEWER SIDE ── */
+.viewer-wrap {
+flex: 1;
+display: flex;
+flex-direction: column;
+min-width: 0;
+background: #000;
+position: relative;
 }
 
-.tab.active{
-    background:#21262d;
-    color:#58a6ff;
+iframe {
+width: 100%;
+flex: 1;
+border: none;
+background: #fff;
 }
 
-.logs{
-    flex:1;
-    overflow:auto;
-    padding:10px;
-    font-family:monospace;
-    font-size:12px;
+/* HTML editor mode */
+.html-editor-wrap {
+flex: 1;
+display: flex;
+flex-direction: column;
+overflow: hidden;
 }
 
-.log{
-    padding:8px;
-    margin-bottom:6px;
-    border-radius:6px;
-    white-space:pre-wrap;
-    word-break:break-word;
+.html-editor-wrap textarea {
+flex: 1;
+background: var(–bg);
+color: var(–text);
+border: none;
+padding: 16px;
+font-family: var(–mono);
+font-size: 12.5px;
+line-height: 1.7;
+resize: none;
+outline: none;
 }
 
-.log-log{
-    background:#0d1117;
-    color:#c9d1d9;
+.editor-actions {
+display: flex;
+gap: 8px;
+padding: 8px 12px;
+background: var(–surface);
+border-top: 1px solid var(–border);
+border-bottom: 1px solid var(–border);
 }
 
-.log-error{
-    background:#2d0d0d;
-    color:#ff7b72;
+.editor-actions button {
+padding: 6px 14px;
+border-radius: 5px;
+border: none;
+cursor: pointer;
+font-family: var(–sans);
+font-size: 11px;
+font-weight: 700;
+letter-spacing: 0.05em;
+transition: opacity .15s;
 }
 
-.log-warn{
-    background:#332701;
-    color:#f2cc60;
+.btn-run { background: var(–accent); color: #0a0b0e; }
+.btn-run:hover { opacity: .85; }
+.btn-clear-editor { background: var(–surface2); color: var(–muted); border: 1px solid var(–border2); }
+
+.iframe-preview {
+height: 260px;
+border-top: 1px solid var(–border);
+position: relative;
 }
 
-.log-network{
-    background:#0d1f2d;
-    color:#79c0ff;
+.iframe-preview iframe {
+width: 100%;
+height: 100%;
 }
 
-.bottom{
-    padding:10px;
-    border-top:1px solid #30363d;
-    display:flex;
-    gap:10px;
+.status-badge {
+position: absolute;
+bottom: 10px;
+left: 10px;
+padding: 4px 10px;
+border-radius: 20px;
+font-size: 11px;
+font-family: var(–mono);
+font-weight: 600;
+background: var(–surface);
+border: 1px solid var(–border2);
+z-index: 10;
+display: flex;
+align-items: center;
+gap: 5px;
 }
 
-.bottom button{
-    flex:1;
-    padding:10px;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    background:#30363d;
-    color:#fff;
+.status-dot {
+width: 6px;
+height: 6px;
+border-radius: 50%;
+background: var(–muted);
 }
 
-.bottom button:hover{
-    background:#484f58;
+.status-dot.ok  { background: var(–accent); box-shadow: 0 0 6px var(–accent); }
+.status-dot.err { background: var(–red);    box-shadow: 0 0 6px var(–red); }
+.status-dot.loading { background: var(–yellow); animation: pulse 1s infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── PANEL ── */
+.panel {
+width: 430px;
+flex-shrink: 0;
+background: var(–surface);
+border-left: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+overflow: hidden;
 }
 
-.status{
-    position:absolute;
-    top:10px;
-    right:10px;
-    background:#161b22;
-    padding:8px 12px;
-    border-radius:6px;
-    font-size:12px;
-    border:1px solid #30363d;
+/* tabs */
+.tabs {
+display: flex;
+border-bottom: 1px solid var(–border);
+overflow-x: auto;
+flex-shrink: 0;
 }
 
-@media(max-width:900px){
-    .main{
-        flex-direction:column;
-    }
+.tabs::-webkit-scrollbar { display: none; }
 
-    .panel{
-        width:100%;
-        height:40%;
-    }
+.tab {
+flex: 1;
+min-width: 55px;
+text-align: center;
+padding: 10px 4px;
+cursor: pointer;
+font-size: 10px;
+font-weight: 700;
+letter-spacing: 0.06em;
+color: var(–muted);
+border-bottom: 2px solid transparent;
+transition: all .15s;
+white-space: nowrap;
+position: relative;
+}
+
+.tab.active { color: var(–accent); border-bottom-color: var(–accent); background: var(–surface2); }
+.tab .badge {
+position: absolute;
+top: 4px;
+right: 6px;
+background: var(–red);
+color: #fff;
+font-size: 8px;
+font-weight: 700;
+border-radius: 8px;
+padding: 1px 4px;
+min-width: 14px;
+text-align: center;
+display: none;
+}
+.tab .badge.show { display: inline-block; }
+
+/* search */
+.search-bar {
+display: flex;
+align-items: center;
+gap: 6px;
+padding: 7px 10px;
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+
+.search-bar input {
+flex: 1;
+background: var(–bg);
+border: 1px solid var(–border2);
+color: var(–text);
+padding: 5px 10px;
+border-radius: 5px;
+font-family: var(–mono);
+font-size: 11px;
+outline: none;
+}
+
+.search-bar input:focus { border-color: var(–accent); }
+
+.log-count {
+font-family: var(–mono);
+font-size: 10px;
+color: var(–muted);
+white-space: nowrap;
+}
+
+/* logs */
+.logs {
+flex: 1;
+overflow-y: auto;
+padding: 6px;
+scroll-behavior: smooth;
+}
+
+.logs::-webkit-scrollbar { width: 4px; }
+.logs::-webkit-scrollbar-track { background: transparent; }
+.logs::-webkit-scrollbar-thumb { background: var(–border2); border-radius: 2px; }
+
+.log {
+padding: 8px 10px;
+margin-bottom: 4px;
+border-radius: 6px;
+font-family: var(–mono);
+font-size: 11.5px;
+line-height: 1.6;
+word-break: break-word;
+border-left: 3px solid transparent;
+cursor: pointer;
+transition: filter .1s;
+position: relative;
+}
+
+.log:hover { filter: brightness(1.2); }
+
+.log-meta {
+font-size: 10px;
+margin-bottom: 4px;
+opacity: .55;
+display: flex;
+gap: 8px;
+}
+
+.log-msg { white-space: pre-wrap; }
+
+.log-stack {
+margin-top: 6px;
+font-size: 10px;
+opacity: .6;
+white-space: pre-wrap;
+border-top: 1px solid rgba(255,255,255,.05);
+padding-top: 4px;
+display: none;
+}
+
+.log.expanded .log-stack { display: block; }
+
+.log-log     { background: #111520; border-left-color: #2563eb; color: #c9d1d9; }
+.log-info    { background: #0d1b2a; border-left-color: var(–blue); color: var(–blue); }
+.log-warn    { background: #1a1200; border-left-color: var(–yellow); color: var(–yellow); }
+.log-error   { background: #1a0606; border-left-color: var(–red); color: var(–red); }
+.log-network { background: #0a1520; border-left-color: var(–cyan); color: var(–cyan); }
+.log-promise { background: #1a0a1a; border-left-color: var(–purple); color: var(–purple); }
+.log-syntax  { background: #1a0606; border-left-color: var(–orange); color: var(–orange); }
+
+/* bottom bar */
+.bottom {
+display: flex;
+gap: 6px;
+padding: 8px 10px;
+border-top: 1px solid var(–border);
+flex-shrink: 0;
+align-items: center;
+}
+
+.bottom button {
+padding: 7px 12px;
+border: 1px solid var(–border2);
+border-radius: 5px;
+cursor: pointer;
+background: var(–surface2);
+color: var(–muted);
+font-family: var(–sans);
+font-size: 11px;
+font-weight: 600;
+letter-spacing: 0.04em;
+transition: all .15s;
+}
+
+.bottom button:hover { color: var(–text); border-color: var(–text); }
+.bottom .btn-copy { margin-left: auto; }
+
+.bottom .autoscroll-label {
+font-size: 10px;
+color: var(–muted);
+display: flex;
+align-items: center;
+gap: 4px;
+cursor: pointer;
+user-select: none;
+}
+
+.bottom .autoscroll-label input { cursor: pointer; accent-color: var(–accent); }
+
+/* cross-origin banner */
+.cors-banner {
+background: #1a0e00;
+border: 1px solid var(–yellow);
+border-radius: 6px;
+padding: 10px 12px;
+margin: 8px;
+font-size: 11px;
+color: var(–yellow);
+line-height: 1.6;
+display: none;
+}
+
+.cors-banner.show { display: block; }
+
+/* responsive */
+@media (max-width: 900px) {
+.main { flex-direction: column; }
+.panel { width: 100%; height: 45%; border-left: none; border-top: 1px solid var(–border); }
+.viewer-wrap { height: 55%; }
+.topbar-logo { display: none; }
 }
 </style>
+
 </head>
 <body>
 
+<!-- TOPBAR -->
+
 <div class="topbar">
-    <input type="text" id="urlInput" placeholder="https://example.com">
-    <button onclick="loadWebsite()">OPEN</button>
+  <div class="topbar-logo">⬡ INSPECTOR</div>
+
+  <div class="mode-switch">
+    <button class="mode-btn active" id="modeUrl" onclick="switchMode('url')">URL</button>
+    <button class="mode-btn" id="modeHtml" onclick="switchMode('html')">HTML</button>
+  </div>
+
+  <div class="url-bar" id="urlBar">
+    <input type="text" id="urlInput" placeholder="https://example.com" />
+    <button class="btn-load" onclick="loadUrl()">RUN</button>
+  </div>
 </div>
+
+<!-- MAIN -->
 
 <div class="main">
 
-    <div class="viewer">
-        <iframe id="viewer"></iframe>
-        <div class="status" id="status">
-            Ready
-        </div>
-    </div>
+  <!-- VIEWER -->
 
-    <div class="panel">
+  <div class="viewer-wrap" id="viewerWrap">
 
-        <div class="tabs">
-            <div class="tab active" data-type="all">ALL</div>
-            <div class="tab" data-type="log">LOGS</div>
-            <div class="tab" data-type="error">ERRORS</div>
-            <div class="tab" data-type="network">NETWORK</div>
-        </div>
+```
+<!-- URL mode iframe -->
+<div id="urlModeView" style="flex:1;display:flex;flex-direction:column;position:relative;">
+  <iframe id="viewer"></iframe>
+  <div class="status-badge">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Ready</span>
+  </div>
+</div>
 
-        <div class="logs" id="logs"></div>
+<!-- HTML editor mode -->
+<div class="html-editor-wrap" id="htmlModeView" style="display:none;">
+  <textarea id="htmlEditor" placeholder="Paste your HTML/JS code here...
+```
 
-        <div class="bottom">
-            <button onclick="copyLogs()">COPY</button>
-            <button onclick="clearLogs()">CLEAR</button>
-        </div>
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+console.log(‘Hello!’);
+fetch(’/api/test’);
+undefinedFunction();
+</script>
+</body>
+</html>
+“></textarea>
+<div class="editor-actions">
+<button class="btn-run" onclick="runHtml()">▶ RUN</button>
+<button class="btn-clear-editor" onclick="document.getElementById('htmlEditor').value=''">CLEAR</button>
+</div>
+<div class="iframe-preview" style="position:relative;">
+<iframe id="htmlViewer"></iframe>
+<div class="status-badge" style="bottom:8px;left:8px;">
+<div class="status-dot" id="statusDot2"></div>
+<span id="statusText2">Ready</span>
+</div>
+</div>
+</div>
 
-    </div>
+  </div>
+
+  <!-- PANEL -->
+
+  <div class="panel">
+
+```
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" data-type="all">ALL <span class="badge" id="badge-all"></span></div>
+  <div class="tab" data-type="log">LOG <span class="badge" id="badge-log"></span></div>
+  <div class="tab" data-type="error">ERR <span class="badge" id="badge-error"></span></div>
+  <div class="tab" data-type="warn">WARN <span class="badge" id="badge-warn"></span></div>
+  <div class="tab" data-type="network">NET <span class="badge" id="badge-network"></span></div>
+  <div class="tab" data-type="promise">PROM <span class="badge" id="badge-promise"></span></div>
+</div>
+
+<!-- Search -->
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Search logs..." oninput="renderLogs()" />
+  <span class="log-count" id="logCount">0 logs</span>
+</div>
+
+<!-- CORS warning -->
+<div class="cors-banner" id="corsBanner">
+  ⚠ Cross-origin restriction: console injection blocked.<br>
+  Switch to <strong>HTML mode</strong> to debug local code, or use a same-origin page.
+</div>
+
+<!-- Logs -->
+<div class="logs" id="logs"></div>
+
+<!-- Bottom -->
+<div class="bottom">
+  <label class="autoscroll-label">
+    <input type="checkbox" id="autoScroll" checked /> Auto-scroll
+  </label>
+  <button onclick="clearLogs()">CLEAR</button>
+  <button class="btn-copy" onclick="copyLogs()">COPY</button>
+</div>
+```
+
+  </div>
 
 </div>
 
 <script>
-
-const iframe = document.getElementById('viewer');
-const logsContainer = document.getElementById('logs');
-const statusBox = document.getElementById('status');
-
+// ── STATE ──────────────────────────────────────────────────────────────────
 let allLogs = [];
 let currentFilter = 'all';
+let currentMode = 'url';
+let errorCount = 0;
 
-function setStatus(text){
-    statusBox.textContent = text;
+const iframe     = document.getElementById('viewer');
+const htmlViewer = document.getElementById('htmlViewer');
+const logsEl     = document.getElementById('logs');
+
+// ── UTILITY ────────────────────────────────────────────────────────────────
+function stringify(value) {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (value instanceof Error) {
+    return `${value.name}: ${value.message}${value.stack ? '\n' + value.stack : ''}`;
+  }
+  if (typeof value === 'object') {
+    try { return JSON.stringify(value, null, 2); } catch { return '[Circular Object]'; }
+  }
+  return String(value);
 }
 
-function addLog(type, message){
-
-    const entry = {
-        type,
-        message,
-        time:new Date().toLocaleTimeString()
-    };
-
-    allLogs.push(entry);
-
-    renderLogs();
+function formatArgs(args) {
+  return args.map(a => stringify(a)).join(' ');
 }
 
-function renderLogs(){
-
-    logsContainer.innerHTML = '';
-
-    const filtered = allLogs.filter(log => {
-        if(currentFilter === 'all') return true;
-        return log.type === currentFilter;
-    });
-
-    filtered.forEach(log => {
-
-        const div = document.createElement('div');
-
-        div.className = `log log-${log.type}`;
-
-        div.textContent =
-`[${log.time}] [${log.type.toUpperCase()}]
-
-${log.message}`;
-
-        logsContainer.appendChild(div);
-
-    });
-
-    logsContainer.scrollTop = logsContainer.scrollHeight;
+function now() {
+  const d = new Date();
+  return d.toLocaleTimeString('en-GB', { hour12: false }) + '.' +
+    String(d.getMilliseconds()).padStart(3, '0');
 }
 
-function clearLogs(){
-    allLogs = [];
-    renderLogs();
+// ── LOG ENGINE ─────────────────────────────────────────────────────────────
+function addLog(type, message, stack = '') {
+  allLogs.push({ type, message, stack, time: now(), id: allLogs.length });
+  updateBadges();
+  renderLogs();
 }
 
-async function copyLogs(){
+function clearLogs() {
+  allLogs = [];
+  errorCount = 0;
+  updateBadges();
+  renderLogs();
+}
 
-    const text = allLogs.map(log => {
-        return `[${log.time}] [${log.type}] ${log.message}`;
-    }).join('\n\n');
-
+async function copyLogs() {
+  const text = allLogs
+    .map(l => `[${l.time}] [${l.type.toUpperCase()}] ${l.message}${l.stack ? '\nSTACK: ' + l.stack : ''}`)
+    .join('\n\n');
+  try {
     await navigator.clipboard.writeText(text);
-
-    alert('Logs copied');
+    showToast('Copied!');
+  } catch {
+    prompt('Copy this:', text);
+  }
 }
 
-function loadWebsite(){
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'60px', left:'50%', transform:'translateX(-50%)',
+    background:'#4ade80', color:'#000', padding:'6px 14px', borderRadius:'20px',
+    fontFamily:'var(--sans)', fontWeight:'700', fontSize:'12px', zIndex:'9999',
+    opacity:'1', transition:'opacity .4s'
+  });
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 1200);
+}
 
-    const url = document.getElementById('urlInput').value.trim();
+function updateBadges() {
+  const types = ['log','error','warn','network','promise'];
+  types.forEach(t => {
+    const cnt = allLogs.filter(l => l.type === t).length;
+    const el = document.getElementById(`badge-${t}`);
+    if (el) { el.textContent = cnt; el.classList.toggle('show', cnt > 0); }
+  });
+  const allBadge = document.getElementById('badge-all');
+  if (allBadge) { allBadge.textContent = allLogs.length; allBadge.classList.toggle('show', allLogs.length > 0); }
+}
 
-    if(!url){
-        alert('Enter URL');
-        return;
+function renderLogs() {
+  const search = (document.getElementById('searchInput').value || '').toLowerCase();
+
+  const filtered = allLogs.filter(log => {
+    const matchType = currentFilter === 'all' || log.type === currentFilter;
+    const matchSearch = !search || log.message.toLowerCase().includes(search) || log.type.includes(search);
+    return matchType && matchSearch;
+  });
+
+  document.getElementById('logCount').textContent = `${filtered.length} / ${allLogs.length}`;
+
+  logsEl.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  filtered.forEach(log => {
+    const div = document.createElement('div');
+    div.className = `log log-${log.type}`;
+    div.dataset.id = log.id;
+
+    const meta = document.createElement('div');
+    meta.className = 'log-meta';
+    meta.innerHTML = `<span>${log.time}</span><span>${log.type.toUpperCase()}</span>`;
+
+    const msg = document.createElement('div');
+    msg.className = 'log-msg';
+    msg.textContent = log.message;
+
+    div.appendChild(meta);
+    div.appendChild(msg);
+
+    if (log.stack) {
+      const stack = document.createElement('div');
+      stack.className = 'log-stack';
+      stack.textContent = log.stack;
+      div.appendChild(stack);
+      div.title = 'Click to expand stack trace';
+      div.addEventListener('click', () => div.classList.toggle('expanded'));
     }
 
-    setStatus('Loading...');
+    frag.appendChild(div);
+  });
 
-    iframe.src = url;
+  logsEl.appendChild(frag);
 
-    addLog('network', `Opening ${url}`);
+  if (document.getElementById('autoScroll').checked) {
+    logsEl.scrollTop = logsEl.scrollHeight;
+  }
+}
 
+// ── STATUS ─────────────────────────────────────────────────────────────────
+function setStatus(text, state = '', dotId = 'statusDot', textId = 'statusText') {
+  const dot  = document.getElementById(dotId);
+  const span = document.getElementById(textId);
+  if (!dot || !span) return;
+  dot.className  = 'status-dot ' + state;
+  span.textContent = text;
+}
+
+// ── DEBUGGER INJECTION ─────────────────────────────────────────────────────
+function injectDebugger(win, label = '') {
+  const pfx = label ? `[${label}] ` : '';
+
+  // Intercept console methods
+  const methods = { log: 'log', error: 'error', warn: 'warn', info: 'info', debug: 'log' };
+  Object.entries(methods).forEach(([method, logType]) => {
+    const original = win.console[method].bind(win.console);
+    win.console[method] = (...args) => {
+      addLog(logType, pfx + formatArgs(args));
+      original(...args);
+    };
+  });
+
+  // console.table
+  const origTable = win.console.table.bind(win.console);
+  win.console.table = (data) => {
+    addLog('log', pfx + '[table]\n' + stringify(data));
+    origTable(data);
+  };
+
+  // console.group / groupEnd
+  win.console.group = (...args) => addLog('log', pfx + '▶ group: ' + formatArgs(args));
+  win.console.groupEnd = () => {};
+  win.console.assert = (condition, ...args) => {
+    if (!condition) addLog('error', pfx + 'Assertion failed: ' + formatArgs(args));
+  };
+  win.console.time = (label2) => { win.__timers = win.__timers || {}; win.__timers[label2] = performance.now(); };
+  win.console.timeEnd = (label2) => {
+    const start = (win.__timers || {})[label2];
+    const ms = start != null ? (performance.now() - start).toFixed(2) + 'ms' : '?';
+    addLog('log', pfx + `[timer] ${label2}: ${ms}`);
+  };
+
+  // Runtime errors
+  win.addEventListener('error', (e) => {
+    addLog('error', pfx + `${e.message}`, `File: ${e.filename}\nLine: ${e.lineno}:${e.colno}`);
+  });
+
+  // Unhandled promise rejections
+  win.addEventListener('unhandledrejection', (e) => {
+    const reason = e.reason instanceof Error
+      ? `${e.reason.name}: ${e.reason.message}`
+      : stringify(e.reason);
+    addLog('promise', pfx + `Unhandled Promise Rejection: ${reason}`,
+      e.reason?.stack || '');
+  });
+
+  // fetch interception
+  if (win.fetch) {
+    const origFetch = win.fetch.bind(win);
+    win.fetch = async (...args) => {
+      const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || String(args[0]);
+      const method = (args[1]?.method || 'GET').toUpperCase();
+      const t0 = performance.now();
+      addLog('network', pfx + `→ ${method} ${url}`);
+      try {
+        const resp = await origFetch(...args);
+        const ms = Math.round(performance.now() - t0);
+        const icon = resp.ok ? '✓' : '✗';
+        addLog('network', pfx + `${icon} ${method} ${url} — ${resp.status} ${resp.statusText} (${ms}ms)`);
+        return resp;
+      } catch (err) {
+        addLog('error', pfx + `fetch failed: ${url}\n${err.message}`);
+        throw err;
+      }
+    };
+  }
+
+  // XMLHttpRequest interception
+  const OrigXHR = win.XMLHttpRequest;
+  win.XMLHttpRequest = function() {
+    const xhr = new OrigXHR();
+    const info = {};
+    const origOpen = xhr.open.bind(xhr);
+    const origSend = xhr.send.bind(xhr);
+
+    xhr.open = function(method, url, ...rest) {
+      info.method = method;
+      info.url = url;
+      return origOpen(method, url, ...rest);
+    };
+
+    xhr.send = function(body) {
+      const t0 = performance.now();
+      addLog('network', pfx + `→ XHR ${info.method} ${info.url}`);
+      xhr.addEventListener('load', () => {
+        const ms = Math.round(performance.now() - t0);
+        const icon = xhr.status >= 200 && xhr.status < 400 ? '✓' : '✗';
+        addLog('network', pfx + `${icon} XHR ${info.method} ${info.url} — ${xhr.status} (${ms}ms)`);
+      });
+      xhr.addEventListener('error', () => {
+        addLog('error', pfx + `XHR network error: ${info.method} ${info.url}`);
+      });
+      return origSend(body);
+    };
+
+    return xhr;
+  };
+
+  // localStorage / sessionStorage errors
+  ['localStorage', 'sessionStorage'].forEach(storeName => {
+    try {
+      const store = win[storeName];
+      const origSetItem = store.setItem.bind(store);
+      store.setItem = (key, value) => {
+        try { origSetItem(key, value); }
+        catch (err) { addLog('warn', pfx + `${storeName}.setItem failed: ${err.message}`); }
+      };
+    } catch (e) { /* unavailable */ }
+  });
+
+  addLog('log', pfx + '🔌 Debugger injected — monitoring console, fetch, XHR, errors, promises');
+}
+
+// ── URL MODE ───────────────────────────────────────────────────────────────
+function loadUrl() {
+  let url = document.getElementById('urlInput').value.trim();
+  if (!url) { alert('Enter a URL'); return; }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  document.getElementById('corsBanner').classList.remove('show');
+  setStatus('Loading…', 'loading');
+  addLog('network', `Opening: ${url}`);
+  iframe.src = url;
 }
 
 iframe.onload = () => {
-
-    setStatus('Loaded');
-
-    addLog('log', 'Website loaded successfully');
-
-    try {
-
-        const win = iframe.contentWindow;
-
-        injectDebugger(win);
-
-    } catch(err){
-
-        addLog(
-            'error',
-            'Cannot inject debugger due to cross-origin restrictions.\n\nUse same-origin website or local testing.'
-        );
-
-    }
-
+  setStatus('Loaded', 'ok');
+  addLog('log', `Page loaded: ${iframe.src}`);
+  try {
+    injectDebugger(iframe.contentWindow, 'iframe');
+  } catch (e) {
+    document.getElementById('corsBanner').classList.add('show');
+    setStatus('Cross-origin', 'err');
+    addLog('error',
+      'Cross-origin restriction: cannot inject debugger.\n' +
+      'Reason: The target page has different origin or strict CSP.\n' +
+      'Solution: Switch to HTML mode to debug your own code.');
+  }
 };
 
-function injectDebugger(win){
+iframe.onerror = () => {
+  setStatus('Failed', 'err');
+  addLog('error', 'Failed to load URL. Check the address or CORS policy.');
+};
 
-    const oldLog = win.console.log;
-    const oldError = win.console.error;
-    const oldWarn = win.console.warn;
+// ── HTML MODE ──────────────────────────────────────────────────────────────
+function runHtml() {
+  const code = document.getElementById('htmlEditor').value;
+  if (!code.trim()) { alert('Paste some HTML first'); return; }
 
-    win.console.log = (...args) => {
+  setStatus('Running…', 'loading', 'statusDot2', 'statusText2');
+  addLog('network', '▶ Running HTML snippet…');
 
-        addLog(
-            'log',
-            args.map(a => stringify(a)).join(' ')
-        );
-
-        oldLog.apply(win.console,args);
+  // Inject our spy script BEFORE user code
+  const spy = `
+<script>
+(function(){
+  var _send = function(type,msg,stack){
+    parent.postMessage({__spy:true,type:type,msg:msg,stack:stack||''},'*');
+  };
+  var methods=['log','warn','error','info','debug'];
+  methods.forEach(function(m){
+    var orig=console[m].bind(console);
+    console[m]=function(){
+      var args=Array.prototype.slice.call(arguments);
+      var str=args.map(function(a){
+        if(a===null)return'null';
+        if(a===undefined)return'undefined';
+        if(a instanceof Error)return a.name+': '+a.message+(a.stack?'\\n'+a.stack:'');
+        if(typeof a==='object'){try{return JSON.stringify(a,null,2);}catch(e){return'[Object]';}}
+        return String(a);
+      }).join(' ');
+      _send(m==='info'?'info':m==='debug'?'log':m,str);
+      orig.apply(console,args);
     };
-
-    win.console.error = (...args) => {
-
-        addLog(
-            'error',
-            args.map(a => stringify(a)).join(' ')
-        );
-
-        oldError.apply(win.console,args);
-    };
-
-    win.console.warn = (...args) => {
-
-        addLog(
-            'warn',
-            args.map(a => stringify(a)).join(' ')
-        );
-
-        oldWarn.apply(win.console,args);
-    };
-
-    win.addEventListener('error',(e)=>{
-
-        addLog(
-            'error',
-            `${e.message}\n${e.filename}:${e.lineno}`
-        );
-
-    });
-
-    win.addEventListener('unhandledrejection',(e)=>{
-
-        addLog(
-            'error',
-            `Unhandled Promise Rejection:\n${stringify(e.reason)}`
-        );
-
-    });
-
-    const oldFetch = win.fetch;
-
-    win.fetch = async (...args) => {
-
-        const start = performance.now();
-
-        try{
-
-            const response = await oldFetch(...args);
-
-            const end = performance.now();
-
-            addLog(
-                'network',
-                `${args[0]}\nStatus: ${response.status}\n${Math.round(end-start)}ms`
-            );
-
-            return response;
-
-        }catch(err){
-
-            addLog(
-                'error',
-                `Fetch Error:\n${err.message}`
-            );
-
-            throw err;
-        }
-
-    };
-
-    addLog(
-        'log',
-        'Debugger injected successfully'
-    );
-
-}
-
-function stringify(value){
-
-    if(typeof value === 'object'){
-
-        try{
-            return JSON.stringify(value,null,2);
-        }catch{
-            return '[Object]';
-        }
-
+  });
+  console.assert=function(cond){
+    if(!cond){
+      var args=Array.prototype.slice.call(arguments,1);
+      _send('error','Assertion failed: '+args.join(' '));
     }
+  };
+  console.table=function(data){
+    _send('log','[table]\\n'+JSON.stringify(data,null,2));
+  };
+  var timers={};
+  console.time=function(l){timers[l]=performance.now();};
+  console.timeEnd=function(l){
+    var ms=timers[l]!=null?(performance.now()-timers[l]).toFixed(2)+'ms':'?';
+    _send('log','[timer] '+l+': '+ms);
+  };
+  window.addEventListener('error',function(e){
+    _send('error',e.message,'File: '+e.filename+'\\nLine: '+e.lineno+':'+e.colno);
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    var r=e.reason;
+    var msg=r instanceof Error?r.name+': '+r.message:String(r);
+    _send('promise','Unhandled Promise Rejection: '+msg,r&&r.stack?r.stack:'');
+  });
+  var _fetch=window.fetch;
+  if(_fetch){
+    window.fetch=function(){
+      var args=Array.prototype.slice.call(arguments);
+      var url=typeof args[0]==='string'?args[0]:(args[0]&&args[0].url)||String(args[0]);
+      var method=(args[1]&&args[1].method||'GET').toUpperCase();
+      var t0=performance.now();
+      _send('network','→ '+method+' '+url);
+      return _fetch.apply(window,args).then(function(r){
+        var ms=Math.round(performance.now()-t0);
+        _send('network',(r.ok?'✓':'✗')+' '+method+' '+url+' — '+r.status+' ('+ms+'ms)');
+        return r;
+      }).catch(function(err){
+        _send('error','fetch failed: '+url+'\\n'+err.message);
+        throw err;
+      });
+    };
+  }
+  var _XHR=XMLHttpRequest;
+  window.XMLHttpRequest=function(){
+    var xhr=new _XHR();
+    var info={};
+    var _open=xhr.open.bind(xhr);
+    var _send2=xhr.send.bind(xhr);
+    xhr.open=function(m,u){info.method=m;info.url=u;return _open.apply(xhr,arguments);};
+    xhr.send=function(b){
+      var t0=performance.now();
+      _send('network','→ XHR '+info.method+' '+info.url);
+      xhr.addEventListener('load',function(){
+        var ms=Math.round(performance.now()-t0);
+        _send('network',(xhr.status>=200&&xhr.status<400?'✓':'✗')+' XHR '+info.method+' '+info.url+' — '+xhr.status+' ('+ms+'ms)');
+      });
+      xhr.addEventListener('error',function(){
+        _send('error','XHR network error: '+info.method+' '+info.url);
+      });
+      return _send2.apply(xhr,arguments);
+    };
+    return xhr;
+  };
+  _send('log','🔌 Debugger injected (HTML mode)');
+})();
+<\/script>`;
 
-    return String(value);
+  // Insert spy right after <head> or at start of <body>, or prepend
+  let patched = code;
+  if (/<head[^>]*>/i.test(code)) {
+    patched = code.replace(/(<head[^>]*>)/i, '$1' + spy);
+  } else if (/<body[^>]*>/i.test(code)) {
+    patched = code.replace(/(<body[^>]*>)/i, '$1' + spy);
+  } else {
+    patched = spy + code;
+  }
 
+  htmlViewer.srcdoc = patched;
+
+  htmlViewer.onload = () => {
+    setStatus('Running', 'ok', 'statusDot2', 'statusText2');
+  };
 }
 
-document.querySelectorAll('.tab').forEach(tab => {
-
-    tab.onclick = () => {
-
-        document.querySelectorAll('.tab')
-            .forEach(t => t.classList.remove('active'));
-
-        tab.classList.add('active');
-
-        currentFilter = tab.dataset.type;
-
-        renderLogs();
-
-    };
-
+// Listen to postMessage from HTML sandbox
+window.addEventListener('message', (e) => {
+  if (!e.data || !e.data.__spy) return;
+  const { type, msg, stack } = e.data;
+  const logType = type === 'warn' ? 'warn'
+    : type === 'error'   ? 'error'
+    : type === 'network' ? 'network'
+    : type === 'promise' ? 'promise'
+    : 'log';
+  addLog(logType, msg, stack || '');
 });
 
-addLog(
-    'log',
-    'Live Console Inspector Ready'
-);
+// ── MODE SWITCH ────────────────────────────────────────────────────────────
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeUrl').classList.toggle('active', mode === 'url');
+  document.getElementById('modeHtml').classList.toggle('active', mode === 'html');
+  document.getElementById('urlBar').style.display    = mode === 'url'  ? 'flex' : 'none';
+  document.getElementById('urlModeView').style.display  = mode === 'url'  ? 'flex' : 'none';
+  document.getElementById('htmlModeView').style.display = mode === 'html' ? 'flex' : 'none';
+  document.getElementById('urlModeView').style.flexDirection = 'column';
+  document.getElementById('corsBanner').classList.remove('show');
+}
 
+// ── TABS ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFilter = tab.dataset.type;
+    renderLogs();
+  });
+});
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+addLog('log', 'Console Inspector Pro ready.\n• URL mode: open any website (same-origin best)\n• HTML mode: paste & run your own code with full debugger');
 </script>
 
 </body>

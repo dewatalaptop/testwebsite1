@@ -2,130 +2,130 @@
 
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF--8" />
+<meta name="viewport" content="width=device--width, initial--scale=1.0"/>
 <title>Console Inspector Pro</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap');
 
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+*, *::before, *::after { margin:0; padding:0; box--sizing:border--box; }
 
 :root {
--bg:        #0a0b0e;
--surface:   #111318;
--surface2:  #181b22;
--border:    #252932;
--border2:   #2e3340;
--text:      #e2e8f0;
--muted:     #6b7585;
--accent:    #4ade80;
--accent-d:  #166534;
--blue:      #60a5fa;
--yellow:    #fbbf24;
--red:       #f87171;
--orange:    #fb923c;
--purple:    #a78bfa;
--cyan:      #22d3ee;
--mono: 'JetBrains Mono', monospace;
--sans: 'Syne', sans-serif;
+--bg:        #0a0b0e;
+--surface:   #111318;
+--surface2:  #181b22;
+--border:    #252932;
+--border2:   #2e3340;
+--text:      #e2e8f0;
+--muted:     #6b7585;
+--accent:    #4ade80;
+--accent--d:  #166534;
+--blue:      #60a5fa;
+--yellow:    #fbbf24;
+--red:       #f87171;
+--orange:    #fb923c;
+--purple:    #a78bfa;
+--cyan:      #22d3ee;
+--mono: 'JetBrains Mono', monospace;
+--sans: 'Syne', sans--serif;
 }
 
 body {
-background: var(-bg);
-color: var(-text);
-font-family: var(-sans);
+background: var(--bg);
+color: var(--text);
+font--family: var(--sans);
 height: 100vh;
 display: flex;
-flex-direction: column;
+flex--direction: column;
 overflow: hidden;
 }
 
 /* ── TOPBAR ── */
 .topbar {
 display: flex;
-align-items: center;
+align--items: center;
 gap: 8px;
 padding: 10px 14px;
-background: var(-surface);
-border-bottom: 1px solid var(-border);
-flex-shrink: 0;
+background: var(--surface);
+border--bottom: 1px solid var(--border);
+flex--shrink: 0;
 }
 
-.topbar-logo {
-font-family: var(-sans);
-font-weight: 800;
-font-size: 13px;
-color: var(-accent);
-letter-spacing: 0.05em;
-white-space: nowrap;
-padding-right: 8px;
-border-right: 1px solid var(-border2);
+.topbar--logo {
+font--family: var(--sans);
+font--weight: 800;
+font--size: 13px;
+color: var(--accent);
+letter--spacing: 0.05em;
+white--space: nowrap;
+padding--right: 8px;
+border--right: 1px solid var(--border2);
 }
 
-.mode-switch {
+.mode--switch {
 display: flex;
-background: var(-bg);
-border: 1px solid var(-border2);
-border-radius: 6px;
+background: var(--bg);
+border: 1px solid var(--border2);
+border--radius: 6px;
 overflow: hidden;
-flex-shrink: 0;
+flex--shrink: 0;
 }
 
-.mode-btn {
+.mode--btn {
 padding: 7px 13px;
-font-size: 11px;
-font-family: var(-sans);
-font-weight: 600;
+font--size: 11px;
+font--family: var(--sans);
+font--weight: 600;
 cursor: pointer;
 background: transparent;
 border: none;
-color: var(-muted);
-letter-spacing: 0.04em;
+color: var(--muted);
+letter--spacing: 0.04em;
 transition: all .15s;
 }
 
-.mode-btn.active {
-background: var(-surface2);
-color: var(-accent);
+.mode--btn.active {
+background: var(--surface2);
+color: var(--accent);
 }
 
-.url-bar {
+.url--bar {
 flex: 1;
 display: flex;
 gap: 8px;
 }
 
-.url-bar input {
+.url--bar input {
 flex: 1;
-background: var(-bg);
-border: 1px solid var(-border2);
-color: var(-text);
+background: var(--bg);
+border: 1px solid var(--border2);
+color: var(--text);
 padding: 8px 12px;
-border-radius: 6px;
+border--radius: 6px;
 outline: none;
-font-family: var(-mono);
-font-size: 12px;
-transition: border-color .2s;
+font--family: var(--mono);
+font--size: 12px;
+transition: border--color .2s;
 }
 
-.url-bar input:focus { border-color: var(-accent); }
+.url--bar input:focus { border--color: var(--accent); }
 
-.btn-load {
-background: var(-accent);
+.btn--load {
+background: var(--accent);
 border: none;
 color: #0a0b0e;
 padding: 8px 16px;
-border-radius: 6px;
+border--radius: 6px;
 cursor: pointer;
-font-family: var(-sans);
-font-weight: 700;
-font-size: 12px;
-letter-spacing: 0.06em;
+font--family: var(--sans);
+font--weight: 700;
+font--size: 12px;
+letter--spacing: 0.06em;
 transition: opacity .15s;
-white-space: nowrap;
+white--space: nowrap;
 }
 
-.btn-load:hover { opacity: .85; }
+.btn--load:hover { opacity: .85; }
 
 /* ── MAIN ── */
 .main {
@@ -135,11 +135,11 @@ overflow: hidden;
 }
 
 /* ── VIEWER SIDE ── */
-.viewer-wrap {
+.viewer--wrap {
 flex: 1;
 display: flex;
-flex-direction: column;
-min-width: 0;
+flex--direction: column;
+min--width: 0;
 background: #000;
 position: relative;
 }
@@ -152,198 +152,198 @@ background: #fff;
 }
 
 /* HTML editor mode */
-.html-editor-wrap {
+.html--editor--wrap {
 flex: 1;
 display: flex;
-flex-direction: column;
+flex--direction: column;
 overflow: hidden;
 }
 
-.html-editor-wrap textarea {
+.html--editor--wrap textarea {
 flex: 1;
-background: var(-bg);
-color: var(-text);
+background: var(--bg);
+color: var(--text);
 border: none;
 padding: 16px;
-font-family: var(-mono);
-font-size: 12.5px;
-line-height: 1.7;
+font--family: var(--mono);
+font--size: 12.5px;
+line--height: 1.7;
 resize: none;
 outline: none;
 }
 
-.editor-actions {
+.editor--actions {
 display: flex;
 gap: 8px;
 padding: 8px 12px;
-background: var(-surface);
-border-top: 1px solid var(-border);
-border-bottom: 1px solid var(-border);
+background: var(--surface);
+border--top: 1px solid var(--border);
+border--bottom: 1px solid var(--border);
 }
 
-.editor-actions button {
+.editor--actions button {
 padding: 6px 14px;
-border-radius: 5px;
+border--radius: 5px;
 border: none;
 cursor: pointer;
-font-family: var(-sans);
-font-size: 11px;
-font-weight: 700;
-letter-spacing: 0.05em;
+font--family: var(--sans);
+font--size: 11px;
+font--weight: 700;
+letter--spacing: 0.05em;
 transition: opacity .15s;
 }
 
-.btn-run { background: var(-accent); color: #0a0b0e; }
-.btn-run:hover { opacity: .85; }
-.btn-clear-editor { background: var(-surface2); color: var(-muted); border: 1px solid var(-border2); }
+.btn--run { background: var(--accent); color: #0a0b0e; }
+.btn--run:hover { opacity: .85; }
+.btn--clear--editor { background: var(--surface2); color: var(--muted); border: 1px solid var(--border2); }
 
-.iframe-preview {
+.iframe--preview {
 height: 260px;
-border-top: 1px solid var(-border);
+border--top: 1px solid var(--border);
 position: relative;
 }
 
-.iframe-preview iframe {
+.iframe--preview iframe {
 width: 100%;
 height: 100%;
 }
 
-.status-badge {
+.status--badge {
 position: absolute;
 bottom: 10px;
 left: 10px;
 padding: 4px 10px;
-border-radius: 20px;
-font-size: 11px;
-font-family: var(-mono);
-font-weight: 600;
-background: var(-surface);
-border: 1px solid var(-border2);
-z-index: 10;
+border--radius: 20px;
+font--size: 11px;
+font--family: var(--mono);
+font--weight: 600;
+background: var(--surface);
+border: 1px solid var(--border2);
+z--index: 10;
 display: flex;
-align-items: center;
+align--items: center;
 gap: 5px;
 }
 
-.status-dot {
+.status--dot {
 width: 6px;
 height: 6px;
-border-radius: 50%;
-background: var(-muted);
+border--radius: 50%;
+background: var(--muted);
 }
 
-.status-dot.ok  { background: var(-accent); box-shadow: 0 0 6px var(-accent); }
-.status-dot.err { background: var(-red);    box-shadow: 0 0 6px var(-red); }
-.status-dot.loading { background: var(-yellow); animation: pulse 1s infinite; }
+.status--dot.ok  { background: var(--accent); box--shadow: 0 0 6px var(--accent); }
+.status--dot.err { background: var(--red);    box--shadow: 0 0 6px var(--red); }
+.status--dot.loading { background: var(--yellow); animation: pulse 1s infinite; }
 
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 /* ── PANEL ── */
 .panel {
 width: 430px;
-flex-shrink: 0;
-background: var(-surface);
-border-left: 1px solid var(-border);
+flex--shrink: 0;
+background: var(--surface);
+border--left: 1px solid var(--border);
 display: flex;
-flex-direction: column;
+flex--direction: column;
 overflow: hidden;
 }
 
 /* tabs */
 .tabs {
 display: flex;
-border-bottom: 1px solid var(-border);
-overflow-x: auto;
-flex-shrink: 0;
+border--bottom: 1px solid var(--border);
+overflow--x: auto;
+flex--shrink: 0;
 }
 
-.tabs::-webkit-scrollbar { display: none; }
+.tabs::--webkit--scrollbar { display: none; }
 
 .tab {
 flex: 1;
-min-width: 55px;
-text-align: center;
+min--width: 55px;
+text--align: center;
 padding: 10px 4px;
 cursor: pointer;
-font-size: 10px;
-font-weight: 700;
-letter-spacing: 0.06em;
-color: var(-muted);
-border-bottom: 2px solid transparent;
+font--size: 10px;
+font--weight: 700;
+letter--spacing: 0.06em;
+color: var(--muted);
+border--bottom: 2px solid transparent;
 transition: all .15s;
-white-space: nowrap;
+white--space: nowrap;
 position: relative;
 }
 
-.tab.active { color: var(-accent); border-bottom-color: var(-accent); background: var(-surface2); }
+.tab.active { color: var(--accent); border--bottom--color: var(--accent); background: var(--surface2); }
 .tab .badge {
 position: absolute;
 top: 4px;
 right: 6px;
-background: var(-red);
+background: var(--red);
 color: #fff;
-font-size: 8px;
-font-weight: 700;
-border-radius: 8px;
+font--size: 8px;
+font--weight: 700;
+border--radius: 8px;
 padding: 1px 4px;
-min-width: 14px;
-text-align: center;
+min--width: 14px;
+text--align: center;
 display: none;
 }
-.tab .badge.show { display: inline-block; }
+.tab .badge.show { display: inline--block; }
 
 /* search */
-.search-bar {
+.search--bar {
 display: flex;
-align-items: center;
+align--items: center;
 gap: 6px;
 padding: 7px 10px;
-border-bottom: 1px solid var(-border);
-flex-shrink: 0;
+border--bottom: 1px solid var(--border);
+flex--shrink: 0;
 }
 
-.search-bar input {
+.search--bar input {
 flex: 1;
-background: var(-bg);
-border: 1px solid var(-border2);
-color: var(-text);
+background: var(--bg);
+border: 1px solid var(--border2);
+color: var(--text);
 padding: 5px 10px;
-border-radius: 5px;
-font-family: var(-mono);
-font-size: 11px;
+border--radius: 5px;
+font--family: var(--mono);
+font--size: 11px;
 outline: none;
 }
 
-.search-bar input:focus { border-color: var(-accent); }
+.search--bar input:focus { border--color: var(--accent); }
 
-.log-count {
-font-family: var(-mono);
-font-size: 10px;
-color: var(-muted);
-white-space: nowrap;
+.log--count {
+font--family: var(--mono);
+font--size: 10px;
+color: var(--muted);
+white--space: nowrap;
 }
 
 /* logs */
 .logs {
 flex: 1;
-overflow-y: auto;
+overflow--y: auto;
 padding: 6px;
-scroll-behavior: smooth;
+scroll--behavior: smooth;
 }
 
-.logs::-webkit-scrollbar { width: 4px; }
-.logs::-webkit-scrollbar-track { background: transparent; }
-.logs::-webkit-scrollbar-thumb { background: var(-border2); border-radius: 2px; }
+.logs::--webkit--scrollbar { width: 4px; }
+.logs::--webkit--scrollbar--track { background: transparent; }
+.logs::--webkit--scrollbar--thumb { background: var(--border2); border--radius: 2px; }
 
 .log {
 padding: 8px 10px;
-margin-bottom: 4px;
-border-radius: 6px;
-font-family: var(-mono);
-font-size: 11.5px;
-line-height: 1.6;
-word-break: break-word;
-border-left: 3px solid transparent;
+margin--bottom: 4px;
+border--radius: 6px;
+font--family: var(--mono);
+font--size: 11.5px;
+line--height: 1.6;
+word--break: break--word;
+border--left: 3px solid transparent;
 cursor: pointer;
 transition: filter .1s;
 position: relative;
@@ -351,138 +351,138 @@ position: relative;
 
 .log:hover { filter: brightness(1.2); }
 
-.log-meta {
-font-size: 10px;
-margin-bottom: 4px;
+.log--meta {
+font--size: 10px;
+margin--bottom: 4px;
 opacity: .55;
 display: flex;
 gap: 8px;
 }
 
-.log-msg { white-space: pre-wrap; }
+.log--msg { white--space: pre--wrap; }
 
-.log-stack {
-margin-top: 6px;
-font-size: 10px;
+.log--stack {
+margin--top: 6px;
+font--size: 10px;
 opacity: .6;
-white-space: pre-wrap;
-border-top: 1px solid rgba(255,255,255,.05);
-padding-top: 4px;
+white--space: pre--wrap;
+border--top: 1px solid rgba(255,255,255,.05);
+padding--top: 4px;
 display: none;
 }
 
-.log.expanded .log-stack { display: block; }
+.log.expanded .log--stack { display: block; }
 
-.log-log     { background: #111520; border-left-color: #2563eb; color: #c9d1d9; }
-.log-info    { background: #0d1b2a; border-left-color: var(-blue); color: var(-blue); }
-.log-warn    { background: #1a1200; border-left-color: var(-yellow); color: var(-yellow); }
-.log-error   { background: #1a0606; border-left-color: var(-red); color: var(-red); }
-.log-network { background: #0a1520; border-left-color: var(-cyan); color: var(-cyan); }
-.log-promise { background: #1a0a1a; border-left-color: var(-purple); color: var(-purple); }
-.log-syntax  { background: #1a0606; border-left-color: var(-orange); color: var(-orange); }
+.log--log     { background: #111520; border--left--color: #2563eb; color: #c9d1d9; }
+.log--info    { background: #0d1b2a; border--left--color: var(--blue); color: var(--blue); }
+.log--warn    { background: #1a1200; border--left--color: var(--yellow); color: var(--yellow); }
+.log--error   { background: #1a0606; border--left--color: var(--red); color: var(--red); }
+.log--network { background: #0a1520; border--left--color: var(--cyan); color: var(--cyan); }
+.log--promise { background: #1a0a1a; border--left--color: var(--purple); color: var(--purple); }
+.log--syntax  { background: #1a0606; border--left--color: var(--orange); color: var(--orange); }
 
 /* bottom bar */
 .bottom {
 display: flex;
 gap: 6px;
 padding: 8px 10px;
-border-top: 1px solid var(-border);
-flex-shrink: 0;
-align-items: center;
+border--top: 1px solid var(--border);
+flex--shrink: 0;
+align--items: center;
 }
 
 .bottom button {
 padding: 7px 12px;
-border: 1px solid var(-border2);
-border-radius: 5px;
+border: 1px solid var(--border2);
+border--radius: 5px;
 cursor: pointer;
-background: var(-surface2);
-color: var(-muted);
-font-family: var(-sans);
-font-size: 11px;
-font-weight: 600;
-letter-spacing: 0.04em;
+background: var(--surface2);
+color: var(--muted);
+font--family: var(--sans);
+font--size: 11px;
+font--weight: 600;
+letter--spacing: 0.04em;
 transition: all .15s;
 }
 
-.bottom button:hover { color: var(-text); border-color: var(-text); }
-.bottom .btn-copy { margin-left: auto; }
+.bottom button:hover { color: var(--text); border--color: var(--text); }
+.bottom .btn--copy { margin--left: auto; }
 
-.bottom .autoscroll-label {
-font-size: 10px;
-color: var(-muted);
+.bottom .autoscroll--label {
+font--size: 10px;
+color: var(--muted);
 display: flex;
-align-items: center;
+align--items: center;
 gap: 4px;
 cursor: pointer;
-user-select: none;
+user--select: none;
 }
 
-.bottom .autoscroll-label input { cursor: pointer; accent-color: var(-accent); }
+.bottom .autoscroll--label input { cursor: pointer; accent--color: var(--accent); }
 
-/* cross-origin banner */
-.cors-banner {
+/* cross--origin banner */
+.cors--banner {
 background: #1a0e00;
-border: 1px solid var(-yellow);
-border-radius: 6px;
+border: 1px solid var(--yellow);
+border--radius: 6px;
 padding: 10px 12px;
 margin: 8px;
-font-size: 11px;
-color: var(-yellow);
-line-height: 1.6;
+font--size: 11px;
+color: var(--yellow);
+line--height: 1.6;
 display: none;
 }
 
-.cors-banner.show { display: block; }
+.cors--banner.show { display: block; }
 
 /* responsive */
-@media (max-width: 900px) {
-.main { flex-direction: column; }
-.panel { width: 100%; height: 45%; border-left: none; border-top: 1px solid var(-border); }
-.viewer-wrap { height: 55%; }
-.topbar-logo { display: none; }
+@media (max--width: 900px) {
+.main { flex--direction: column; }
+.panel { width: 100%; height: 45%; border--left: none; border--top: 1px solid var(--border); }
+.viewer--wrap { height: 55%; }
+.topbar--logo { display: none; }
 }
 </style>
 
 </head>
 <body>
 
-<!-- TOPBAR -->
+<!---- TOPBAR ---->
 
 <div class="topbar">
-  <div class="topbar-logo">⬡ INSPECTOR</div>
+  <div class="topbar--logo">⬡ INSPECTOR</div>
 
-  <div class="mode-switch">
-    <button class="mode-btn active" id="modeUrl" onclick="switchMode('url')">URL</button>
-    <button class="mode-btn" id="modeHtml" onclick="switchMode('html')">HTML</button>
+  <div class="mode--switch">
+    <button class="mode--btn active" id="modeUrl" onclick="switchMode('url')">URL</button>
+    <button class="mode--btn" id="modeHtml" onclick="switchMode('html')">HTML</button>
   </div>
 
-  <div class="url-bar" id="urlBar">
+  <div class="url--bar" id="urlBar">
     <input type="text" id="urlInput" placeholder="https://example.com" />
-    <button class="btn-load" onclick="loadUrl()">RUN</button>
+    <button class="btn--load" onclick="loadUrl()">RUN</button>
   </div>
 </div>
 
-<!-- MAIN -->
+<!---- MAIN ---->
 
 <div class="main">
 
-  <!-- VIEWER -->
+  <!---- VIEWER ---->
 
-  <div class="viewer-wrap" id="viewerWrap">
+  <div class="viewer--wrap" id="viewerWrap">
 
 ```
-<!-- URL mode iframe -->
-<div id="urlModeView" style="flex:1;display:flex;flex-direction:column;position:relative;">
+<!---- URL mode iframe ---->
+<div id="urlModeView" style="flex:1;display:flex;flex--direction:column;position:relative;">
   <iframe id="viewer"></iframe>
-  <div class="status-badge">
-    <div class="status-dot" id="statusDot"></div>
+  <div class="status--badge">
+    <div class="status--dot" id="statusDot"></div>
     <span id="statusText">Ready</span>
   </div>
 </div>
 
-<!-- HTML editor mode -->
-<div class="html-editor-wrap" id="htmlModeView" style="display:none;">
+<!---- HTML editor mode ---->
+<div class="html--editor--wrap" id="htmlModeView" style="display:none;">
   <textarea id="htmlEditor" placeholder="Paste your HTML/JS code here...
 ```
 
@@ -497,14 +497,14 @@ undefinedFunction();
 </body>
 </html>
 "></textarea>
-<div class="editor-actions">
-<button class="btn-run" onclick="runHtml()">▶ RUN</button>
-<button class="btn-clear-editor" onclick="document.getElementById('htmlEditor').value=''">CLEAR</button>
+<div class="editor--actions">
+<button class="btn--run" onclick="runHtml()">▶ RUN</button>
+<button class="btn--clear--editor" onclick="document.getElementById('htmlEditor').value=''">CLEAR</button>
 </div>
-<div class="iframe-preview" style="position:relative;">
+<div class="iframe--preview" style="position:relative;">
 <iframe id="htmlViewer"></iframe>
-<div class="status-badge" style="bottom:8px;left:8px;">
-<div class="status-dot" id="statusDot2"></div>
+<div class="status--badge" style="bottom:8px;left:8px;">
+<div class="status--dot" id="statusDot2"></div>
 <span id="statusText2">Ready</span>
 </div>
 </div>
@@ -512,43 +512,43 @@ undefinedFunction();
 
   </div>
 
-  <!-- PANEL -->
+  <!---- PANEL ---->
 
   <div class="panel">
 
 ```
-<!-- Tabs -->
+<!---- Tabs ---->
 <div class="tabs">
-  <div class="tab active" data-type="all">ALL <span class="badge" id="badge-all"></span></div>
-  <div class="tab" data-type="log">LOG <span class="badge" id="badge-log"></span></div>
-  <div class="tab" data-type="error">ERR <span class="badge" id="badge-error"></span></div>
-  <div class="tab" data-type="warn">WARN <span class="badge" id="badge-warn"></span></div>
-  <div class="tab" data-type="network">NET <span class="badge" id="badge-network"></span></div>
-  <div class="tab" data-type="promise">PROM <span class="badge" id="badge-promise"></span></div>
+  <div class="tab active" data--type="all">ALL <span class="badge" id="badge--all"></span></div>
+  <div class="tab" data--type="log">LOG <span class="badge" id="badge--log"></span></div>
+  <div class="tab" data--type="error">ERR <span class="badge" id="badge--error"></span></div>
+  <div class="tab" data--type="warn">WARN <span class="badge" id="badge--warn"></span></div>
+  <div class="tab" data--type="network">NET <span class="badge" id="badge--network"></span></div>
+  <div class="tab" data--type="promise">PROM <span class="badge" id="badge--promise"></span></div>
 </div>
 
-<!-- Search -->
-<div class="search-bar">
+<!---- Search ---->
+<div class="search--bar">
   <input type="text" id="searchInput" placeholder="Search logs..." oninput="renderLogs()" />
-  <span class="log-count" id="logCount">0 logs</span>
+  <span class="log--count" id="logCount">0 logs</span>
 </div>
 
-<!-- CORS warning -->
-<div class="cors-banner" id="corsBanner">
-  ⚠ Cross-origin restriction: console injection blocked.<br>
-  Switch to <strong>HTML mode</strong> to debug local code, or use a same-origin page.
+<!---- CORS warning ---->
+<div class="cors--banner" id="corsBanner">
+  ⚠ Cross--origin restriction: console injection blocked.<br>
+  Switch to <strong>HTML mode</strong> to debug local code, or use a same--origin page.
 </div>
 
-<!-- Logs -->
+<!---- Logs ---->
 <div class="logs" id="logs"></div>
 
-<!-- Bottom -->
+<!---- Bottom ---->
 <div class="bottom">
-  <label class="autoscroll-label">
-    <input type="checkbox" id="autoScroll" checked /> Auto-scroll
+  <label class="autoscroll--label">
+    <input type="checkbox" id="autoScroll" checked /> Auto--scroll
   </label>
   <button onclick="clearLogs()">CLEAR</button>
-  <button class="btn-copy" onclick="copyLogs()">COPY</button>
+  <button class="btn--copy" onclick="copyLogs()">COPY</button>
 </div>
 ```
 
@@ -586,7 +586,7 @@ function formatArgs(args) {
 
 function now() {
   const d = new Date();
-  return d.toLocaleTimeString('en-GB', { hour12: false }) + '.' +
+  return d.toLocaleTimeString('en--GB', { hour12: false }) + '.' +
     String(d.getMilliseconds()).padStart(3, '0');
 }
 
@@ -620,9 +620,9 @@ function showToast(msg) {
   const t = document.createElement('div');
   t.textContent = msg;
   Object.assign(t.style, {
-    position:'fixed', bottom:'60px', left:'50%', transform:'translateX(-50%)',
+    position:'fixed', bottom:'60px', left:'50%', transform:'translateX(--50%)',
     background:'#4ade80', color:'#000', padding:'6px 14px', borderRadius:'20px',
-    fontFamily:'var(--sans)', fontWeight:'700', fontSize:'12px', zIndex:'9999',
+    fontFamily:'var(----sans)', fontWeight:'700', fontSize:'12px', zIndex:'9999',
     opacity:'1', transition:'opacity .4s'
   });
   document.body.appendChild(t);
@@ -633,10 +633,10 @@ function updateBadges() {
   const types = ['log','error','warn','network','promise'];
   types.forEach(t => {
     const cnt = allLogs.filter(l => l.type === t).length;
-    const el = document.getElementById(`badge-${t}`);
+    const el = document.getElementById(`badge--${t}`);
     if (el) { el.textContent = cnt; el.classList.toggle('show', cnt > 0); }
   });
-  const allBadge = document.getElementById('badge-all');
+  const allBadge = document.getElementById('badge--all');
   if (allBadge) { allBadge.textContent = allLogs.length; allBadge.classList.toggle('show', allLogs.length > 0); }
 }
 
@@ -656,15 +656,15 @@ function renderLogs() {
 
   filtered.forEach(log => {
     const div = document.createElement('div');
-    div.className = `log log-${log.type}`;
+    div.className = `log log--${log.type}`;
     div.dataset.id = log.id;
 
     const meta = document.createElement('div');
-    meta.className = 'log-meta';
+    meta.className = 'log--meta';
     meta.innerHTML = `<span>${log.time}</span><span>${log.type.toUpperCase()}</span>`;
 
     const msg = document.createElement('div');
-    msg.className = 'log-msg';
+    msg.className = 'log--msg';
     msg.textContent = log.message;
 
     div.appendChild(meta);
@@ -672,7 +672,7 @@ function renderLogs() {
 
     if (log.stack) {
       const stack = document.createElement('div');
-      stack.className = 'log-stack';
+      stack.className = 'log--stack';
       stack.textContent = log.stack;
       div.appendChild(stack);
       div.title = 'Click to expand stack trace';
@@ -694,7 +694,7 @@ function setStatus(text, state = '', dotId = 'statusDot', textId = 'statusText')
   const dot  = document.getElementById(dotId);
   const span = document.getElementById(textId);
   if (!dot || !span) return;
-  dot.className  = 'status-dot ' + state;
+  dot.className  = 'status--dot ' + state;
   span.textContent = text;
 }
 
@@ -728,7 +728,7 @@ function injectDebugger(win, label = '') {
   win.console.time = (label2) => { win.__timers = win.__timers || {}; win.__timers[label2] = performance.now(); };
   win.console.timeEnd = (label2) => {
     const start = (win.__timers || {})[label2];
-    const ms = start != null ? (performance.now() - start).toFixed(2) + 'ms' : '?';
+    const ms = start != null ? (performance.now() -- start).toFixed(2) + 'ms' : '?';
     addLog('log', pfx + `[timer] ${label2}: ${ms}`);
   };
 
@@ -756,9 +756,9 @@ function injectDebugger(win, label = '') {
       addLog('network', pfx + `→ ${method} ${url}`);
       try {
         const resp = await origFetch(...args);
-        const ms = Math.round(performance.now() - t0);
+        const ms = Math.round(performance.now() -- t0);
         const icon = resp.ok ? '✓' : '✗';
-        addLog('network', pfx + `${icon} ${method} ${url} - ${resp.status} ${resp.statusText} (${ms}ms)`);
+        addLog('network', pfx + `${icon} ${method} ${url} -- ${resp.status} ${resp.statusText} (${ms}ms)`);
         return resp;
       } catch (err) {
         addLog('error', pfx + `fetch failed: ${url}\n${err.message}`);
@@ -785,9 +785,9 @@ function injectDebugger(win, label = '') {
       const t0 = performance.now();
       addLog('network', pfx + `→ XHR ${info.method} ${info.url}`);
       xhr.addEventListener('load', () => {
-        const ms = Math.round(performance.now() - t0);
+        const ms = Math.round(performance.now() -- t0);
         const icon = xhr.status >= 200 && xhr.status < 400 ? '✓' : '✗';
-        addLog('network', pfx + `${icon} XHR ${info.method} ${info.url} - ${xhr.status} (${ms}ms)`);
+        addLog('network', pfx + `${icon} XHR ${info.method} ${info.url} -- ${xhr.status} (${ms}ms)`);
       });
       xhr.addEventListener('error', () => {
         addLog('error', pfx + `XHR network error: ${info.method} ${info.url}`);
@@ -810,7 +810,7 @@ function injectDebugger(win, label = '') {
     } catch (e) { /* unavailable */ }
   });
 
-  addLog('log', pfx + '🔌 Debugger injected - monitoring console, fetch, XHR, errors, promises');
+  addLog('log', pfx + '🔌 Debugger injected -- monitoring console, fetch, XHR, errors, promises');
 }
 
 // ── URL MODE ───────────────────────────────────────────────────────────────
@@ -832,9 +832,9 @@ iframe.onload = () => {
     injectDebugger(iframe.contentWindow, 'iframe');
   } catch (e) {
     document.getElementById('corsBanner').classList.add('show');
-    setStatus('Cross-origin', 'err');
+    setStatus('Cross--origin', 'err');
     addLog('error',
-      'Cross-origin restriction: cannot inject debugger.\n' +
+      'Cross--origin restriction: cannot inject debugger.\n' +
       'Reason: The target page has different origin or strict CSP.\n' +
       'Solution: Switch to HTML mode to debug your own code.');
   }
@@ -888,7 +888,7 @@ function runHtml() {
   var timers={};
   console.time=function(l){timers[l]=performance.now();};
   console.timeEnd=function(l){
-    var ms=timers[l]!=null?(performance.now()-timers[l]).toFixed(2)+'ms':'?';
+    var ms=timers[l]!=null?(performance.now()--timers[l]).toFixed(2)+'ms':'?';
     _send('log','[timer] '+l+': '+ms);
   };
   window.addEventListener('error',function(e){
@@ -908,8 +908,8 @@ function runHtml() {
       var t0=performance.now();
       _send('network','→ '+method+' '+url);
       return _fetch.apply(window,args).then(function(r){
-        var ms=Math.round(performance.now()-t0);
-        _send('network',(r.ok?'✓':'✗')+' '+method+' '+url+' - '+r.status+' ('+ms+'ms)');
+        var ms=Math.round(performance.now()--t0);
+        _send('network',(r.ok?'✓':'✗')+' '+method+' '+url+' -- '+r.status+' ('+ms+'ms)');
         return r;
       }).catch(function(err){
         _send('error','fetch failed: '+url+'\\n'+err.message);
@@ -928,8 +928,8 @@ function runHtml() {
       var t0=performance.now();
       _send('network','→ XHR '+info.method+' '+info.url);
       xhr.addEventListener('load',function(){
-        var ms=Math.round(performance.now()-t0);
-        _send('network',(xhr.status>=200&&xhr.status<400?'✓':'✗')+' XHR '+info.method+' '+info.url+' - '+xhr.status+' ('+ms+'ms)');
+        var ms=Math.round(performance.now()--t0);
+        _send('network',(xhr.status>=200&&xhr.status<400?'✓':'✗')+' XHR '+info.method+' '+info.url+' -- '+xhr.status+' ('+ms+'ms)');
       });
       xhr.addEventListener('error',function(){
         _send('error','XHR network error: '+info.method+' '+info.url);
@@ -994,7 +994,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ── INIT ───────────────────────────────────────────────────────────────────
-addLog('log', 'Console Inspector Pro ready.\n• URL mode: open any website (same-origin best)\n• HTML mode: paste & run your own code with full debugger');
+addLog('log', 'Console Inspector Pro ready.\n• URL mode: open any website (same--origin best)\n• HTML mode: paste & run your own code with full debugger');
 </script>
 
 </body>

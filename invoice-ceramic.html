@@ -423,7 +423,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--ink);min-heig
         <div class="flex gap-8 mt-10" style="align-items:center">
           <button class="btn btn-primary" id="parse-btn" onclick="doParse()">
             <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Parse dengan AI
+            Parse Otomatis
           </button>
           <span id="parse-status" style="font-size:12px;color:var(--accent)"></span>
         </div>
@@ -532,13 +532,13 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--ink);min-heig
             <div class="sum-row" style="align-items:flex-start;gap:10px">
               <span class="sum-label" style="padding-top:6px">Pengiriman</span>
               <div style="display:flex;flex-direction:column;gap:5px">
-                <input class="sum-mini-input" id="f-ship-type" placeholder="JNT Reguler, dll." oninput="recalc()" style="text-align:left" />
-                <input class="sum-mini-input" id="f-ship-cost" placeholder="Biaya ongkir" oninput="recalc()" />
+                <input class="sum-mini-input" id="f-ship-type" placeholder="JNT Reguler, dll." oninput="syncShipAndRecalc()" style="text-align:left" />
+                <input class="sum-mini-input" id="f-ship-cost" placeholder="Biaya ongkir" oninput="syncShipAndRecalc()" />
               </div>
             </div>
             <div class="sum-row">
               <span class="sum-label">Diskon</span>
-              <input class="sum-mini-input" id="f-discount" placeholder="Jumlah diskon" oninput="recalc()" />
+              <input class="sum-mini-input" id="f-discount" placeholder="Jumlah diskon" oninput="syncDiscountAndRecalc()" />
             </div>
             <div class="sum-row grand">
               <span class="sum-label" style="font-weight:600">Total Due</span>
@@ -689,8 +689,9 @@ function todayStr() {
   return new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 }
 function fmtRp(n) {
-  if (n===null||n===undefined||n==='') return '';
-  return 'Rp '+Number(n).toLocaleString('id-ID');
+  const num = Number(n);
+  if (n===null||n===undefined||n===''||isNaN(num)) return '-';
+  return 'Rp '+num.toLocaleString('id-ID');
 }
 function parseRp(s) { return parseInt(String(s).replace(/[^0-9]/g,''))||0; }
 function escHtml(s) {
@@ -795,13 +796,23 @@ function renderItems() {
     const tr = document.createElement('tr');
     tr.className='item-row';
     tr.dataset.id=item.id;
+    const calcRowTot = (it) => {
+      const q = Number(it.qty), p = Number(it.unitPrice);
+      return (it.qty!==null&&it.unitPrice!==null&&!isNaN(q)&&!isNaN(p)) ? fmtRp(q*p) : '-';
+    };
     tr.innerHTML=`
-      <td class="col-prod"><input class="cell-inp" value="${escHtml(item.productName)}" placeholder="Nama produk" onchange="updateItemField('${item.id}','productName',this.value)" /></td>
-      <td class="col-sub"><input class="cell-inp" value="${escHtml(item.subtitle||'')}" placeholder="Opsional" onchange="updateItemField('${item.id}','subtitle',this.value)" /></td>
-      <td class="col-qty"><input class="cell-inp r" type="number" min="0" value="${item.qty!==null?item.qty:''}" placeholder="-" style="text-align:center" onchange="updateItemField('${item.id}','qty',this.value===''?null:Number(this.value))" /></td>
-      <td class="col-up"><input class="cell-inp r" value="${item.unitPrice!==null?item.unitPrice:''}" placeholder="-" onchange="updateItemField('${item.id}','unitPrice',this.value===''?null:parseRp(this.value))" /></td>
-      <td class="col-tot">${(item.qty!==null&&item.unitPrice!==null)?fmtRp(item.qty*item.unitPrice):'-'}</td>
-      <td class="col-del"><button class="row-del" onclick="removeItem('${item.id}')">×</button></td>
+      <td class="col-prod"><input class="cell-inp" value="${escHtml(item.productName)}" placeholder="Nama produk"
+        oninput="updateItemField('${item.id}','productName',this.value)"/></td>
+      <td class="col-sub"><input class="cell-inp" value="${escHtml(item.subtitle||'')}" placeholder="Opsional"
+        oninput="updateItemField('${item.id}','subtitle',this.value)"/></td>
+      <td class="col-qty"><input class="cell-inp r" type="number" min="0" step="1"
+        value="${item.qty!==null?item.qty:''}" placeholder="-" style="text-align:center"
+        oninput="updateItemField('${item.id}','qty',this.value===''?null:Math.max(0,parseInt(this.value)||0))"/></td>
+      <td class="col-up"><input class="cell-inp r"
+        value="${item.unitPrice!==null?item.unitPrice:''}" placeholder="-"
+        oninput="updateItemField('${item.id}','unitPrice',this.value===''?null:parseRp(this.value))"/></td>
+      <td class="col-tot" id="tot-${item.id}">${calcRowTot(item)}</td>
+      <td class="col-del"><button class="row-del" onclick="removeItem('${item.id}')">&#215;</button></td>
     `;
     body.insertBefore(tr, emptyRow);
   });
@@ -819,24 +830,37 @@ function removeItem(id) {
 }
 
 function updateItemField(id, field, val) {
-  const item = state.items.find(i=>i.id===id);
-  if (item) item[field]=val;
-  // Update total cell
-  const tr = document.querySelector(`tr[data-id="${id}"]`);
-  if (tr && item) {
-    tr.querySelector('.col-tot').textContent =
-      (item.qty!==null&&item.unitPrice!==null)?fmtRp(item.qty*item.unitPrice):'-';
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  item[field] = val;
+  // Live-update the total cell via stable element id
+  const totCell = document.getElementById('tot-' + id);
+  if (totCell) {
+    const q = Number(item.qty), p = Number(item.unitPrice);
+    totCell.textContent = (item.qty!==null&&item.unitPrice!==null&&!isNaN(q)&&!isNaN(p))
+      ? fmtRp(q*p) : '-';
   }
   recalc();
 }
 
+// Sync helpers - keep state in sync on every keystroke
+function syncShipAndRecalc() {
+  state.shipType = document.getElementById('f-ship-type').value.trim();
+  state.shipCost = parseRp(document.getElementById('f-ship-cost').value);
+  recalc();
+}
+function syncDiscountAndRecalc() {
+  state.discount = parseRp(document.getElementById('f-discount').value);
+  recalc();
+}
 function recalc() {
-  const shipCost = parseRp(document.getElementById('f-ship-cost').value);
-  const discount = parseRp(document.getElementById('f-discount').value);
-  const subtotal = state.items.reduce((s,i)=>s+(i.qty||0)*(i.unitPrice||0),0);
-  const total = subtotal+shipCost-discount;
+  const subtotal = state.items.reduce((s, i) => {
+    const q = Number(i.qty), p = Number(i.unitPrice);
+    return s + ((i.qty!==null&&i.unitPrice!==null&&!isNaN(q)&&!isNaN(p)) ? q*p : 0);
+  }, 0);
+  const total = subtotal + (Number(state.shipCost)||0) - (Number(state.discount)||0);
   document.getElementById('sum-subtotal').textContent = fmtRp(subtotal);
-  document.getElementById('sum-total').textContent = fmtRp(total);
+  document.getElementById('sum-total').textContent    = fmtRp(total);
 }
 
 // ════════════════════════════════════════
@@ -844,6 +868,7 @@ function recalc() {
 // ════════════════════════════════════════
 function uploadLogo(e) {
   const file=e.target.files[0]; if(!file) return;
+  if (file.size > 2*1024*1024) { toast('Logo terlalu besar (maks 2MB)','err'); return; }
   const reader=new FileReader();
   reader.onload=async ev=>{
     logoDataUrl=ev.target.result;
@@ -873,7 +898,17 @@ async function deleteLogo() {
 // ════════════════════════════════════════
 async function saveDraft() {
   readForm();
-  const rec = {...state, savedAt:Date.now()};
+  const rec = {
+    ...state,
+    items: state.items.map(it=>({
+      ...it,
+      qty:       it.qty       !== null ? Number(it.qty)       : null,
+      unitPrice: it.unitPrice !== null ? Number(it.unitPrice) : null,
+    })),
+    shipCost: Number(state.shipCost)||0,
+    discount:  Number(state.discount) ||0,
+    savedAt: Date.now(),
+  };
   await dbPut('drafts', rec);
   await refreshDraftsList();
   toast('Draft tersimpan ✓','ok');
@@ -897,7 +932,16 @@ async function refreshDraftsList() {
 async function loadDraft(id) {
   const rec = await dbGet('drafts',id);
   if(!rec) return;
-  state = {...rec};
+  state = {
+    ...rec,
+    shipCost: Number(rec.shipCost)||0,
+    discount:  Number(rec.discount) ||0,
+    items: (rec.items||[]).map(it=>({
+      ...it,
+      qty:       it.qty       !== null ? Number(it.qty)       : null,
+      unitPrice: it.unitPrice !== null ? Number(it.unitPrice) : null,
+    })),
+  };
   fillForm();
   showView('editor');
   toast('Draft dimuat','info');
@@ -905,6 +949,7 @@ async function loadDraft(id) {
 
 async function deleteDraft(e, id) {
   e.stopPropagation();
+  if (!confirm('Hapus draft ini?')) return;
   await dbDelete('drafts',id);
   if(state.id===id) newInvoice();
   else await refreshDraftsList();
@@ -963,7 +1008,7 @@ function renderInvoice() {
         </td>
         <td style="text-align:center">${it.qty!==null?it.qty:'-'}</td>
         <td class="r">${it.unitPrice!==null?fmtRp(it.unitPrice):'-'}</td>
-        <td class="r">${(it.qty!==null&&it.unitPrice!==null)?fmtRp(it.qty*it.unitPrice):'-'}</td>
+        <td class="r">${(()=>{const q=Number(it.qty),p=Number(it.unitPrice);return(it.qty!==null&&it.unitPrice!==null&&!isNaN(q)&&!isNaN(p))?fmtRp(q*p):'-';})()}</td>
       </tr>
     `).join('');
 
@@ -1126,18 +1171,21 @@ function sendWA() {
 /* ── Utility: normalisasi harga ── */
 function parseHarga(s) {
   if (!s) return null;
-  s = s.trim().toLowerCase();
-  // "80rb" / "80ribu" → 80000
-  const rbMatch = s.match(/^[\d.,]+\s*(rb|ribu)$/);
-  if (rbMatch) return Math.round(parseFloat(s.replace(/[.,]/g,'.').replace(/[^0-9.]/g,'')) * 1000);
-  // "80k" → 80000
-  const kMatch = s.match(/^[\d.,]+\s*k$/);
-  if (kMatch) return Math.round(parseFloat(s.replace(/[.,]/g,'.').replace(/[^0-9.]/g,'')) * 1000);
-  // "80.000" / "80,000" / "Rp80.000" / "80000"
+  s = String(s).trim().toLowerCase();
+  // "80rb" / "80ribu" - strip thousand-sep dots first, then multiply
+  if (/^[\d.,]+\s*(rb|ribu)$/.test(s)) {
+    const num = parseFloat(s.replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,''));
+    return isNaN(num) ? null : Math.round(num * 1000);
+  }
+  // "80k"
+  if (/^[\d.,]+\s*k$/.test(s)) {
+    const num = parseFloat(s.replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,''));
+    return isNaN(num) ? null : Math.round(num * 1000);
+  }
+  // "Rp 80.000" / "80.000" / "80,000" / "80000"
   const clean = s.replace(/rp\.?\s*/i,'').replace(/\./g,'').replace(/,/g,'').trim();
   const n = parseInt(clean);
-  if (!isNaN(n) && n > 0) return n;
-  return null;
+  return (!isNaN(n) && n > 0) ? n : null;
 }
 
 /* ── Utility: normalisasi qty ── */
@@ -1345,13 +1393,13 @@ function parseOrderLines(lines) {
   return items;
 }
 
-/* Pisah by koma/dan tapi pertahankan angka desimal */
+/* Pisah by koma/dan - no lookbehind (Safari iOS compat) */
 function splitByCommaOrDan(s) {
-  // Ganti koma desimal sementara
-  const safe = s.replace(/(\d),(\d)/g, '$1§$2');
-  // Split by koma atau " dan " yang diikuti huruf (bukan angka)
-  const parts = safe.split(/,(?!\s*\d)|(?<=\w)\s+dan\s+(?=[a-zA-Z])/i);
-  return parts.map(p => p.replace(/§/g, ',').trim()).filter(Boolean);
+  // Protect decimal/dimension numbers: "25,5" "25.5" "10x14"
+  const safe = s.replace(/(\d)[,.](\d)/g, '$1§$2');
+  // Simple split on comma or " dan "
+  const parts = safe.split(/,|\bdan\b/i);
+  return parts.map(p => p.replace(/§/g, '.').trim()).filter(p => p.length > 1);
 }
 
 /* ── Parse satu segmen → satu item ── */
@@ -1588,8 +1636,8 @@ function applyParsed(idx) {
     id:uid(),
     productName:it.productName||'',
     subtitle:it.subtitle||'',
-    qty:it.qty,
-    unitPrice:it.unitPrice,
+    qty:       it.qty       !== null ? Number(it.qty)       : null,
+    unitPrice: it.unitPrice !== null ? Number(it.unitPrice) : null,
   }));
   fillForm();
   toast('Data diterapkan ke editor ✓','ok');

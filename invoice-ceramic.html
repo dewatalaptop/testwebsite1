@@ -1160,14 +1160,19 @@ ${text}`;
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
+        max_tokens:2000,
         messages:[{role:'user',content:prompt}]
       })
     });
     const data = await res.json();
     const raw = (data.content||[]).map(b=>b.text||'').join('');
-    const clean = raw.replace(/```json|```/g,'').trim();
-    parsedOrders = JSON.parse(clean);
+const clean = raw.replace(/```json|```/g,'').trim();
+// Ekstrak substring JSON array [ ... ] secara robust
+const start = clean.indexOf('[');
+const end = clean.lastIndexOf(']');
+if (start === -1 || end === -1) throw new Error('Tidak ada JSON array di response');
+parsedOrders = JSON.parse(clean.slice(start, end + 1));
+
     parsedTab = 0;
     document.getElementById('parse-status').textContent=`✓ ${parsedOrders.length} order terdeteksi`;
     renderParseResults();

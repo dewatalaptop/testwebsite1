@@ -1120,157 +1120,407 @@ function sendWA() {
 }
 
 // ════════════════════════════════════════
-// AI PARSE
+// RULE-BASED PARSER ENGINE (no external API)
 // ════════════════════════════════════════
 
-const PARSE_SYSTEM = `Kamu adalah asisten cerdas untuk toko keramik online Naruna Ceramic (Indonesia).
-Tugasmu: membaca pesan WhatsApp dari customer - dalam format APAPUN - dan mengekstrak data order menjadi JSON terstruktur.
+/* ── Utility: normalisasi harga ── */
+function parseHarga(s) {
+  if (!s) return null;
+  s = s.trim().toLowerCase();
+  // "80rb" / "80ribu" → 80000
+  const rbMatch = s.match(/^[\d.,]+\s*(rb|ribu)$/);
+  if (rbMatch) return Math.round(parseFloat(s.replace(/[.,]/g,'.').replace(/[^0-9.]/g,'')) * 1000);
+  // "80k" → 80000
+  const kMatch = s.match(/^[\d.,]+\s*k$/);
+  if (kMatch) return Math.round(parseFloat(s.replace(/[.,]/g,'.').replace(/[^0-9.]/g,'')) * 1000);
+  // "80.000" / "80,000" / "Rp80.000" / "80000"
+  const clean = s.replace(/rp\.?\s*/i,'').replace(/\./g,'').replace(/,/g,'').trim();
+  const n = parseInt(clean);
+  if (!isNaN(n) && n > 0) return n;
+  return null;
+}
 
-KEMAMPUAN YANG DIHARAPKAN:
-- Memahami bahasa campuran Indonesia/Jawa/singkatan/typo
-- Mengenali format yang sangat bervariasi (ada label "Nama:", ada yang langsung tulis, ada baris kosong antar item)
-- Memisahkan beberapa order dalam satu teks (tiap order = satu objek di array)
-- Mengidentifikasi produk keramik dari deskripsi bebas
-- Mengenali harga dalam berbagai format: 80.000 / 80rb / 80k / Rp80.000 / 80,000
-- Mengenali qty: "6pcs" / "6 buah" / "6x" / "x6" / "enam" / "2 set"
-- Mengenali kata "gratis" / "gratisan" / "bonus" → unitPrice = 0
-- Memahami "transfer" / "tf" / "link kredit" / "cc" → payment = "transfer" (bukan bank spesifik)
-- Normalisasi nama bank: "bni" / "BNI" → "BNI", "bank jateng" / "bjtg" → "BankJateng"
-- Jika tidak ada info → isi null, jangan mengarang
+/* ── Utility: normalisasi qty ── */
+const ANGKA_KATA = {satu:1,dua:2,tiga:3,empat:4,lima:5,enam:6,tujuh:7,delapan:8,sembilan:9,sepuluh:10};
+function parseQty(s) {
+  if (!s) return null;
+  s = s.trim().toLowerCase();
+  if (ANGKA_KATA[s]) return ANGKA_KATA[s];
+  const n = parseInt(s.replace(/[^0-9]/g,''));
+  return (!isNaN(n) && n > 0) ? n : null;
+}
 
-ATURAN PENTING:
-1. Setiap baris/klausa yang menyebut produk berbeda = item TERPISAH
-2. Dimensi (26cm, 25x14cm) = masuk productName bukan subtitle, kecuali ada keterangan warna/varian → subtitle
-3. Kata "set" = satuan qty, bukan nama produk. "1 set teko" → productName:"Teko", qty:1
-4. Angka setelah nama produk tanpa satuan yang jelas → coba tebak: kalau kecil (1-20) kemungkinan qty, kalau besar (>1000) kemungkinan harga
-5. Nama produk: Title Case, hapus typo jelas, pertahankan nama asli yang sudah dikenal
-6. subtitle: warna, varian, keterangan tambahan singkat ("biru hitam", "default", "S", "reguler")
-7. Baris kosong antar item BUKAN berarti order baru - order baru hanya jika ada nama/customer baru
+/* ── Utility: normalisasi pembayaran ── */
+function normPayment(s) {
+  if (!s) return '';
+  const lc = s.toLowerCase();
+  if (lc.includes('jateng') || lc.includes('bjtg') || lc.includes('bank jateng')) return 'BankJateng';
+  if (lc.includes('mandiri'))  return 'Mandiri';
+  if (lc.includes('bri'))      return 'BRI';
+  if (lc.includes('bca'))      return 'BCA';
+  if (lc.includes('bni'))      return 'BNI';
+  // transfer / tf / link kredit / cc / gopay / dll → simpan apa adanya
+  return s.trim();
+}
 
-OUTPUT: HANYA JSON array valid. Tidak ada teks lain, tidak ada markdown.
-Format: [{"name":"","phone":"","address":"","notes":"","payment":"","items":[{"productName":"","qty":null,"unitPrice":null,"subtitle":""}]}]`;
+/* ── Utility: Title Case sederhana ── */
+function toTitleCase(s) {
+  const minor = new Set(['dan','atau','di','ke','dari','untuk','yang','dengan','pada','dalam','oleh','x']);
+  return s.toLowerCase().split(/\s+/).map((w,i)=>
+    (i===0||!minor.has(w)) ? w.charAt(0).toUpperCase()+w.slice(1) : w
+  ).join(' ');
+}
 
-const PARSE_FEW_SHOTS = `
-CONTOH 1 - Format label standar, multi item campur gratis:
-INPUT:
-Nama : Vonny
-Alamat : Pondok Surya Kencana 1 C 9 Gentong Pasuruan
-No Hp : 081937159822
-Order : piring tahiti indigo  6pcs 26cm.. gratisan cangkir senada dan sendok kayu
+/* ── Deteksi apakah sebuah token adalah harga ── */
+function isHargaToken(s) {
+  const lc = s.toLowerCase().replace(/\./g,'').replace(/,/g,'');
+  if (/^rp\d+/.test(lc)) return true;
+  if (/^\d+(rb|ribu|k)$/.test(lc)) return true;
+  // angka > 1000 tanpa satuan qty → kemungkinan harga
+  const n = parseInt(lc.replace(/[^0-9]/g,''));
+  if (!isNaN(n) && n >= 1000 && !/^(pcs|buah|unit|bh|set|lusin|pak|pasang|x)$/.test(lc)) return true;
+  return false;
+}
 
-1 set pumkins series biru
+/* ── Deteksi apakah token adalah satuan qty ── */
+function isQtyUnit(s) {
+  return /^(pcs|buah|unit|bh|set|lusin|pak|pasang|kodi|x|buah|lembar|helai)$/i.test(s.trim());
+}
 
-1 set teko handle 90derajat biru hitam 2 cangkir tatakan
+/* ── Kata-kata yang bukan nama produk ── */
+const SKIP_WORDS = new Set([
+  'order','pesan','mau','ingin','beli','halo','hai','kak','kakak','mas','mbak','bu','pak',
+  'mohon','tolong','bantu','isi','form','pemesanan','data','berikut','untuk','terima','kasih',
+  'salam','selamat','pagi','siang','malam','sore','ya','iya','oke','ok','baik','boleh',
+  'gratisan','gratis','bonus','hadiah','gift','free',
+]);
 
-Pembayaran : transfer atau link kreditcard
+/* ── Kata penanda "gratis" ── */
+function isGratisClue(s) {
+  return /gratis|gratisan|bonus|hadiah|free|cuma-cuma/i.test(s);
+}
 
-OUTPUT:
-[{"name":"Vonny","phone":"081937159822","address":"Pondok Surya Kencana 1 C 9 Gentong Pasuruan","notes":"","payment":"transfer","items":[{"productName":"Piring Tahiti Indigo 26cm","qty":6,"unitPrice":null,"subtitle":"indigo"},{"productName":"Cangkir Senada (Gratis)","qty":null,"unitPrice":0,"subtitle":"senada"},{"productName":"Sendok Kayu (Gratis)","qty":null,"unitPrice":0,"subtitle":""},{"productName":"Set Pumpkins Series","qty":1,"unitPrice":null,"subtitle":"biru"},{"productName":"Teko Handle 90 Derajat","qty":1,"unitPrice":null,"subtitle":"biru hitam"},{"productName":"Cangkir Tatakan","qty":2,"unitPrice":null,"subtitle":""}]}]
+/* ════════════════════════════
+   SPLIT: deteksi batas antar order dalam satu teks
+   ════════════════════════════ */
+function splitOrders(text) {
+  // Tanda batas order: kemunculan kembali kata "Nama :" atau "nama:" setelah baris non-kosong
+  // → split di titik itu
+  const lines = text.split('\n');
+  const blocks = [];
+  let cur = [];
 
-CONTOH 2 - Format santai, harga campur qty, singkat:
-INPUT:
-Mohon dibantu isi form pemesanannya kak 😊🙏
-Nama : Royhana
-Alamat : jl. Damai no.02 RT.014/004 kel. Susukan kec. Ciracas Jakarta Timur 13750
-No Hp : 081239963633
-Order : hampers Lebaran 80.000 x 2 pcs
-Pembayaran : Mandiri
+  // Pattern header order: "Nama :", "nama:", dsb
+  const reNama = /^(nama\s*[:：]|name\s*[:：])/i;
 
-OUTPUT:
-[{"name":"Royhana","phone":"081239963633","address":"Jl. Damai No.02 RT.014/004 Kel. Susukan Kec. Ciracas Jakarta Timur 13750","notes":"","payment":"Mandiri","items":[{"productName":"Hampers Lebaran","qty":2,"unitPrice":80000,"subtitle":""}]}]
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    // Jika menemukan "Nama :" DAN sudah ada content sebelumnya → potong
+    if (reNama.test(line) && cur.some(l => l.trim() !== '')) {
+      blocks.push(cur.join('\n'));
+      cur = [lines[i]];
+    } else {
+      cur.push(lines[i]);
+    }
+  }
+  if (cur.some(l => l.trim() !== '')) blocks.push(cur.join('\n'));
 
-CONTOH 3 - Tanpa label, format bebas:
-INPUT:
-halo kak mau pesan
-bowl coral 1 pcs 250rb
-oval plate S 135.000
-cappucino cup 2x 120k
-alamat: jl merdeka 5 bandung
-hp 082211223344
-bca aja
+  return blocks.length > 0 ? blocks : [text];
+}
 
-OUTPUT:
-[{"name":"","phone":"082211223344","address":"Jl. Merdeka 5 Bandung","notes":"","payment":"BCA","items":[{"productName":"Bowl Coral","qty":1,"unitPrice":250000,"subtitle":""},{"productName":"Oval Plate S","qty":null,"unitPrice":135000,"subtitle":""},{"productName":"Cappucino Cup","qty":2,"unitPrice":120000,"subtitle":""}]}]
+/* ════════════════════════════
+   PARSE satu blok order
+   ════════════════════════════ */
+function parseOneOrder(text) {
+  const result = { name:'', phone:'', address:'', notes:'', payment:'', items:[] };
 
-CONTOH 4 - Dua order berbeda dalam satu teks:
-INPUT:
-Untuk pemesanan mohon mengisi data berikut 😊🙏
-Nama : Royhana
-Alamat : jl. Damai no.02 Jakarta Timur
-No Hp : 081239963633
-Order : hampers Lebaran 80.000 x 2 pcs
-Pembayaran : Mandiri
+  // ── Regex untuk label umum ──
+  const labeled = {
+    name:    /^(nama|name)\s*[:：]\s*/i,
+    phone:   /^(no\.?\s*hp|no\.?\s*telp|telepon|hp|handphone|nomor|phone|wa)\s*[:：]\s*/i,
+    address: /^(alamat|address|kirim\s*ke|tujuan)\s*[:：]\s*/i,
+    order:   /^(order|pesanan|pesan|produk|item|barang)\s*[:：]\s*/i,
+    payment: /^(pembayaran|bayar|transfer\s*via|via|metode|payment)\s*[:：]\s*/i,
+    notes:   /^(catatan|note|notes|keterangan|info|permintaan)\s*[:：]\s*/i,
+  };
 
-Mohon dibantu isi form pemesanannya kak 😊🙏
-Nama : Budi Santoso
-Alamat : Jl. Melati No 7, Surabaya
-No Hp : 08123456789
-Order : plate 25cm 168rb, coral plate 22cm 158rb x2
-Pembayaran : BNI
+  const lines = text.split('\n');
+  let orderLines = []; // baris yang masuk ke bagian "order"
+  let inOrder = false;
+  let currentLabel = null;
 
-OUTPUT:
-[{"name":"Royhana","phone":"081239963633","address":"Jl. Damai No.02 Jakarta Timur","notes":"","payment":"Mandiri","items":[{"productName":"Hampers Lebaran","qty":2,"unitPrice":80000,"subtitle":""}]},{"name":"Budi Santoso","phone":"08123456789","address":"Jl. Melati No 7, Surabaya","notes":"","payment":"BNI","items":[{"productName":"Plate 25cm","qty":null,"unitPrice":168000,"subtitle":""},{"productName":"Coral Plate 22cm","qty":2,"unitPrice":158000,"subtitle":""}]}]
-`;
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.trim();
+    if (!line) {
+      // Baris kosong dalam order section → tetap di order (bisa antar item)
+      if (inOrder) orderLines.push('');
+      continue;
+    }
+
+    // Cek apakah ini baris berlabel
+    let matched = false;
+    for (const [key, re] of Object.entries(labeled)) {
+      if (re.test(line)) {
+        matched = true;
+        inOrder = (key === 'order');
+        currentLabel = key;
+        const val = line.replace(re, '').trim();
+
+        if (key === 'name')    result.name    = toTitleCase(val);
+        if (key === 'phone')   result.phone   = val;
+        if (key === 'address') result.address = val;
+        if (key === 'payment') result.payment = normPayment(val);
+        if (key === 'notes')   result.notes   = val;
+        if (key === 'order' && val) orderLines.push(val);
+        break;
+      }
+    }
+
+    if (!matched) {
+      if (inOrder) {
+        // Lanjutan bagian order
+        orderLines.push(line);
+      } else if (currentLabel === 'address' && !result.address) {
+        result.address = line;
+      } else {
+        // Coba deteksi tanpa label
+        // Nomor HP: mulai 08 / +62 / 62
+        if (!result.phone && /^(\+?62|08)\d{7,12}$/.test(line.replace(/[\s-]/g,''))) {
+          result.phone = line.trim();
+          continue;
+        }
+        // Jika ada kata "gratis" atau nama produk standalone (heuristic: bukan kalimat panjang)
+        if (line.split(/\s+/).length <= 8 && !SKIP_WORDS.has(line.split(/\s+/)[0].toLowerCase())) {
+          // Mungkin item order tanpa label
+          orderLines.push(line);
+        }
+      }
+    }
+  }
+
+  // Jika tidak ada name tapi ada data → coba ekstrak dari baris pertama
+  if (!result.name) {
+    const firstMeaningful = lines.find(l=>l.trim()&&!labeled.phone.test(l)&&!labeled.address.test(l));
+    if (firstMeaningful && firstMeaningful.trim().split(/\s+/).length <= 5) {
+      result.name = toTitleCase(firstMeaningful.trim());
+    }
+  }
+
+  // ── Parse items dari orderLines ──
+  result.items = parseOrderLines(orderLines);
+
+  return result;
+}
+
+/* ════════════════════════════
+   PARSE baris-baris order → array items
+   ════════════════════════════ */
+function parseOrderLines(lines) {
+  const items = [];
+
+  // Gabungkan baris yang mungkin lanjutan (tidak diawali angka/kata kunci baru)
+  const merged = [];
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (!l) continue;
+    merged.push(l);
+  }
+
+  // Tiap elemen merged → satu atau lebih item
+  // Pisah juga berdasarkan koma atau "dan" yang menghubungkan produk berbeda
+  const segments = [];
+  for (const line of merged) {
+    // Split "piring tahiti 6pcs, cangkir 2pcs" → dua item
+    // Tapi jangan split "25,5 x 14cm" → pertahankan ukuran
+    const parts = splitByCommaOrDan(line);
+    segments.push(...parts);
+  }
+
+  for (const seg of segments) {
+    const item = parseSegment(seg.trim());
+    if (item) items.push(item);
+  }
+
+  return items;
+}
+
+/* Pisah by koma/dan tapi pertahankan angka desimal */
+function splitByCommaOrDan(s) {
+  // Ganti koma desimal sementara
+  const safe = s.replace(/(\d),(\d)/g, '$1§$2');
+  // Split by koma atau " dan " yang diikuti huruf (bukan angka)
+  const parts = safe.split(/,(?!\s*\d)|(?<=\w)\s+dan\s+(?=[a-zA-Z])/i);
+  return parts.map(p => p.replace(/§/g, ',').trim()).filter(Boolean);
+}
+
+/* ── Parse satu segmen → satu item ── */
+function parseSegment(seg) {
+  if (!seg || seg.length < 2) return null;
+
+  // Cek gratis di awal kalimat → item gratis
+  const isGratis = isGratisClue(seg);
+
+  // Tokenisasi: pisah semua token
+  // Token: angka (dengan satuan), kata, tanda baca penting
+  const tokenRe = /rp\.?\s*[\d.,]+(?:rb|ribu|k)?|[\d.,]+(?:rb|ribu|k|pcs|buah|unit|bh|set|lusin|pak|pasang|x)?(?:\s*(?:pcs|buah|unit|bh|set|lusin|pak|x))?|\d+\s*[xX×]\s*\d+(?:cm)?|\d+(?:[,.]\d+)?(?:\s*cm)?|[a-zA-Z0-9]+(?:['-][a-zA-Z0-9]+)*/gi;
+  const rawTokens = seg.match(tokenRe) || [];
+
+  // Jika tidak ada token berguna
+  if (rawTokens.length === 0) return null;
+
+  let qty = null;
+  let unitPrice = null;
+  let nameTokens = [];
+  let subtitleTokens = [];
+
+  // Warna/varian → subtitle
+  const COLORS = ['hitam','putih','biru','merah','hijau','kuning','coklat','abu','pink','ungu',
+                  'gold','silver','natural','indigo','tosca','navy','cream','ivory','olive'];
+  const COLOR_RE = new RegExp(`\\b(${COLORS.join('|')})\\b`,'i');
+
+  // Pass 1: identifikasi qty di awal (pola: "angka set/pcs/... nama_produk")
+  // Pola: "1 set teko", "6pcs piring", "2 cangkir"
+  const qtyFirstRe = /^(\d+)\s*(set|pcs|buah|unit|bh|lusin|pak|pasang|x\s*\d+|[\d]+)?/i;
+  const qtyFirstMatch = seg.match(qtyFirstRe);
+
+  // Pass 2: identifikasi qty di akhir
+  // Pola: "piring tahiti 6pcs", "cappuccino cup x2"
+  const qtyLastRe = /[xX×]\s*(\d+)|(\d+)\s*(pcs|buah|unit|bh|set|pak|pasang|x)$/i;
+
+  // Pass 3: harga - format Rp, atau angka besar, atau rb/k suffix
+  const hargaRe = /rp\.?\s*([\d.,]+)|(\d[\d.,]*)\s*(rb|ribu|k)\b|([\d]{4,}[\d.,]*)/i;
+
+  let workSeg = seg;
+
+  // ── Ekstrak harga dulu ──
+  const hargaMatch = workSeg.match(/rp\.?\s*[\d.,]+(?:\s*(rb|ribu|k))?|([\d]{3,}(?:[.,]\d{3})+)|([\d]+(?:rb|ribu|k))/i);
+  if (hargaMatch) {
+    unitPrice = parseHarga(hargaMatch[0]);
+    workSeg = workSeg.replace(hargaMatch[0], ' ').trim();
+  }
+
+  // ── Ekstrak qty ──
+  // Pola: N x M (seperti "80.000 x 2") → qty = M, harga = N (sudah diambil)
+  const qtyMulMatch = workSeg.match(/[xX×]\s*(\d+)\s*(pcs|buah|unit|bh)?/i);
+  if (qtyMulMatch) {
+    qty = parseInt(qtyMulMatch[1]);
+    workSeg = workSeg.replace(qtyMulMatch[0], ' ').trim();
+  }
+
+  if (qty === null) {
+    // Pola: "6pcs" / "6 buah" / "6x" di mana saja
+    const qtyInlineMatch = workSeg.match(/\b(\d+)\s*(pcs|buah|unit|bh|lusin|pak|pasang)\b/i);
+    if (qtyInlineMatch) {
+      qty = parseInt(qtyInlineMatch[1]);
+      workSeg = workSeg.replace(qtyInlineMatch[0], ' ').trim();
+    }
+  }
+
+  if (qty === null) {
+    // Pola: angka di awal diikuti "set" atau nama produk
+    const qtyStartMatch = workSeg.match(/^(\d+)\s+(set\s+)?/i);
+    if (qtyStartMatch) {
+      const n = parseInt(qtyStartMatch[1]);
+      if (n <= 50) { // qty realistis
+        qty = n;
+        workSeg = workSeg.replace(qtyStartMatch[0], qtyStartMatch[2]||'').trim();
+      }
+    }
+  }
+
+  // ── Bersihkan sisa jadi nama produk ──
+  // Hapus kata "gratisan", "gratis", "bonus" dari nama
+  workSeg = workSeg.replace(/\bgratisan?\b|\bbonus\b|\bfree\b|\bhadiah\b/gi, '').trim();
+  // Hapus "dan" di awal/akhir
+  workSeg = workSeg.replace(/^\s*(dan|dan\s+)/i,'').replace(/(\s+dan)\s*$/i,'').trim();
+  // Hapus tanda baca sisa
+  workSeg = workSeg.replace(/^[,.;:]+|[,.;:]+$/g,'').trim();
+  // Hapus satuan kosong
+  workSeg = workSeg.replace(/^\s*set\s+/i,'').trim();
+
+  if (!workSeg || workSeg.length < 2) return null;
+
+  // ── Pisah subtitle (warna/varian) dari nama produk ──
+  let subtitle = '';
+  const colorMatch = workSeg.match(COLOR_RE);
+  if (colorMatch) {
+    subtitle = colorMatch[0];
+    // Jangan hapus warna dari nama produk kalau warna itu BAGIAN dari nama (heuristik: tetap di nama)
+    // Hanya jadikan subtitle kalau ada nama produk lain di depan
+    const beforeColor = workSeg.slice(0, workSeg.toLowerCase().indexOf(colorMatch[0].toLowerCase())).trim();
+    if (beforeColor.length >= 3) {
+      // Ada nama di depan warna → warna jadi subtitle
+      subtitle = workSeg.slice(workSeg.toLowerCase().indexOf(colorMatch[0].toLowerCase())).trim();
+      workSeg = beforeColor;
+    } else {
+      subtitle = '';
+    }
+  }
+
+  const productName = toTitleCase(workSeg);
+
+  // Jika tidak ada nama produk yang meaningful
+  if (!productName || productName.split(/\s+/).every(w => SKIP_WORDS.has(w.toLowerCase()))) return null;
+
+  return {
+    productName: productName + (isGratis ? ' (Gratis)' : ''),
+    qty,
+    unitPrice: isGratis && unitPrice === null ? 0 : unitPrice,
+    subtitle,
+  };
+}
+
+/* ════════════════════════════
+   MAIN PARSE ENTRY POINT
+   ════════════════════════════ */
+function parseOrderText(text) {
+  const blocks = splitOrders(text);
+  const results = blocks
+    .map(b => parseOneOrder(b))
+    .filter(r => r.name || r.phone || r.items.length > 0);
+
+  // Jika tidak ada yang terdeteksi sama sekali → coba parse seluruh teks sebagai satu order
+  if (results.length === 0) {
+    const single = parseOneOrder(text);
+    return [single];
+  }
+  return results;
+}
+
+/* ════════════════════════════ */
+
+const DUMMY = `// no AI - pure JS parser above`;
 
 async function doParse() {
   const text = document.getElementById('parse-input').value.trim();
-  if(!text) return;
+  if (!text) return;
   const btn = document.getElementById('parse-btn');
-  btn.disabled=true;
-  btn.innerHTML=`<div class="spin"></div> Parsing...`;
-  document.getElementById('parse-status').textContent='';
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spin"></div> Memproses...`;
+  document.getElementById('parse-status').textContent = '';
 
   try {
-    const userPrompt = `${PARSE_FEW_SHOTS}
----
-Sekarang parse teks berikut. Ingat: output HANYA JSON array, tidak ada teks lain.
+    // Simulasi delay kecil agar UI terasa responsif
+    await new Promise(r => setTimeout(r, 120));
 
-INPUT:
-${text}
+    parsedOrders = parseOrderText(text);
 
-OUTPUT:`;
-
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:2000,
-        system: PARSE_SYSTEM,
-        messages:[{role:'user', content: userPrompt}]
-      })
-    });
-
-    if(!res.ok) {
-      const errData = await res.json().catch(()=>({}));
-      throw new Error(`API error ${res.status}: ${errData.error?.message||res.statusText}`);
+    if (!parsedOrders.length || parsedOrders.every(o => !o.name && !o.phone && !o.items.length)) {
+      throw new Error('Tidak ada data yang bisa dideteksi dari teks ini');
     }
 
-    const data = await res.json();
-    const raw = (data.content||[]).map(b=>b.text||'').join('').trim();
-
-    // Robust JSON extraction - cari [ ... ] outermost
-    const start = raw.indexOf('[');
-    const end = raw.lastIndexOf(']');
-    if(start===-1||end===-1||end<=start) throw new Error('Tidak ada JSON array di respons model');
-    const jsonStr = raw.slice(start, end+1);
-    parsedOrders = JSON.parse(jsonStr);
-
-    if(!Array.isArray(parsedOrders)||parsedOrders.length===0)
-      throw new Error('Parse berhasil tapi tidak ada order terdeteksi');
-
     parsedTab = 0;
-    document.getElementById('parse-status').textContent=`✓ ${parsedOrders.length} order terdeteksi`;
+    document.getElementById('parse-status').textContent = `✓ ${parsedOrders.length} order terdeteksi`;
     renderParseResults();
-    toast(`${parsedOrders.length} order berhasil di-parse`,'ok');
+    toast(`${parsedOrders.length} order berhasil di-parse`, 'ok');
 
-  } catch(err) {
-    console.error('Parse error:', err);
-    toast('Gagal parse: '+err.message,'err');
-    document.getElementById('parse-status').textContent='⚠ '+err.message;
+  } catch (err) {
+    toast('Parse gagal: ' + err.message, 'err');
+    document.getElementById('parse-status').textContent = '⚠ ' + err.message;
   } finally {
-    btn.disabled=false;
-    btn.innerHTML=`<svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Parse dengan AI`;
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Parse Otomatis`;
   }
 }
 
@@ -1320,7 +1570,6 @@ function switchParsedTab(i) {
 
 function applyParsed(idx) {
   const p = parsedOrders[idx];
-  // Match payment
   let pm = 'BNI';
   if(p.payment){
     const lc=p.payment.toLowerCase();

@@ -1122,6 +1122,96 @@ function sendWA() {
 // ════════════════════════════════════════
 // AI PARSE
 // ════════════════════════════════════════
+
+const PARSE_SYSTEM = `Kamu adalah asisten cerdas untuk toko keramik online Naruna Ceramic (Indonesia).
+Tugasmu: membaca pesan WhatsApp dari customer - dalam format APAPUN - dan mengekstrak data order menjadi JSON terstruktur.
+
+KEMAMPUAN YANG DIHARAPKAN:
+- Memahami bahasa campuran Indonesia/Jawa/singkatan/typo
+- Mengenali format yang sangat bervariasi (ada label "Nama:", ada yang langsung tulis, ada baris kosong antar item)
+- Memisahkan beberapa order dalam satu teks (tiap order = satu objek di array)
+- Mengidentifikasi produk keramik dari deskripsi bebas
+- Mengenali harga dalam berbagai format: 80.000 / 80rb / 80k / Rp80.000 / 80,000
+- Mengenali qty: "6pcs" / "6 buah" / "6x" / "x6" / "enam" / "2 set"
+- Mengenali kata "gratis" / "gratisan" / "bonus" → unitPrice = 0
+- Memahami "transfer" / "tf" / "link kredit" / "cc" → payment = "transfer" (bukan bank spesifik)
+- Normalisasi nama bank: "bni" / "BNI" → "BNI", "bank jateng" / "bjtg" → "BankJateng"
+- Jika tidak ada info → isi null, jangan mengarang
+
+ATURAN PENTING:
+1. Setiap baris/klausa yang menyebut produk berbeda = item TERPISAH
+2. Dimensi (26cm, 25x14cm) = masuk productName bukan subtitle, kecuali ada keterangan warna/varian → subtitle
+3. Kata "set" = satuan qty, bukan nama produk. "1 set teko" → productName:"Teko", qty:1
+4. Angka setelah nama produk tanpa satuan yang jelas → coba tebak: kalau kecil (1-20) kemungkinan qty, kalau besar (>1000) kemungkinan harga
+5. Nama produk: Title Case, hapus typo jelas, pertahankan nama asli yang sudah dikenal
+6. subtitle: warna, varian, keterangan tambahan singkat ("biru hitam", "default", "S", "reguler")
+7. Baris kosong antar item BUKAN berarti order baru - order baru hanya jika ada nama/customer baru
+
+OUTPUT: HANYA JSON array valid. Tidak ada teks lain, tidak ada markdown.
+Format: [{"name":"","phone":"","address":"","notes":"","payment":"","items":[{"productName":"","qty":null,"unitPrice":null,"subtitle":""}]}]`;
+
+const PARSE_FEW_SHOTS = `
+CONTOH 1 - Format label standar, multi item campur gratis:
+INPUT:
+Nama : Vonny
+Alamat : Pondok Surya Kencana 1 C 9 Gentong Pasuruan
+No Hp : 081937159822
+Order : piring tahiti indigo  6pcs 26cm.. gratisan cangkir senada dan sendok kayu
+
+1 set pumkins series biru
+
+1 set teko handle 90derajat biru hitam 2 cangkir tatakan
+
+Pembayaran : transfer atau link kreditcard
+
+OUTPUT:
+[{"name":"Vonny","phone":"081937159822","address":"Pondok Surya Kencana 1 C 9 Gentong Pasuruan","notes":"","payment":"transfer","items":[{"productName":"Piring Tahiti Indigo 26cm","qty":6,"unitPrice":null,"subtitle":"indigo"},{"productName":"Cangkir Senada (Gratis)","qty":null,"unitPrice":0,"subtitle":"senada"},{"productName":"Sendok Kayu (Gratis)","qty":null,"unitPrice":0,"subtitle":""},{"productName":"Set Pumpkins Series","qty":1,"unitPrice":null,"subtitle":"biru"},{"productName":"Teko Handle 90 Derajat","qty":1,"unitPrice":null,"subtitle":"biru hitam"},{"productName":"Cangkir Tatakan","qty":2,"unitPrice":null,"subtitle":""}]}]
+
+CONTOH 2 - Format santai, harga campur qty, singkat:
+INPUT:
+Mohon dibantu isi form pemesanannya kak 😊🙏
+Nama : Royhana
+Alamat : jl. Damai no.02 RT.014/004 kel. Susukan kec. Ciracas Jakarta Timur 13750
+No Hp : 081239963633
+Order : hampers Lebaran 80.000 x 2 pcs
+Pembayaran : Mandiri
+
+OUTPUT:
+[{"name":"Royhana","phone":"081239963633","address":"Jl. Damai No.02 RT.014/004 Kel. Susukan Kec. Ciracas Jakarta Timur 13750","notes":"","payment":"Mandiri","items":[{"productName":"Hampers Lebaran","qty":2,"unitPrice":80000,"subtitle":""}]}]
+
+CONTOH 3 - Tanpa label, format bebas:
+INPUT:
+halo kak mau pesan
+bowl coral 1 pcs 250rb
+oval plate S 135.000
+cappucino cup 2x 120k
+alamat: jl merdeka 5 bandung
+hp 082211223344
+bca aja
+
+OUTPUT:
+[{"name":"","phone":"082211223344","address":"Jl. Merdeka 5 Bandung","notes":"","payment":"BCA","items":[{"productName":"Bowl Coral","qty":1,"unitPrice":250000,"subtitle":""},{"productName":"Oval Plate S","qty":null,"unitPrice":135000,"subtitle":""},{"productName":"Cappucino Cup","qty":2,"unitPrice":120000,"subtitle":""}]}]
+
+CONTOH 4 - Dua order berbeda dalam satu teks:
+INPUT:
+Untuk pemesanan mohon mengisi data berikut 😊🙏
+Nama : Royhana
+Alamat : jl. Damai no.02 Jakarta Timur
+No Hp : 081239963633
+Order : hampers Lebaran 80.000 x 2 pcs
+Pembayaran : Mandiri
+
+Mohon dibantu isi form pemesanannya kak 😊🙏
+Nama : Budi Santoso
+Alamat : Jl. Melati No 7, Surabaya
+No Hp : 08123456789
+Order : plate 25cm 168rb, coral plate 22cm 158rb x2
+Pembayaran : BNI
+
+OUTPUT:
+[{"name":"Royhana","phone":"081239963633","address":"Jl. Damai No.02 Jakarta Timur","notes":"","payment":"Mandiri","items":[{"productName":"Hampers Lebaran","qty":2,"unitPrice":80000,"subtitle":""}]},{"name":"Budi Santoso","phone":"08123456789","address":"Jl. Melati No 7, Surabaya","notes":"","payment":"BNI","items":[{"productName":"Plate 25cm","qty":null,"unitPrice":168000,"subtitle":""},{"productName":"Coral Plate 22cm","qty":2,"unitPrice":158000,"subtitle":""}]}]
+`;
+
 async function doParse() {
   const text = document.getElementById('parse-input').value.trim();
   if(!text) return;
@@ -1131,29 +1221,14 @@ async function doParse() {
   document.getElementById('parse-status').textContent='';
 
   try {
-    const prompt = `Kamu adalah parser untuk toko keramik online Indonesia.
-Dari teks berikut, ekstrak data customer dan order. Bisa ada SATU atau BEBERAPA order sekaligus.
+    const userPrompt = `${PARSE_FEW_SHOTS}
+---
+Sekarang parse teks berikut. Ingat: output HANYA JSON array, tidak ada teks lain.
 
-Untuk setiap order, ekstrak:
-- name: nama customer
-- phone: nomor HP
-- address: alamat lengkap
-- notes: catatan tambahan (jika ada)
-- payment: metode pembayaran (BNI/BRI/BCA/Mandiri/BankJateng - normalisasi ke salah satunya jika cocok)
-- items: array of { productName, qty (angka atau null), unitPrice (angka atau null), subtitle }
+INPUT:
+${text}
 
-Aturan items:
-- "hampers Lebaran 80.000 x 2 pcs" → productName:"Hampers Lebaran", qty:2, unitPrice:80000
-- "piring tahiti indigo 6pcs 26cm" → productName:"Piring Tahiti Indigo 26cm", qty:6, unitPrice:null
-- "gratisan cangkir senada" → productName:"Cangkir Senada (Gratis)", qty:null, unitPrice:0
-- "1 set pumkins series biru" → productName:"Set Pumpkins Series Biru", qty:1, unitPrice:null
-- Pisahkan setiap produk yang berbeda menjadi item terpisah
-
-Kembalikan HANYA JSON valid (tanpa markdown, tanpa penjelasan):
-[{"name":"","phone":"","address":"","notes":"","payment":"","items":[{"productName":"","qty":null,"unitPrice":null,"subtitle":""}]}]
-
-Teks:
-${text}`;
+OUTPUT:`;
 
     const res = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -1161,25 +1236,38 @@ ${text}`;
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:2000,
-        messages:[{role:'user',content:prompt}]
+        system: PARSE_SYSTEM,
+        messages:[{role:'user', content: userPrompt}]
       })
     });
+
+    if(!res.ok) {
+      const errData = await res.json().catch(()=>({}));
+      throw new Error(`API error ${res.status}: ${errData.error?.message||res.statusText}`);
+    }
+
     const data = await res.json();
-    const raw = (data.content||[]).map(b=>b.text||'').join('');
-const clean = raw.replace(/```json|```/g,'').trim();
-// Ekstrak substring JSON array [ ... ] secara robust
-const start = clean.indexOf('[');
-const end = clean.lastIndexOf(']');
-if (start === -1 || end === -1) throw new Error('Tidak ada JSON array di response');
-parsedOrders = JSON.parse(clean.slice(start, end + 1));
+    const raw = (data.content||[]).map(b=>b.text||'').join('').trim();
+
+    // Robust JSON extraction - cari [ ... ] outermost
+    const start = raw.indexOf('[');
+    const end = raw.lastIndexOf(']');
+    if(start===-1||end===-1||end<=start) throw new Error('Tidak ada JSON array di respons model');
+    const jsonStr = raw.slice(start, end+1);
+    parsedOrders = JSON.parse(jsonStr);
+
+    if(!Array.isArray(parsedOrders)||parsedOrders.length===0)
+      throw new Error('Parse berhasil tapi tidak ada order terdeteksi');
 
     parsedTab = 0;
     document.getElementById('parse-status').textContent=`✓ ${parsedOrders.length} order terdeteksi`;
     renderParseResults();
     toast(`${parsedOrders.length} order berhasil di-parse`,'ok');
+
   } catch(err) {
+    console.error('Parse error:', err);
     toast('Gagal parse: '+err.message,'err');
-    document.getElementById('parse-status').textContent='';
+    document.getElementById('parse-status').textContent='⚠ '+err.message;
   } finally {
     btn.disabled=false;
     btn.innerHTML=`<svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Parse dengan AI`;

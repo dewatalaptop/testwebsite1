@@ -323,6 +323,22 @@ body{font-family:var(--F);background:var(--bg);color:var(--ink);-webkit-font-smo
 .wa-phone-inp{flex:1;min-width:150px;padding:8px 11px;border-radius:8px;border:1.5px solid var(--border);font-family:var(--F);font-size:12.5px;color:var(--ink);background:var(--bg3)}
 .wa-phone-inp:focus{outline:none;border-color:#25D366;box-shadow:0 0 0 2px rgba(37,211,102,.12)}
 
+/* ══ SAVED NUMBERS ══ */
+.sn-wrap{display:flex;flex-direction:column;gap:6px;width:100%}
+.sn-row{display:flex;gap:6px;align-items:center}
+.sn-input{flex:1;padding:8px 11px;border-radius:8px;border:1.5px solid var(--border);font-family:var(--F);font-size:12.5px;color:var(--ink);background:var(--bg3);transition:all .15s}
+.sn-input:focus{outline:none;border-color:#25D366;box-shadow:0 0 0 2px rgba(37,211,102,.12)}
+.sn-input::placeholder{color:var(--ink3)}
+.sn-save-btn{padding:7px 11px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);cursor:pointer;font-size:11.5px;font-weight:600;color:var(--ink2);font-family:var(--F);white-space:nowrap;transition:all .15s}
+.sn-save-btn:hover{background:var(--accent-light);border-color:var(--accent3);color:var(--accent)}
+.sn-slots{display:flex;flex-wrap:wrap;gap:5px}
+.sn-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:16px;border:1.5px solid var(--border);background:var(--bg3);cursor:pointer;font-size:11.5px;font-family:var(--F);color:var(--ink2);transition:all .15s;max-width:180px}
+.sn-chip:hover{border-color:#25D366;background:#f0fff4;color:#1e5c3a}
+.sn-chip-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.sn-chip-del{color:var(--ink3);font-size:13px;line-height:1;flex-shrink:0;padding:0 1px}
+.sn-chip-del:hover{color:var(--danger)}
+.sn-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:2px}
+
 /* ══ PRINT ══ */
 @media print{
   .sidebar,.topbar,.page-head,.card,.prev-bar,.modal-ov,.btn-row,#toast-ct,
@@ -659,10 +675,19 @@ Pembayaran : transfer atau link kreditcard"></textarea>
       <div class="form-label" style="margin-bottom:7px">Preview Pesan</div>
       <div class="wa-prev" id="wa-prev"></div>
     </div>
-    <div class="modal-foot">
-      <input class="wa-phone-inp" id="wa-phone" placeholder="No WA customer: 0812xxxx (opsional)"/>
-      <button class="btn btn-secondary btn-sm" onclick="copyWA()">Salin</button>
-      <button class="btn btn-wa btn-sm" onclick="sendWA()">Kirim WA</button>
+    <div class="modal-foot" style="flex-direction:column;gap:10px">
+      <div class="sn-wrap">
+        <div class="sn-label">Kirim ke nomor</div>
+        <div class="sn-row">
+          <input class="sn-input" id="wa-phone" placeholder="Nomor WA tujuan (0812xxxx...)"/>
+          <button class="sn-save-btn" onclick="saveWANumber()" title="Simpan nomor ini">+ Simpan</button>
+        </div>
+        <div class="sn-slots" id="sn-slots"></div>
+      </div>
+      <div style="display:flex;gap:7px;justify-content:flex-end;width:100%">
+        <button class="btn btn-secondary btn-sm" onclick="copyWA()">Salin Teks</button>
+        <button class="btn btn-wa btn-sm" onclick="sendWA()">Kirim WA &rarr;</button>
+      </div>
     </div>
   </div>
 </div>
@@ -781,14 +806,29 @@ function toast(msg,type='ok',icon=''){
 // ═══════════════════════════════════════════
 async function init(){
   await openDB();
+  // Restore logo
   const logo=await dbGet('settings','logo');
   if(logo?.value){logoDataUrl=logo.value;applyLogoUI();}
+  // Restore WA saved numbers
+  await loadSavedNumbers();
+  // Restore sesi terakhir
+  let restored=false;
+  try{
+    const lastSess=await dbGet('settings','last_session');
+    if(lastSess?.value){
+      const rec=await dbGet('drafts',lastSess.value);
+      if(rec){state=coerceState(rec);restored=true;}
+    }
+  }catch(e){}
+  if(!restored){
+    const no=await genOrderNo();
+    state.orderNo=no;
+  }
   await refreshDrafts();
-  const no=await genOrderNo();
-  state.orderNo=no;
   fillForm();
   setupKeyboard();
   scheduleAutoSave();
+  if(restored) toast('Sesi terakhir dipulihkan','info','🔄');
 }
 init().catch(e=>{console.error(e);toast('Init error: '+e.message,'err','⚠');});
 
@@ -815,11 +855,14 @@ function setupKeyboard(){
 function scheduleAutoSave(){
   clearInterval(autoSaveTimer);
   autoSaveTimer=setInterval(async()=>{
+    readForm();
     if(unsaved){
-      readForm();
       await doSave(true);
+    } else {
+      // Tetap update last_session pointer meski tidak ada perubahan
+      await dbPut('settings',{key:'last_session',value:state.id});
     }
-  },30000);
+  },15000);
 }
 function markUnsaved(){
   unsaved=true;
@@ -1015,6 +1058,8 @@ async function saveDraft(){readForm();await doSave(false);}
 async function doSave(auto=false){
   const rec={...coerceState(state),savedAt:Date.now()};
   await dbPut('drafts',rec);
+  // Selalu simpan sesi terakhir
+  await dbPut('settings',{key:'last_session',value:state.id});
   await refreshDrafts();
   markSaved();
   if(auto){
@@ -1066,6 +1111,8 @@ async function newInvoice(){
   document.getElementById('parse-status').textContent='';
   parsedOrders=[];
   closeSidebar();
+  // Simpan pointer ke sesi baru
+  await dbPut('settings',{key:'last_session',value:state.id});
 }
 
 // ═══════════════════════════════════════════
@@ -1162,7 +1209,7 @@ function renderInvoice(){
         <div class="inv-brand-col">
           ${logo}
           <div class="inv-brand-name">Naruna Ceramic</div>
-          <div class="inv-brand-sub">naruna.id</div>
+          <div class="inv-brand-sub">www.narunaceramic.com</div>
         </div>
       </div>
 
@@ -1216,7 +1263,7 @@ function renderInvoice(){
         </div>
         <div class="inv-foot-brand">
           <div class="inv-foot-name">Naruna Ceramic</div>
-          <div class="inv-foot-web">naruna.id</div>
+          <div class="inv-foot-web">www.narunaceramic.com</div>
         </div>
       </div>
     </div>
@@ -1251,7 +1298,7 @@ function buildWA(){
 
   let m='Oke, untuk rangkuman pesanan kakak, ini ya :\n';
   m+=`No Pesanan : ${no}\n`;
-  if(state.customer.name) m+=`\u{1F464} : ${state.customer.name}\n`;
+  if(state.customer.name) m+=`\u{1F464} : ${state.customer.name}${state.customer.phone?' ('+state.customer.phone+')':''}\n`;
   if(lines) m+=`\u{1F6D2} : ${lines}\n`;
   if(state.customer.address) m+=`\u{1F4CD} : ${state.customer.address}\n`;
   if(state.shipType||state.shipCost){
@@ -1265,10 +1312,61 @@ function buildWA(){
   m+=`\nTotal ${fmtRp(total)} akan kita proses pada saat pembayaran sudah kami terima ya, Kak! Mohon mengirimkan bukti transfer jikalau sudah melakukan transfer. Terima kasih \u{1F64F}`;
   return m;
 }
+// ── Saved WA Numbers ──
+let savedNumbers=[];
+
+async function loadSavedNumbers(){
+  try{
+    const rec=await dbGet('settings','wa_numbers');
+    if(rec?.value) savedNumbers=rec.value;
+  }catch(e){savedNumbers=[];}
+  renderSavedNumbers();
+}
+
+async function saveWANumber(){
+  const inp=document.getElementById('wa-phone');
+  const raw=inp.value.replace(/[^0-9+]/g,'').trim();
+  if(!raw){toast('Masukkan nomor dulu','warn','⚠');return;}
+  // Normalisasi: 08xxx → simpan apa adanya, tampilkan apa adanya
+  if(savedNumbers.includes(raw)){toast('Nomor sudah tersimpan','info','ℹ');return;}
+  savedNumbers.unshift(raw);
+  if(savedNumbers.length>4) savedNumbers=savedNumbers.slice(0,4);
+  await dbPut('settings',{key:'wa_numbers',value:savedNumbers});
+  renderSavedNumbers();
+  toast('Nomor disimpan','ok','✓');
+}
+
+async function removeSavedNumber(num){
+  savedNumbers=savedNumbers.filter(n=>n!==num);
+  await dbPut('settings',{key:'wa_numbers',value:savedNumbers});
+  renderSavedNumbers();
+}
+
+function renderSavedNumbers(){
+  const el=document.getElementById('sn-slots');
+  if(!el)return;
+  if(!savedNumbers.length){
+    el.innerHTML='<span style="font-size:11px;color:var(--ink3);font-style:italic">Belum ada nomor tersimpan (maks 4)</span>';
+    return;
+  }
+  el.innerHTML=savedNumbers.map(n=>`
+    <div class="sn-chip" onclick="useNumber('${n}')">
+      <span class="sn-chip-label">${n}</span>
+      <span class="sn-chip-del" onclick="event.stopPropagation();removeSavedNumber('${n}')">&#x00D7;</span>
+    </div>`).join('');
+}
+
+function useNumber(n){
+  document.getElementById('wa-phone').value=n;
+  // Visual feedback
+  toast('Nomor dipilih: '+n,'info','📞');
+}
+
 function openWAModal(){
   document.getElementById('wa-prev').textContent=buildWA();
   document.getElementById('wa-modal').classList.remove('hidden');
-  // Ambil dari inline input, fallback ke nomor customer
+  renderSavedNumbers();
+  // Default: nomor dari inline input, fallback ke customer
   const inlineVal=document.getElementById('wa-inline-phone').value.replace(/[^0-9+]/g,'');
   const custPh=(state.customer.phone||'').replace(/[^0-9]/g,'');
   document.getElementById('wa-phone').value=inlineVal||custPh;

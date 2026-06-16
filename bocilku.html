@@ -233,6 +233,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .photo-lightbox{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease}
 .photo-lightbox img{max-width:94vw;max-height:88vh;object-fit:contain;border-radius:10px}
 .photo-lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.conn-banner{position:fixed;top:0;left:0;right:0;z-index:999;background:#e53935;color:white;text-align:center;font-size:12px;font-weight:700;padding:6px;font-family:var(--font-main);animation:slideDown 0.3s ease;letter-spacing:0.3px}
+@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 @media(max-width:390px){.msg-col{max-width:82%}.sticker-grid,.admin-sticker-grid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
@@ -418,6 +420,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 </div>
 <!-- TOAST & REACTION -->
 <div id="toast" class="toast hidden"></div>
+<div id="conn-banner" class="conn-banner hidden">&#x26A0;&#xFE0F; Koneksi terputus — mencoba menyambung kembali...</div>
 <div id="reaction-picker" class="reaction-picker hidden">
   <span onclick="addReaction('&#x1F60A;')">&#x1F60A;</span><span onclick="addReaction('&#x1F602;')">&#x1F602;</span>
   <span onclick="addReaction('&#x1F929;')">&#x1F929;</span><span onclick="addReaction('&#x1F62E;')">&#x1F62E;</span>
@@ -433,7 +436,19 @@ import{getStorage,ref as sRef,uploadBytes,getDownloadURL,deleteObject}from"https
 const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
 const storage=getStorage(fbApp);
-let APP_CONFIG=JSON.parse(localStorage.getItem('cc-cfg')||'null')||JSON.parse(JSON.stringify(DEFAULT_CFG));
+// Validasi & load APP_CONFIG dari localStorage
+function loadConfig(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('cc-cfg')||'null');
+    if(saved&&saved.user1?.id&&saved.user2?.id&&saved.roomId&&saved.user1?.pin&&saved.user2?.pin){
+      // Pastikan isAdmin tetap benar (tidak bisa diubah dari localStorage)
+      saved.user1.isAdmin=true;saved.user2.isAdmin=false;
+      return saved;
+    }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_CFG));
+}
+let APP_CONFIG=loadConfig();
 let currentUser=null,otherUser=null,todayDateStr=getTodayStr(),unsubMessages=null;
 let currentTheme=localStorage.getItem("cc-theme")||"default";
 let allStickers=[],stickerTab="all",reactionTarget=null;
@@ -442,6 +457,8 @@ let mediaRecorder=null,audioChunks=[],isRecording=false;
 let activeAudio=null,activePlayBtn=null,activeFill=null;
 let profilePhotos=JSON.parse(localStorage.getItem('cc-profiles')||'{}');
 let profileModalTarget=null,adminPinBuf="",adminTab="photos",selectedMedia=new Set();
+let unsubTyping=null; // listener typing — harus di-cleanup saat logout
+function setConnected(ok){const b=el('conn-banner');if(b)b.classList.toggle('hidden',ok);}
 const THEMES=[{id:"default",name:"Langit",emoji:"\u2601\uFE0F",bg:"#eef5fc",accent:"#2186d4"},{id:"sky",name:"Biru",emoji:"\u{1F324}\uFE0F",bg:"#dff0fb",accent:"#0288d1"},{id:"mint",name:"Mint",emoji:"\u{1F33F}",bg:"#e8f5f0",accent:"#00897b"},{id:"slate",name:"Slate",emoji:"\u{1FAA8}",bg:"#edf1f7",accent:"#546e8a"},{id:"lavender",name:"Lavender",emoji:"\u{1FAB3}",bg:"#f0eef8",accent:"#6767b8"},{id:"cloud",name:"Mendung",emoji:"\u{1F32B}\uFE0F",bg:"#f4f7fa",accent:"#4a8fb8"},{id:"night",name:"Malam",emoji:"\u{1F319}",bg:"#111825",accent:"#4a8fe0"},{id:"warm",name:"Hangat",emoji:"\u{1F343}",bg:"#f5f0e8",accent:"#6a8e68"}];
 function getTodayStr(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function formatDate(s){const[y,m,d]=s.split("-");const date=new Date(y,m-1,d),today=new Date();today.setHours(0,0,0,0);const yest=new Date(today);yest.setDate(today.getDate()-1);if(date.toDateString()===today.toDateString())return"Hari ini";if(date.toDateString()===yest.toDateString())return"Kemarin";return date.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
@@ -470,18 +487,35 @@ function loginAs(uid){
   renderHeaderAvatars();applyTheme(currentTheme);startChat();loadStickers();loadPartnerProfile();
   localStorage.setItem('cc-user',uid);
 }
-window.logout=()=>{if(unsubMessages)unsubMessages();if(isRecording)stopRecord();currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');localStorage.removeItem('cc-user');};
+window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');if(mediaRecorder){try{mediaRecorder.stop();}catch(e){}mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}isRecording=false;}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');localStorage.removeItem('cc-user');};
 // CHAT
 const msgCol=()=>collection(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages');
-function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));unsubMessages=onSnapshot(q,snap=>{snap.docChanges().forEach(ch=>{if(ch.type==='added')renderMessage(ch.doc.id,ch.doc.data());if(ch.type==='modified'){const row=document.querySelector('[data-id="'+ch.doc.id+'"]');if(row)updateReactionsUI(row,ch.doc.data().reactions||{});}});scrollToBottom();watchTyping();});}
+function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));unsubMessages=onSnapshot(q,snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==='added')renderMessage(ch.doc.id,ch.doc.data());
+      if(ch.type==='modified'){const row=document.querySelector('[data-id="'+ch.doc.id+'"]');if(row)updateReactionsUI(row,ch.doc.data().reactions||{});}
+      if(ch.type==='removed'){const row=document.querySelector('[data-id="'+ch.doc.id+'"]');if(row)row.remove();}
+    });
+    scrollToBottom();
+    setConnected(true);
+  },err=>{
+    console.error('Firestore sync error:',err);
+    setConnected(false);
+    // Retry otomatis setelah 5 detik
+    setTimeout(()=>{if(currentUser)startChat();},5000);
+  });
+  watchTyping(); // dipanggil sekali saja, bukan di dalam onSnapshot}
 function renderMessage(id,data,readOnly=false,container=null){
   const target=container||el('messages-inner');
-  const isMe=data.senderId===currentUser?.id;
+  // Resolve identitas — aman untuk history view (currentUser bisa null jika dibuka dari login screen)
+  const knownId=currentUser?.id||localStorage.getItem('cc-user');
+  const isMe=data.senderId===knownId;
   const row=document.createElement('div');row.className='msg-row '+(isMe?'me':'other');row.dataset.id=id;
+  const senderCfg=APP_CONFIG[data.senderId]||{};
   const av=document.createElement('div');av.className='msg-av';
-  if(!isMe){const ph=profilePhotos[data.senderId];if(ph){av.innerHTML='<img src="'+ph+'">';}else{av.textContent=otherUser?.avatar||'\u{1F33F}';}}else{av.style.display='none';}
+  if(!isMe){const ph=profilePhotos[data.senderId];if(ph){av.innerHTML='<img src="'+ph+'">';}else{av.textContent=senderCfg.avatar||otherUser?.avatar||'\u{1F33F}';}}else{av.style.display='none';}
   const col=document.createElement('div');col.className='msg-col';
-  const name=document.createElement('div');name.className='msg-name';name.textContent=isMe?currentUser.name:(otherUser?.name||'Partner');
+  const name=document.createElement('div');name.className='msg-name';name.textContent=data.senderName||senderCfg.name||'Partner';
   const bubble=document.createElement('div');bubble.className='msg-bubble';
   if(data.type==='sticker'){bubble.classList.add('is-sticker');const img=document.createElement('img');img.src=data.content;img.loading='lazy';bubble.appendChild(img);}
   else if(data.type==='photo'){bubble.classList.add('is-photo');const img=document.createElement('img');img.src=data.content;img.loading='lazy';img.onclick=()=>openLightbox(data.content);bubble.appendChild(img);}
@@ -514,7 +548,8 @@ function buildVoicePlayer(url,duration){
   wrap.appendChild(btn);wrap.appendChild(ww);wrap.appendChild(dur);return wrap;
 }
 function openLightbox(url){const lb=document.createElement('div');lb.className='photo-lightbox';const img=document.createElement('img');img.src=url;const c=document.createElement('button');c.className='photo-lightbox-close';c.textContent='\u2715';c.onclick=()=>lb.remove();lb.onclick=e=>{if(e.target===lb)lb.remove();};lb.appendChild(img);lb.appendChild(c);document.body.appendChild(lb);}
-window.sendMessage=async()=>{const inp=el('msg-input'),text=inp.value.trim();if(!text||!currentUser)return;inp.value="";resizeInput();try{await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'text',content:text,timestamp:serverTimestamp(),reactions:{}});setTypingStatus(false);}catch(e){showToast('Gagal mengirim');}};
+let _sending=false;
+window.sendMessage=async()=>{const inp=el('msg-input'),text=inp.value.trim();if(!text||!currentUser||_sending)return;_sending=true;inp.value="";resizeInput();try{await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'text',content:text,timestamp:serverTimestamp(),reactions:{}});setTypingStatus(false);}catch(e){showToast('Gagal mengirim');inp.value=text;}finally{_sending=false;}};
 async function sendSticker(url){if(!currentUser)return;closeStickers();try{await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
 window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const c=await compressImage(file,800,0.55);prog.setText('Mengunggah...');const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),c);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
 function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej('fail');},'image/jpeg',quality);};img.onerror=rej;img.src=url;});}
@@ -524,7 +559,8 @@ async function stopRecord(){if(!mediaRecorder)return;isRecording=false;el('recor
 function getAudioDur(blob){return new Promise(res=>{const a=new Audio();a.src=URL.createObjectURL(blob);a.onloadedmetadata=()=>{URL.revokeObjectURL(a.src);res(a.duration||0);};a.onerror=()=>res(0);});}
 function scrollToBottom(){setTimeout(()=>{el('messages-area').scrollTop=9e9;},50);}
 async function setTypingStatus(val){if(!currentUser)return;try{await setDoc(doc(db,'rooms',APP_CONFIG.roomId,'typing',currentUser.id),{typing:val,ts:serverTimestamp()});}catch(e){}}
-function watchTyping(){if(!otherUser)return;onSnapshot(doc(db,'rooms',APP_CONFIG.roomId,'typing',otherUser.id),snap=>{el('typing-indicator').classList.toggle('hidden',!(snap.exists()&&snap.data().typing));if(snap.exists()&&snap.data().typing)scrollToBottom();});}
+function watchTyping(){if(!otherUser)return;if(unsubTyping)unsubTyping(); // cleanup listener lama
+unsubTyping=onSnapshot(doc(db,'rooms',APP_CONFIG.roomId,'typing',otherUser.id),snap=>{el('typing-indicator').classList.toggle('hidden',!(snap.exists()&&snap.data().typing));if(snap.exists()&&snap.data().typing)scrollToBottom();setConnected(true);},err=>{console.warn('typing listener error:',err);});}
 window.onTyping=ta=>{resizeInput();setTypingStatus(true);clearTimeout(typingTimeout);typingTimeout=setTimeout(()=>setTypingStatus(false),2000);};
 window.onInputKeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}};
 function resizeInput(){const ta=el('msg-input');ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,100)+'px';}
@@ -548,7 +584,10 @@ function renderStickerGrid(container,adminDelete){
 }
 window.uploadStickers=async event=>{const files=Array.from(event.target.files);if(!files.length)return;event.target.value="";const prog=showProgress('Upload '+files.length+' stiker...');try{for(const file of files){const path='stickers/'+currentUser.id+'/'+Date.now()+'_'+file.name;await uploadBytes(sRef(storage,path),file);const url=await getDownloadURL(sRef(storage,path));const dRef=await addDoc(collection(db,'stickers'),{url,storagePath:path,uploaderId:currentUser.id,uploaderName:currentUser.name,createdAt:serverTimestamp()});allStickers.push({id:dRef.id,url,storagePath:path,uploaderId:currentUser.id});}renderStickerGrid();showToast(files.length+' stiker ditambahkan!');}catch(e){showToast('Gagal upload stiker');}finally{prog.remove();}};
 // HISTORY
-window.openHistory=async()=>{const list=el('history-list'),empty=el('history-empty');list.innerHTML="";try{const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const past=snap.docs.map(d=>d.id).sort().reverse().filter(d=>d!==todayDateStr);if(!past.length){empty.classList.remove('hidden');}else{empty.classList.add('hidden');for(const d of past){const ms=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages'));const item=document.createElement('div');item.className='history-item';item.innerHTML='<div class="history-item-left"><h4>'+formatDate(d)+'</h4><p>'+d+'</p></div><div style="display:flex;align-items:center;gap:8px"><span class="history-item-badge">'+ms.size+' pesan</span><span style="color:var(--text-secondary);font-size:18px">\u203A</span></div>';item.onclick=()=>{closeHistory();openHistoryView(d,ms.docs);};list.appendChild(item);}}}catch(e){list.innerHTML='<p style="color:var(--text-secondary);text-align:center;padding:20px">Gagal memuat.</p>';}toggleSheet('history',true);};
+window.openHistory=async()=>{const list=el('history-list'),empty=el('history-empty');list.innerHTML="";try{const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const past=snap.docs.map(d=>d.id).sort().reverse().filter(d=>d!==todayDateStr);if(!past.length){empty.classList.remove('hidden');}else{empty.classList.add('hidden');
+  // Ambil semua message count paralel (bukan satu per satu)
+  const results=await Promise.all(past.map(d=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages')).then(ms=>({d,ms}))));
+  results.forEach(({d,ms})=>{const item=document.createElement('div');item.className='history-item';item.innerHTML='<div class="history-item-left"><h4>'+formatDate(d)+'</h4><p>'+d+'</p></div><div style="display:flex;align-items:center;gap:8px"><span class="history-item-badge">'+ms.size+' pesan</span><span style="color:var(--text-secondary);font-size:18px">\u203A</span></div>';item.onclick=()=>{closeHistory();openHistoryView(d,ms.docs);};list.appendChild(item);});}}catch(e){list.innerHTML='<p style="color:var(--text-secondary);text-align:center;padding:20px">Gagal memuat.</p>';}toggleSheet('history',true);};
 window.closeHistory=()=>toggleSheet('history',false);
 async function openHistoryView(dateStr,msgDocs){el('modal-history-date').textContent=formatDate(dateStr);const c=el('modal-messages');c.innerHTML="";[...msgDocs].sort((a,b)=>(a.data().timestamp?.toMillis?.()||0)-(b.data().timestamp?.toMillis?.()||0)).forEach(d=>renderMessage(d.id,d.data(),true,c));el('modal-history-view').classList.remove('hidden');setTimeout(()=>{c.scrollTop=c.scrollHeight;},100);}
 window.closeHistoryView=e=>{if(e&&e.target!==el('modal-history-view'))return;el('modal-history-view').classList.add('hidden');};window.closeHistoryViewDirect=()=>el('modal-history-view').classList.add('hidden');
@@ -590,8 +629,28 @@ window.saveProfileChanges=async()=>{
   try{await setDoc(doc(db,'profiles',profileModalTarget),{name:newName,updatedAt:serverTimestamp()},{merge:true});}catch(e){}
   closeProfileModal();showToast('Profil diperbarui \u2713');
 };
-window.uploadProfilePhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!profileModalTarget)return;const prog=showProgress('Upload foto profil...');try{const c=await compressImage(file,300,0.70);const path='profiles/'+profileModalTarget+'.jpg';await uploadBytes(sRef(storage,path),c);const url=await getDownloadURL(sRef(storage,path));profilePhotos[profileModalTarget]=url;saveProfiles();await setDoc(doc(db,'profiles',profileModalTarget),{photoURL:url,updatedAt:serverTimestamp()},{merge:true});renderLoginAvatars();renderHeaderAvatars();closeProfileModal();showToast('Foto profil diperbarui \u2713');}catch(e){showToast('Gagal upload foto profil');}finally{prog.remove();}};
-async function loadPartnerProfile(){if(!otherUser)return;try{const snap=await getDoc(doc(db,'profiles',otherUser.id));if(snap.exists()){if(snap.data().photoURL){profilePhotos[otherUser.id]=snap.data().photoURL;saveProfiles();}if(snap.data().name){APP_CONFIG[otherUser.id].name=snap.data().name;saveCfg();if(otherUser)otherUser.name=snap.data().name;}renderHeaderAvatars();}}catch(e){}}
+window.uploadProfilePhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!profileModalTarget)return;
+  const targetUid=profileModalTarget; // capture sebelum modal mungkin ditutupconst prog=showProgress('Upload foto profil...');try{const c=await compressImage(file,300,0.70);const path='profiles/'+targetUid+'.jpg';await uploadBytes(sRef(storage,path),c);const url=await getDownloadURL(sRef(storage,path));profilePhotos[targetUid]=url;saveProfiles();await setDoc(doc(db,'profiles',targetUid),{photoURL:url,updatedAt:serverTimestamp()},{merge:true});renderLoginAvatars();renderHeaderAvatars();closeProfileModal();showToast('Foto profil diperbarui \u2713');}catch(e){showToast('Gagal upload foto profil');}finally{prog.remove();}};
+let unsubPartnerProfile=null;
+function loadPartnerProfile(){
+  if(!otherUser)return;
+  if(unsubPartnerProfile)unsubPartnerProfile();
+  unsubPartnerProfile=onSnapshot(doc(db,'profiles',otherUser.id),snap=>{
+    if(!snap.exists())return;
+    let changed=false;
+    if(snap.data().photoURL&&snap.data().photoURL!==profilePhotos[otherUser.id]){
+      profilePhotos[otherUser.id]=snap.data().photoURL;saveProfiles();changed=true;
+    }
+    if(snap.data().name&&snap.data().name!==APP_CONFIG[otherUser.id]?.name){
+      APP_CONFIG[otherUser.id].name=snap.data().name;saveCfg();
+      if(otherUser)otherUser.name=snap.data().name;
+      el('name-user1').textContent=APP_CONFIG.user1.name;
+      el('name-user2').textContent=APP_CONFIG.user2.name;
+      changed=true;
+    }
+    if(changed)renderHeaderAvatars();
+  },err=>{console.warn('loadPartnerProfile error:',err);});
+}
 // ADMIN
 window.openAdminEntry=()=>{if(!currentUser?.isAdmin)return;adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.add('hidden');el('pin-admin-modal').classList.remove('hidden');};
 window.closeAdminEntry=()=>{el('pin-admin-modal').classList.add('hidden');adminPinBuf="";updateAdminPinDots();};
@@ -601,7 +660,7 @@ function updateAdminPinDots(){document.querySelectorAll('#admin-pin-dots .pin-do
 function checkAdminPin(){if(adminPinBuf===currentUser.pin){el('pin-admin-modal').classList.add('hidden');adminPinBuf="";updateAdminPinDots();openAdmin();}else{adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.remove('hidden');setTimeout(()=>el('admin-pin-error').classList.add('hidden'),2000);}}
 async function openAdmin(){selectedMedia=new Set();el('admin-panel').classList.remove('hidden');document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',i===0));adminTab='photos';await renderAdminTab();}
 window.closeAdmin=()=>{el('admin-panel').classList.add('hidden');selectedMedia=new Set();};
-window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase().includes(tab.substr(0,3))));await renderAdminTab();};
+window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',['photos','voices','stickers'][i]===tab));await renderAdminTab();};
 async function renderAdminTab(){const body=el('admin-body');body.innerHTML='<div class="admin-empty">\u23F3 Memuat...</div>';if(adminTab==='photos')await renderAdminPhotos(body);else if(adminTab==='voices')await renderAdminVoices(body);else renderAdminStickers(body);}
 async function getAllMedia(type){const allDates=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));let items=[];for(const dd of allDates.docs){const msgs=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dd.id,'messages'));msgs.docs.forEach(m=>{if(m.data().type===type)items.push({...m.data(),msgId:m.id,dateId:dd.id});});}return items;}
 async function renderAdminPhotos(body){
@@ -650,7 +709,7 @@ function init(){
   renderLoginAvatars();applyTheme(currentTheme);
   const saved=localStorage.getItem('cc-user');if(saved&&APP_CONFIG[saved])loginAs(saved);
   document.addEventListener('click',()=>el('reaction-picker').classList.add('hidden'));
-  const now=new Date(),midnight=new Date(now);midnight.setHours(24,0,10,0);setTimeout(()=>location.reload(),midnight-now);
+  const now=new Date(),midnight=new Date(now);midnight.setHours(24,0,10,0);const msToMidnight=midnight-now;if(msToMidnight>0&&msToMidnight<86500000)setTimeout(()=>location.reload(),msToMidnight);
 }
 init();
 </script>

@@ -498,6 +498,7 @@ function loginAs(uid){
   el('date-banner-text').textContent=formatDate(todayDateStr);
   el('btn-admin').style.display=currentUser.isAdmin?'flex':'none';
   el('admin-badge').textContent='\u{1F6E1}\uFE0F '+currentUser.name;
+  _dateRegistered=false; // reset agar tanggal baru terdaftar
   renderHeaderAvatars();applyTheme(currentTheme);
   try{startChat();loadStickers();loadPartnerProfile();}catch(e){console.error('Firebase init error:',e);setConnected(false);}
   localStorage.setItem('cc-user',uid);
@@ -566,13 +567,25 @@ function buildVoicePlayer(url,duration){
 }
 function openLightbox(url){const lb=document.createElement('div');lb.className='photo-lightbox';const img=document.createElement('img');img.src=url;const c=document.createElement('button');c.className='photo-lightbox-close';c.textContent='\u2715';c.onclick=()=>lb.remove();lb.onclick=e=>{if(e.target===lb)lb.remove();};lb.appendChild(img);lb.appendChild(c);document.body.appendChild(lb);}
 let _sending=false;
-window.sendMessage=async()=>{const inp=el('msg-input'),text=inp.value.trim();if(!text||!currentUser||_sending)return;_sending=true;inp.value="";resizeInput();try{await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'text',content:text,timestamp:serverTimestamp(),reactions:{}});setTypingStatus(false);}catch(e){showToast('Gagal mengirim');inp.value=text;}finally{_sending=false;}};
-async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
-window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const c=await compressImage(file,800,0.55);prog.setText('Mengunggah...');const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),c);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
+let _dateRegistered=false; // flag: sudah daftar tanggal hari ini?
+async function ensureDateRegistered(){
+  if(_dateRegistered)return;
+  try{
+    await setDoc(
+      doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr),
+      {created:serverTimestamp(),date:todayDateStr},
+      {merge:true}
+    );
+    _dateRegistered=true;
+  }catch(e){console.warn('ensureDateRegistered:',e);}
+}
+window.sendMessage=async()=>{const inp=el('msg-input'),text=inp.value.trim();if(!text||!currentUser||_sending)return;_sending=true;inp.value="";resizeInput();try{await ensureDateRegistered();await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'text',content:text,timestamp:serverTimestamp(),reactions:{}});setTypingStatus(false);}catch(e){showToast('Gagal mengirim');inp.value=text;}finally{_sending=false;}};
+async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await ensureDateRegistered();await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
+window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const compressed=await compressImage(file,800,0.55);prog.setText('Mengunggah...');await ensureDateRegistered();const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),compressed);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
 function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej('fail');},'image/jpeg',quality);};img.onerror=rej;img.src=url;});}
 window.toggleRecord=async()=>{if(!isRecording)await startRecord();else await stopRecord();};
 async function startRecord(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});audioChunks=[];const mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';mediaRecorder=new MediaRecorder(stream,{mimeType:mime});mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};mediaRecorder.start(200);isRecording=true;el('record-btn').classList.add('recording');showToast('\u{1F399}\uFE0F Merekam... tap lagi untuk kirim',4000);}catch(e){showToast('Mikrofon tidak bisa diakses');}}
-async function stopRecord(){if(!mediaRecorder)return;isRecording=false;el('record-btn').classList.remove('recording');return new Promise(res=>{mediaRecorder.onstop=async()=>{const mime=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(audioChunks,{type:mime});const ext=mime.includes('mp4')?'mp4':'webm';mediaRecorder.stream.getTracks().forEach(t=>t.stop());mediaRecorder=null;audioChunks=[];if(blob.size<1000){showToast('Rekaman terlalu pendek');res();return;}const prog=showProgress('Mengunggah suara...');try{const dur=await getAudioDur(blob);const path='voices/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.'+ext;await uploadBytes(sRef(storage,path),blob);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'voice',content:url,duration:dur,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim suara');}finally{prog.remove();res();}};mediaRecorder.stop();});}
+async function stopRecord(){if(!mediaRecorder)return;isRecording=false;el('record-btn').classList.remove('recording');return new Promise(res=>{mediaRecorder.onstop=async()=>{const mime=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(audioChunks,{type:mime});const ext=mime.includes('mp4')?'mp4':'webm';mediaRecorder.stream.getTracks().forEach(t=>t.stop());mediaRecorder=null;audioChunks=[];if(blob.size<1000){showToast('Rekaman terlalu pendek');res();return;}const prog=showProgress('Mengunggah suara...');try{const dur=await getAudioDur(blob);await ensureDateRegistered();const path='voices/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.'+ext;await uploadBytes(sRef(storage,path),blob);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'voice',content:url,duration:dur,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim suara');}finally{prog.remove();res();}};mediaRecorder.stop();});}
 function getAudioDur(blob){return new Promise(res=>{const a=new Audio();a.src=URL.createObjectURL(blob);a.onloadedmetadata=()=>{URL.revokeObjectURL(a.src);res(a.duration||0);};a.onerror=()=>res(0);});}
 function scrollToBottom(){setTimeout(()=>{el('messages-area').scrollTop=9e9;},50);}
 async function setTypingStatus(val){if(!currentUser)return;try{await setDoc(doc(db,'rooms',APP_CONFIG.roomId,'typing',currentUser.id),{typing:val,ts:serverTimestamp()});}catch(e){}}
@@ -640,7 +653,7 @@ window.openHistory=async()=>{const list=el('history-list'),empty=el('history-emp
     // Re-fetch saat tap — bukan pakai snapshot lama yang bisa stale
     item.onclick=()=>{closeHistory();setTimeout(()=>openHistoryView(d),200);};
     list.appendChild(item);
-  });}}catch(e){list.innerHTML='<p style="color:var(--text-secondary);text-align:center;padding:20px">Gagal memuat.</p>';}toggleSheet('history',true);};
+  });}}catch(e){console.error('openHistory error:',e);list.innerHTML='<p style="color:#e74c3c;text-align:center;padding:20px;font-size:13px">Gagal memuat riwayat.<br><small>'+e.message+'</small></p>';}toggleSheet('history',true);};
 window.closeHistory=()=>toggleSheet('history',false);
 async function openHistoryView(dateStr){
   const msgContainer=el('modal-messages');

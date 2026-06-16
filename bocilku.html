@@ -520,7 +520,8 @@ function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').inner
     // Retry otomatis setelah 5 detik
     setTimeout(()=>{if(currentUser)startChat();},5000);
   });
-  watchTyping(); // dipanggil sekali saja, bukan di dalam onSnapshot}
+  watchTyping(); // dipanggil sekali saja, bukan di dalam onSnapshot
+}
 function renderMessage(id,data,readOnly=false,container=null){
   const target=container||el('messages-inner');
   // Resolve identitas — aman untuk history view (currentUser bisa null jika dibuka dari login screen)
@@ -646,7 +647,8 @@ window.saveProfileChanges=async()=>{
   closeProfileModal();showToast('Profil diperbarui \u2713');
 };
 window.uploadProfilePhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!profileModalTarget)return;
-  const targetUid=profileModalTarget; // capture sebelum modal mungkin ditutupconst prog=showProgress('Upload foto profil...');try{const c=await compressImage(file,300,0.70);const path='profiles/'+targetUid+'.jpg';await uploadBytes(sRef(storage,path),c);const url=await getDownloadURL(sRef(storage,path));profilePhotos[targetUid]=url;saveProfiles();await setDoc(doc(db,'profiles',targetUid),{photoURL:url,updatedAt:serverTimestamp()},{merge:true});renderLoginAvatars();renderHeaderAvatars();closeProfileModal();showToast('Foto profil diperbarui \u2713');}catch(e){showToast('Gagal upload foto profil');}finally{prog.remove();}};
+  const targetUid=profileModalTarget; // capture sebelum modal mungkin ditutup
+  const prog=showProgress('Upload foto profil...');try{const c=await compressImage(file,300,0.70);const path='profiles/'+targetUid+'.jpg';await uploadBytes(sRef(storage,path),c);const url=await getDownloadURL(sRef(storage,path));profilePhotos[targetUid]=url;saveProfiles();await setDoc(doc(db,'profiles',targetUid),{photoURL:url,updatedAt:serverTimestamp()},{merge:true});renderLoginAvatars();renderHeaderAvatars();closeProfileModal();showToast('Foto profil diperbarui \u2713');}catch(e){showToast('Gagal upload foto profil');}finally{prog.remove();}};
 let unsubPartnerProfile=null;
 function loadPartnerProfile(){
   if(!otherUser)return;

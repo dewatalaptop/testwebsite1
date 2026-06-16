@@ -83,7 +83,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .msg-row.me .msg-bubble{background:var(--bubble-me);color:var(--bubble-me-text);border-bottom-right-radius:6px;box-shadow:0 3px 12px rgba(0,0,0,0.15)}
 .msg-row.other .msg-bubble{background:var(--bubble-other);color:var(--bubble-other-text);border-bottom-left-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1px solid var(--border)}
 .msg-bubble.is-sticker{background:transparent!important;border:none!important;box-shadow:none!important;padding:0}
-.msg-bubble.is-sticker img{width:100px;height:100px;object-fit:contain;border-radius:12px}
+.msg-bubble.is-sticker img{width:120px;height:120px;object-fit:contain;border-radius:12px;image-rendering:auto}
 .msg-bubble.is-photo{background:transparent!important;border:none!important;box-shadow:none!important;padding:0}
 .msg-bubble.is-photo img{max-width:220px;max-height:260px;object-fit:cover;border-radius:16px;display:block;box-shadow:0 3px 14px rgba(0,0,0,0.18)}
 .msg-row.me .msg-bubble.is-voice{background:var(--bubble-me);color:var(--bubble-me-text);border-bottom-right-radius:6px}
@@ -150,7 +150,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .sticker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .sticker-item{aspect-ratio:1;border-radius:14px;overflow:hidden;cursor:pointer;background:var(--surface2);border:2px solid transparent;transition:all 0.2s;display:flex;align-items:center;justify-content:center;position:relative}
 .sticker-item:hover{border-color:var(--accent);transform:scale(1.06)}
-.sticker-item img{width:100%;height:100%;object-fit:contain;padding:6px}
+.sticker-item img{width:100%;height:100%;object-fit:contain;padding:6px;image-rendering:auto}
 .sticker-delete{position:absolute;top:3px;right:3px;background:rgba(220,53,69,0.85);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center;font-family:var(--font-main)}
 .sticker-item:hover .sticker-delete{display:flex}
 .sticker-empty{color:var(--text-secondary);font-size:13px;text-align:center;padding:20px 0}
@@ -347,7 +347,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <button class="sticker-upload-btn" onclick="document.getElementById('sticker-file-input').click()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tambah
     </button>
-    <input type="file" id="sticker-file-input" accept="image/*" multiple style="display:none" onchange="uploadStickers(event)"/>
+    <input type="file" id="sticker-file-input" accept="image/*,.gif" multiple style="display:none" onchange="uploadStickers(event)"/>
   </div>
   <div class="sticker-tabs">
     <button class="sticker-tab active" data-tab="all" onclick="switchStickerTab('all')">Semua</button>
@@ -567,7 +567,7 @@ function buildVoicePlayer(url,duration){
 function openLightbox(url){const lb=document.createElement('div');lb.className='photo-lightbox';const img=document.createElement('img');img.src=url;const c=document.createElement('button');c.className='photo-lightbox-close';c.textContent='\u2715';c.onclick=()=>lb.remove();lb.onclick=e=>{if(e.target===lb)lb.remove();};lb.appendChild(img);lb.appendChild(c);document.body.appendChild(lb);}
 let _sending=false;
 window.sendMessage=async()=>{const inp=el('msg-input'),text=inp.value.trim();if(!text||!currentUser||_sending)return;_sending=true;inp.value="";resizeInput();try{await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'text',content:text,timestamp:serverTimestamp(),reactions:{}});setTypingStatus(false);}catch(e){showToast('Gagal mengirim');inp.value=text;}finally{_sending=false;}};
-async function sendSticker(url){if(!currentUser)return;closeStickers();try{await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
+async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
 window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const c=await compressImage(file,800,0.55);prog.setText('Mengunggah...');const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),c);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
 function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej('fail');},'image/jpeg',quality);};img.onerror=rej;img.src=url;});}
 window.toggleRecord=async()=>{if(!isRecording)await startRecord();else await stopRecord();};
@@ -597,17 +597,75 @@ function renderStickerGrid(container,adminDelete){
   const grid=container||el('sticker-grid'),empty=el('sticker-empty');
   const list=(!container&&stickerTab==='mine')?allStickers.filter(s=>s.uploaderId===currentUser?.id):allStickers;
   grid.innerHTML="";if(!container&&!list.length){empty?.classList.remove('hidden');return;}empty?.classList.add('hidden');
-  list.forEach(s=>{const item=document.createElement('div');item.className='sticker-item';const img=document.createElement('img');img.src=s.url;img.loading='lazy';if(!container)img.onclick=()=>sendSticker(s.url);const del=document.createElement('button');del.className='sticker-delete';del.textContent='\u00D7';del.onclick=async e=>{e.stopPropagation();if(!confirm('Hapus stiker ini?'))return;try{await deleteDoc(doc(db,'stickers',s.id));if(s.storagePath)await deleteObject(sRef(storage,s.storagePath)).catch(()=>{});allStickers=allStickers.filter(x=>x.id!==s.id);renderStickerGrid();if(container)renderAdminStickers();}catch(e){showToast('Gagal hapus');}showToast('Stiker dihapus');};if(s.uploaderId===currentUser?.id||adminDelete)item.appendChild(del);item.appendChild(img);grid.appendChild(item);});
+  list.forEach(s=>{const item=document.createElement('div');item.className='sticker-item';const img=document.createElement('img');img.src=s.url;img.loading='lazy';if(s.isGif){const badge=document.createElement('span');badge.textContent='GIF';badge.style.cssText='position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,0.55);color:white;font-size:8px;font-weight:700;padding:1px 4px;border-radius:4px;pointer-events:none;letter-spacing:0.5px';item.appendChild(badge);}if(!container)img.onclick=()=>sendSticker(s.url);const del=document.createElement('button');del.className='sticker-delete';del.textContent='\u00D7';del.onclick=async e=>{e.stopPropagation();if(!confirm('Hapus stiker ini?'))return;try{await deleteDoc(doc(db,'stickers',s.id));if(s.storagePath)await deleteObject(sRef(storage,s.storagePath)).catch(()=>{});allStickers=allStickers.filter(x=>x.id!==s.id);renderStickerGrid();if(container)renderAdminStickers();}catch(e){showToast('Gagal hapus');}showToast('Stiker dihapus');};if(s.uploaderId===currentUser?.id||adminDelete)item.appendChild(del);item.appendChild(img);grid.appendChild(item);});
 }
-window.uploadStickers=async event=>{const files=Array.from(event.target.files);if(!files.length)return;event.target.value="";const prog=showProgress('Upload '+files.length+' stiker...');try{for(const file of files){const path='stickers/'+currentUser.id+'/'+Date.now()+'_'+file.name;await uploadBytes(sRef(storage,path),file);const url=await getDownloadURL(sRef(storage,path));const dRef=await addDoc(collection(db,'stickers'),{url,storagePath:path,uploaderId:currentUser.id,uploaderName:currentUser.name,createdAt:serverTimestamp()});allStickers.push({id:dRef.id,url,storagePath:path,uploaderId:currentUser.id});}renderStickerGrid();showToast(files.length+' stiker ditambahkan!');}catch(e){showToast('Gagal upload stiker');}finally{prog.remove();}};
+window.uploadStickers=async event=>{
+  const files=Array.from(event.target.files);if(!files.length)return;event.target.value="";
+  // Validasi tipe & ukuran
+  const invalid=files.filter(f=>!f.type.startsWith('image/')&&f.type!=='image/gif');
+  if(invalid.length){showToast('Hanya file gambar & GIF yang didukung');return;}
+  const tooBig=files.filter(f=>f.size>5*1024*1024);
+  if(tooBig.length){showToast('Ukuran maksimal stiker 5MB');return;}
+  const prog=showProgress('Upload '+files.length+' stiker...');
+  try{
+    for(const file of files){
+      const isGif=file.type==='image/gif'||file.name.toLowerCase().endsWith('.gif');
+      const ext=isGif?'gif':'png';
+      // GIF: upload langsung (jangan compress, animasi akan hilang)
+      // Non-GIF: compress ringan ke PNG/JPEG
+      let uploadFile=file;
+      if(!isGif&&file.size>200*1024){
+        try{uploadFile=await compressImage(file,320,0.85);}catch(e){uploadFile=file;}
+      }
+      const path='stickers/'+currentUser.id+'/'+Date.now()+'_'+file.name;
+      await uploadBytes(sRef(storage,path),uploadFile,{contentType:file.type});
+      const url=await getDownloadURL(sRef(storage,path));
+      const dRef=await addDoc(collection(db,'stickers'),{
+        url,storagePath:path,uploaderId:currentUser.id,
+        uploaderName:currentUser.name,isGif:isGif,
+        createdAt:serverTimestamp()
+      });
+      allStickers.push({id:dRef.id,url,storagePath:path,uploaderId:currentUser.id,isGif:isGif});
+    }
+    renderStickerGrid();showToast(files.length+' stiker ditambahkan!');
+  }catch(e){showToast('Gagal upload stiker');}finally{prog.remove();}
+};
 // HISTORY
 window.openHistory=async()=>{const list=el('history-list'),empty=el('history-empty');list.innerHTML="";const realToday=getTodayStr();try{const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const past=snap.docs.map(d=>d.id).sort().reverse().filter(d=>d!==realToday);if(!past.length){empty.classList.remove('hidden');}else{empty.classList.add('hidden');
   // Ambil semua message count paralel (bukan satu per satu)
-  const results=await Promise.all(past.map(d=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages')).then(ms=>({d,ms}))));
-  results.forEach(({d,ms})=>{const item=document.createElement('div');item.className='history-item';item.innerHTML='<div class="history-item-left"><h4>'+formatDate(d)+'</h4><p>'+d+'</p></div><div style="display:flex;align-items:center;gap:8px"><span class="history-item-badge">'+ms.size+' pesan</span><span style="color:var(--text-secondary);font-size:18px">\u203A</span></div>';item.onclick=()=>{closeHistory();openHistoryView(d,ms.docs);};list.appendChild(item);});}}catch(e){list.innerHTML='<p style="color:var(--text-secondary);text-align:center;padding:20px">Gagal memuat.</p>';}toggleSheet('history',true);};
+  const results=await Promise.all(past.map(d=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages')).then(ms=>({d,count:ms.size}))));
+  results.forEach(({d,count})=>{
+    const item=document.createElement('div');item.className='history-item';
+    item.innerHTML='<div class="history-item-left"><h4>'+formatDate(d)+'</h4><p>'+d+'</p></div><div style="display:flex;align-items:center;gap:8px"><span class="history-item-badge">'+count+' pesan</span><span style="color:var(--text-secondary);font-size:18px">\u203A</span></div>';
+    // Re-fetch saat tap — bukan pakai snapshot lama yang bisa stale
+    item.onclick=()=>{closeHistory();setTimeout(()=>openHistoryView(d),200);};
+    list.appendChild(item);
+  });}}catch(e){list.innerHTML='<p style="color:var(--text-secondary);text-align:center;padding:20px">Gagal memuat.</p>';}toggleSheet('history',true);};
 window.closeHistory=()=>toggleSheet('history',false);
-async function openHistoryView(dateStr,msgDocs){el('modal-history-date').textContent=formatDate(dateStr);const c=el('modal-messages');c.innerHTML="";[...msgDocs].sort((a,b)=>(a.data().timestamp?.toMillis?.()||0)-(b.data().timestamp?.toMillis?.()||0)).forEach(d=>renderMessage(d.id,d.data(),true,c));el('modal-history-view').classList.remove('hidden');setTimeout(()=>{c.scrollTop=c.scrollHeight;},100);}
-window.closeHistoryView=e=>{if(e&&e.target!==el('modal-history-view'))return;el('modal-history-view').classList.add('hidden');};window.closeHistoryViewDirect=()=>el('modal-history-view').classList.add('hidden');
+async function openHistoryView(dateStr){
+  const msgContainer=el('modal-messages');
+  el('modal-history-date').textContent=formatDate(dateStr);
+  msgContainer.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-secondary);font-size:13px">⏳ Memuat...</div>';
+  el('modal-history-view').classList.remove('hidden');
+  try{
+    // Re-fetch fresh — tidak pakai snapshot lama
+    const snap=await getDocs(query(
+      collection(db,'rooms',APP_CONFIG.roomId,'dates',dateStr,'messages'),
+      orderBy('timestamp','asc')
+    ));
+    msgContainer.innerHTML='';
+    if(snap.empty){
+      msgContainer.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-secondary);font-size:13px">Tidak ada pesan di tanggal ini.</div>';
+      return;
+    }
+    snap.docs.forEach(docSnap=>renderMessage(docSnap.id,docSnap.data(),true,msgContainer));
+    setTimeout(()=>{msgContainer.scrollTop=msgContainer.scrollHeight;},100);
+  }catch(err){
+    console.error('openHistoryView error:',err);
+    msgContainer.innerHTML='<div style="text-align:center;padding:40px;color:#e74c3c;font-size:13px">Gagal memuat riwayat.<br><small>'+err.message+'</small></div>';
+  }
+}
+window.closeHistoryView=e=>{if(e&&e.target!==el('modal-history-view'))return;el('modal-history-view').classList.add('hidden');el('modal-messages').innerHTML='';};  window.closeHistoryViewDirect=()=>{el('modal-history-view').classList.add('hidden');el('modal-messages').innerHTML='';};
 // PROFILE
 function renderHeaderAvatars(){if(!currentUser||!otherUser)return;const wMe=el('hdr-wrap-me'),wOther=el('hdr-wrap-other');if(wMe){wMe.innerHTML='';const ph=profilePhotos[currentUser.id];if(ph){wMe.innerHTML='<img src="'+ph+'">';}else{wMe.innerHTML='<span>'+currentUser.avatar+'</span>';}}if(wOther){wOther.innerHTML='';const ph=profilePhotos[otherUser.id];if(ph){wOther.innerHTML='<img src="'+ph+'">';}else{wOther.innerHTML='<span>'+otherUser.avatar+'</span>';}}}
 function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el('login-av'+(i+1));if(!wrap)return;const photo=profilePhotos[uid];if(photo){wrap.style.cssText='font-size:0;width:60px;height:60px;border-radius:50%;overflow:hidden;margin:0 auto 4px;border:2.5px solid #2186d4;';wrap.innerHTML='<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">';}else{wrap.style.cssText='font-size:42px;';wrap.textContent=APP_CONFIG[uid]?.avatar||'\u{1F464}';}});}

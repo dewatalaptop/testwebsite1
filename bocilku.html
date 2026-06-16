@@ -262,6 +262,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
         <span class="user-btn-name" id="name-user2">Anna</span>
       </button>
     </div>
+    <p style="font-size:11px;color:#aaa;margin-top:8px">Tap nama untuk login &nbsp;&#x2022;&nbsp; Tap &#x270F;&#xFE0F; untuk edit profil</p>
     <div id="pin-section" class="pin-section hidden">
       <p class="pin-label">Masukkan PIN</p>
       <div class="pin-dots" id="pin-dots"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></div>
@@ -272,6 +273,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
         <button class="pin-key" onclick="pinClear()">&#x232B;</button><button class="pin-key" onclick="pinInput('0')">0</button><button class="pin-key" onclick="cancelLogin()">&#x2715;</button>
       </div>
       <p id="pin-error" class="pin-error hidden">PIN salah, coba lagi</p>
+      <p id="pin-reset-hint" class="hidden" style="font-size:11px;color:#aaa;margin-top:8px;cursor:pointer;text-decoration:underline" onclick="resetPinFallback()">Lupa PIN? Reset ke default</p>
     </div>
   </div>
 </div>
@@ -472,10 +474,22 @@ function saveProfiles(){localStorage.setItem('cc-profiles',JSON.stringify(profil
 window.selectUser=uid=>{pendingUserId=uid;pinBuffer="";updatePinDots('pin-dots');el('pin-section').classList.remove('hidden');el('pin-error').classList.add('hidden');el('select-user1').classList.toggle('selected',uid==='user1');el('select-user2').classList.toggle('selected',uid==='user2');};
 window.pinInput=d=>{if(pinBuffer.length>=4)return;pinBuffer+=d;updatePinDots('pin-dots');if(pinBuffer.length===4)setTimeout(checkPin,150);};
 window.pinClear=()=>{pinBuffer=pinBuffer.slice(0,-1);updatePinDots('pin-dots');};
-window.cancelLogin=()=>{pendingUserId=null;pinBuffer="";el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');};
+let _wrongCount=0;
+window.cancelLogin=()=>{pendingUserId=null;pinBuffer="";_wrongCount=0;el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');el('pin-reset-hint').classList.add('hidden');};
 function updatePinDots(dotsId){document.querySelectorAll('#'+dotsId+' .pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<pinBuffer.length));}
-function checkPin(){if(pinBuffer===APP_CONFIG[pendingUserId].pin){loginAs(pendingUserId);}else{pinBuffer="";updatePinDots('pin-dots');el('pin-error').classList.remove('hidden');setTimeout(()=>el('pin-error').classList.add('hidden'),2000);}}
+function checkPin(){
+  if(!pendingUserId)return;
+  if(pinBuffer===APP_CONFIG[pendingUserId].pin){
+    _wrongCount=0;loginAs(pendingUserId);
+  }else{
+    _wrongCount++;pinBuffer="";updatePinDots('pin-dots');
+    el('pin-error').classList.remove('hidden');
+    setTimeout(()=>el('pin-error').classList.add('hidden'),2000);
+    if(_wrongCount>=3)el('pin-reset-hint').classList.remove('hidden');
+  }
+}
 function loginAs(uid){
+  if(!APP_CONFIG[uid]){showToast('Akun tidak ditemukan');return;}
   currentUser=APP_CONFIG[uid];otherUser=APP_CONFIG[uid==='user1'?'user2':'user1'];
   todayDateStr=getTodayStr();
   el('screen-login').className='screen hidden';el('screen-chat').className='screen active';
@@ -484,8 +498,10 @@ function loginAs(uid){
   el('date-banner-text').textContent=formatDate(todayDateStr);
   el('btn-admin').style.display=currentUser.isAdmin?'flex':'none';
   el('admin-badge').textContent='\u{1F6E1}\uFE0F '+currentUser.name;
-  renderHeaderAvatars();applyTheme(currentTheme);startChat();loadStickers();loadPartnerProfile();
+  renderHeaderAvatars();applyTheme(currentTheme);
+  try{startChat();loadStickers();loadPartnerProfile();}catch(e){console.error('Firebase init error:',e);setConnected(false);}
   localStorage.setItem('cc-user',uid);
+  pinBuffer='';pendingUserId=null;
 }
 window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');if(mediaRecorder){try{mediaRecorder.stop();}catch(e){}mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}isRecording=false;}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');localStorage.removeItem('cc-user');};
 // CHAT
@@ -704,10 +720,22 @@ window.saveSelectedToDrive=()=>{const items=document.querySelectorAll('.media-it
 function showProgress(text){const d=document.createElement('div');d.className='upload-progress';d.innerHTML='<div class="upload-spinner"></div><span>'+text+'</span>';document.body.appendChild(d);d.setText=t=>{d.querySelector('span').textContent=t;};d.remove=()=>{if(d.parentNode)d.parentNode.removeChild(d);};return d;}
 function toggleSheet(name,open){el('overlay-'+name).classList.toggle('hidden',!open);el('sheet-'+name).classList.toggle('hidden',!open);}
 // INIT
+function resetPinFallback(){
+  if(!pendingUserId)return;
+  const uname=APP_CONFIG[pendingUserId]?.name||pendingUserId;
+  const defPin=DEFAULT_CFG[pendingUserId]?.pin||'1234';
+  if(!confirm('Reset PIN '+uname+'? PIN akan kembali ke '+defPin+'.'))return;
+  localStorage.removeItem('cc-cfg');
+  APP_CONFIG=JSON.parse(JSON.stringify(DEFAULT_CFG));
+  saveCfg();
+  cancelLogin();
+  showToast('PIN direset. Ryan=1234, Anna=5678');
+}
 function init(){
   el('name-user1').textContent=APP_CONFIG.user1.name;el('name-user2').textContent=APP_CONFIG.user2.name;
   renderLoginAvatars();applyTheme(currentTheme);
-  const saved=localStorage.getItem('cc-user');if(saved&&APP_CONFIG[saved])loginAs(saved);
+  const saved=localStorage.getItem('cc-user');
+  if(saved&&APP_CONFIG[saved]){try{loginAs(saved);}catch(e){console.error('Auto-login error:',e);localStorage.removeItem('cc-user');}}
   document.addEventListener('click',()=>el('reaction-picker').classList.add('hidden'));
   const now=new Date(),midnight=new Date(now);midnight.setHours(24,0,10,0);const msToMidnight=midnight-now;if(msToMidnight>0&&msToMidnight<86500000)setTimeout(()=>location.reload(),msToMidnight);
 }

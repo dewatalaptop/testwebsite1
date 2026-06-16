@@ -287,6 +287,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       </div>
     </div>
     <div class="header-right">
+      <button class="hdr-btn" onclick="openProfileModal(currentUser?.id)" title="Profil & Pengaturan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </button>
       <button class="hdr-btn" id="btn-admin" onclick="openAdminEntry()" title="Admin" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       </button>
@@ -554,13 +557,19 @@ function renderHeaderAvatars(){if(!currentUser||!otherUser)return;const wMe=el('
 function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el('login-av'+(i+1));if(!wrap)return;const photo=profilePhotos[uid];if(photo){wrap.style.cssText='font-size:0;width:60px;height:60px;border-radius:50%;overflow:hidden;margin:0 auto 4px;border:2.5px solid #2186d4;';wrap.innerHTML='<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">';}else{wrap.style.cssText='font-size:42px;';wrap.textContent=APP_CONFIG[uid]?.avatar||'\u{1F464}';}});}
 window.openProfileModal=uid=>{
   if(!uid)uid=currentUser?.id||'user1';
-  if(uid!==currentUser?.id&&!currentUser?.isAdmin){showToast('Kamu hanya bisa edit profil sendiri');return;}
+  // Boleh buka profil sendiri kapanpun, atau profil siapapun jika admin
+  // Jika belum login (layar login), boleh edit profil manapun
+  const loggedIn = !!currentUser;
+  if(loggedIn && uid!==currentUser.id && !currentUser.isAdmin){
+    showToast('Kamu hanya bisa edit profil sendiri');return;
+  }
   profileModalTarget=uid;const cfg=APP_CONFIG[uid],photo=profilePhotos[uid];
   const avBig=el('profile-av-big');
   if(photo){avBig.innerHTML='<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><div class="av-edit-hint">\u{1F4F7}</div>';}
   else{avBig.innerHTML='<span>'+cfg?.avatar+'</span><div class="av-edit-hint">\u{1F4F7}</div>';}
   el('profile-modal-name').textContent=cfg?.name||'Pengguna';
-  el('profile-modal-sub').textContent=uid===currentUser?.id?'Profil kamu':'Profil '+cfg?.name+(currentUser?.isAdmin?' (admin)':'');
+  const isSelf = !currentUser || uid===currentUser.id;
+  el('profile-modal-sub').textContent=isSelf?'Tap foto untuk ganti • Isi field yang ingin diubah':'Profil '+cfg?.name+(currentUser?.isAdmin?' — edit sebagai admin':'');
   el('profile-name-input').value=cfg?.name||'';
   el('profile-pin-input').value='';
   el('profile-modal').classList.remove('hidden');

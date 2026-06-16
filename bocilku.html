@@ -281,7 +281,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 <div id="screen-chat" class="screen hidden">
   <header class="chat-header">
     <div class="header-left">
-      <div class="header-avatars" onclick="currentUser&&openProfileModal(currentUser.id)">
+      <div class="header-avatars" onclick="openMyProfile()">
         <div class="hdr-av-wrap other" id="hdr-wrap-other"><span>&#x1F33F;</span></div>
         <div class="hdr-av-wrap me" id="hdr-wrap-me"><span>&#x1F324;&#xFE0F;</span></div>
       </div>
@@ -291,7 +291,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       </div>
     </div>
     <div class="header-right">
-      <button class="hdr-btn" onclick="openProfileModal(currentUser?.id)" title="Profil & Pengaturan">
+      <button class="hdr-btn" onclick="openMyProfile()" title="Profil & Pengaturan">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </button>
       <button class="hdr-btn" id="btn-admin" onclick="openAdminEntry()" title="Admin" style="display:none">
@@ -530,7 +530,7 @@ function renderMessage(id,data,readOnly=false,container=null){
   const row=document.createElement('div');row.className='msg-row '+(isMe?'me':'other');row.dataset.id=id;
   const senderCfg=APP_CONFIG[data.senderId]||{};
   const av=document.createElement('div');av.className='msg-av';
-  if(!isMe){const ph=profilePhotos[data.senderId];if(ph){av.innerHTML='<img src="'+ph+'">';}else{av.textContent=senderCfg.avatar||otherUser?.avatar||'\u{1F33F}';}}else{av.style.display='none';}
+  if(!isMe){av.dataset.uid=data.senderId;const ph=profilePhotos[data.senderId];if(ph){av.innerHTML='<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';}else{av.textContent=senderCfg.avatar||otherUser?.avatar||'\u{1F33F}';}}else{av.style.display='none';}
   const col=document.createElement('div');col.className='msg-col';
   const name=document.createElement('div');name.className='msg-name';name.textContent=data.senderName||senderCfg.name||'Partner';
   const bubble=document.createElement('div');bubble.className='msg-bubble';
@@ -601,7 +601,7 @@ function renderStickerGrid(container,adminDelete){
 }
 window.uploadStickers=async event=>{const files=Array.from(event.target.files);if(!files.length)return;event.target.value="";const prog=showProgress('Upload '+files.length+' stiker...');try{for(const file of files){const path='stickers/'+currentUser.id+'/'+Date.now()+'_'+file.name;await uploadBytes(sRef(storage,path),file);const url=await getDownloadURL(sRef(storage,path));const dRef=await addDoc(collection(db,'stickers'),{url,storagePath:path,uploaderId:currentUser.id,uploaderName:currentUser.name,createdAt:serverTimestamp()});allStickers.push({id:dRef.id,url,storagePath:path,uploaderId:currentUser.id});}renderStickerGrid();showToast(files.length+' stiker ditambahkan!');}catch(e){showToast('Gagal upload stiker');}finally{prog.remove();}};
 // HISTORY
-window.openHistory=async()=>{const list=el('history-list'),empty=el('history-empty');list.innerHTML="";try{const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const past=snap.docs.map(d=>d.id).sort().reverse().filter(d=>d!==todayDateStr);if(!past.length){empty.classList.remove('hidden');}else{empty.classList.add('hidden');
+window.openHistory=async()=>{const list=el('history-list'),empty=el('history-empty');list.innerHTML="";const realToday=getTodayStr();try{const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const past=snap.docs.map(d=>d.id).sort().reverse().filter(d=>d!==realToday);if(!past.length){empty.classList.remove('hidden');}else{empty.classList.add('hidden');
   // Ambil semua message count paralel (bukan satu per satu)
   const results=await Promise.all(past.map(d=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages')).then(ms=>({d,ms}))));
   results.forEach(({d,ms})=>{const item=document.createElement('div');item.className='history-item';item.innerHTML='<div class="history-item-left"><h4>'+formatDate(d)+'</h4><p>'+d+'</p></div><div style="display:flex;align-items:center;gap:8px"><span class="history-item-badge">'+ms.size+' pesan</span><span style="color:var(--text-secondary);font-size:18px">\u203A</span></div>';item.onclick=()=>{closeHistory();openHistoryView(d,ms.docs);};list.appendChild(item);});}}catch(e){list.innerHTML='<p style="color:var(--text-secondary);text-align:center;padding:20px">Gagal memuat.</p>';}toggleSheet('history',true);};
@@ -611,6 +611,7 @@ window.closeHistoryView=e=>{if(e&&e.target!==el('modal-history-view'))return;el(
 // PROFILE
 function renderHeaderAvatars(){if(!currentUser||!otherUser)return;const wMe=el('hdr-wrap-me'),wOther=el('hdr-wrap-other');if(wMe){wMe.innerHTML='';const ph=profilePhotos[currentUser.id];if(ph){wMe.innerHTML='<img src="'+ph+'">';}else{wMe.innerHTML='<span>'+currentUser.avatar+'</span>';}}if(wOther){wOther.innerHTML='';const ph=profilePhotos[otherUser.id];if(ph){wOther.innerHTML='<img src="'+ph+'">';}else{wOther.innerHTML='<span>'+otherUser.avatar+'</span>';}}}
 function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el('login-av'+(i+1));if(!wrap)return;const photo=profilePhotos[uid];if(photo){wrap.style.cssText='font-size:0;width:60px;height:60px;border-radius:50%;overflow:hidden;margin:0 auto 4px;border:2.5px solid #2186d4;';wrap.innerHTML='<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">';}else{wrap.style.cssText='font-size:42px;';wrap.textContent=APP_CONFIG[uid]?.avatar||'\u{1F464}';}});}
+window.openMyProfile=()=>{if(currentUser)openProfileModal(currentUser.id);};
 window.openProfileModal=uid=>{
   if(!uid)uid=currentUser?.id||'user1';
   // Boleh buka profil sendiri kapanpun, atau profil siapapun jika admin
@@ -666,8 +667,27 @@ function loadPartnerProfile(){
       el('name-user2').textContent=APP_CONFIG.user2.name;
       changed=true;
     }
-    if(changed)renderHeaderAvatars();
+    if(changed){
+      renderHeaderAvatars();
+      // Refresh semua avatar bubble yang sudah ter-render
+      refreshBubbleAvatars();
+    }
   },err=>{console.warn('loadPartnerProfile error:',err);});
+}
+function refreshBubbleAvatars(){
+  // Update avatar di semua msg-row yang sudah ada di DOM
+  document.querySelectorAll('.msg-row.other .msg-av').forEach(av=>{
+    const row=av.closest('.msg-row');
+    if(!row)return;
+    const msgId=row.dataset.id;
+    // Cari senderId dari data-sender jika ada, atau pakai otherUser
+    const uid=av.dataset.uid||otherUser?.id;
+    if(!uid)return;
+    const ph=profilePhotos[uid];
+    if(ph&&!av.querySelector('img')){
+      av.innerHTML='<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    }
+  });
 }
 // ADMIN
 window.openAdminEntry=()=>{if(!currentUser?.isAdmin)return;adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.add('hidden');el('pin-admin-modal').classList.remove('hidden');};

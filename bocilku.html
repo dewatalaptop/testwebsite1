@@ -236,6 +236,28 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .photo-lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .conn-banner{position:fixed;top:0;left:0;right:0;z-index:999;background:#e53935;color:white;text-align:center;font-size:12px;font-weight:700;padding:6px;font-family:var(--font-main);animation:slideDown 0.3s ease;letter-spacing:0.3px}
 @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+/* ── READ STATUS ── */
+.msg-status{font-size:10px;color:var(--text-secondary);padding:0 4px;display:flex;align-items:center;gap:2px;justify-content:flex-end}
+.msg-status.read{color:var(--accent)}
+.msg-status svg{width:13px;height:13px}
+/* ── MSG ACTIONS (hapus/edit) ── */
+.msg-actions-menu{position:fixed;z-index:520;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:6px;box-shadow:0 8px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;gap:2px;min-width:140px;animation:popIn 0.18s cubic-bezier(.34,1.56,.64,1)}
+.msg-action-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text-primary);border:none;background:none;font-family:var(--font-main);width:100%;text-align:left;transition:background 0.15s}
+.msg-action-item:hover,.msg-action-item:active{background:var(--surface2)}
+.msg-action-item.danger{color:#e53935}
+.msg-action-item svg{width:16px;height:16px;flex-shrink:0}
+/* ── EDIT INPUT ── */
+.msg-edit-wrap{display:flex;gap:6px;margin-top:4px;align-items:flex-end}
+.msg-edit-input{flex:1;padding:8px 12px;border:1.5px solid var(--accent);border-radius:14px;font-family:var(--font-main);font-size:14px;color:var(--text-primary);background:var(--surface);outline:none;resize:none;max-height:80px;line-height:1.4}
+.msg-edit-save{background:var(--accent);color:white;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-main);flex-shrink:0}
+.msg-edit-cancel{background:var(--surface2);color:var(--text-secondary);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-main);flex-shrink:0}
+.msg-edited{font-size:9px;color:var(--text-secondary);margin-left:4px;font-style:italic}
+/* ── PROFILE VIEWER ── */
+.profile-viewer{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.2s ease}
+.profile-viewer-img{width:220px;height:220px;border-radius:50%;object-fit:cover;border:3px solid white;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.profile-viewer-emoji{font-size:100px;line-height:1}
+.profile-viewer-name{color:white;font-size:20px;font-weight:800;margin-top:16px;font-family:var(--font-main)}
+.profile-viewer-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:white;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
 @media(max-width:390px){.msg-col{max-width:82%}.sticker-grid,.admin-sticker-grid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
@@ -282,7 +304,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 <div id="screen-chat" class="screen hidden">
   <header class="chat-header">
     <div class="header-left">
-      <div class="header-avatars" onclick="openMyProfile()">
+      <div class="header-avatars" onclick="openMyProfile()" oncontextmenu="event.preventDefault();currentUser&&openProfileViewer(currentUser.id)">
         <div class="hdr-av-wrap other" id="hdr-wrap-other"><span>&#x1F33F;</span></div>
         <div class="hdr-av-wrap me" id="hdr-wrap-me"><span>&#x1F324;&#xFE0F;</span></div>
       </div>
@@ -378,12 +400,13 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 <!-- PROFILE MODAL -->
 <div class="full-modal hidden" id="profile-modal" onclick="profileModalOutside(event)">
   <div class="full-modal-card">
-    <div class="profile-av-big" id="profile-av-big" onclick="document.getElementById('profile-photo-input').click()">
+    <div class="profile-av-big" id="profile-av-big" onclick="profileAvatarClick()">
       <span id="profile-av-inner">&#x1F324;&#xFE0F;</span>
       <div class="av-edit-hint">&#x1F4F7;</div>
     </div>
     <div class="profile-modal-name" id="profile-modal-name">Ryan</div>
     <div class="profile-modal-sub" id="profile-modal-sub">Profil kamu</div>
+    <button id="profile-change-photo-btn" onclick="document.getElementById('profile-photo-input').click()" style="display:block;margin:0 auto 16px;background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 16px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;font-family:var(--font-main);">📷 Ganti Foto Profil</button>
     <div class="profile-field"><label>Nama</label><input id="profile-name-input" type="text" placeholder="Nama kamu" maxlength="30"/></div>
     <div class="profile-field"><label>PIN Baru (kosongkan jika tidak ingin ganti)</label><input id="profile-pin-input" type="password" inputmode="numeric" placeholder="4 digit PIN baru" maxlength="4"/></div>
     <button class="profile-save-btn" onclick="saveProfileChanges()">Simpan Perubahan</button>
@@ -512,7 +535,29 @@ const msgCol=()=>collection(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'m
 function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));unsubMessages=onSnapshot(q,snap=>{
     snap.docChanges().forEach(ch=>{
       if(ch.type==='added')renderMessage(ch.doc.id,ch.doc.data());
-      if(ch.type==='modified'){const row=document.querySelector('[data-id="'+ch.doc.id+'"]');if(row)updateReactionsUI(row,ch.doc.data().reactions||{});}
+      if(ch.type==='modified'){
+        const row=document.querySelector('[data-id="'+ch.doc.id+'"]');
+        if(row){
+          updateReactionsUI(row,ch.doc.data().reactions||{});
+          // Update status baca (centang)
+          const d=ch.doc.data();
+          const statusEl=row.querySelector('.msg-status');
+          if(statusEl){
+            const isRead=d.readBy&&d.readBy[otherUser?.id];
+            statusEl.className='msg-status'+(isRead?' read':'');
+            statusEl.innerHTML=isRead
+              ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 7 10 15 6 11"/><polyline points="22 7 14 15 10 11"/></svg>'
+              :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+          }
+          // Update teks jika diedit
+          const bubble=row.querySelector('.msg-bubble');
+          if(bubble&&d.type==='text'&&d.edited&&!bubble.querySelector('.msg-edit-wrap')){
+            bubble.textContent=d.content;
+            const editMark=document.createElement('span');editMark.className='msg-edited';editMark.textContent='(diedit)';
+            bubble.appendChild(editMark);
+          }
+        }
+      }
       if(ch.type==='removed'){const row=document.querySelector('[data-id="'+ch.doc.id+'"]');if(row)row.remove();}
     });
     scrollToBottom();
@@ -546,10 +591,40 @@ function renderMessage(id,data,readOnly=false,container=null){
   else if(data.type==='photo'){bubble.classList.add('is-photo');const img=document.createElement('img');img.src=data.content;img.loading='lazy';img.onclick=()=>openLightbox(data.content);bubble.appendChild(img);}
   else if(data.type==='voice'){bubble.classList.add('is-voice');bubble.appendChild(buildVoicePlayer(data.content,data.duration||0));}
   else{bubble.textContent=data.content;}
-  if(!readOnly&&data.type!=='voice')bubble.addEventListener('click',e=>{e.stopPropagation();showReactionPicker(id,bubble);});
+  if(!readOnly){
+    if(data.type!=='voice')bubble.addEventListener('click',e=>{e.stopPropagation();showReactionPicker(id,bubble);});
+    // Long-press untuk menu aksi (hapus/edit) — hanya pesan sendiri
+    if(isMe&&(data.type==='text'||data.type==='photo'||data.type==='sticker')){
+      let pressTimer;
+      bubble.addEventListener('touchstart',e=>{pressTimer=setTimeout(()=>{e.preventDefault();showMsgActions(id,data,bubble,isMe);},500);},{passive:false});
+      bubble.addEventListener('touchend',()=>clearTimeout(pressTimer));
+      bubble.addEventListener('touchmove',()=>clearTimeout(pressTimer));
+      // Desktop: right click
+      bubble.addEventListener('contextmenu',e=>{e.preventDefault();showMsgActions(id,data,bubble,isMe);});
+    }
+  }
   const time=document.createElement('div');time.className='msg-time';time.textContent=formatTime(data.timestamp);
+  // Status baca — hanya pesan milik sendiri
+  const statusDiv=document.createElement('div');statusDiv.className='msg-status'+(data.readBy&&data.readBy[otherUser?.id]?' read':'');
+  if(isMe&&!readOnly){
+    statusDiv.dataset.msgId=id;
+    statusDiv.innerHTML=data.readBy&&data.readBy[otherUser?.id]
+      ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 7 10 15 6 11"/><polyline points="22 7 14 15 10 11"/></svg>'  // dibaca ✓✓
+      :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';  // terkirim ✓
+  }
   const rxDiv=document.createElement('div');rxDiv.className='msg-reactions';updateReactionsUI(row,data.reactions||{});
-  col.appendChild(name);col.appendChild(bubble);col.appendChild(time);col.appendChild(rxDiv);row.appendChild(av);row.appendChild(col);target.appendChild(row);
+  col.appendChild(name);col.appendChild(bubble);
+  if(isMe&&!readOnly){
+    const timeStatus=document.createElement('div');timeStatus.style.cssText='display:flex;align-items:center;gap:2px;';
+    timeStatus.appendChild(time);timeStatus.appendChild(statusDiv);
+    col.appendChild(timeStatus);
+  }else{col.appendChild(time);}
+  col.appendChild(rxDiv);
+  // Avatar klik = lihat foto profil
+  if(!isMe)av.onclick=e=>{e.stopPropagation();openProfileViewer(data.senderId);};
+  row.appendChild(av);row.appendChild(col);target.appendChild(row);
+  // Mark as read: jika pesan dari partner, tandai sudah dibaca
+  if(!isMe&&!readOnly&&currentUser)markAsRead(id,data);
 }
 function buildVoicePlayer(url,duration){
   const wrap=document.createElement('div');wrap.className='voice-player';
@@ -601,7 +676,117 @@ unsubTyping=onSnapshot(doc(db,'rooms',APP_CONFIG.roomId,'typing',otherUser.id),s
 window.onTyping=ta=>{resizeInput();setTypingStatus(true);clearTimeout(typingTimeout);typingTimeout=setTimeout(()=>setTypingStatus(false),2000);};
 window.onInputKeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}};
 function resizeInput(){const ta=el('msg-input');ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,100)+'px';}
-// REACTIONS
+// ── MSG ACTIONS (hapus/edit/read) ──────────────────
+async function markAsRead(msgId,data){
+  if(!currentUser||data.senderId===currentUser.id)return;
+  if(data.readBy&&data.readBy[currentUser.id])return; // sudah ditandai
+  try{
+    await updateDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',msgId),
+      {['readBy.'+currentUser.id]:true});
+  }catch(e){}
+}
+
+window.showMsgActions=(msgId,data,bubble,isMe)=>{
+  // Tutup menu yang sudah ada
+  document.querySelectorAll('.msg-actions-menu').forEach(m=>m.remove());
+  const menu=document.createElement('div');menu.className='msg-actions-menu';
+  const rect=bubble.getBoundingClientRect();
+  // Posisi menu di atas atau bawah bubble
+  const top=rect.top>160?rect.top-10:rect.bottom+6;
+  const left=isMe?Math.max(8,rect.right-160):Math.min(rect.left,window.innerWidth-168);
+  menu.style.cssText='top:'+top+'px;left:'+left+'px;transform:translateY(-100%)';
+  if(rect.top<=160)menu.style.transform='translateY(0)';
+
+  // Tombol Edit (hanya teks)
+  if(data.type==='text'){
+    const editBtn=document.createElement('button');editBtn.className='msg-action-item';
+    editBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Pesan';
+    editBtn.onclick=()=>{menu.remove();startEditMessage(msgId,data,bubble);};
+    menu.appendChild(editBtn);
+  }
+  // Tombol Hapus
+  const delBtn=document.createElement('button');delBtn.className='msg-action-item danger';
+  delBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg> Hapus Pesan';
+  delBtn.onclick=()=>{menu.remove();deleteMessage(msgId,data);};
+  menu.appendChild(delBtn);
+  // Tombol Reaksi
+  const rxBtn=document.createElement('button');rxBtn.className='msg-action-item';
+  rxBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg> Tambah Reaksi';
+  rxBtn.onclick=()=>{menu.remove();showReactionPicker(msgId,bubble);};
+  menu.appendChild(rxBtn);
+
+  document.body.appendChild(menu);
+  // Tutup saat klik di luar
+  setTimeout(()=>{
+    const close=e=>{if(!menu.contains(e.target)){menu.remove();document.removeEventListener('click',close);}};
+    document.addEventListener('click',close);
+  },50);
+};
+
+function startEditMessage(msgId,data,bubble){
+  // Ganti bubble jadi textarea edit
+  const original=bubble.textContent;
+  bubble.style.padding='4px';
+  bubble.innerHTML='';
+  const wrap=document.createElement('div');wrap.className='msg-edit-wrap';
+  const ta=document.createElement('textarea');ta.className='msg-edit-input';ta.value=original;ta.rows=1;
+  ta.oninput=()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,80)+'px';};
+  const save=document.createElement('button');save.className='msg-edit-save';save.textContent='Simpan';
+  const cancel=document.createElement('button');cancel.className='msg-edit-cancel';cancel.textContent='Batal';
+  save.onclick=async()=>{
+    const newText=ta.value.trim();
+    if(!newText){showToast('Pesan tidak boleh kosong');return;}
+    if(newText===original){bubble.innerHTML='';bubble.textContent=original;bubble.style.padding='';return;}
+    save.disabled=true;save.textContent='...';
+    try{
+      await updateDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',msgId),
+        {content:newText,edited:true,editedAt:serverTimestamp()});
+      bubble.innerHTML='';
+      bubble.style.padding='';
+      bubble.textContent=newText;
+      const editMark=document.createElement('span');editMark.className='msg-edited';editMark.textContent='(diedit)';
+      bubble.appendChild(editMark);
+    }catch(e){showToast('Gagal edit pesan');bubble.innerHTML='';bubble.textContent=original;bubble.style.padding='';}
+  };
+  cancel.onclick=()=>{bubble.innerHTML='';bubble.textContent=original;bubble.style.padding='';};
+  wrap.appendChild(ta);wrap.appendChild(save);wrap.appendChild(cancel);
+  bubble.appendChild(wrap);
+  ta.focus();ta.selectionStart=ta.selectionEnd=ta.value.length;
+}
+
+async function deleteMessage(msgId,data){
+  if(!confirm('Hapus pesan ini?'))return;
+  try{
+    // Jika punya file di storage, hapus juga
+    if(data.storagePath)await deleteObject(sRef(storage,data.storagePath)).catch(()=>{});
+    await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',msgId));
+    showToast('Pesan dihapus');
+  }catch(e){showToast('Gagal hapus pesan');}
+}
+
+// ── PROFILE VIEWER ──────────────────────────
+window.openProfileViewer=uid=>{
+  const cfg=APP_CONFIG[uid]||{};
+  const photo=profilePhotos[uid];
+  const viewer=document.createElement('div');viewer.className='profile-viewer';
+  let content='';
+  if(photo){content='<img class="profile-viewer-img" src="'+photo+'" alt="'+cfg.name+'">';}
+  else{content='<div class="profile-viewer-emoji">'+cfg.avatar+'</div>';}
+  viewer.innerHTML=content+'<div class="profile-viewer-name">'+(cfg.name||'Pengguna')+'</div>';
+  const pvc=document.createElement('button');pvc.className='profile-viewer-close';pvc.textContent='✕';pvc.onclick=()=>viewer.remove();viewer.appendChild(pvc);
+  viewer.onclick=e=>{if(e.target===viewer)viewer.remove();};
+  document.body.appendChild(viewer);
+};
+
+// ── WATCH READ STATUS ────────────────────────
+// Update centang saat partner menandai pesan sebagai terbaca
+function watchReadStatus(){
+  if(!currentUser||!otherUser)return;
+  // onSnapshot sudah cover ini via 'modified' event di startChat
+  // Tapi perlu update UI centang secara live
+}
+
+// ── REACTIONS (existing) ──
 window.showReactionPicker=(msgId,bubble)=>{reactionTarget=msgId;const picker=el('reaction-picker');picker.classList.remove('hidden');const rect=bubble.getBoundingClientRect();picker.style.top=Math.max(10,rect.top-60)+'px';picker.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-240))+'px';const close=e=>{if(!picker.contains(e.target)){picker.classList.add('hidden');document.removeEventListener('click',close);}};setTimeout(()=>document.addEventListener('click',close),50);};
 window.addReaction=async emoji=>{el('reaction-picker').classList.add('hidden');if(!reactionTarget||!currentUser)return;try{const mRef=doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',reactionTarget);const snap=await getDoc(mRef);const rx=snap.data()?.reactions||{};const key=emoji+'_'+currentUser.id;if(rx[key])delete rx[key];else rx[key]={emoji,userId:currentUser.id,ts:Date.now()};await updateDoc(mRef,{reactions:rx});}catch(e){}reactionTarget=null;};
 function updateReactionsUI(row,reactions){const div=row.querySelector('.msg-reactions');if(!div)return;const groups={};Object.values(reactions).forEach(r=>{groups[r.emoji]=(groups[r.emoji]||0)+1;});div.innerHTML="";Object.entries(groups).forEach(([emoji,count])=>{const s=document.createElement('span');s.className='msg-reaction';s.textContent=emoji+(count>1?' '+count:'');div.appendChild(s);});}
@@ -746,6 +931,17 @@ window.openProfileModal=uid=>{
   el('profile-modal').classList.remove('hidden');
 };
 window.closeProfileModal=()=>el('profile-modal').classList.add('hidden');
+window.profileAvatarClick=()=>{
+  if(!profileModalTarget)return;
+  const photo=profilePhotos[profileModalTarget];
+  if(photo){
+    // Jika sudah ada foto: tap = lihat besar, ada tombol ganti terpisah
+    openProfileViewer(profileModalTarget);
+  }else{
+    // Belum ada foto: langsung ke file picker
+    document.getElementById('profile-photo-input').click();
+  }
+};
 window.profileModalOutside=e=>{if(e.target===el('profile-modal'))closeProfileModal();};
 window.saveProfileChanges=async()=>{
   if(!profileModalTarget)return;

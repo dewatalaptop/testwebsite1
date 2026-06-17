@@ -444,6 +444,12 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   </div>
   <div class="admin-body" id="admin-body"></div>
 </div>
+<!-- MIGRATE BANNER - hanya muncul jika history kosong -->
+<div id="migrate-banner" class="hidden" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e88e5;color:white;border-radius:16px;padding:12px 18px;z-index:600;font-size:13px;font-weight:700;font-family:var(--font-main);box-shadow:0 4px 20px rgba(0,0,0,0.25);display:flex;align-items:center;gap:10px;max-width:90vw">
+  <span>History kosong? Ketuk untuk perbaiki</span>
+  <button onclick="runMigration()" style="background:white;color:#1e88e5;border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--font-main);white-space:nowrap">Perbaiki ▶</button>
+  <button onclick="el('migrate-banner').classList.add('hidden')" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;padding:0 4px">✕</button>
+</div>
 <!-- TOAST & REACTION -->
 <div id="toast" class="toast hidden"></div>
 <div id="conn-banner" class="conn-banner hidden">&#x26A0;&#xFE0F; Koneksi terputus — mencoba menyambung kembali...</div>
@@ -525,7 +531,7 @@ function loginAs(uid){
   el('admin-badge').textContent='\u{1F6E1}\uFE0F '+currentUser.name;
   _dateRegistered=false; // reset agar tanggal baru terdaftar
   renderHeaderAvatars();applyTheme(currentTheme);
-  try{startChat();loadStickers();loadPartnerProfile();}catch(e){console.error('Firebase init error:',e);setConnected(false);}
+  try{startChat();loadStickers();loadPartnerProfile();ensureDateRegistered();}catch(e){console.error('Firebase init error:',e);setConnected(false);}
   localStorage.setItem('cc-user',uid);
   pinBuffer='';pendingUserId=null;
 }
@@ -650,24 +656,27 @@ function buildVoicePlayer(url,duration){
 function openLightbox(url){const lb=document.createElement('div');lb.className='photo-lightbox';const img=document.createElement('img');img.src=url;const c=document.createElement('button');c.className='photo-lightbox-close';c.textContent='\u2715';c.onclick=()=>lb.remove();lb.onclick=e=>{if(e.target===lb)lb.remove();};lb.appendChild(img);lb.appendChild(c);document.body.appendChild(lb);}
 let _sending=false;
 let _dateRegistered=false; // flag: sudah daftar tanggal hari ini?
-async function ensureDateRegistered(){
-  if(_dateRegistered)return;
+async function ensureDateRegistered(dateStr){
+  // dateStr opsional — default ke hari ini
+  const d=dateStr||getTodayStr();
+  // Jika ini hari ini dan sudah terdaftar, skip
+  if(!dateStr&&_dateRegistered)return;
   try{
     await setDoc(
-      doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr),
-      {created:serverTimestamp(),date:todayDateStr},
+      doc(db,'rooms',APP_CONFIG.roomId,'dates',d),
+      {created:serverTimestamp(),date:d},
       {merge:true}
     );
-    _dateRegistered=true;
+    if(!dateStr)_dateRegistered=true;
   }catch(e){console.warn('ensureDateRegistered:',e);}
 }
-window.sendMessage=async()=>{const inp=el('msg-input'),text=inp.value.trim();if(!text||!currentUser||_sending)return;_sending=true;inp.value="";resizeInput();try{await ensureDateRegistered();await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'text',content:text,timestamp:serverTimestamp(),reactions:{}});setTypingStatus(false);}catch(e){showToast('Gagal mengirim');inp.value=text;}finally{_sending=false;}};
-async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await ensureDateRegistered();await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
-window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const compressed=await compressImage(file,800,0.55);prog.setText('Mengunggah...');await ensureDateRegistered();const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),compressed);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
+window.sendMessage=async()=>{const inp=el('msg-input'),text=inp.value.trim();if(!text||!currentUser||_sending)return;_sending=true;inp.value="";resizeInput();try{await ensureDateRegistered(todayDateStr);await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'text',content:text,timestamp:serverTimestamp(),reactions:{}});setTypingStatus(false);}catch(e){showToast('Gagal mengirim');inp.value=text;}finally{_sending=false;}};
+async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await ensureDateRegistered(todayDateStr);await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
+window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const compressed=await compressImage(file,800,0.55);prog.setText('Mengunggah...');await ensureDateRegistered(todayDateStr);const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),compressed);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
 function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej('fail');},'image/jpeg',quality);};img.onerror=rej;img.src=url;});}
 window.toggleRecord=async()=>{if(!isRecording)await startRecord();else await stopRecord();};
 async function startRecord(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});audioChunks=[];const mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';mediaRecorder=new MediaRecorder(stream,{mimeType:mime});mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};mediaRecorder.start(200);isRecording=true;el('record-btn').classList.add('recording');showToast('\u{1F399}\uFE0F Merekam... tap lagi untuk kirim',4000);}catch(e){showToast('Mikrofon tidak bisa diakses');}}
-async function stopRecord(){if(!mediaRecorder)return;isRecording=false;el('record-btn').classList.remove('recording');return new Promise(res=>{mediaRecorder.onstop=async()=>{const mime=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(audioChunks,{type:mime});const ext=mime.includes('mp4')?'mp4':'webm';mediaRecorder.stream.getTracks().forEach(t=>t.stop());mediaRecorder=null;audioChunks=[];if(blob.size<1000){showToast('Rekaman terlalu pendek');res();return;}const prog=showProgress('Mengunggah suara...');try{const dur=await getAudioDur(blob);await ensureDateRegistered();const path='voices/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.'+ext;await uploadBytes(sRef(storage,path),blob);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'voice',content:url,duration:dur,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim suara');}finally{prog.remove();res();}};mediaRecorder.stop();});}
+async function stopRecord(){if(!mediaRecorder)return;isRecording=false;el('record-btn').classList.remove('recording');return new Promise(res=>{mediaRecorder.onstop=async()=>{const mime=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(audioChunks,{type:mime});const ext=mime.includes('mp4')?'mp4':'webm';mediaRecorder.stream.getTracks().forEach(t=>t.stop());mediaRecorder=null;audioChunks=[];if(blob.size<1000){showToast('Rekaman terlalu pendek');res();return;}const prog=showProgress('Mengunggah suara...');try{const dur=await getAudioDur(blob);await ensureDateRegistered(todayDateStr);const path='voices/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.'+ext;await uploadBytes(sRef(storage,path),blob);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'voice',content:url,duration:dur,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim suara');}finally{prog.remove();res();}};mediaRecorder.stop();});}
 function getAudioDur(blob){return new Promise(res=>{const a=new Audio();a.src=URL.createObjectURL(blob);a.onloadedmetadata=()=>{URL.revokeObjectURL(a.src);res(a.duration||0);};a.onerror=()=>res(0);});}
 function scrollToBottom(){setTimeout(()=>{el('messages-area').scrollTop=9e9;},50);}
 async function setTypingStatus(val){if(!currentUser)return;try{await setDoc(doc(db,'rooms',APP_CONFIG.roomId,'typing',currentUser.id),{typing:val,ts:serverTimestamp()});}catch(e){}}
@@ -676,6 +685,59 @@ unsubTyping=onSnapshot(doc(db,'rooms',APP_CONFIG.roomId,'typing',otherUser.id),s
 window.onTyping=ta=>{resizeInput();setTypingStatus(true);clearTimeout(typingTimeout);typingTimeout=setTimeout(()=>setTypingStatus(false),2000);};
 window.onInputKeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}};
 function resizeInput(){const ta=el('msg-input');ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,100)+'px';}
+// ── MIGRATION: buat dokumen dates/ yang hilang ──────
+window.runMigration=async()=>{
+  el('migrate-banner').classList.add('hidden');
+  const prog=showProgress('Memeriksa data...');
+  try{
+    // Coba buat dokumen untuk hari ini dulu
+    const today=getTodayStr();
+    // Scan dengan mencoba tanggal yang mungkin ada berdasarkan pesan
+    // Strategi: coba akses messages langsung dengan tanggal yang kita tahu
+    // Karena kita tidak bisa list subcollection tanpa parent doc,
+    // kita buat parent doc untuk rentang 30 hari terakhir yang punya pesan
+    const dates=[];
+    const now=new Date();
+    for(let i=0;i<60;i++){
+      const d=new Date(now);d.setDate(now.getDate()-i);
+      const str=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      dates.push(str);
+    }
+    prog.setText('Scanning '+dates.length+' tanggal...');
+    let found=0;
+    // Cek paralel: apakah ada pesan di tanggal tsb
+    const results=await Promise.all(dates.map(async dateStr=>{
+      try{
+        const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dateStr,'messages'));
+        if(snap.size>0){
+          // Ada pesan! Buat dokumen parent dates/{dateStr}
+          await setDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',dateStr),
+            {date:dateStr,created:serverTimestamp(),migratedAt:serverTimestamp()},
+            {merge:true});
+          return {dateStr,count:snap.size};
+        }
+        return null;
+      }catch(e){return null;}
+    }));
+    const found_dates=results.filter(Boolean);
+    found=found_dates.length;
+    // Pastikan hari ini juga terdaftar
+    const todayKey=getTodayStr();
+    await setDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',todayKey),
+      {date:todayKey,created:serverTimestamp()},{merge:true}).catch(()=>{});
+    prog.remove();
+    if(found===0){
+      showToast('Tidak ada data pesan yang ditemukan dalam 60 hari terakhir',4000);
+    }else{
+      showToast('✓ Berhasil! Ditemukan '+found+' hari chat. Buka Riwayat sekarang.',4000);
+    }
+  }catch(e){
+    prog.remove();
+    console.error('Migration error:',e);
+    showToast('Gagal migrasi: '+e.message,4000);
+  }
+};
+
 // ── MSG ACTIONS (hapus/edit/read) ──────────────────
 async function markAsRead(msgId,data){
   if(!currentUser||data.senderId===currentUser.id)return;
@@ -872,7 +934,8 @@ window.uploadStickers=async event=>{
   }catch(e){showToast('Gagal upload stiker');}finally{prog.remove();}
 };
 // HISTORY
-window.openHistory=async()=>{const list=el('history-list'),empty=el('history-empty');list.innerHTML="";const realToday=getTodayStr();try{const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const past=snap.docs.map(d=>d.id).sort().reverse().filter(d=>d!==realToday);if(!past.length){empty.classList.remove('hidden');}else{empty.classList.add('hidden');
+window.openHistory=async()=>{const list=el('history-list'),empty=el('history-empty');list.innerHTML="";const realToday=getTodayStr();try{const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const past=snap.docs.map(d=>d.id).sort().reverse();
+  if(!past.length){empty.classList.remove('hidden');el('migrate-banner').classList.remove('hidden');}else{empty.classList.add('hidden');
   // Ambil semua message count paralel (bukan satu per satu)
   const results=await Promise.all(past.map(d=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages')).then(ms=>({d,count:ms.size}))));
   results.forEach(({d,count})=>{
@@ -900,6 +963,13 @@ async function openHistoryView(dateStr){
       return;
     }
     snap.docs.forEach(docSnap=>renderMessage(docSnap.id,docSnap.data(),true,msgContainer));
+    // Jika ini hari ini, tampilkan note di bawah
+    if(dateStr===getTodayStr()){
+      const note=document.createElement('div');
+      note.style.cssText='text-align:center;padding:12px 16px;color:var(--text-secondary);font-size:11px;font-weight:600;background:var(--surface2);border-radius:12px;margin:8px';
+      note.textContent='Chat hari ini — masih berlangsung di layar utama';
+      msgContainer.appendChild(note);
+    }
     setTimeout(()=>{msgContainer.scrollTop=msgContainer.scrollHeight;},100);
   }catch(err){
     console.error('openHistoryView error:',err);
@@ -1068,7 +1138,21 @@ function init(){
   const saved=localStorage.getItem('cc-user');
   if(saved&&APP_CONFIG[saved]){try{loginAs(saved);}catch(e){console.error('Auto-login error:',e);localStorage.removeItem('cc-user');}}
   document.addEventListener('click',()=>el('reaction-picker').classList.add('hidden'));
-  const now=new Date(),midnight=new Date(now);midnight.setHours(24,0,10,0);const msToMidnight=midnight-now;if(msToMidnight>0&&msToMidnight<86500000)setTimeout(()=>location.reload(),msToMidnight);
+  const now=new Date(),midnight=new Date(now);midnight.setHours(24,0,10,0);
+  const msToMidnight=midnight-now;
+  if(msToMidnight>0&&msToMidnight<86500000){
+    setTimeout(()=>{
+      // Daftarkan tanggal baru sebelum reload
+      const newDate=getTodayStr();
+      if(currentUser&&db){
+        setDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',newDate),
+          {created:serverTimestamp(),date:newDate},{merge:true})
+          .catch(()=>{}).finally(()=>location.reload());
+      }else{
+        location.reload();
+      }
+    },msToMidnight);
+  }
 }
 init();
 </script>

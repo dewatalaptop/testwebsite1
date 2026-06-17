@@ -150,6 +150,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .sticker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .sticker-item{aspect-ratio:1;border-radius:14px;overflow:hidden;cursor:pointer;background:var(--surface2);border:2px solid transparent;transition:all 0.2s;display:flex;align-items:center;justify-content:center;position:relative}
 .sticker-item:hover{border-color:var(--accent);transform:scale(1.06)}
+.sticker-item:active{transform:scale(0.94);background:var(--bg2)}
 .sticker-item img{width:100%;height:100%;object-fit:contain;padding:6px;image-rendering:auto}
 .sticker-delete{position:absolute;top:3px;right:3px;background:rgba(220,53,69,0.85);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center;font-family:var(--font-main)}
 .sticker-item:hover .sticker-delete{display:flex}
@@ -170,7 +171,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .modal-messages{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px;-webkit-overflow-scrolling:touch}
 .modal-footer{padding:10px 14px;border-top:1px solid var(--border);text-align:center;flex-shrink:0}
 .readonly-badge{background:var(--bg2);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--text-secondary);font-weight:600;display:inline-block}
-.full-modal{position:fixed;inset:0;z-index:450;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;padding:20px}
+.full-modal{position:fixed;inset:0;z-index:550;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;padding:20px}
 .full-modal-card{background:var(--surface);border-radius:24px;padding:28px 22px 22px;width:100%;max-width:340px;box-shadow:0 8px 40px rgba(0,0,0,0.2);animation:popIn 0.25s cubic-bezier(.34,1.56,.64,1);max-height:90vh;overflow-y:auto}
 @keyframes popIn{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
 .profile-av-big{width:88px;height:88px;border-radius:50%;overflow:hidden;margin:0 auto 8px;border:3px solid var(--accent);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:42px;cursor:pointer;position:relative}
@@ -459,7 +460,8 @@ let mediaRecorder=null,audioChunks=[],isRecording=false;
 let activeAudio=null,activePlayBtn=null,activeFill=null;
 let profilePhotos=JSON.parse(localStorage.getItem('cc-profiles')||'{}');
 let profileModalTarget=null,adminPinBuf="",adminTab="photos",selectedMedia=new Set();
-let unsubTyping=null; // listener typing — harus di-cleanup saat logout
+let unsubTyping=null;
+let unsubPartnerProfile=null; // dipindah ke atas agar logout bisa akses
 function setConnected(ok){const b=el('conn-banner');if(b)b.classList.toggle('hidden',ok);}
 const THEMES=[{id:"default",name:"Langit",emoji:"\u2601\uFE0F",bg:"#eef5fc",accent:"#2186d4"},{id:"sky",name:"Biru",emoji:"\u{1F324}\uFE0F",bg:"#dff0fb",accent:"#0288d1"},{id:"mint",name:"Mint",emoji:"\u{1F33F}",bg:"#e8f5f0",accent:"#00897b"},{id:"slate",name:"Slate",emoji:"\u{1FAA8}",bg:"#edf1f7",accent:"#546e8a"},{id:"lavender",name:"Lavender",emoji:"\u{1FAB3}",bg:"#f0eef8",accent:"#6767b8"},{id:"cloud",name:"Mendung",emoji:"\u{1F32B}\uFE0F",bg:"#f4f7fa",accent:"#4a8fb8"},{id:"night",name:"Malam",emoji:"\u{1F319}",bg:"#111825",accent:"#4a8fe0"},{id:"warm",name:"Hangat",emoji:"\u{1F343}",bg:"#f5f0e8",accent:"#6a8e68"}];
 function getTodayStr(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -504,7 +506,7 @@ function loginAs(uid){
   localStorage.setItem('cc-user',uid);
   pinBuffer='';pendingUserId=null;
 }
-window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');if(mediaRecorder){try{mediaRecorder.stop();}catch(e){}mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}isRecording=false;}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');localStorage.removeItem('cc-user');};
+window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');localStorage.removeItem('cc-user');};
 // CHAT
 const msgCol=()=>collection(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages');
 function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));unsubMessages=onSnapshot(q,snap=>{
@@ -515,19 +517,24 @@ function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').inner
     });
     scrollToBottom();
     setConnected(true);
+    startChat._retries=0;
   },err=>{
     console.error('Firestore sync error:',err);
     setConnected(false);
     // Retry otomatis setelah 5 detik
-    setTimeout(()=>{if(currentUser)startChat();},5000);
+    if(!startChat._retries)startChat._retries=0;
+    startChat._retries++;
+    if(startChat._retries<=5)setTimeout(()=>{if(currentUser)startChat();},5000*startChat._retries);
+    else showToast('Koneksi bermasalah. Coba muat ulang halaman.');
   });
   watchTyping(); // dipanggil sekali saja, bukan di dalam onSnapshot
 }
 function renderMessage(id,data,readOnly=false,container=null){
   const target=container||el('messages-inner');
   // Resolve identitas — aman untuk history view (currentUser bisa null jika dibuka dari login screen)
-  const knownId=currentUser?.id||localStorage.getItem('cc-user');
-  const isMe=data.senderId===knownId;
+  // Untuk history view: pakai senderId dari data Firestore saja, bukan localStorage
+  const knownId=currentUser?.id;
+  const isMe=!!knownId&&data.senderId===knownId;
   const row=document.createElement('div');row.className='msg-row '+(isMe?'me':'other');row.dataset.id=id;
   const senderCfg=APP_CONFIG[data.senderId]||{};
   const av=document.createElement('div');av.className='msg-av';
@@ -535,7 +542,7 @@ function renderMessage(id,data,readOnly=false,container=null){
   const col=document.createElement('div');col.className='msg-col';
   const name=document.createElement('div');name.className='msg-name';name.textContent=data.senderName||senderCfg.name||'Partner';
   const bubble=document.createElement('div');bubble.className='msg-bubble';
-  if(data.type==='sticker'){bubble.classList.add('is-sticker');const img=document.createElement('img');img.src=data.content;img.loading='lazy';bubble.appendChild(img);}
+  if(data.type==='sticker'){bubble.classList.add('is-sticker');const img=document.createElement('img');img.src=data.content;img.loading='lazy';bubble.appendChild(img);if(data.isGif||data.content?.toLowerCase().includes('.gif'))img.style.imageRendering='auto';}
   else if(data.type==='photo'){bubble.classList.add('is-photo');const img=document.createElement('img');img.src=data.content;img.loading='lazy';img.onclick=()=>openLightbox(data.content);bubble.appendChild(img);}
   else if(data.type==='voice'){bubble.classList.add('is-voice');bubble.appendChild(buildVoicePlayer(data.content,data.duration||0));}
   else{bubble.textContent=data.content;}
@@ -604,13 +611,49 @@ function renderThemeGrid(){const grid=el('theme-grid');grid.innerHTML="";THEMES.
 window.openTheme=()=>{renderThemeGrid();toggleSheet('theme',true);};window.closeTheme=()=>toggleSheet('theme',false);
 // STICKERS
 async function loadStickers(){try{const snap=await getDocs(collection(db,'stickers'));allStickers=snap.docs.map(d=>({id:d.id,...d.data()}));renderStickerGrid();}catch(e){}}
-window.openStickers=()=>{renderStickerGrid();toggleSheet('sticker',true);};window.closeStickers=()=>toggleSheet('sticker',false);
+window.openStickers=async()=>{toggleSheet('sticker',true);try{const snap=await getDocs(collection(db,'stickers'));allStickers=snap.docs.map(d=>({id:d.id,...d.data()}));}catch(e){}renderStickerGrid();};window.closeStickers=()=>toggleSheet('sticker',false);
 window.switchStickerTab=tab=>{stickerTab=tab;document.querySelectorAll('.sticker-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));renderStickerGrid();};
 function renderStickerGrid(container,adminDelete){
   const grid=container||el('sticker-grid'),empty=el('sticker-empty');
   const list=(!container&&stickerTab==='mine')?allStickers.filter(s=>s.uploaderId===currentUser?.id):allStickers;
   grid.innerHTML="";if(!container&&!list.length){empty?.classList.remove('hidden');return;}empty?.classList.add('hidden');
-  list.forEach(s=>{const item=document.createElement('div');item.className='sticker-item';const img=document.createElement('img');img.src=s.url;img.loading='lazy';if(s.isGif){const badge=document.createElement('span');badge.textContent='GIF';badge.style.cssText='position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,0.55);color:white;font-size:8px;font-weight:700;padding:1px 4px;border-radius:4px;pointer-events:none;letter-spacing:0.5px';item.appendChild(badge);}if(!container)img.onclick=()=>sendSticker(s.url);const del=document.createElement('button');del.className='sticker-delete';del.textContent='\u00D7';del.onclick=async e=>{e.stopPropagation();if(!confirm('Hapus stiker ini?'))return;try{await deleteDoc(doc(db,'stickers',s.id));if(s.storagePath)await deleteObject(sRef(storage,s.storagePath)).catch(()=>{});allStickers=allStickers.filter(x=>x.id!==s.id);renderStickerGrid();if(container)renderAdminStickers();}catch(e){showToast('Gagal hapus');}showToast('Stiker dihapus');};if(s.uploaderId===currentUser?.id||adminDelete)item.appendChild(del);item.appendChild(img);grid.appendChild(item);});
+  list.forEach(s=>{
+    const item=document.createElement('div');
+    item.className='sticker-item';
+    // onclick di item (bukan img) — seluruh area tappable
+    if(!container){
+      item.onclick=()=>sendSticker(s.url);
+      item.style.cursor='pointer';
+    }
+    const img=document.createElement('img');
+    img.src=s.url;
+    img.loading='lazy';
+    img.style.pointerEvents='none'; // cegah img intercept tap, biar item yang handle
+    if(s.isGif||s.url?.toLowerCase().includes('.gif')){
+      const badge=document.createElement('span');
+      badge.textContent='GIF';
+      badge.style.cssText='position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,0.55);color:white;font-size:8px;font-weight:700;padding:1px 4px;border-radius:4px;pointer-events:none;letter-spacing:0.5px';
+      item.appendChild(badge);
+    }
+    const del=document.createElement('button');
+    del.className='sticker-delete';
+    del.textContent='\u00D7';
+    del.onclick=async e=>{
+      e.stopPropagation();
+      if(!confirm('Hapus stiker ini?'))return;
+      try{
+        await deleteDoc(doc(db,'stickers',s.id));
+        if(s.storagePath)await deleteObject(sRef(storage,s.storagePath)).catch(()=>{});
+        allStickers=allStickers.filter(x=>x.id!==s.id);
+        renderStickerGrid();
+        if(container)renderAdminStickers();
+        showToast('Stiker dihapus');
+      }catch(e){showToast('Gagal hapus');}
+    };
+    if(s.uploaderId===currentUser?.id||adminDelete)item.appendChild(del);
+    item.appendChild(img);
+    grid.appendChild(item);
+  });
 }
 window.uploadStickers=async event=>{
   const files=Array.from(event.target.files);if(!files.length)return;event.target.value="";
@@ -720,8 +763,7 @@ window.saveProfileChanges=async()=>{
 };
 window.uploadProfilePhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!profileModalTarget)return;
   const targetUid=profileModalTarget; // capture sebelum modal mungkin ditutup
-  const prog=showProgress('Upload foto profil...');try{const c=await compressImage(file,300,0.70);const path='profiles/'+targetUid+'.jpg';await uploadBytes(sRef(storage,path),c);const url=await getDownloadURL(sRef(storage,path));profilePhotos[targetUid]=url;saveProfiles();await setDoc(doc(db,'profiles',targetUid),{photoURL:url,updatedAt:serverTimestamp()},{merge:true});renderLoginAvatars();renderHeaderAvatars();closeProfileModal();showToast('Foto profil diperbarui \u2713');}catch(e){showToast('Gagal upload foto profil');}finally{prog.remove();}};
-let unsubPartnerProfile=null;
+  const prog=showProgress('Upload foto profil...');try{const imgBlob=await compressImage(file,300,0.70);const path='profiles/'+targetUid+'.jpg';await uploadBytes(sRef(storage,path),imgBlob);const url=await getDownloadURL(sRef(storage,path));profilePhotos[targetUid]=url;saveProfiles();await setDoc(doc(db,'profiles',targetUid),{photoURL:url,updatedAt:serverTimestamp()},{merge:true});renderLoginAvatars();renderHeaderAvatars();closeProfileModal();showToast('Foto profil diperbarui \u2713');}catch(e){showToast('Gagal upload foto profil');}finally{prog.remove();}};
 function loadPartnerProfile(){
   if(!otherUser)return;
   if(unsubPartnerProfile)unsubPartnerProfile();
@@ -755,7 +797,7 @@ function refreshBubbleAvatars(){
     const uid=av.dataset.uid||otherUser?.id;
     if(!uid)return;
     const ph=profilePhotos[uid];
-    if(ph&&!av.querySelector('img')){
+    if(ph){
       av.innerHTML='<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
     }
   });
@@ -771,7 +813,7 @@ async function openAdmin(){selectedMedia=new Set();el('admin-panel').classList.r
 window.closeAdmin=()=>{el('admin-panel').classList.add('hidden');selectedMedia=new Set();};
 window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',['photos','voices','stickers'][i]===tab));await renderAdminTab();};
 async function renderAdminTab(){const body=el('admin-body');body.innerHTML='<div class="admin-empty">\u23F3 Memuat...</div>';if(adminTab==='photos')await renderAdminPhotos(body);else if(adminTab==='voices')await renderAdminVoices(body);else renderAdminStickers(body);}
-async function getAllMedia(type){const allDates=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));let items=[];for(const dd of allDates.docs){const msgs=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dd.id,'messages'));msgs.docs.forEach(m=>{if(m.data().type===type)items.push({...m.data(),msgId:m.id,dateId:dd.id});});}return items;}
+async function getAllMedia(type){const allDates=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const results=await Promise.all(allDates.docs.map(dd=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dd.id,'messages')).then(msgs=>({dd,msgs}))));let items=[];results.forEach(({dd,msgs})=>msgs.docs.forEach(m=>{if(m.data().type===type)items.push({...m.data(),msgId:m.id,dateId:dd.id});}));return items;}
 async function renderAdminPhotos(body){
   const items=await getAllMedia('photo');
   if(!items.length){body.innerHTML='<div class="admin-empty">\u{1F4F7} Belum ada foto yang dikirim</div>';return;}

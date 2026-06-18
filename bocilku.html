@@ -468,7 +468,12 @@ import{getStorage,ref as sRef,uploadBytes,getDownloadURL,deleteObject}from"https
 const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
 const storage=getStorage(fbApp);
-// Validasi & load APP_CONFIG dari localStorage
+// ── SHA-256 helper ──────────────────────────────────
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+// ── Load APP_CONFIG dari localStorage ───────────────
 function loadConfig(){
   try{
     const saved=JSON.parse(localStorage.getItem('cc-cfg')||'null');
@@ -502,15 +507,41 @@ const el=id=>document.getElementById(id);
 function saveCfg(){localStorage.setItem('cc-cfg',JSON.stringify(APP_CONFIG));}
 function saveProfiles(){localStorage.setItem('cc-profiles',JSON.stringify(profilePhotos));}
 // LOGIN
-window.selectUser=uid=>{pendingUserId=uid;pinBuffer="";updatePinDots('pin-dots');el('pin-section').classList.remove('hidden');el('pin-error').classList.add('hidden');el('select-user1').classList.toggle('selected',uid==='user1');el('select-user2').classList.toggle('selected',uid==='user2');};
+window.selectUser=uid=>{
+  pendingUserId=uid;pinBuffer="";updatePinDots('pin-dots');
+  el('pin-section').classList.remove('hidden');
+  el('pin-error').classList.add('hidden');
+  el('select-user1').classList.toggle('selected',uid==='user1');
+  el('select-user2').classList.toggle('selected',uid==='user2');
+  // Load pinHash fresh dari Firestore untuk verifikasi terbaru
+  getDoc(doc(db,'profiles',uid)).then(snap=>{
+    if(snap.exists()&&snap.data().pinHash){
+      APP_CONFIG[uid]._pinHash=snap.data().pinHash;
+    }
+  }).catch(()=>{});
+};
 window.pinInput=d=>{if(pinBuffer.length>=4)return;pinBuffer+=d;updatePinDots('pin-dots');if(pinBuffer.length===4)setTimeout(checkPin,150);};
 window.pinClear=()=>{pinBuffer=pinBuffer.slice(0,-1);updatePinDots('pin-dots');};
 let _wrongCount=0;
 window.cancelLogin=()=>{pendingUserId=null;pinBuffer="";_wrongCount=0;el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');el('pin-reset-hint').classList.add('hidden');};
 function updatePinDots(dotsId){document.querySelectorAll('#'+dotsId+' .pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<pinBuffer.length));}
-function checkPin(){
+async function checkPin(){
   if(!pendingUserId)return;
-  if(pinBuffer===APP_CONFIG[pendingUserId].pin){
+  const cfg=APP_CONFIG[pendingUserId];
+  let valid=false;
+  // Prioritas 1: verifikasi via pinHash dari Firestore (PIN terbaru)
+  if(cfg._pinHash){
+    const inputHash=await sha256(pinBuffer);
+    valid=(inputHash===cfg._pinHash);
+    // Jika hash cocok tapi PIN lokal beda, update PIN lokal
+    if(valid&&cfg.pin!==pinBuffer){
+      cfg.pin=pinBuffer;saveCfg();
+    }
+  }else{
+    // Fallback: PIN lokal (belum pernah sync ke Firestore)
+    valid=(pinBuffer===cfg.pin);
+  }
+  if(valid){
     _wrongCount=0;loginAs(pendingUserId);
   }else{
     _wrongCount++;pinBuffer="";updatePinDots('pin-dots');
@@ -1024,7 +1055,16 @@ window.saveProfileChanges=async()=>{
   saveCfg();
   el('name-user1').textContent=APP_CONFIG.user1.name;el('name-user2').textContent=APP_CONFIG.user2.name;
   if(currentUser)currentUser=APP_CONFIG[currentUser.id];if(otherUser)otherUser=APP_CONFIG[otherUser.id];
-  try{await setDoc(doc(db,'profiles',profileModalTarget),{name:newName,updatedAt:serverTimestamp()},{merge:true});}catch(e){}
+  try{
+    const updateData={name:newName,updatedAt:serverTimestamp()};
+    // Simpan PIN sebagai hash SHA-256 ke Firestore agar sync ke device lain
+    if(newPin){
+      const pinHash=await sha256(newPin);
+      updateData.pinHash=pinHash;
+      APP_CONFIG[profileModalTarget]._pinHash=pinHash; // update lokal juga
+    }
+    await setDoc(doc(db,'profiles',profileModalTarget),updateData,{merge:true});
+  }catch(e){console.warn('Profile sync error:',e);}
   closeProfileModal();showToast('Profil diperbarui \u2713');
 };
 window.uploadProfilePhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!profileModalTarget)return;
@@ -1045,6 +1085,11 @@ function loadPartnerProfile(){
       el('name-user1').textContent=APP_CONFIG.user1.name;
       el('name-user2').textContent=APP_CONFIG.user2.name;
       changed=true;
+    }
+    // Sync pinHash dari Firestore — agar PIN yang diubah partner terbaca di device ini
+    if(snap.data().pinHash){
+      APP_CONFIG[otherUser.id]._pinHash=snap.data().pinHash;
+      saveCfg();
     }
     if(changed){
       renderHeaderAvatars();

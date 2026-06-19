@@ -289,15 +289,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .emoji-cell{font-size:22px;text-align:center;padding:6px 2px;cursor:pointer;border-radius:8px;transition:background 0.1s;line-height:1.2;border:none;background:none}
 .emoji-cell:active{background:var(--surface2);transform:scale(1.2)}
 /* ── STORY ── */
-.story-bar{display:flex;gap:10px;padding:10px 14px 6px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.story-bar{display:flex;gap:12px;padding:12px 14px 8px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
 .story-bar::-webkit-scrollbar{display:none}
 .story-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0}
-.story-ring{width:54px;height:54px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);position:relative;flex-shrink:0}
+.story-ring{width:62px;height:62px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);position:relative;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .story-ring.seen{background:var(--border)}
-.story-ring.add{background:var(--surface2);border:2px dashed var(--border)}
+.story-ring.add{background:var(--surface2);border:2px dashed var(--accent)}
 .story-av{width:100%;height:100%;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--surface)}
 .story-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.story-name{font-size:10px;font-weight:600;color:var(--text-secondary);text-align:center;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story-name{font-size:11px;font-weight:700;color:var(--text-secondary);text-align:center;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .story-add-icon{position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--surface)}
 .story-viewer{position:fixed;inset:0;z-index:850;background:#000;display:flex;flex-direction:column}
 .story-progress-bar{display:flex;gap:3px;padding:10px 12px 6px;padding-top:max(10px,env(safe-area-inset-top));flex-shrink:0}
@@ -323,6 +323,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .story-reply-btn svg{width:16px;height:16px;color:white}
 .story-delete-btn{background:rgba(229,57,53,0.8);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .story-delete-btn svg{width:15px;height:15px;color:white}
+.story-ring.partner-story{box-shadow:0 0 0 2px var(--surface),0 0 0 4px transparent}
 @media(max-width:390px){.msg-col{max-width:82%}.sticker-grid,.admin-sticker-grid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
@@ -414,6 +415,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
     </button>
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="sendPhoto(event)"/>
+    <input type="file" id="story-file-input" accept="image/*,video/mp4" style="display:none" onchange="handleStoryUpload(event)"/>
     <div class="input-wrap">
       <textarea id="msg-input" class="msg-input" placeholder="Tulis sesuatu..." rows="1" oninput="onTyping(this)" onkeydown="onInputKeydown(event)"></textarea>
     </div>
@@ -1016,28 +1018,67 @@ function stopStoryRefresh(){if(unsubStories){clearInterval(unsubStories);unsubSt
 function renderStoryBar(){
   const bar=el('story-bar');if(!bar||!currentUser)return;
   bar.innerHTML='';
-  const addItem=document.createElement('div');addItem.className='story-item';
-  const photo=profilePhotos[currentUser.id];
-  addItem.innerHTML='<div class="story-ring add" style="position:relative"><div class="story-av">'+(photo?'<img src="'+photo+'">':(currentUser.avatar||'\u2601\uFE0F'))+'</div><div class="story-add-icon">+</div></div><span class="story-name">Story</span>';
-  addItem.onclick=()=>document.getElementById('story-file-input').click();
-  bar.appendChild(addItem);
   const seen=JSON.parse(localStorage.getItem('cc-seen-stories')||'[]');
-  storyItems.forEach(s=>{
+
+  // 1. Story PARTNER dulu — paling kiri, paling mencolok
+  const partnerStories=storyItems.filter(s=>s.authorId!==currentUser.id);
+  const myStories=storyItems.filter(s=>s.authorId===currentUser.id);
+
+  partnerStories.forEach(s=>{
     const isSeen=seen.includes(s.id);
     const cfg=APP_CONFIG[s.authorId]||{};
     const ph=profilePhotos[s.authorId];
     const item=document.createElement('div');item.className='story-item';
-    item.innerHTML='<div class="story-ring'+(isSeen?' seen':'')+'"><div class="story-av">'+(ph?'<img src="'+ph+'">':(cfg.avatar||'\uD83D\uDC64'))+'</div></div><span class="story-name">'+(cfg.name||'Partner')+'</span>';
-    item.onclick=()=>openStoryViewer(storyItems.indexOf(s));
+    const dot=!isSeen?'<div style="position:absolute;top:0;right:0;width:14px;height:14px;border-radius:50%;background:#4caf50;border:2px solid var(--surface)"></div>':'';
+    item.innerHTML='<div class="story-ring'+(isSeen?' seen':'')+' partner-story" style="position:relative"><div class="story-av">'+(ph?'<img src="'+ph+'">':(cfg.avatar||'\uD83D\uDC64'))+'</div>'+dot+'</div><span class="story-name">'+(cfg.name||'Partner')+'</span>';
+    item.addEventListener('click',()=>openStoryViewer(storyItems.indexOf(s)));
     bar.appendChild(item);
   });
+
+  // 2. Story SENDIRI (jika ada)
+  myStories.forEach(s=>{
+    const isSeen=seen.includes(s.id);
+    const ph=profilePhotos[currentUser.id];
+    const item=document.createElement('div');item.className='story-item';
+    item.innerHTML='<div class="story-ring'+(isSeen?' seen':'')+'"><div class="story-av">'+(ph?'<img src="'+ph+'">':(currentUser.avatar||'\u2601\uFE0F'))+'</div></div><span class="story-name">Story-ku</span>';
+    item.addEventListener('click',()=>openStoryViewer(storyItems.indexOf(s)));
+    bar.appendChild(item);
+  });
+
+  // 3. Tombol TAMBAH STORY — paling kanan
+  const addItem=document.createElement('div');addItem.className='story-item';
+  const photo=profilePhotos[currentUser.id];
+  addItem.innerHTML='<div class="story-ring add" style="position:relative"><div class="story-av">'+(photo?'<img src="'+photo+'">':(currentUser.avatar||'\u2601\uFE0F'))+'</div><div class="story-add-icon">+</div></div><span class="story-name">Tambah</span>';
+  addItem.addEventListener('click',()=>{
+    const fi=document.getElementById('story-file-input');
+    if(fi)fi.click();else showToast('Refresh halaman dulu');
+  });
+  bar.appendChild(addItem);
 }
 function openStoryViewer(index){
   storyIndex=index;
   el('story-viewer').classList.remove('hidden');
-  const seen=JSON.parse(localStorage.getItem('cc-seen-stories')||'[]');
-  if(storyItems[index]&&!seen.includes(storyItems[index].id)){seen.push(storyItems[index].id);localStorage.setItem('cc-seen-stories',JSON.stringify(seen));}
+  const seenSt=JSON.parse(localStorage.getItem('cc-seen-stories')||'[]');
+  if(storyItems[index]&&!seenSt.includes(storyItems[index].id)){
+    seenSt.push(storyItems[index].id);
+    localStorage.setItem('cc-seen-stories',JSON.stringify(seenSt));
+  }
   renderStorySlide();
+  // Swipe: kiri=next, kanan=prev, bawah=tutup
+  const viewer=el('story-viewer');
+  let tx=0,ty=0;
+  const onStart=e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;};
+  const onEnd=e=>{
+    const dx=e.changedTouches[0].clientX-tx;
+    const dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50&&Math.abs(dy)<100){if(dx<0)storyNavNext();else storyNavPrev();}
+    else if(dy>100&&Math.abs(dx)<80){closeStoryViewer();}
+  };
+  if(viewer._ss)viewer.removeEventListener('touchstart',viewer._ss);
+  if(viewer._se)viewer.removeEventListener('touchend',viewer._se);
+  viewer._ss=onStart;viewer._se=onEnd;
+  viewer.addEventListener('touchstart',onStart,{passive:true});
+  viewer.addEventListener('touchend',onEnd,{passive:true});
 }
 function renderStorySlide(){
   if(!storyItems[storyIndex]){closeStoryViewer();return;}
@@ -1114,7 +1155,7 @@ async function handleStoryUpload(event){
   finally{prog.remove();}
 }
 // ── IDLE LOCK ────────────────────────────────────────
-const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 menit
+const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 menit
 let idleTimer = null;
 let lockPinBuf = "";
 let isLocked = false;
@@ -1688,7 +1729,7 @@ function init(){
     if(document.hidden && currentUser && !isLocked){
       // Reset timer ke 30 detik saat background (lebih cepat dari 5 menit)
       clearTimeout(idleTimer);
-      idleTimer = setTimeout(lockScreen, 30 * 1000);
+      idleTimer = setTimeout(lockScreen, 2 * 60 * 1000); // 2 menit saat background
     } else if(!document.hidden && currentUser){
       resetIdleTimer();
     }

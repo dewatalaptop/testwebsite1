@@ -645,6 +645,66 @@ select.input,.select{cursor:pointer;}
 }
 
 /* ============================================================
+   EMP NAME LINK
+============================================================ */
+.emp-name-link{cursor:pointer;transition:color .15s;}
+.emp-name-link:hover{color:var(--blue);text-decoration:underline;text-underline-offset:3px;}
+
+/* ============================================================
+   PROFILE VIEW
+============================================================ */
+.profile-back-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.profile-back-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .15s;}
+.profile-back-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light);}
+.profile-hero{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:26px 30px;margin-bottom:18px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);}
+.profile-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.profile-avatar-lg{width:62px;height:62px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:-1px;}
+.profile-hero-info{flex:1;min-width:0;}
+.profile-hero-name{font-family:'Instrument Serif',serif;font-size:22px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.profile-hero-sub{font-size:12.5px;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.profile-hero-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid;}
+.profile-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+@media(max-width:700px){.profile-form-grid{grid-template-columns:1fr;}}
+.profile-section{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow-sm);}
+.profile-section-title{font-family:'Instrument Serif',serif;font-size:15px;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:7px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.profile-row{margin-bottom:13px;}
+.profile-row:last-child{margin-bottom:0;}
+.profile-row .label{margin-bottom:5px;}
+.date-trio{display:grid;grid-template-columns:80px 1fr 1fr;gap:7px;}
+.profile-footer{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:16px 22px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;box-shadow:var(--shadow-sm);position:sticky;bottom:20px;}
+.profile-footer-info{font-size:12px;color:var(--text3);}
+.exp-block{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:9px;}
+.exp-block:last-child{margin-bottom:0;}
+.exp-block-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px;}
+
+/* ============================================================
+   EMP CARD MODAL
+============================================================ */
+.emp-card-modal{max-width:420px;width:100%;}
+.emp-card-header{padding:20px 20px 16px;background:var(--surface2);border-bottom:1px solid var(--border);position:relative;border-radius:20px 20px 0 0;}
+.emp-card-avatar-row{display:flex;align-items:center;gap:13px;margin-bottom:12px;}
+.emp-card-avatar{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:-1px;}
+.emp-card-name{font-family:'Instrument Serif',serif;font-size:18px;color:var(--ink);line-height:1.2;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.emp-card-meta{font-size:12px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.emp-card-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.emp-card-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text2);}
+.emp-card-chip.contract-ok{background:var(--green-light);border-color:var(--green-mid);color:var(--green);}
+.emp-card-chip.contract-warn{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber);}
+.emp-card-chip.contract-exp{background:var(--red-light);border-color:var(--red-mid);color:var(--red);}
+.emp-card-chip.contract-unk{background:var(--surface3);border-color:var(--border2);color:var(--text3);}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:16px 18px;}
+.action-card{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 10px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .18s;font-family:inherit;}
+.action-card:hover{border-color:var(--blue);background:var(--blue-light);transform:translateY(-2px);box-shadow:var(--shadow-sm);}
+.action-card.danger:hover{border-color:var(--red-mid);background:var(--red-light);}
+.action-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.action-card-label{font-size:12px;font-weight:700;color:var(--text2);text-align:center;line-height:1.3;}
+.action-card-sub{font-size:10.5px;color:var(--text3);text-align:center;line-height:1.3;}
+.action-card:hover .action-card-label{color:var(--blue);}
+.action-card.danger:hover .action-card-label{color:var(--red);}
+.emp-menu-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;transition:all .15s;font-size:16px;font-weight:900;font-family:inherit;flex-shrink:0;}
+.emp-menu-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:var(--blue-glow);}
+
+/* ============================================================
    SCROLLBARS
 ============================================================ */
 ::-webkit-scrollbar{width:4px;height:4px;}
@@ -864,6 +924,11 @@ select.input,.select{cursor:pointer;}
     <div id="viewDashboard" class="view">
       <div id="dashboardContent"></div>
     </div>
+
+    <!-- PROFILE VIEW -->
+    <div id="viewProfile" class="view">
+      <div id="profileContent"></div>
+    </div>
   </div>
 </div>
 
@@ -999,6 +1064,24 @@ select.input,.select{cursor:pointer;}
         Pindahkan
       </button>
     </div>
+  </div>
+</div>
+
+<!-- EMP CARD MODAL -->
+<div class="modal-wrap hidden" id="empCardWrap" role="dialog" aria-modal="true">
+  <div class="modal emp-card-modal">
+    <div class="emp-card-header" id="empCardHeader">
+      <button class="icon-btn" id="closeEmpCard" aria-label="Tutup" style="position:absolute;top:12px;right:12px;">&#x2715;</button>
+      <div class="emp-card-avatar-row">
+        <div class="emp-card-avatar" id="empCardAvatar">U</div>
+        <div>
+          <div class="emp-card-name" id="empCardName"></div>
+          <div class="emp-card-meta" id="empCardMeta"></div>
+        </div>
+      </div>
+      <div class="emp-card-chips" id="empCardChips"></div>
+    </div>
+    <div class="action-grid" id="empCardActions"></div>
   </div>
 </div>
 
@@ -1502,6 +1585,304 @@ function switchView(viewId){
 }
 
 /* ============================================================
+   PROFILE VIEW - openProfile, renderProfileView, saveProfile
+============================================================ */
+var _profileCtx = { outletId: null, employeeId: null };
+
+function openProfile(outletId, employeeId) {
+  var outlet = state.outlets.find(function(o){ return o.id === outletId; });
+  if (!outlet) return;
+  var emp = (outlet.employees || []).find(function(e){ return e.id === employeeId; });
+  if (!emp) return;
+  _profileCtx = { outletId: outletId, employeeId: employeeId };
+  switchView('viewProfile');
+  renderProfileView(outlet, emp);
+}
+
+function renderProfileView(outlet, emp) {
+  var pc = document.getElementById('profileContent');
+  if (!pc) return;
+  pc.innerHTML = '';
+
+  var palette = getOutletPalette(outlet.id);
+  var p = emp.profileData || {};
+  var status = getStatus(emp.contractEnd);
+  var g = getEmpGender(emp);
+  var initials = emp.name.trim().split(/\s+/).map(function(w){ return w.charAt(0).toUpperCase(); }).slice(0,2).join('');
+
+  // Back bar
+  var backBar = document.createElement('div');
+  backBar.className = 'profile-back-bar';
+  var backBtn = document.createElement('button');
+  backBtn.className = 'profile-back-btn';
+  backBtn.innerHTML = '\u2190 Kembali ke ' + escapeHtml(outlet.name);
+  backBtn.addEventListener('click', function(){ switchView('viewOutlets'); requestAnimationFrame(render); });
+  backBar.appendChild(backBtn);
+  pc.appendChild(backBar);
+
+  // Hero
+  var hero = document.createElement('div');
+  hero.className = 'profile-hero';
+  hero.style.setProperty('--oc-color', palette.solid);
+  hero.style.borderTop = '3px solid ' + palette.solid;
+  hero.innerHTML =
+    '<div class="profile-avatar-lg" style="background:' + palette.solid + ';">' + escapeHtml(initials) + '</div>' +
+    '<div class="profile-hero-info">' +
+      '<div class="profile-hero-name">' +
+        genderIcon(g.gender, g.guessed) +
+        escapeHtml(emp.name) +
+      '</div>' +
+      '<div class="profile-hero-sub">' +
+        '<span>\uD83C\uDFE2 ' + escapeHtml(outlet.name) + '</span>' +
+        (emp.phone ? '<span>\uD83D\uDCDE ' + escapeHtml(emp.phone) + '</span>' : '') +
+        (emp.contractEnd ? '<span>\uD83D\uDCC5 Kontrak s.d. ' + escapeHtml(formatDate(emp.contractEnd)) + '</span>' : '') +
+        '<span class="profile-hero-badge badge ' + status.cls + '">' + status.text + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div style="text-align:right;flex-shrink:0;">' +
+      '<div style="font-size:11px;color:var(--text3);margin-bottom:3px;">Gaji Pokok</div>' +
+      '<div style="font-family:'Instrument Serif',serif;font-size:20px;color:var(--ink);">' + currency(emp.salary) + '</div>' +
+    '</div>';
+  pc.appendChild(hero);
+
+  // Form grid
+  var grid = document.createElement('div');
+  grid.className = 'profile-form-grid';
+
+  // ---- LEFT COLUMN ----
+  var leftCol = document.createElement('div');
+  leftCol.style.display = 'flex';
+  leftCol.style.flexDirection = 'column';
+  leftCol.style.gap = '14px';
+
+  // Section: Data Pribadi
+  var secPribadi = buildProfileSection('\uD83D\uDCC4 Data Pribadi', [
+    buildProfileField('Nomor Pekerja', 'pNomorPekerja', 'text', p.nomorPekerja || '', 'Contoh: NRN-001'),
+    buildProfileDateTrio('Tanggal Masuk', 'pTglMasuk', p.tglMasukTgl || '', p.tglMasukBln || '', p.tglMasukThn || ''),
+    buildProfileField('NIK', 'pNIK', 'text', p.nik || '', '16 digit nomor KTP', 16),
+    buildProfileField('Tempat Lahir', 'pTempatLahir', 'text', p.tempatLahir || '', 'Kota/Kab tempat lahir'),
+    buildProfileField('Tanggal Lahir', 'pTglLahir', 'date', p.tglLahir || '', ''),
+    buildProfileField('Alamat Domisili', 'pAlamat', 'text', p.alamat || '', 'Alamat lengkap'),
+    buildProfileField('Link KTP (Google Drive)', 'pKtpUrl', 'url', emp.ktpUrl || '', 'https://drive.google.com/...'),
+  ]);
+  leftCol.appendChild(secPribadi);
+
+  // Section: Data Keluarga
+  var secKeluarga = buildProfileSection('\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC66 Data Istri/Suami & Anak', [
+    buildProfileField('Nama Istri / Suami', 'pNamaPasangan', 'text', p.namaPasangan || '', 'Nama lengkap pasangan'),
+    buildProfileField('Nama Anak 1', 'pNamaAnak1', 'text', p.namaAnak1 || '', ''),
+    buildProfileField('Nama Anak 2', 'pNamaAnak2', 'text', p.namaAnak2 || '', ''),
+    buildProfileField('Nama Anak 3', 'pNamaAnak3', 'text', p.namaAnak3 || '', ''),
+  ]);
+  leftCol.appendChild(secKeluarga);
+
+  // ---- RIGHT COLUMN ----
+  var rightCol = document.createElement('div');
+  rightCol.style.display = 'flex';
+  rightCol.style.flexDirection = 'column';
+  rightCol.style.gap = '14px';
+
+  // Section: Data Orangtua
+  var secOrangtua = buildProfileSection('\uD83D\uDC68\u200D\uD83D\uDC66 Data Orangtua', [
+    buildProfileField('Nama Ayah', 'pNamaAyah', 'text', p.namaAyah || '', 'Nama lengkap ayah'),
+    buildProfileField('Nama Ibu', 'pNamaIbu', 'text', p.namaIbu || '', 'Nama lengkap ibu'),
+  ]);
+  rightCol.appendChild(secOrangtua);
+
+  // Section: Data Pendidikan
+  var secPendidikan = buildProfileSection('\uD83C\uDF93 Data Pendidikan', [
+    buildProfileEduRow('SD', 'pSD', p.sdNama || '', p.sdTahun || ''),
+    buildProfileEduRow('SMP', 'pSMP', p.smpNama || '', p.smpTahun || ''),
+    buildProfileEduRow('SMA', 'pSMA', p.smaNama || '', p.smaTahun || ''),
+    buildProfileEduRow('Diploma', 'pDiploma', p.diplomaNama || '', p.diplomaTahun || ''),
+    buildProfileEduRow('Sarjana', 'pSarjana', p.sarjanaNama || '', p.sarjanaTahun || ''),
+  ]);
+  rightCol.appendChild(secPendidikan);
+
+  // Section: Pengalaman Kerja
+  var secKerja = buildProfileSection('\uD83D\uDCBC Pengalaman Kerja', [
+    buildProfileExpBlock(1, p.exp1Nama || '', p.exp1Posisi || '', p.exp1Tahun || ''),
+    buildProfileExpBlock(2, p.exp2Nama || '', p.exp2Posisi || '', p.exp2Tahun || ''),
+  ]);
+  rightCol.appendChild(secKerja);
+
+  grid.appendChild(leftCol);
+  grid.appendChild(rightCol);
+  pc.appendChild(grid);
+
+  // Footer save bar
+  var footer = document.createElement('div');
+  footer.className = 'profile-footer';
+  footer.innerHTML = '<div class="profile-footer-info">\uD83D\uDCCC Data disimpan per karyawan, hanya bisa dilihat admin.</div>';
+  var saveBtn = document.createElement('button');
+  saveBtn.className = 'btn btn-primary';
+  saveBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Data Diri';
+  saveBtn.addEventListener('click', function(){ doSaveProfile(outlet.id, emp.id, saveBtn); });
+  footer.appendChild(saveBtn);
+  pc.appendChild(footer);
+}
+
+/* ---- Profile section builder ---- */
+function buildProfileSection(title, children) {
+  var sec = document.createElement('div');
+  sec.className = 'profile-section';
+  var t = document.createElement('div');
+  t.className = 'profile-section-title';
+  t.innerHTML = title;
+  sec.appendChild(t);
+  children.forEach(function(c){ if(c) sec.appendChild(c); });
+  return sec;
+}
+
+function buildProfileField(label, id, type, value, placeholder, maxlen) {
+  var row = document.createElement('div');
+  row.className = 'profile-row form-group';
+  var lbl = document.createElement('label');
+  lbl.className = 'label';
+  lbl.setAttribute('for', id);
+  lbl.textContent = label;
+  var inp = document.createElement('input');
+  inp.type = type || 'text';
+  inp.className = 'input';
+  inp.id = id;
+  inp.value = value || '';
+  if (placeholder) inp.placeholder = placeholder;
+  if (maxlen) inp.maxLength = maxlen;
+  row.appendChild(lbl);
+  row.appendChild(inp);
+  return row;
+}
+
+function buildProfileDateTrio(label, prefix, tgl, bln, thn) {
+  var row = document.createElement('div');
+  row.className = 'profile-row form-group';
+  var lbl = document.createElement('label');
+  lbl.className = 'label';
+  lbl.textContent = label;
+  var trio = document.createElement('div');
+  trio.className = 'date-trio';
+  function makeInput(id, ph, val, maxl) {
+    var inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'input'; inp.id = id;
+    inp.value = val || ''; inp.placeholder = ph;
+    if (maxl) inp.maxLength = maxl;
+    return inp;
+  }
+  var wTgl = document.createElement('div');
+  var lTgl = document.createElement('div'); lTgl.style.cssText = 'font-size:10px;color:var(--text3);margin-bottom:3px;font-weight:700;';
+  lTgl.textContent = 'TGL'; wTgl.appendChild(lTgl); wTgl.appendChild(makeInput(prefix+'Tgl','01',tgl,2));
+  var wBln = document.createElement('div');
+  var lBln = document.createElement('div'); lBln.style.cssText = 'font-size:10px;color:var(--text3);margin-bottom:3px;font-weight:700;';
+  lBln.textContent = 'BLN'; wBln.appendChild(lBln); wBln.appendChild(makeInput(prefix+'Bln','01',bln,2));
+  var wThn = document.createElement('div');
+  var lThn = document.createElement('div'); lThn.style.cssText = 'font-size:10px;color:var(--text3);margin-bottom:3px;font-weight:700;';
+  lThn.textContent = 'THN'; wThn.appendChild(lThn); wThn.appendChild(makeInput(prefix+'Thn','2024',thn,4));
+  trio.appendChild(wTgl); trio.appendChild(wBln); trio.appendChild(wThn);
+  row.appendChild(lbl); row.appendChild(trio);
+  return row;
+}
+
+function buildProfileEduRow(label, prefix, nama, tahun) {
+  var row = document.createElement('div');
+  row.className = 'profile-row form-group';
+  var lbl = document.createElement('label');
+  lbl.className = 'label'; lbl.textContent = label;
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;gap:7px;';
+  var inpNama = document.createElement('input');
+  inpNama.type = 'text'; inpNama.className = 'input'; inpNama.id = prefix + 'Nama';
+  inpNama.value = nama || ''; inpNama.placeholder = 'Nama sekolah/institusi'; inpNama.style.flex = '1';
+  var inpThn = document.createElement('input');
+  inpThn.type = 'text'; inpThn.className = 'input'; inpThn.id = prefix + 'Tahun';
+  inpThn.value = tahun || ''; inpThn.placeholder = 'Tahun'; inpThn.style.width = '72px'; inpThn.maxLength = 4;
+  wrap.appendChild(inpNama); wrap.appendChild(inpThn);
+  row.appendChild(lbl); row.appendChild(wrap);
+  return row;
+}
+
+function buildProfileExpBlock(num, nama, posisi, tahun) {
+  var block = document.createElement('div');
+  block.className = 'exp-block';
+  var bt = document.createElement('div');
+  bt.className = 'exp-block-title';
+  bt.textContent = 'Perusahaan ' + num;
+  block.appendChild(bt);
+  function addField(id, lbl, val, ph) {
+    var g = document.createElement('div'); g.className = 'profile-row form-group'; g.style.marginBottom = '8px';
+    var l = document.createElement('label'); l.className = 'label'; l.setAttribute('for', id); l.textContent = lbl;
+    var i = document.createElement('input'); i.type = 'text'; i.className = 'input'; i.id = id; i.value = val || ''; i.placeholder = ph || '';
+    g.appendChild(l); g.appendChild(i); block.appendChild(g);
+  }
+  addField('pExp' + num + 'Nama', 'Nama Perusahaan', nama, 'PT / CV / ...');
+  addField('pExp' + num + 'Posisi', 'Posisi', posisi, 'Jabatan/posisi');
+  addField('pExp' + num + 'Tahun', 'Tahun', tahun, 'Contoh: 2019-2022');
+  return block;
+}
+
+function readProfileField(id) {
+  var el = document.getElementById(id);
+  return el ? safeText(el.value, 200) : '';
+}
+
+async function doSaveProfile(outletId, employeeId, btn) {
+  var outlet = state.outlets.find(function(o){ return o.id === outletId; });
+  if (!outlet) { showToast('Outlet tidak ditemukan.', 'error'); return; }
+  var emp = (outlet.employees || []).find(function(e){ return e.id === employeeId; });
+  if (!emp) { showToast('Karyawan tidak ditemukan.', 'error'); return; }
+
+  var ktpUrl = readProfileField('pKtpUrl').trim();
+  if (ktpUrl && !isValidUrl(ktpUrl)) { showToast('Link KTP tidak valid. Harus diawali https://', 'error'); return; }
+
+  var profileData = {
+    nomorPekerja: readProfileField('pNomorPekerja'),
+    tglMasukTgl:  readProfileField('pTglMasukTgl'),
+    tglMasukBln:  readProfileField('pTglMasukBln'),
+    tglMasukThn:  readProfileField('pTglMasukThn'),
+    nik:          readProfileField('pNIK'),
+    tempatLahir:  readProfileField('pTempatLahir'),
+    tglLahir:     readProfileField('pTglLahir'),
+    alamat:       readProfileField('pAlamat'),
+    namaAyah:     readProfileField('pNamaAyah'),
+    namaIbu:      readProfileField('pNamaIbu'),
+    namaPasangan: readProfileField('pNamaPasangan'),
+    namaAnak1:    readProfileField('pNamaAnak1'),
+    namaAnak2:    readProfileField('pNamaAnak2'),
+    namaAnak3:    readProfileField('pNamaAnak3'),
+    sdNama:       readProfileField('pSDNama'),
+    sdTahun:      readProfileField('pSDTahun'),
+    smpNama:      readProfileField('pSMPNama'),
+    smpTahun:     readProfileField('pSMPTahun'),
+    smaNama:      readProfileField('pSMANama'),
+    smaTahun:     readProfileField('pSMATahun'),
+    diplomaNama:  readProfileField('pDiplomaNama'),
+    diplomaTahun: readProfileField('pDiplomaTahun'),
+    sarjanaNama:  readProfileField('pSarjanaNama'),
+    sarjanaTahun: readProfileField('pSarjanaTahun'),
+    exp1Nama:     readProfileField('pExp1Nama'),
+    exp1Posisi:   readProfileField('pExp1Posisi'),
+    exp1Tahun:    readProfileField('pExp1Tahun'),
+    exp2Nama:     readProfileField('pExp2Nama'),
+    exp2Posisi:   readProfileField('pExp2Posisi'),
+    exp2Tahun:    readProfileField('pExp2Tahun'),
+    updatedAt:    new Date().toISOString()
+  };
+
+  emp.profileData = profileData;
+  if (ktpUrl) emp.ktpUrl = ktpUrl;
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Menyimpan...'; }
+  try {
+    await Backend.saveData(state.currentUser.id, { outlets: state.outlets });
+    showToast('Data diri ' + emp.name + ' berhasil disimpan.', 'success', 4000);
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Data Diri'; }
+  } catch(err) {
+    console.error(err);
+    showToast('Gagal menyimpan data diri.', 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Simpan Data Diri'; }
+  }
+}
+
+/* ============================================================
    AUTH: REGISTER
 ============================================================ */
 async function doRegister(){
@@ -1908,6 +2289,72 @@ async function doSaveMutasi() {
 }
 
 /* ============================================================
+   EMP CARD MODAL
+============================================================ */
+var _empCardCtx={outletId:null,employeeId:null};
+
+function openEmpCard(outletId,employeeId){
+  var outlet=state.outlets.find(function(o){return o.id===outletId;});
+  if(!outlet)return;
+  var emp=(outlet.employees||[]).find(function(e){return e.id===employeeId;});
+  if(!emp)return;
+  _empCardCtx={outletId:outletId,employeeId:employeeId};
+  var palette=getOutletPalette(outlet.id);
+  var status=getStatus(emp.contractEnd);
+  var days=daysLeft(emp.contractEnd);
+  var g=getEmpGender(emp);
+  var hasKtp=isValidUrl(emp.ktpUrl);
+  var mutCount=(emp.mutationHistory||[]).length;
+  var histCount=(emp.contractHistory||[]).length+mutCount;
+  var initials=emp.name.trim().split(/\s+/).map(function(w){return w.charAt(0).toUpperCase();}).slice(0,2).join('');
+  var header=document.getElementById('empCardHeader');
+  if(header)header.style.borderTop='3px solid '+palette.solid;
+  var av=document.getElementById('empCardAvatar');
+  if(av){av.textContent=initials||'?';av.style.background=palette.solid;}
+  var nameEl=document.getElementById('empCardName');
+  if(nameEl)nameEl.innerHTML=genderIcon(g.gender,g.guessed)+escapeHtml(emp.name);
+  var metaEl=document.getElementById('empCardMeta');
+  if(metaEl)metaEl.innerHTML='\uD83C\uDFE2 '+escapeHtml(outlet.name)+(emp.phone?' &nbsp;&bull;&nbsp; \uD83D\uDCDE '+escapeHtml(emp.phone):'')+(emp.salary?' &nbsp;&bull;&nbsp; '+currency(emp.salary):'');
+  var chipsEl=document.getElementById('empCardChips');
+  if(chipsEl){
+    var chipCls=status.key==='active'?'contract-ok':status.key==='warning'?'contract-warn':status.key==='expired'?'contract-exp':'contract-unk';
+    var daysTxt=days===Infinity?'Tdk ada tgl':days<0?'Habis '+Math.abs(days)+'h lalu':days===0?'Hari ini!':'Sisa '+days+' hari';
+    chipsEl.innerHTML='<span class="emp-card-chip '+chipCls+'">'+escapeHtml(status.text)+' \u2014 '+escapeHtml(daysTxt)+'</span>'
+      +(emp.contractEnd?'<span class="emp-card-chip">\uD83D\uDCC5 s.d. '+escapeHtml(formatDate(emp.contractEnd))+'</span>':'')
+      +(hasKtp?'<span class="emp-card-chip" style="background:var(--green-light);border-color:var(--green-mid);color:var(--green);">\uD83C\uDE46 KTP tersedia</span>':'')
+      +(mutCount>0?'<span class="emp-card-chip" style="background:var(--purple-light);border-color:var(--purple-mid);color:var(--purple);">\uD83D\uDD00 '+mutCount+'x mutasi</span>':'');
+  }
+  var actEl=document.getElementById('empCardActions');
+  if(actEl){
+    actEl.innerHTML='';
+    var actions=[
+      {icon:'\uD83D\uDD04',label:'Update Kontrak',sub:emp.contractEnd?formatDate(emp.contractEnd):'Belum ada tanggal',bg:'var(--teal-light)',fn:function(){closeEmpCard();openUpdateContractModal(outletId,employeeId);}},
+      {icon:'\uD83D\uDCDC',label:'History',sub:histCount>0?histCount+' entri':'Belum ada',bg:'var(--purple-light)',fn:function(){closeEmpCard();openHistoryModal(outletId,employeeId);}},
+      {icon:'\uD83C\uDE46',label:'Foto KTP',sub:hasKtp?'Buka link':'Belum ada link',bg:hasKtp?'var(--green-light)':'var(--surface3)',fn:function(){if(hasKtp){openKtpUrl(emp.ktpUrl);}else{closeEmpCard();doEditEmployee(outletId,employeeId);showToast('Tambahkan link KTP di form edit.','info');}}},
+      {icon:'\uD83D\uDD00',label:'Mutasi Outlet',sub:mutCount>0?mutCount+'x dipindah':'Belum pernah',bg:'var(--purple-light)',fn:function(){closeEmpCard();openMutasiModal(outletId,employeeId);}},
+      {icon:'\u2139\uFE0F',label:'Data Diri',sub:emp.profileData&&emp.profileData.updatedAt?'Sudah diisi':'Belum diisi',bg:'var(--blue-light)',fn:function(){closeEmpCard();openProfile(outletId,employeeId);}},
+      {icon:'\u270F\uFE0F',label:'Edit Data',sub:'Nama, gaji, kontrak',bg:'var(--amber-light)',fn:function(){closeEmpCard();doEditEmployee(outletId,employeeId);}},
+      {icon:'\uD83D\uDDD1\uFE0F',label:'Hapus',sub:'Tidak bisa dibatalkan',bg:'var(--red-light)',danger:true,fn:function(){closeEmpCard();doDeleteEmployee(outletId,employeeId);}}
+    ];
+    actions.forEach(function(a){
+      var card=document.createElement('button');card.className='action-card'+(a.danger?' danger':'');card.type='button';
+      var ic=document.createElement('div');ic.className='action-card-icon';ic.style.background=a.bg||'var(--surface3)';ic.textContent=a.icon;
+      var lb=document.createElement('div');lb.className='action-card-label';lb.textContent=a.label;
+      var sb=document.createElement('div');sb.className='action-card-sub';sb.textContent=a.sub||'';
+      card.appendChild(ic);card.appendChild(lb);card.appendChild(sb);
+      card.addEventListener('click',a.fn);
+      actEl.appendChild(card);
+    });
+  }
+  document.getElementById('empCardWrap').classList.remove('hidden');
+}
+
+function closeEmpCard(){
+  document.getElementById('empCardWrap').classList.add('hidden');
+  _empCardCtx={outletId:null,employeeId:null};
+}
+
+/* ============================================================
    FORM BUILDERS
 ============================================================ */
 function buildField(container,labelText,inputId,props){
@@ -2306,45 +2753,14 @@ function buildOutletCard(outlet,employees){
       var badge=document.createElement('span');badge.className='badge '+status.cls;badge.textContent=status.text;
       bc.appendChild(badge);
 
-      /* actions cell */
+      /* actions cell - single menu button */
       var ac=document.createElement('div');ac.className='emp-actions-cell';
-
-      /* Update kontrak */
-      var ucBtn=document.createElement('button');ucBtn.className='emp-btn emp-btn-contract';ucBtn.title='Update Kontrak';ucBtn.textContent='\uD83D\uDD04 Update';
-      (function(oid,eid){ucBtn.addEventListener('click',function(){openUpdateContractModal(oid,eid);});})(outlet.id,emp.id);
-
-      /* History */
-      var hc=(emp.contractHistory||[]).length+(emp.mutationHistory||[]).length;
-      var hBtn=document.createElement('button');hBtn.className='emp-btn emp-btn-history';hBtn.textContent='\uD83D\uDCDC'+(hc>0?' ('+hc+')':'');
-      (function(oid,eid){hBtn.addEventListener('click',function(){openHistoryModal(oid,eid);});})(outlet.id,emp.id);
-
-      /* KTP button (NEW) */
-      var ktpBtn=document.createElement('button');
-      ktpBtn.className='emp-btn emp-btn-ktp'+(hasKtp?' has-ktp':'');
-      ktpBtn.title=hasKtp?'Lihat KTP di Google Drive':'Belum ada link KTP';
-      ktpBtn.textContent=hasKtp?'\uD83C\uDE46 KTP':'\uD83C\uDE46';
-      if(hasKtp){
-        (function(url){ktpBtn.addEventListener('click',function(){openKtpUrl(url);});})(emp.ktpUrl);
-      }else{
-        (function(oid,eid){ktpBtn.addEventListener('click',function(){doEditEmployee(oid,eid);showToast('Tambahkan link KTP di form edit karyawan.','info');});})(outlet.id,emp.id);
-      }
-
-      /* Mutasi button (NEW) */
-      var mutBtn=document.createElement('button');
-      mutBtn.className='emp-btn emp-btn-mutasi';
-      mutBtn.title='Mutasi ke outlet lain';
-      mutBtn.textContent='\uD83D\uDD00'+(mutCount>0?' ('+mutCount+')':'');
-      (function(oid,eid){mutBtn.addEventListener('click',function(){openMutasiModal(oid,eid);});})(outlet.id,emp.id);
-
-      /* Edit & Delete */
-      var eEdit=document.createElement('button');eEdit.className='icon-btn';eEdit.title='Edit';
-      eEdit.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-      (function(oid,eid){eEdit.addEventListener('click',function(){doEditEmployee(oid,eid);});})(outlet.id,emp.id);
-      var eDel=document.createElement('button');eDel.className='icon-btn danger';eDel.title='Hapus';
-      eDel.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
-      (function(oid,eid){eDel.addEventListener('click',function(){doDeleteEmployee(oid,eid);});})(outlet.id,emp.id);
-
-      ac.appendChild(ucBtn);ac.appendChild(hBtn);ac.appendChild(ktpBtn);ac.appendChild(mutBtn);ac.appendChild(eEdit);ac.appendChild(eDel);
+      var menuBtn=document.createElement('button');
+      menuBtn.className='emp-menu-btn';
+      menuBtn.title='Opsi karyawan';
+      menuBtn.textContent='\u22EF';
+      (function(oid,eid){menuBtn.addEventListener('click',function(e){e.stopPropagation();openEmpCard(oid,eid);});})(outlet.id,emp.id);
+      ac.appendChild(menuBtn);
       row.appendChild(nc2);row.appendChild(sc);row.appendChild(bc);row.appendChild(ac);
       empList.appendChild(row);
     });
@@ -2467,7 +2883,7 @@ function doAddEmployee(outletId){
   var outlet=state.outlets.find(function(o){return o.id===outletId;});if(!outlet)return;
   openModal('👤 Tambah Karyawan – '+outlet.name,buildEmployeeForm,async function(){
     var d=validateEmployeeForm();if(!d)return false;
-    var emp={id:uid(),name:d.name,phone:d.phone,salary:d.salary,contractStart:d.contractStart,contractEnd:d.contractEnd,gender:d.gender,ktpUrl:d.ktpUrl||'',contractHistory:[],mutationHistory:[]};
+    var emp={id:uid(),name:d.name,phone:d.phone,salary:d.salary,contractStart:d.contractStart,contractEnd:d.contractEnd,gender:d.gender,ktpUrl:d.ktpUrl||'',contractHistory:[],mutationHistory:[],profileData:{}};
     if(!outlet.employees)outlet.employees=[];
     outlet.employees.push(emp);_lastChangedEmpId=emp.id;
     try{await Backend.saveData(state.currentUser.id,{outlets:state.outlets});closeModal();requestAnimationFrame(render);showToast('Karyawan "'+d.name+'" ditambahkan.','success');setTimeout(function(){_lastChangedEmpId=null;},3000);}
@@ -2570,7 +2986,8 @@ function doRestoreJson(){
                 contractEnd:safeText(e.contractEnd,12),gender:e.gender||'',
                 ktpUrl:isValidUrl(e.ktpUrl)?e.ktpUrl:'',
                 contractHistory:Array.isArray(e.contractHistory)?e.contractHistory:[],
-                mutationHistory:Array.isArray(e.mutationHistory)?e.mutationHistory:[]
+                mutationHistory:Array.isArray(e.mutationHistory)?e.mutationHistory:[],
+                profileData:e.profileData&&typeof e.profileData==='object'?e.profileData:{}
               };
             })
           };
@@ -2748,6 +3165,7 @@ function wireAppButtons(){
   document.getElementById('cancelHistory').addEventListener('click',closeHistoryModal);
 
   /* mutasi modal (NEW) */
+  document.getElementById('closeEmpCard').addEventListener('click',closeEmpCard);
   document.getElementById('closeMutasi').addEventListener('click',closeMutasiModal);
   document.getElementById('cancelMutasi').addEventListener('click',closeMutasiModal);
   document.getElementById('saveMutasi').addEventListener('click',doSaveMutasi);
@@ -2755,7 +3173,8 @@ function wireAppButtons(){
   /* ESC key closes all modals */
   document.addEventListener('keydown',function(e){
     if(e.key!=='Escape')return;
-    if(!document.getElementById('mutasiWrap').classList.contains('hidden'))closeMutasiModal();
+    if(!document.getElementById('empCardWrap').classList.contains('hidden'))closeEmpCard();
+    else if(!document.getElementById('mutasiWrap').classList.contains('hidden'))closeMutasiModal();
     else if(!document.getElementById('historyWrap').classList.contains('hidden'))closeHistoryModal();
     else if(!document.getElementById('updateContractWrap').classList.contains('hidden'))closeUpdateContractModal();
     else if(!document.getElementById('modalWrap').classList.contains('hidden'))closeModal();

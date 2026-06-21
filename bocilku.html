@@ -244,6 +244,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .lock-sub{font-size:12px;color:var(--text-secondary);margin-bottom:18px}
 .lock-timer-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:14px;overflow:hidden}
 .lock-timer-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 1s linear}
+/* ── REPLY BAR ── */
+#reply-bar{background:var(--surface2);border-left:3.5px solid var(--accent);padding:7px 14px;font-size:12px;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;animation:slideUp 0.2s ease}
+#reply-bar span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#reply-bar button{background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:0 0 0 10px;flex-shrink:0}
 /* ── READ STATUS ── */
 .msg-status{font-size:10px;color:var(--text-secondary);padding:0 4px;display:flex;align-items:center;gap:2px;justify-content:flex-end}
 .msg-status.read{color:var(--accent)}
@@ -407,7 +411,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       <div class="typing-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>
     </div>
   </div>
-  <div class="input-bar">
+  <div class="input-bar" id="input-bar">
     <button class="input-btn" onclick="openStickers()" title="Stiker">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
     </button>
@@ -689,7 +693,7 @@ function loginAs(uid){
   pinBuffer='';pendingUserId=null;
   startIdleDetection(); // mulai deteksi idle
 }
-window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');stopIdleDetection();stopStoryRefresh();if(isLocked){isLocked=false;el('lock-overlay').classList.add('hidden');}localStorage.removeItem('cc-user');};
+window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');stopIdleDetection();if(typeof stopStoryRefresh==="function")stopStoryRefresh();stopStoryRefresh();if(isLocked){isLocked=false;el('lock-overlay').classList.add('hidden');}localStorage.removeItem('cc-user');};
 // CHAT
 const msgCol=()=>collection(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages');
 function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));unsubMessages=onSnapshot(q,snap=>{
@@ -1411,8 +1415,9 @@ function watchReadStatus(){
 }
 
 // ── REACTIONS (existing) ──
-window.showReactionPicker=(msgId,bubble)=>{reactionTarget=msgId;const picker=el('reaction-picker');picker.classList.remove('hidden');const rect=bubble.getBoundingClientRect();picker.style.top=Math.max(10,rect.top-60)+'px';picker.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-240))+'px';const close=e=>{if(!picker.contains(e.target)){picker.classList.add('hidden');document.removeEventListener('click',close);}};setTimeout(()=>document.addEventListener('click',close),50);};
-window.addReaction=async emoji=>{el('reaction-picker').classList.add('hidden');if(!reactionTarget||!currentUser)return;try{const mRef=doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',reactionTarget);const snap=await getDoc(mRef);const rx=snap.data()?.reactions||{};const key=emoji+'_'+currentUser.id;if(rx[key])delete rx[key];else rx[key]={emoji,userId:currentUser.id,ts:Date.now()};await updateDoc(mRef,{reactions:rx});}catch(e){}reactionTarget=null;};
+window.showReactionPicker=(msgId,bubble)=>{openEmojiPicker(msgId);};
+// addReaction sudah didefinisi di atas dengan versi terbaru
+
 function updateReactionsUI(row,reactions){const div=row.querySelector('.msg-reactions');if(!div)return;const groups={};Object.values(reactions).forEach(r=>{groups[r.emoji]=(groups[r.emoji]||0)+1;});div.innerHTML="";Object.entries(groups).forEach(([emoji,count])=>{const s=document.createElement('span');s.className='msg-reaction';s.textContent=emoji+(count>1?' '+count:'');div.appendChild(s);});}
 // THEMES
 function applyTheme(id){currentTheme=id;document.body.setAttribute('data-theme',id==='default'?'':id);localStorage.setItem('cc-theme',id);renderThemeGrid();}

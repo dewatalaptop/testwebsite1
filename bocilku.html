@@ -366,7 +366,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
         <button class="pin-key" onclick="pinClear()">&#x232B;</button><button class="pin-key" onclick="pinInput('0')">0</button><button class="pin-key" onclick="cancelLogin()">&#x2715;</button>
       </div>
       <p id="pin-error" class="pin-error hidden">PIN salah, coba lagi</p>
-      <p id="pin-reset-hint" class="hidden" style="font-size:11px;color:#aaa;margin-top:8px;cursor:pointer;text-decoration:underline" onclick="resetPinFallback()">Lupa PIN? Reset ke default</p>
+      <p id="pin-reset-hint" class="hidden" style="font-size:11px;color:#aaa;margin-top:8px"><span onclick="resetPinFallback()" style="cursor:pointer;text-decoration:underline">Lupa PIN? Reset ke default</span> &nbsp;|&nbsp; <span onclick="showPinDebug()" style="cursor:pointer;text-decoration:underline">Lihat info</span></p>
     </div>
   </div>
 </div>
@@ -604,8 +604,10 @@ function loadConfig(){
   try{
     const saved=JSON.parse(localStorage.getItem('cc-cfg')||'null');
     if(saved&&saved.user1?.id&&saved.user2?.id&&saved.roomId&&saved.user1?.pin&&saved.user2?.pin){
-      // Pastikan isAdmin tetap benar (tidak bisa diubah dari localStorage)
       saved.user1.isAdmin=true;saved.user2.isAdmin=false;
+      // JANGAN load _pinHash dari cache — harus selalu fresh dari Firestore
+      delete saved.user1._pinHash;
+      delete saved.user2._pinHash;
       return saved;
     }
   }catch(e){}
@@ -639,12 +641,18 @@ window.selectUser=uid=>{
   el('pin-error').classList.add('hidden');
   el('select-user1').classList.toggle('selected',uid==='user1');
   el('select-user2').classList.toggle('selected',uid==='user2');
-  // Load pinHash fresh dari Firestore untuk verifikasi terbaru
+  // Fetch pinHash terbaru dari Firestore (background, tidak block UI)
+  // Jika gagal, checkPin tetap bisa pakai PIN lokal
   getDoc(doc(db,'profiles',uid)).then(snap=>{
     if(snap.exists()&&snap.data().pinHash){
       APP_CONFIG[uid]._pinHash=snap.data().pinHash;
+      // Jika PIN lokal sync dengan hash, perbarui juga
     }
-  }).catch(()=>{});
+  }).catch(e=>{
+    console.warn('Tidak bisa fetch pinHash, pakai PIN lokal:',e);
+    // Hapus _pinHash agar checkPin pakai PIN lokal saja
+    delete APP_CONFIG[uid]._pinHash;
+  });
 };
 window.pinInput=d=>{if(pinBuffer.length>=4)return;pinBuffer+=d;updatePinDots('pin-dots');if(pinBuffer.length===4)setTimeout(()=>checkPin().catch(e=>console.error('checkPin error:',e)),150);};
 window.pinClear=()=>{pinBuffer=pinBuffer.slice(0,-1);updatePinDots('pin-dots');};
@@ -655,17 +663,18 @@ async function checkPin(){
   if(!pendingUserId)return;
   const cfg=APP_CONFIG[pendingUserId];
   let valid=false;
-  // Prioritas 1: verifikasi via pinHash dari Firestore (PIN terbaru)
+  // Selalu coba verifikasi PIN lokal dulu (paling reliable)
+  const localValid=(pinBuffer===cfg.pin);
+  // Jika ada pinHash dari Firestore, verifikasi juga via hash
   if(cfg._pinHash){
     const inputHash=await sha256(pinBuffer);
-    valid=(inputHash===cfg._pinHash);
-    // Jika hash cocok tapi PIN lokal beda, update PIN lokal
-    if(valid&&cfg.pin!==pinBuffer){
-      cfg.pin=pinBuffer;saveCfg();
-    }
+    const hashValid=(inputHash===cfg._pinHash);
+    // Valid jika SALAH SATU cocok (PIN lokal ATAU hash Firestore)
+    valid=localValid||hashValid;
+    if(hashValid&&cfg.pin!==pinBuffer){cfg.pin=pinBuffer;saveCfg();}
   }else{
-    // Fallback: PIN lokal (belum pernah sync ke Firestore)
-    valid=(pinBuffer===cfg.pin);
+    // Tidak ada hash — pakai PIN lokal saja
+    valid=localValid;
   }
   if(valid){
     _wrongCount=0;loginAs(pendingUserId);
@@ -1702,6 +1711,16 @@ window.saveSelectedToDrive=()=>{const items=document.querySelectorAll('.media-it
 function showProgress(text){const d=document.createElement('div');d.className='upload-progress';d.innerHTML='<div class="upload-spinner"></div><span>'+text+'</span>';document.body.appendChild(d);d.setText=t=>{d.querySelector('span').textContent=t;};d.remove=()=>{if(d.parentNode)d.parentNode.removeChild(d);};return d;}
 function toggleSheet(name,open){el('overlay-'+name).classList.toggle('hidden',!open);el('sheet-'+name).classList.toggle('hidden',!open);}
 // INIT
+function showPinDebug(){
+  if(!pendingUserId)return;
+  const cfg=APP_CONFIG[pendingUserId];
+  const msg=[
+    'PIN tersimpan: '+cfg.pin,
+    'Hash ada: '+(cfg._pinHash?'ya ('+cfg._pinHash.slice(0,8)+'...)':'tidak'),
+    'Nama: '+cfg.name
+  ].join('\n');
+  alert(msg);
+}
 function resetPinFallback(){
   if(!pendingUserId)return;
   const uname=APP_CONFIG[pendingUserId]?.name||pendingUserId;

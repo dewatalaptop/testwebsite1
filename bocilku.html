@@ -237,7 +237,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .conn-banner{position:fixed;top:0;left:0;right:0;z-index:999;background:#e53935;color:white;text-align:center;font-size:12px;font-weight:700;padding:6px;font-family:var(--font-main);animation:slideDown 0.3s ease;letter-spacing:0.3px}
 @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 /* ── LOCK SCREEN ── */
-.lock-overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s ease}
+.lock-overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;overflow:hidden;touch-action:none}
 .lock-card{background:var(--surface);border-radius:28px;padding:32px 28px;width:88%;max-width:320px;text-align:center;box-shadow:0 16px 60px rgba(0,0,0,0.4);animation:popIn 0.3s cubic-bezier(.34,1.56,.64,1)}
 .lock-icon{font-size:44px;margin-bottom:6px;animation:floatIcon 3s ease-in-out infinite}
 .lock-title{font-size:17px;font-weight:800;color:var(--text-primary);margin-bottom:2px}
@@ -653,8 +653,10 @@ async function checkPin(){
   const cfg=APP_CONFIG[pendingUserId];
   let valid=false;
   try{
-    // Fetch pinHash dari Firestore untuk verifikasi terbaru
-    const snap=await getDoc(doc(db,'profiles',pendingUserId));
+    // Fetch pinHash dari Firestore (timeout 8 detik)
+    const fetchPromise=getDoc(doc(db,'profiles',pendingUserId));
+    const timeoutPromise=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000));
+    const snap=await Promise.race([fetchPromise,timeoutPromise]);
     if(snap.exists()&&snap.data().pinHash){
       // Verifikasi via hash Firestore (paling akurat — selalu terbaru)
       const inputHash=await sha256(pinBuffer);
@@ -716,12 +718,18 @@ function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').inner
               ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 7 10 15 6 11"/><polyline points="22 7 14 15 10 11"/></svg>'
               :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
           }
-          // Update teks jika diedit
+          // Update bubble jika diedit (oleh diri sendiri atau partner)
           const bubble=row.querySelector('.msg-bubble');
-          if(bubble&&d.type==='text'&&d.edited&&!bubble.querySelector('.msg-edit-wrap')){
-            bubble.textContent=d.content;
-            const editMark=document.createElement('span');editMark.className='msg-edited';editMark.textContent='(diedit)';
-            bubble.appendChild(editMark);
+          if(bubble&&d.type==='text'&&!bubble.querySelector('.msg-edit-wrap')){
+            // Rebuild konten bubble
+            bubble.innerHTML='';
+            if(d.replyPreview){
+              const rc=document.createElement('div');
+              rc.style.cssText='border-left:3px solid rgba(255,255,255,0.5);padding:3px 8px;margin-bottom:5px;font-size:11px;opacity:0.75;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px';
+              rc.textContent=d.replyPreview;bubble.appendChild(rc);
+            }
+            const txt=document.createElement('span');txt.textContent=d.content;bubble.appendChild(txt);
+            if(d.edited){const em=document.createElement('span');em.className='msg-edited';em.textContent=' (diedit)';bubble.appendChild(em);}
           }
         }
       }
@@ -878,6 +886,7 @@ window.onInputKeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();se
 function resizeInput(){const ta=el('msg-input');ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,100)+'px';}
 // ── ACTION SHEET (tap bubble) ────────
 function showMsgActionSheet(msgId,data,bubble,isMe){
+  resetIdleTimer(); // reset timer saat user aktif buka action sheet
   document.querySelectorAll('.msg-action-sheet,.action-sheet-overlay').forEach(e=>e.remove());
   const overlay=document.createElement('div');
   overlay.className='action-sheet-overlay';
@@ -949,7 +958,7 @@ window.openEmojiPicker=msgId=>{
   el('emoji-picker-sheet').classList.remove('hidden');
   renderEmojiCats();
   renderEmojiGrid(EMOJI_CATS[0].emojis);
-  if(el('emoji-cats').children[0])el('emoji-cats').children[0].classList.add('active');
+  const firstCat=el('emoji-cats')?.children[0];if(firstCat)firstCat.classList.add('active');
 };
 window.closeEmojiPicker=()=>{
   el('emoji-picker-overlay').classList.add('hidden');
@@ -1007,12 +1016,14 @@ async function loadStories(){
     const now=Date.now();
     const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'stories'));
     const expired=snap.docs.filter(d=>!d.data().expiresAt||!d.data().expiresAt.toMillis||d.data().expiresAt.toMillis()<=now);
-    // Hapus story expired dari Firestore + Storage
-    expired.forEach(async d=>{
-      const data=d.data();
-      if(data.storagePath)await deleteObject(sRef(storage,data.storagePath)).catch(()=>{});
-      await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'stories',d.id)).catch(()=>{});
-    });
+    // Hapus story expired — paralel dengan Promise.all
+    if(expired.length){
+      await Promise.all(expired.map(async d=>{
+        const data=d.data();
+        if(data.storagePath)await deleteObject(sRef(storage,data.storagePath)).catch(()=>{});
+        await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'stories',d.id)).catch(()=>{});
+      })).catch(()=>{});
+    }
     storyItems=snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(s=>s.expiresAt&&s.expiresAt.toMillis&&s.expiresAt.toMillis()>now)
       .sort((a,b)=>(a.createdAt?.toMillis()||0)-(b.createdAt?.toMillis()||0));
@@ -1133,8 +1144,10 @@ window.deleteCurrentStory=async()=>{
     if(s.storagePath)await deleteObject(sRef(storage,s.storagePath)).catch(()=>{});
     await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'stories',s.id));
     storyItems.splice(storyIndex,1);
-    if(!storyItems.length)closeStoryViewer();
-    else{if(storyIndex>=storyItems.length)storyIndex--;renderStorySlide();}
+    if(!storyItems.length){closeStoryViewer();return;}
+    // Adjust index: jika hapus item terakhir, mundur satu
+    if(storyIndex>=storyItems.length)storyIndex=storyItems.length-1;
+    renderStorySlide();
     showToast('Story dihapus');
   }catch(e){showToast('Gagal hapus story');}
 };
@@ -1200,7 +1213,7 @@ window.lockPinInput = d => {
   if(lockPinBuf.length >= 4)return;
   lockPinBuf += d;
   updateLockDots();
-  if(lockPinBuf.length === 4)setTimeout(checkLockPin, 150);
+  if(lockPinBuf.length === 4)setTimeout(()=>checkLockPin().catch(e=>{console.error('checkLockPin:',e);lockPinBuf='';updateLockDots();}),150);
 };
 window.lockPinClear = () => {
   lockPinBuf = lockPinBuf.slice(0,-1);
@@ -1636,7 +1649,11 @@ function loadPartnerProfile(){
       // Refresh semua avatar bubble yang sudah ter-render
       refreshBubbleAvatars();
     }
-  },err=>{console.warn('loadPartnerProfile error:',err);});
+  },err=>{
+    console.warn('loadPartnerProfile error:',err);
+    // Retry sekali setelah 5 detik
+    setTimeout(()=>{if(currentUser&&otherUser)loadPartnerProfile();},5000);
+  });
 }
 function refreshBubbleAvatars(){
   // Update avatar di semua msg-row yang sudah ada di DOM
@@ -1656,7 +1673,7 @@ function refreshBubbleAvatars(){
 // ADMIN
 window.openAdminEntry=()=>{if(!currentUser?.isAdmin)return;adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.add('hidden');el('pin-admin-modal').classList.remove('hidden');};
 window.closeAdminEntry=()=>{el('pin-admin-modal').classList.add('hidden');adminPinBuf="";updateAdminPinDots();};
-window.adminPinInput=d=>{if(adminPinBuf.length>=4)return;adminPinBuf+=d;updateAdminPinDots();if(adminPinBuf.length===4)setTimeout(checkAdminPin,150);};
+window.adminPinInput=d=>{if(adminPinBuf.length>=4)return;adminPinBuf+=d;updateAdminPinDots();if(adminPinBuf.length===4)setTimeout(()=>checkAdminPin().catch(e=>{console.error('checkAdminPin:',e);adminPinBuf='';updateAdminPinDots();}),150);};
 window.adminPinClear=()=>{adminPinBuf=adminPinBuf.slice(0,-1);updateAdminPinDots();};
 function updateAdminPinDots(){document.querySelectorAll('#admin-pin-dots .pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<adminPinBuf.length));}
 async function checkAdminPin(){
@@ -1687,7 +1704,19 @@ async function openAdmin(){selectedMedia=new Set();el('admin-panel').classList.r
 window.closeAdmin=()=>{el('admin-panel').classList.add('hidden');selectedMedia=new Set();};
 window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',['photos','voices','stickers'][i]===tab));await renderAdminTab();};
 async function renderAdminTab(){const body=el('admin-body');body.innerHTML='<div class="admin-empty">\u23F3 Memuat...</div>';if(adminTab==='photos')await renderAdminPhotos(body);else if(adminTab==='voices')await renderAdminVoices(body);else renderAdminStickers(body);}
-async function getAllMedia(type){const allDates=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const results=await Promise.all(allDates.docs.map(dd=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dd.id,'messages')).then(msgs=>({dd,msgs}))));let items=[];results.forEach(({dd,msgs})=>msgs.docs.forEach(m=>{if(m.data().type===type)items.push({...m.data(),msgId:m.id,dateId:dd.id});}));return items;}
+async function getAllMedia(type){
+  const allDates=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));
+  const results=await Promise.all(allDates.docs.map(dd=>
+    getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dd.id,'messages'))
+      .then(msgs=>({dd,msgs}))
+      .catch(()=>null) // skip tanggal yang gagal
+  ));
+  let items=[];
+  results.filter(Boolean).forEach(({dd,msgs})=>
+    msgs.docs.forEach(m=>{if(m.data().type===type)items.push({...m.data(),msgId:m.id,dateId:dd.id});})
+  );
+  return items;
+}
 async function renderAdminPhotos(body){
   const items=await getAllMedia('photo');
   if(!items.length){body.innerHTML='<div class="admin-empty">\u{1F4F7} Belum ada foto yang dikirim</div>';return;}
@@ -1724,7 +1753,20 @@ function renderAdminStickers(body){
 function toggleMediaSelect(div){const key=div.dataset.idx+'_'+div.dataset.type;if(selectedMedia.has(key)){selectedMedia.delete(key);div.classList.remove('selected');}else{selectedMedia.add(key);div.classList.add('selected');}const mc=div.querySelector('.media-check,.v-check');if(mc)mc.textContent=div.classList.contains('selected')?'\u2713':'';}
 window.toggleSelectAll=type=>{const items=document.querySelectorAll('[data-type="'+type+'"]');const allSel=[...items].every(d=>d.classList.contains('selected'));selectedMedia=new Set();items.forEach(d=>{const key=d.dataset.idx+'_'+type;if(!allSel){d.classList.add('selected');selectedMedia.add(key);}else{d.classList.remove('selected');}const mc=d.querySelector('.media-check,.v-check');if(mc)mc.textContent=d.classList.contains('selected')?'\u2713':'';});};
 window.deleteSelectedMedia=async()=>{const items=document.querySelectorAll('.media-item.selected,.voice-admin-item.selected');if(!items.length){showToast('Pilih media dulu');return;}if(!confirm('Hapus '+items.length+' item? Tidak bisa dibatalkan.'))return;const prog=showProgress('Menghapus '+items.length+' item...');let count=0;for(const div of items){try{if(div.dataset.path)await deleteObject(sRef(storage,div.dataset.path)).catch(()=>{});if(div.dataset.msgId&&div.dataset.dateId)await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',div.dataset.dateId,'messages',div.dataset.msgId)).catch(()=>{});count++;}catch(e){}}prog.remove();showToast(count+' item dihapus \u2713');selectedMedia=new Set();await renderAdminTab();};
-window.saveSelectedToDrive=()=>{const items=document.querySelectorAll('.media-item.selected');if(!items.length){showToast('Pilih foto dulu');return;}const urls=[...items].map(d=>d.dataset.url);showToast('Membuka '+urls.length+' foto...',3000);urls.forEach((url,i)=>setTimeout(()=>window.open(url,'_blank'),i*500));setTimeout(()=>showToast('Tap & hold foto \u2192 Simpan Gambar, lalu upload ke Drive \u{1F4C2}',5000),urls.length*500+500);};
+window.saveSelectedToDrive=()=>{
+  const items=document.querySelectorAll('.media-item.selected');
+  if(!items.length){showToast('Pilih foto dulu');return;}
+  const urls=[...items].map(d=>d.dataset.url);
+  if(urls.length===1){
+    // Satu foto: langsung buka
+    window.open(urls[0],'_blank');
+    showToast('Tap & hold foto → Simpan, lalu upload ke Drive');
+  }else{
+    // Banyak foto: buka satu, tampilkan panduan
+    window.open(urls[0],'_blank');
+    showToast(urls.length+' foto dipilih. Buka satu per satu dari Admin Panel.',4000);
+  }
+};
 // PROGRESS HELPER
 function showProgress(text){const d=document.createElement('div');d.className='upload-progress';d.innerHTML='<div class="upload-spinner"></div><span>'+text+'</span>';document.body.appendChild(d);d.setText=t=>{d.querySelector('span').textContent=t;};d.remove=()=>{if(d.parentNode)d.parentNode.removeChild(d);};return d;}
 function toggleSheet(name,open){el('overlay-'+name).classList.toggle('hidden',!open);el('sheet-'+name).classList.toggle('hidden',!open);}

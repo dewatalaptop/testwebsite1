@@ -641,18 +641,7 @@ window.selectUser=uid=>{
   el('pin-error').classList.add('hidden');
   el('select-user1').classList.toggle('selected',uid==='user1');
   el('select-user2').classList.toggle('selected',uid==='user2');
-  // Fetch pinHash terbaru dari Firestore (background, tidak block UI)
-  // Jika gagal, checkPin tetap bisa pakai PIN lokal
-  getDoc(doc(db,'profiles',uid)).then(snap=>{
-    if(snap.exists()&&snap.data().pinHash){
-      APP_CONFIG[uid]._pinHash=snap.data().pinHash;
-      // Jika PIN lokal sync dengan hash, perbarui juga
-    }
-  }).catch(e=>{
-    console.warn('Tidak bisa fetch pinHash, pakai PIN lokal:',e);
-    // Hapus _pinHash agar checkPin pakai PIN lokal saja
-    delete APP_CONFIG[uid]._pinHash;
-  });
+  // checkPin akan fetch Firestore langsung saat verifikasi
 };
 window.pinInput=d=>{if(pinBuffer.length>=4)return;pinBuffer+=d;updatePinDots('pin-dots');if(pinBuffer.length===4)setTimeout(()=>checkPin().catch(e=>console.error('checkPin error:',e)),150);};
 window.pinClear=()=>{pinBuffer=pinBuffer.slice(0,-1);updatePinDots('pin-dots');};
@@ -663,18 +652,23 @@ async function checkPin(){
   if(!pendingUserId)return;
   const cfg=APP_CONFIG[pendingUserId];
   let valid=false;
-  // Selalu coba verifikasi PIN lokal dulu (paling reliable)
-  const localValid=(pinBuffer===cfg.pin);
-  // Jika ada pinHash dari Firestore, verifikasi juga via hash
-  if(cfg._pinHash){
-    const inputHash=await sha256(pinBuffer);
-    const hashValid=(inputHash===cfg._pinHash);
-    // Valid jika SALAH SATU cocok (PIN lokal ATAU hash Firestore)
-    valid=localValid||hashValid;
-    if(hashValid&&cfg.pin!==pinBuffer){cfg.pin=pinBuffer;saveCfg();}
-  }else{
-    // Tidak ada hash — pakai PIN lokal saja
-    valid=localValid;
+  try{
+    // Fetch pinHash dari Firestore untuk verifikasi terbaru
+    const snap=await getDoc(doc(db,'profiles',pendingUserId));
+    if(snap.exists()&&snap.data().pinHash){
+      // Verifikasi via hash Firestore (paling akurat — selalu terbaru)
+      const inputHash=await sha256(pinBuffer);
+      valid=(inputHash===snap.data().pinHash);
+      // Jika cocok, update PIN lokal agar sinkron
+      if(valid&&cfg.pin!==pinBuffer){cfg.pin=pinBuffer;saveCfg();}
+    }else{
+      // Firestore tidak punya pinHash (belum pernah set) — pakai PIN lokal
+      valid=(pinBuffer===cfg.pin);
+    }
+  }catch(e){
+    // Offline / Firestore gagal — fallback ke PIN lokal
+    console.warn('Firestore unavailable, using local PIN');
+    valid=(pinBuffer===cfg.pin);
   }
   if(valid){
     _wrongCount=0;loginAs(pendingUserId);
@@ -1224,15 +1218,19 @@ function updateLockDots(){
 
 async function checkLockPin(){
   if(!currentUser)return;
-  const cfg = APP_CONFIG[currentUser.id];
-  let valid = false;
-  // Verifikasi via hash Firestore (PIN terbaru) atau PIN lokal
-  if(cfg._pinHash){
-    const inputHash = await sha256(lockPinBuf);
-    valid = (inputHash === cfg._pinHash);
-    if(valid && cfg.pin !== lockPinBuf){ cfg.pin = lockPinBuf; saveCfg(); }
-  } else {
-    valid = (lockPinBuf === cfg.pin);
+  const cfg=APP_CONFIG[currentUser.id];
+  let valid=false;
+  try{
+    const snap=await getDoc(doc(db,'profiles',currentUser.id));
+    if(snap.exists()&&snap.data().pinHash){
+      const inputHash=await sha256(lockPinBuf);
+      valid=(inputHash===snap.data().pinHash);
+      if(valid&&cfg.pin!==lockPinBuf){cfg.pin=lockPinBuf;saveCfg();}
+    }else{
+      valid=(lockPinBuf===cfg.pin);
+    }
+  }catch(e){
+    valid=(lockPinBuf===cfg.pin);
   }
   if(valid){
     unlockScreen();
@@ -1631,11 +1629,8 @@ function loadPartnerProfile(){
       el('name-user2').textContent=APP_CONFIG.user2.name;
       changed=true;
     }
-    // Sync pinHash dari Firestore — agar PIN yang diubah partner terbaca di device ini
-    if(snap.data().pinHash){
-      APP_CONFIG[otherUser.id]._pinHash=snap.data().pinHash;
-      saveCfg();
-    }
+    // JANGAN sync pinHash partner — PIN orang lain tidak boleh ada di device ini
+    // (pinHash hanya untuk verifikasi diri sendiri, bukan orang lain)
     if(changed){
       renderHeaderAvatars();
       // Refresh semua avatar bubble yang sudah ter-render
@@ -1664,7 +1659,30 @@ window.closeAdminEntry=()=>{el('pin-admin-modal').classList.add('hidden');adminP
 window.adminPinInput=d=>{if(adminPinBuf.length>=4)return;adminPinBuf+=d;updateAdminPinDots();if(adminPinBuf.length===4)setTimeout(checkAdminPin,150);};
 window.adminPinClear=()=>{adminPinBuf=adminPinBuf.slice(0,-1);updateAdminPinDots();};
 function updateAdminPinDots(){document.querySelectorAll('#admin-pin-dots .pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<adminPinBuf.length));}
-function checkAdminPin(){if(adminPinBuf===currentUser.pin){el('pin-admin-modal').classList.add('hidden');adminPinBuf="";updateAdminPinDots();openAdmin();}else{adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.remove('hidden');setTimeout(()=>el('admin-pin-error').classList.add('hidden'),2000);}}
+async function checkAdminPin(){
+  let valid=false;
+  try{
+    const snap=await getDoc(doc(db,'profiles',currentUser.id));
+    if(snap.exists()&&snap.data().pinHash){
+      const inputHash=await sha256(adminPinBuf);
+      valid=(inputHash===snap.data().pinHash);
+      if(valid&&currentUser.pin!==adminPinBuf){currentUser.pin=adminPinBuf;saveCfg();}
+    }else{
+      valid=(adminPinBuf===currentUser.pin);
+    }
+  }catch(e){
+    valid=(adminPinBuf===currentUser.pin);
+  }
+  if(valid){
+    el('pin-admin-modal').classList.add('hidden');
+    adminPinBuf="";updateAdminPinDots();
+    openAdmin();
+  }else{
+    adminPinBuf="";updateAdminPinDots();
+    el('admin-pin-error').classList.remove('hidden');
+    setTimeout(()=>el('admin-pin-error').classList.add('hidden'),2000);
+  }
+}
 async function openAdmin(){selectedMedia=new Set();el('admin-panel').classList.remove('hidden');document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',i===0));adminTab='photos';await renderAdminTab();}
 window.closeAdmin=()=>{el('admin-panel').classList.add('hidden');selectedMedia=new Set();};
 window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',['photos','voices','stickers'][i]===tab));await renderAdminTab();};
@@ -1726,12 +1744,14 @@ function resetPinFallback(){
   const uname=APP_CONFIG[pendingUserId]?.name||pendingUserId;
   const defPin=DEFAULT_CFG[pendingUserId]?.pin||'1234';
   if(!confirm('Reset PIN '+uname+'? PIN akan kembali ke '+defPin+'.'))return;
+  // Reset total: hapus semua data lokal terkait PIN
   localStorage.removeItem('cc-cfg');
+  // Rebuild dari DEFAULT_CFG tanpa _pinHash apapun
   APP_CONFIG=JSON.parse(JSON.stringify(DEFAULT_CFG));
-  // Hapus _pinHash agar checkPin tidak pakai hash lama
   delete APP_CONFIG.user1._pinHash;
   delete APP_CONFIG.user2._pinHash;
   saveCfg();
+  showToast('PIN direset. Ryan=1234, Anna=5678');
   cancelLogin();
   showToast('PIN direset. Ryan=1234, Anna=5678');
 }

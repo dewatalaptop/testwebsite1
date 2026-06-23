@@ -341,21 +341,19 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <p class="login-subtitle">Ruang obrolan tenang kita</p>
     <div class="user-select">
       <button class="user-btn" id="select-user1" onclick="selectUser('user1')">
-        <div class="user-btn-photo-wrap" onclick="event.stopPropagation();openProfileModal('user1')">
+        <div class="user-btn-photo-wrap">
           <div id="login-av1" style="font-size:42px">&#x1F324;&#xFE0F;</div>
-          <div class="change-hint">&#x270F;&#xFE0F;</div>
         </div>
         <span class="user-btn-name" id="name-user1">Ryan</span>
       </button>
       <button class="user-btn" id="select-user2" onclick="selectUser('user2')">
-        <div class="user-btn-photo-wrap" onclick="event.stopPropagation();openProfileModal('user2')">
+        <div class="user-btn-photo-wrap">
           <div id="login-av2" style="font-size:42px">&#x1F33F;</div>
-          <div class="change-hint">&#x270F;&#xFE0F;</div>
         </div>
         <span class="user-btn-name" id="name-user2">Anna</span>
       </button>
     </div>
-    <p style="font-size:11px;color:#aaa;margin-top:8px">Tap nama untuk login &nbsp;&#x2022;&nbsp; Tap &#x270F;&#xFE0F; untuk edit profil</p>
+    <p style="font-size:11px;color:#aaa;margin-top:8px">Tap nama untuk login</p>
     <div id="pin-section" class="pin-section hidden">
       <p class="pin-label">Masukkan PIN</p>
       <div class="pin-dots" id="pin-dots"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></div>
@@ -481,7 +479,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <div class="profile-modal-sub" id="profile-modal-sub">Profil kamu</div>
     <button id="profile-change-photo-btn" onclick="document.getElementById('profile-photo-input').click()" style="display:block;margin:0 auto 16px;background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 16px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;font-family:var(--font-main);">📷 Ganti Foto Profil</button>
     <div class="profile-field"><label>Nama</label><input id="profile-name-input" type="text" placeholder="Nama kamu" maxlength="30"/></div>
-    <div class="profile-field"><label>PIN Baru (kosongkan jika tidak ingin ganti)</label><input id="profile-pin-input" type="password" inputmode="numeric" placeholder="4 digit PIN baru" maxlength="4"/></div>
+    <div class="profile-field" id="current-pin-field" style="display:none"><label>PIN Saat Ini (wajib untuk ganti PIN)</label><input id="profile-current-pin-input" type="password" inputmode="numeric" placeholder="Masukkan PIN saat ini" maxlength="4"/></div>
+    <div class="profile-field"><label>PIN Baru (kosongkan jika tidak ingin ganti)</label><input id="profile-pin-input" type="password" inputmode="numeric" placeholder="4 digit PIN baru" maxlength="4" oninput="toggleCurrentPinField()"/></div>
     <button class="profile-save-btn" onclick="saveProfileChanges()">Simpan Perubahan</button>
     <span class="profile-close-link" onclick="closeProfileModal()">Tutup</span>
   </div>
@@ -1584,10 +1583,12 @@ function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el(
 window.openMyProfile=()=>{if(currentUser)openProfileModal(currentUser.id);};
 window.openProfileModal=uid=>{
   if(!uid)uid=currentUser?.id||'user1';
-  // Boleh buka profil sendiri kapanpun, atau profil siapapun jika admin
-  // Jika belum login (layar login), boleh edit profil manapun
-  const loggedIn = !!currentUser;
-  if(loggedIn && uid!==currentUser.id && !currentUser.isAdmin){
+  // Wajib sudah login untuk edit profil
+  if(!currentUser){
+    showToast('Login dulu untuk edit profil');return;
+  }
+  // Hanya boleh edit profil sendiri, kecuali admin
+  if(uid!==currentUser.id&&!currentUser.isAdmin){
     showToast('Kamu hanya bisa edit profil sendiri');return;
   }
   profileModalTarget=uid;const cfg=APP_CONFIG[uid],photo=profilePhotos[uid];
@@ -1599,9 +1600,22 @@ window.openProfileModal=uid=>{
   el('profile-modal-sub').textContent=isSelf?'Tap foto untuk ganti • Isi field yang ingin diubah':'Profil '+cfg?.name+(currentUser?.isAdmin?' — edit sebagai admin':'');
   el('profile-name-input').value=cfg?.name||'';
   el('profile-pin-input').value='';
+  if(el('profile-current-pin-input'))el('profile-current-pin-input').value='';
+  if(el('current-pin-field'))el('current-pin-field').style.display='none';
   el('profile-modal').classList.remove('hidden');
 };
-window.closeProfileModal=()=>el('profile-modal').classList.add('hidden');
+window.closeProfileModal=()=>{
+  el('profile-modal').classList.add('hidden');
+  // Reset field saat modal ditutup
+  if(el('profile-current-pin-input'))el('profile-current-pin-input').value='';
+  if(el('profile-pin-input'))el('profile-pin-input').value='';
+  if(el('current-pin-field'))el('current-pin-field').style.display='none';
+};
+window.toggleCurrentPinField=()=>{
+  const newPinVal=el('profile-pin-input').value;
+  const field=el('current-pin-field');
+  if(field)field.style.display=newPinVal.length>0?'block':'none';
+};
 window.profileAvatarClick=()=>{
   if(!profileModalTarget)return;
   const photo=profilePhotos[profileModalTarget];
@@ -1615,11 +1629,28 @@ window.profileAvatarClick=()=>{
 };
 window.profileModalOutside=e=>{if(e.target===el('profile-modal'))closeProfileModal();};
 window.saveProfileChanges=async()=>{
-  if(!profileModalTarget)return;
+  if(!profileModalTarget||!currentUser)return;
   const newName=el('profile-name-input').value.trim();
   const newPin=el('profile-pin-input').value.trim();
+  const currentPinInput=el('profile-current-pin-input')?.value.trim()||'';
   if(!newName){showToast('Nama tidak boleh kosong');return;}
   if(newPin&&(newPin.length!==4||!/^\d{4}$/.test(newPin))){showToast('PIN harus tepat 4 digit');return;}
+  // Jika ingin ganti PIN, wajib verifikasi PIN saat ini
+  if(newPin){
+    const cfg=APP_CONFIG[profileModalTarget];
+    let pinOk=(currentPinInput===cfg.pin);
+    if(!pinOk){
+      // Coba verifikasi via Firestore juga
+      try{
+        const snap=await getDoc(doc(db,'profiles',profileModalTarget));
+        if(snap.exists()&&snap.data().pinHash){
+          const h=await sha256(currentPinInput);
+          pinOk=(h===snap.data().pinHash);
+        }
+      }catch(e){}
+    }
+    if(!pinOk){showToast('PIN saat ini salah');el('profile-current-pin-input')?.focus();return;}
+  }
   // Update nama dulu (tidak sensitif)
   APP_CONFIG[profileModalTarget].name=newName;
   el('name-user1').textContent=APP_CONFIG.user1.name;

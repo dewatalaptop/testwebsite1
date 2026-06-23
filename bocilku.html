@@ -746,14 +746,24 @@ function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').inner
     scrollToBottom();
     setConnected(true);
     startChat._retries=0;
+    startChat._dead=false;
   },err=>{
     console.error('Firestore sync error:',err);
     setConnected(false);
-    // Retry otomatis setelah 5 detik
+    startChat._dead=true; // tandai listener mati
+    unsubMessages=null;
     if(!startChat._retries)startChat._retries=0;
     startChat._retries++;
-    if(startChat._retries<=5)setTimeout(()=>{if(currentUser)startChat();},5000*startChat._retries);
-    else showToast('Koneksi bermasalah. Coba muat ulang halaman.');
+    if(startChat._retries<=5){
+      setTimeout(()=>{
+        if(currentUser&&!document.hidden){
+          startChat._dead=false;
+          startChat();
+        }
+      },5000*startChat._retries);
+    }else{
+      showToast('Koneksi bermasalah. Coba muat ulang halaman.');
+    }
   });
   watchTyping(); // dipanggil sekali saja, bukan di dalam onSnapshot
 }
@@ -1867,26 +1877,63 @@ function init(){
   document.addEventListener('click',()=>el('reaction-picker').classList.add('hidden'));
   // Intercept back button saat locked
   window.addEventListener('popstate',e=>{if(isLocked){history.pushState({locked:true},'');lockScreen();}});
+  // Restart listener saat koneksi kembali (setelah offline)
+  window.addEventListener('online',()=>{
+    if(currentUser){
+      showToast('Koneksi kembali — menyinkronkan pesan...',2000);
+      setTimeout(()=>{
+        const fresh=getTodayStr();
+        if(fresh!==todayDateStr){todayDateStr=fresh;_dateRegistered=false;ensureDateRegistered(fresh);el('date-banner-text').textContent=formatDate(fresh);}
+        startChat();
+        setConnected(true);
+      },1000);
+    }
+  });
+  window.addEventListener('offline',()=>{
+    if(currentUser)setConnected(false);
+  });
   // Lock saat tab/app masuk background
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){
-      clearTimeout(storyTimer); // pause story saat background
-    } else if(!isLocked&&currentUser&&storyItems.length&&!el('story-viewer').classList.contains('hidden')){
-      startStoryTimer(); // resume story timer
-    }
-    if(document.hidden && currentUser && !isLocked){
-      // Reset timer ke 30 detik saat background (lebih cepat dari 5 menit)
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(lockScreen, 2 * 60 * 1000); // 2 menit saat background
-    } else if(!document.hidden && currentUser){
-      resetIdleTimer();
+      // App masuk background
+      clearTimeout(storyTimer);
+      if(currentUser&&!isLocked){
+        clearTimeout(idleTimer);
+        idleTimer=setTimeout(lockScreen,2*60*1000);
+      }
+    }else{
+      // App kembali foreground
+      if(!isLocked&&currentUser&&storyItems.length&&
+         !el('story-viewer').classList.contains('hidden')){
+        startStoryTimer();
+      }
+      if(currentUser){
+        resetIdleTimer();
+        // Cek apakah tanggal sudah berganti
+        const freshDate=getTodayStr();
+        if(freshDate!==todayDateStr){
+          // Tanggal baru — update dan restart listener
+          todayDateStr=freshDate;
+          _dateRegistered=false;
+          ensureDateRegistered(freshDate);
+          el('date-banner-text').textContent=formatDate(freshDate);
+          startChat(); // restart listener ke tanggal baru
+          showToast('Selamat pagi! Chat hari baru dimulai ☀️',3000);
+        }else{
+          // Tanggal sama — pastikan listener masih hidup
+          // iOS Safari sering kill WebSocket saat background
+          if(!unsubMessages||startChat._dead){
+            startChat._dead=false;
+            startChat();
+          }
+        }
+      }
     }
   });
   const now=new Date(),midnight=new Date(now);midnight.setHours(24,0,10,0);
   const msToMidnight=midnight-now;
   if(msToMidnight>0&&msToMidnight<86500000){
     setTimeout(()=>{
-      // Daftarkan tanggal baru sebelum reload
       const newDate=getTodayStr();
       if(currentUser&&db){
         setDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',newDate),
@@ -1897,6 +1944,17 @@ function init(){
       }
     },msToMidnight);
   }
+  // Cek tanggal setiap menit sebagai backup jika midnight reload gagal
+  setInterval(()=>{
+    if(!currentUser)return;
+    const fresh=getTodayStr();
+    if(fresh!==todayDateStr){
+      todayDateStr=fresh;_dateRegistered=false;
+      ensureDateRegistered(fresh);
+      el('date-banner-text').textContent=formatDate(fresh);
+      startChat();
+    }
+  },60000);
 }
 init();
 </script>

@@ -579,18 +579,6 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   <span onclick="addReaction('&#x1F44D;')">&#x1F44D;</span><span onclick="addReaction('&#x2728;')">&#x2728;</span>
 </div>
 <script type="module">
-// ══ MAINTENANCE MODE ══════════════════════════════
-// Ubah ke false untuk membuka akses kembali
-const MAINTENANCE_MODE = false;
-if(MAINTENANCE_MODE){
-  document.addEventListener('DOMContentLoaded',()=>{
-    document.getElementById('maintenance-overlay')?.classList.remove('hidden');
-  });
-  document.addEventListener('touchstart',e=>e.stopPropagation(),{capture:true,passive:false});
-  document.addEventListener('click',e=>e.stopPropagation(),{capture:true});
-  throw new Error('Maintenance mode aktif');
-}
-// ══════════════════════════════════════════════════
 const firebaseConfig={apiKey:"AIzaSyDkSAxnbKHUbc4T-jQg6xVUiHyd4i0XiP0",authDomain:"chatbot-dolan-sawah-v2.firebaseapp.com",projectId:"chatbot-dolan-sawah-v2",storageBucket:"chatbot-dolan-sawah-v2.firebasestorage.app",messagingSenderId:"337869888557",appId:"1:337869888557:web:4416d6f89d8089c7096ca4"};
 // user1 = ADMIN
 const DEFAULT_CFG={user1:{id:"user1",name:"Ryan",avatar:"\u{1F324}\uFE0F",pin:"1234",isAdmin:true},user2:{id:"user2",name:"Anna",avatar:"\u{1F33F}",pin:"5678",isAdmin:false},roomId:"our-private-room"};

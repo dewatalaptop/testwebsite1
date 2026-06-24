@@ -336,21 +336,19 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <p class="login-subtitle">Ruang obrolan tenang kita</p>
     <div class="user-select">
       <button class="user-btn" id="select-user1" onclick="selectUser('user1')">
-        <div class="user-btn-photo-wrap" onclick="event.stopPropagation();openProfileModal('user1')">
+        <div class="user-btn-photo-wrap">
           <div id="login-av1" style="font-size:42px">&#x1F324;&#xFE0F;</div>
-          <div class="change-hint">&#x270F;&#xFE0F;</div>
         </div>
         <span class="user-btn-name" id="name-user1">Ryan</span>
       </button>
       <button class="user-btn" id="select-user2" onclick="selectUser('user2')">
-        <div class="user-btn-photo-wrap" onclick="event.stopPropagation();openProfileModal('user2')">
+        <div class="user-btn-photo-wrap">
           <div id="login-av2" style="font-size:42px">&#x1F33F;</div>
-          <div class="change-hint">&#x270F;&#xFE0F;</div>
         </div>
         <span class="user-btn-name" id="name-user2">Anna</span>
       </button>
     </div>
-    <p style="font-size:11px;color:#aaa;margin-top:8px">Tap nama untuk login &nbsp;&#x2022;&nbsp; Tap &#x270F;&#xFE0F; untuk edit profil</p>
+    <p style="font-size:11px;color:#aaa;margin-top:8px">Tap nama untuk login</p>
     <div id="pin-section" class="pin-section hidden">
       <p class="pin-label">Masukkan PIN</p>
       <div class="pin-dots" id="pin-dots"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></div>
@@ -406,7 +404,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       <div class="typing-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>
     </div>
   </div>
-  <div class="input-bar">
+  <div class="input-bar" id="input-bar">
     <button class="input-btn" onclick="openStickers()" title="Stiker">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
     </button>
@@ -414,6 +412,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
     </button>
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="sendPhoto(event)"/>
+    <input type="file" id="story-file-input" accept="image/*,video/mp4" style="display:none" onchange="handleStoryUpload(event)"/>
     <div class="input-wrap">
       <textarea id="msg-input" class="msg-input" placeholder="Tulis sesuatu..." rows="1" oninput="onTyping(this)" onkeydown="onInputKeydown(event)"></textarea>
     </div>
@@ -475,7 +474,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <div class="profile-modal-sub" id="profile-modal-sub">Profil kamu</div>
     <button id="profile-change-photo-btn" onclick="document.getElementById('profile-photo-input').click()" style="display:block;margin:0 auto 16px;background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 16px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;font-family:var(--font-main);">📷 Ganti Foto Profil</button>
     <div class="profile-field"><label>Nama</label><input id="profile-name-input" type="text" placeholder="Nama kamu" maxlength="30"/></div>
-    <div class="profile-field"><label>PIN Baru (kosongkan jika tidak ingin ganti)</label><input id="profile-pin-input" type="password" inputmode="numeric" placeholder="4 digit PIN baru" maxlength="4"/></div>
+    <div class="profile-field" id="current-pin-field" style="display:none"><label>PIN Saat Ini (wajib untuk ganti PIN)</label><input id="profile-current-pin-input" type="password" inputmode="numeric" placeholder="Masukkan PIN saat ini" maxlength="4"/></div>
+    <div class="profile-field"><label>PIN Baru (kosongkan jika tidak ingin ganti)</label><input id="profile-pin-input" type="password" inputmode="numeric" placeholder="4 digit PIN baru" maxlength="4" oninput="toggleCurrentPinField()"/></div>
     <button class="profile-save-btn" onclick="saveProfileChanges()">Simpan Perubahan</button>
     <span class="profile-close-link" onclick="closeProfileModal()">Tutup</span>
   </div>
@@ -600,6 +600,8 @@ function loadConfig(){
     if(saved&&saved.user1?.id&&saved.user2?.id&&saved.roomId&&saved.user1?.pin&&saved.user2?.pin){
       // Pastikan isAdmin tetap benar (tidak bisa diubah dari localStorage)
       saved.user1.isAdmin=true;saved.user2.isAdmin=false;
+      // Jangan load _pinHash dari cache — selalu fetch fresh dari Firestore
+      delete saved.user1._pinHash;delete saved.user2._pinHash;
       return saved;
     }
   }catch(e){}
@@ -633,12 +635,7 @@ window.selectUser=uid=>{
   el('pin-error').classList.add('hidden');
   el('select-user1').classList.toggle('selected',uid==='user1');
   el('select-user2').classList.toggle('selected',uid==='user2');
-  // Load pinHash fresh dari Firestore untuk verifikasi terbaru
-  getDoc(doc(db,'profiles',uid)).then(snap=>{
-    if(snap.exists()&&snap.data().pinHash){
-      APP_CONFIG[uid]._pinHash=snap.data().pinHash;
-    }
-  }).catch(()=>{});
+  // checkPin akan fetch Firestore jika diperlukan
 };
 window.pinInput=d=>{if(pinBuffer.length>=4)return;pinBuffer+=d;updatePinDots('pin-dots');if(pinBuffer.length===4)setTimeout(()=>checkPin().catch(e=>console.error('checkPin error:',e)),150);};
 window.pinClear=()=>{pinBuffer=pinBuffer.slice(0,-1);updatePinDots('pin-dots');};
@@ -649,17 +646,19 @@ async function checkPin(){
   if(!pendingUserId)return;
   const cfg=APP_CONFIG[pendingUserId];
   let valid=false;
-  // Prioritas 1: verifikasi via pinHash dari Firestore (PIN terbaru)
-  if(cfg._pinHash){
-    const inputHash=await sha256(pinBuffer);
-    valid=(inputHash===cfg._pinHash);
-    // Jika hash cocok tapi PIN lokal beda, update PIN lokal
-    if(valid&&cfg.pin!==pinBuffer){
-      cfg.pin=pinBuffer;saveCfg();
-    }
+  // LANGKAH 1: PIN lokal dulu — cepat dan tidak butuh jaringan
+  if(pinBuffer===cfg.pin){
+    valid=true;
   }else{
-    // Fallback: PIN lokal (belum pernah sync ke Firestore)
-    valid=(pinBuffer===cfg.pin);
+    // LANGKAH 2: PIN lokal tidak cocok — cek Firestore (mungkin PIN diubah di device lain)
+    try{
+      const snap=await getDoc(doc(db,'profiles',pendingUserId));
+      if(snap.exists()&&snap.data().pinHash){
+        const inputHash=await sha256(pinBuffer);
+        valid=(inputHash===snap.data().pinHash);
+        if(valid){cfg.pin=pinBuffer;saveCfg();}
+      }
+    }catch(e){console.warn('Firestore PIN check failed:',e);}
   }
   if(valid){
     _wrongCount=0;loginAs(pendingUserId);
@@ -721,13 +720,15 @@ function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').inner
     scrollToBottom();
     setConnected(true);
     startChat._retries=0;
+    startChat._dead=false;
   },err=>{
     console.error('Firestore sync error:',err);
     setConnected(false);
     // Retry otomatis setelah 5 detik
+    startChat._dead=true;unsubMessages=null;
     if(!startChat._retries)startChat._retries=0;
     startChat._retries++;
-    if(startChat._retries<=5)setTimeout(()=>{if(currentUser)startChat();},5000*startChat._retries);
+    if(startChat._retries<=5)setTimeout(()=>{if(currentUser&&!document.hidden){startChat._dead=false;startChat();}},5000*startChat._retries);
     else showToast('Koneksi bermasalah. Coba muat ulang halaman.');
   });
   watchTyping(); // dipanggil sekali saja, bukan di dalam onSnapshot
@@ -1114,7 +1115,7 @@ async function handleStoryUpload(event){
   finally{prog.remove();}
 }
 // ── IDLE LOCK ────────────────────────────────────────
-const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 menit
+const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 menit
 let idleTimer = null;
 let lockPinBuf = "";
 let isLocked = false;
@@ -1371,7 +1372,7 @@ function watchReadStatus(){
 
 // ── REACTIONS (existing) ──
 window.showReactionPicker=(msgId,bubble)=>{reactionTarget=msgId;const picker=el('reaction-picker');picker.classList.remove('hidden');const rect=bubble.getBoundingClientRect();picker.style.top=Math.max(10,rect.top-60)+'px';picker.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-240))+'px';const close=e=>{if(!picker.contains(e.target)){picker.classList.add('hidden');document.removeEventListener('click',close);}};setTimeout(()=>document.addEventListener('click',close),50);};
-window.addReaction=async emoji=>{el('reaction-picker').classList.add('hidden');if(!reactionTarget||!currentUser)return;try{const mRef=doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',reactionTarget);const snap=await getDoc(mRef);const rx=snap.data()?.reactions||{};const key=emoji+'_'+currentUser.id;if(rx[key])delete rx[key];else rx[key]={emoji,userId:currentUser.id,ts:Date.now()};await updateDoc(mRef,{reactions:rx});}catch(e){}reactionTarget=null;};
+// addReaction sudah didefinisi di atas (versi baru dengan msgId parameter)
 function updateReactionsUI(row,reactions){const div=row.querySelector('.msg-reactions');if(!div)return;const groups={};Object.values(reactions).forEach(r=>{groups[r.emoji]=(groups[r.emoji]||0)+1;});div.innerHTML="";Object.entries(groups).forEach(([emoji,count])=>{const s=document.createElement('span');s.className='msg-reaction';s.textContent=emoji+(count>1?' '+count:'');div.appendChild(s);});}
 // THEMES
 function applyTheme(id){currentTheme=id;document.body.setAttribute('data-theme',id==='default'?'':id);localStorage.setItem('cc-theme',id);renderThemeGrid();}
@@ -1504,10 +1505,10 @@ function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el(
 window.openMyProfile=()=>{if(currentUser)openProfileModal(currentUser.id);};
 window.openProfileModal=uid=>{
   if(!uid)uid=currentUser?.id||'user1';
-  // Boleh buka profil sendiri kapanpun, atau profil siapapun jika admin
-  // Jika belum login (layar login), boleh edit profil manapun
-  const loggedIn = !!currentUser;
-  if(loggedIn && uid!==currentUser.id && !currentUser.isAdmin){
+  // Wajib sudah login
+  if(!currentUser){showToast('Login dulu untuk edit profil');return;}
+  // Hanya bisa edit profil sendiri (kecuali admin)
+  if(uid!==currentUser.id&&!currentUser.isAdmin){
     showToast('Kamu hanya bisa edit profil sendiri');return;
   }
   profileModalTarget=uid;const cfg=APP_CONFIG[uid],photo=profilePhotos[uid];
@@ -1519,9 +1520,21 @@ window.openProfileModal=uid=>{
   el('profile-modal-sub').textContent=isSelf?'Tap foto untuk ganti • Isi field yang ingin diubah':'Profil '+cfg?.name+(currentUser?.isAdmin?' — edit sebagai admin':'');
   el('profile-name-input').value=cfg?.name||'';
   el('profile-pin-input').value='';
+  if(el('profile-current-pin-input'))el('profile-current-pin-input').value='';
+  if(el('current-pin-field'))el('current-pin-field').style.display='none';
   el('profile-modal').classList.remove('hidden');
 };
-window.closeProfileModal=()=>el('profile-modal').classList.add('hidden');
+window.closeProfileModal=()=>{
+  el('profile-modal').classList.add('hidden');
+  if(el('profile-current-pin-input'))el('profile-current-pin-input').value='';
+  if(el('profile-pin-input'))el('profile-pin-input').value='';
+  if(el('current-pin-field'))el('current-pin-field').style.display='none';
+};
+window.toggleCurrentPinField=()=>{
+  const v=el('profile-pin-input').value;
+  const f=el('current-pin-field');
+  if(f)f.style.display=v.length>0?'block':'none';
+};
 window.profileAvatarClick=()=>{
   if(!profileModalTarget)return;
   const photo=profilePhotos[profileModalTarget];
@@ -1535,11 +1548,19 @@ window.profileAvatarClick=()=>{
 };
 window.profileModalOutside=e=>{if(e.target===el('profile-modal'))closeProfileModal();};
 window.saveProfileChanges=async()=>{
-  if(!profileModalTarget)return;
+  if(!profileModalTarget||!currentUser)return;
   const newName=el('profile-name-input').value.trim();
   const newPin=el('profile-pin-input').value.trim();
+  const currentPinInput=(el('profile-current-pin-input')?.value||''). trim();
   if(!newName){showToast('Nama tidak boleh kosong');return;}
   if(newPin&&(newPin.length!==4||!/^\d{4}$/.test(newPin))){showToast('PIN harus tepat 4 digit');return;}
+  // Wajib verifikasi PIN lama sebelum ganti PIN
+  if(newPin){
+    const cfg=APP_CONFIG[profileModalTarget];
+    let pinOk=(currentPinInput===cfg.pin);
+    if(!pinOk){try{const snap=await getDoc(doc(db,'profiles',profileModalTarget));if(snap.exists()&&snap.data().pinHash){const h=await sha256(currentPinInput);pinOk=(h===snap.data().pinHash);}}catch(e){}}
+    if(!pinOk){showToast('PIN saat ini salah');return;}
+  }
   APP_CONFIG[profileModalTarget].name=newName;
   if(newPin)APP_CONFIG[profileModalTarget].pin=newPin;
   saveCfg();
@@ -1576,11 +1597,7 @@ function loadPartnerProfile(){
       el('name-user2').textContent=APP_CONFIG.user2.name;
       changed=true;
     }
-    // Sync pinHash dari Firestore — agar PIN yang diubah partner terbaca di device ini
-    if(snap.data().pinHash){
-      APP_CONFIG[otherUser.id]._pinHash=snap.data().pinHash;
-      saveCfg();
-    }
+    // TIDAK sync pinHash partner — PIN orang lain tidak boleh ada di device ini
     if(changed){
       renderHeaderAvatars();
       // Refresh semua avatar bubble yang sudah ter-render
@@ -1609,7 +1626,13 @@ window.closeAdminEntry=()=>{el('pin-admin-modal').classList.add('hidden');adminP
 window.adminPinInput=d=>{if(adminPinBuf.length>=4)return;adminPinBuf+=d;updateAdminPinDots();if(adminPinBuf.length===4)setTimeout(checkAdminPin,150);};
 window.adminPinClear=()=>{adminPinBuf=adminPinBuf.slice(0,-1);updateAdminPinDots();};
 function updateAdminPinDots(){document.querySelectorAll('#admin-pin-dots .pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<adminPinBuf.length));}
-function checkAdminPin(){if(adminPinBuf===currentUser.pin){el('pin-admin-modal').classList.add('hidden');adminPinBuf="";updateAdminPinDots();openAdmin();}else{adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.remove('hidden');setTimeout(()=>el('admin-pin-error').classList.add('hidden'),2000);}}
+async function checkAdminPin(){
+  const cfg=APP_CONFIG[currentUser.id];
+  let valid=(adminPinBuf===cfg.pin);
+  if(!valid){try{const snap=await getDoc(doc(db,'profiles',currentUser.id));if(snap.exists()&&snap.data().pinHash){const h=await sha256(adminPinBuf);valid=(h===snap.data().pinHash);if(valid){cfg.pin=adminPinBuf;saveCfg();}}}catch(e){}}
+  if(valid){el('pin-admin-modal').classList.add('hidden');adminPinBuf='';updateAdminPinDots();openAdmin();}
+  else{adminPinBuf='';updateAdminPinDots();el('admin-pin-error').classList.remove('hidden');setTimeout(()=>el('admin-pin-error').classList.add('hidden'),2000);}
+}
 async function openAdmin(){selectedMedia=new Set();el('admin-panel').classList.remove('hidden');document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',i===0));adminTab='photos';await renderAdminTab();}
 window.closeAdmin=()=>{el('admin-panel').classList.add('hidden');selectedMedia=new Set();};
 window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',['photos','voices','stickers'][i]===tab));await renderAdminTab();};
@@ -1678,6 +1701,17 @@ function init(){
   document.addEventListener('click',()=>el('reaction-picker').classList.add('hidden'));
   // Intercept back button saat locked
   window.addEventListener('popstate',e=>{if(isLocked){history.pushState({locked:true},'');lockScreen();}});
+  window.addEventListener('online',()=>{
+    if(currentUser){showToast('Koneksi kembali ✓',2000);
+      setTimeout(()=>{const f=getTodayStr();if(f!==todayDateStr){todayDateStr=f;_dateRegistered=false;ensureDateRegistered(f);el('date-banner-text').textContent=formatDate(f);}startChat();setConnected(true);},1000);}
+  });
+  window.addEventListener('offline',()=>{if(currentUser)setConnected(false);});
+  // Cek tanggal setiap menit sebagai backup midnight reload
+  setInterval(()=>{
+    if(!currentUser)return;
+    const f=getTodayStr();
+    if(f!==todayDateStr){todayDateStr=f;_dateRegistered=false;ensureDateRegistered(f);el('date-banner-text').textContent=formatDate(f);startChat();}
+  },60000);
   // Lock saat tab/app masuk background
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){
@@ -1688,9 +1722,17 @@ function init(){
     if(document.hidden && currentUser && !isLocked){
       // Reset timer ke 30 detik saat background (lebih cepat dari 5 menit)
       clearTimeout(idleTimer);
-      idleTimer = setTimeout(lockScreen, 30 * 1000);
+      idleTimer = setTimeout(lockScreen, 2 * 60 * 1000); // 2 menit saat background
     } else if(!document.hidden && currentUser){
       resetIdleTimer();
+      // Restart listener jika mati (iOS Safari)
+      const freshDate=getTodayStr();
+      if(freshDate!==todayDateStr){
+        todayDateStr=freshDate;_dateRegistered=false;
+        ensureDateRegistered(freshDate);
+        el('date-banner-text').textContent=formatDate(freshDate);
+        startChat();showToast('Selamat pagi! ☀️',3000);
+      }else if(!unsubMessages||startChat._dead){startChat._dead=false;startChat();}
     }
   });
   const now=new Date(),midnight=new Date(now);midnight.setHours(24,0,10,0);

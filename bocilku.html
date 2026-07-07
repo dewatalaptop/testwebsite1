@@ -93,9 +93,6 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .msg-row.me .voice-play-btn{background:rgba(255,255,255,0.25);color:#fff}
 .msg-row.other .voice-play-btn{background:var(--accent);color:#fff}
 .voice-play-btn:active{transform:scale(0.9)}
-.voice-play-btn.loading{opacity:0.5;pointer-events:none}
-.voice-play-btn.loading svg{animation:vspin 0.8s linear infinite}
-@keyframes vspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .voice-play-btn svg{width:14px;height:14px}
 .voice-waveform{flex:1;height:26px;position:relative;cursor:pointer}
 .voice-progress-bg{position:absolute;top:50%;left:0;right:0;height:3px;background:rgba(255,255,255,0.3);border-radius:2px;transform:translateY(-50%)}
@@ -339,21 +336,19 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <p class="login-subtitle">Ruang obrolan tenang kita</p>
     <div class="user-select">
       <button class="user-btn" id="select-user1" onclick="selectUser('user1')">
-        <div class="user-btn-photo-wrap" onclick="event.stopPropagation();openProfileModal('user1')">
+        <div class="user-btn-photo-wrap">
           <div id="login-av1" style="font-size:42px">&#x1F324;&#xFE0F;</div>
-          <div class="change-hint">&#x270F;&#xFE0F;</div>
         </div>
         <span class="user-btn-name" id="name-user1">Ryan</span>
       </button>
       <button class="user-btn" id="select-user2" onclick="selectUser('user2')">
-        <div class="user-btn-photo-wrap" onclick="event.stopPropagation();openProfileModal('user2')">
+        <div class="user-btn-photo-wrap">
           <div id="login-av2" style="font-size:42px">&#x1F33F;</div>
-          <div class="change-hint">&#x270F;&#xFE0F;</div>
         </div>
         <span class="user-btn-name" id="name-user2">Anna</span>
       </button>
     </div>
-    <p style="font-size:11px;color:#aaa;margin-top:8px">Tap nama untuk login &nbsp;&#x2022;&nbsp; Tap &#x270F;&#xFE0F; untuk edit profil</p>
+    <p style="font-size:11px;color:#aaa;margin-top:8px">Tap nama untuk login</p>
     <div id="pin-section" class="pin-section hidden">
       <p class="pin-label">Masukkan PIN</p>
       <div class="pin-dots" id="pin-dots"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></div>
@@ -409,7 +404,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       <div class="typing-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>
     </div>
   </div>
-  <div class="input-bar">
+  <div class="input-bar" id="input-bar">
     <button class="input-btn" onclick="openStickers()" title="Stiker">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
     </button>
@@ -478,7 +473,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <div class="profile-modal-sub" id="profile-modal-sub">Profil kamu</div>
     <button id="profile-change-photo-btn" onclick="document.getElementById('profile-photo-input').click()" style="display:block;margin:0 auto 16px;background:none;border:1.5px solid var(--border);border-radius:12px;padding:7px 16px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;font-family:var(--font-main);">📷 Ganti Foto Profil</button>
     <div class="profile-field"><label>Nama</label><input id="profile-name-input" type="text" placeholder="Nama kamu" maxlength="30"/></div>
-    <div class="profile-field"><label>PIN Baru (kosongkan jika tidak ingin ganti)</label><input id="profile-pin-input" type="password" inputmode="numeric" placeholder="4 digit PIN baru" maxlength="4"/></div>
+    <div class="profile-field" id="current-pin-field" style="display:none"><label>PIN Saat Ini (wajib untuk ganti PIN)</label><input id="profile-current-pin-input" type="password" inputmode="numeric" placeholder="Masukkan PIN saat ini" maxlength="4"/></div>
+    <div class="profile-field"><label>PIN Baru (kosongkan jika tidak ingin ganti)</label><input id="profile-pin-input" type="password" inputmode="numeric" placeholder="4 digit PIN baru" maxlength="4" oninput="toggleCurrentPinField()"/></div>
     <button class="profile-save-btn" onclick="saveProfileChanges()">Simpan Perubahan</button>
     <span class="profile-close-link" onclick="closeProfileModal()">Tutup</span>
   </div>
@@ -603,6 +599,8 @@ function loadConfig(){
     if(saved&&saved.user1?.id&&saved.user2?.id&&saved.roomId&&saved.user1?.pin&&saved.user2?.pin){
       // Pastikan isAdmin tetap benar (tidak bisa diubah dari localStorage)
       saved.user1.isAdmin=true;saved.user2.isAdmin=false;
+      // Hapus _pinHash dari cache — selalu fetch fresh dari Firestore saat verifikasi
+      delete saved.user1._pinHash;delete saved.user2._pinHash;
       return saved;
     }
   }catch(e){}
@@ -636,14 +634,9 @@ window.selectUser=uid=>{
   el('pin-error').classList.add('hidden');
   el('select-user1').classList.toggle('selected',uid==='user1');
   el('select-user2').classList.toggle('selected',uid==='user2');
-  // Load pinHash fresh dari Firestore untuk verifikasi terbaru
-  getDoc(doc(db,'profiles',uid)).then(snap=>{
-    if(snap.exists()&&snap.data().pinHash){
-      APP_CONFIG[uid]._pinHash=snap.data().pinHash;
-    }
-  }).catch(()=>{});
+  // checkPin akan fetch Firestore langsung jika diperlukan
 };
-window.pinInput=d=>{if(pinBuffer.length>=4)return;pinBuffer+=d;updatePinDots('pin-dots');if(pinBuffer.length===4)setTimeout(()=>checkPin().catch(e=>console.error('checkPin error:',e)),150);};
+window.pinInput=d=>{if(pinBuffer.length>=4)return;pinBuffer+=d;updatePinDots('pin-dots');if(pinBuffer.length===4)setTimeout(()=>checkPin().catch(e=>{console.error('checkPin error:',e);pinBuffer='';updatePinDots('pin-dots');}),150);};
 window.pinClear=()=>{pinBuffer=pinBuffer.slice(0,-1);updatePinDots('pin-dots');};
 let _wrongCount=0;
 window.cancelLogin=()=>{pendingUserId=null;pinBuffer="";_wrongCount=0;el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');el('pin-reset-hint').classList.add('hidden');};
@@ -652,17 +645,19 @@ async function checkPin(){
   if(!pendingUserId)return;
   const cfg=APP_CONFIG[pendingUserId];
   let valid=false;
-  // Prioritas 1: verifikasi via pinHash dari Firestore (PIN terbaru)
-  if(cfg._pinHash){
-    const inputHash=await sha256(pinBuffer);
-    valid=(inputHash===cfg._pinHash);
-    // Jika hash cocok tapi PIN lokal beda, update PIN lokal
-    if(valid&&cfg.pin!==pinBuffer){
-      cfg.pin=pinBuffer;saveCfg();
-    }
+  // LANGKAH 1: PIN lokal dulu — cepat, tidak butuh jaringan
+  if(pinBuffer===cfg.pin){
+    valid=true;
   }else{
-    // Fallback: PIN lokal (belum pernah sync ke Firestore)
-    valid=(pinBuffer===cfg.pin);
+    // LANGKAH 2: PIN lokal tidak cocok — cek Firestore (mungkin diganti di device lain)
+    try{
+      const snap=await getDoc(doc(db,'profiles',pendingUserId));
+      if(snap.exists()&&snap.data().pinHash){
+        const inputHash=await sha256(pinBuffer);
+        valid=(inputHash===snap.data().pinHash);
+        if(valid){cfg.pin=pinBuffer;saveCfg();}
+      }
+    }catch(e){console.warn('Firestore PIN check failed:',e);}
   }
   if(valid){
     _wrongCount=0;loginAs(pendingUserId);
@@ -753,7 +748,6 @@ function renderMessage(id,data,readOnly=false,container=null){
   else if(data.type==='photo'){bubble.classList.add('is-photo');const img=document.createElement('img');img.src=data.content;img.loading='lazy';img.onclick=()=>openLightbox(data.content);bubble.appendChild(img);}
   else if(data.type==='voice'){
     bubble.classList.add('is-voice');
-    // Sanitasi durasi — Infinity/NaN dari Firestore lama
     const safeDur=(data.duration&&isFinite(data.duration)&&!isNaN(data.duration)&&data.duration>0)?data.duration:0;
     bubble.appendChild(buildVoicePlayer(data.content,safeDur));
   }
@@ -809,12 +803,13 @@ function renderMessage(id,data,readOnly=false,container=null){
 }
 function buildVoicePlayer(url,duration){
   const wrap=document.createElement('div');wrap.className='voice-player';
-  const btn=document.createElement('button');btn.className='voice-play-btn';btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+  const PLAY_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+  const PAUSE_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+  const btn=document.createElement('button');btn.className='voice-play-btn';btn.innerHTML=PLAY_ICON;
   const ww=document.createElement('div');ww.className='voice-waveform';
   const bg=document.createElement('div');bg.className='voice-progress-bg';
   const fill=document.createElement('div');fill.className='voice-progress-fill';bg.appendChild(fill);ww.appendChild(bg);
   const dur=document.createElement('span');dur.className='voice-duration';
-  // Jika durasi tidak valid (0, NaN, Infinity), tampil '...' dulu
   dur.textContent=(duration&&isFinite(duration)&&!isNaN(duration)&&duration>0)?fmtDur(duration):'0:00';
   let audio=null;
   btn.onclick=()=>{
@@ -822,17 +817,27 @@ function buildVoicePlayer(url,duration){
       audio=new Audio();
       audio.preload='auto';
       audio.src=url;
-      // Update durasi saat metadata berhasil dimuat
       audio.onloadedmetadata=()=>{
-        if(audio.duration&&isFinite(audio.duration)&&audio.duration>0){
-          dur.textContent=fmtDur(audio.duration);
-        }
+        if(audio.duration&&isFinite(audio.duration)&&audio.duration>0)dur.textContent=fmtDur(audio.duration);
       };
     }
     if(audio.paused){
-      if(activeAudio&&activeAudio!==audio){activeAudio.pause();activeAudio.currentTime=0;if(activeFill)activeFill.style.width='0%';if(activePlayBtn)activePlayBtn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';}
-      const PAUSE_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-      const PLAY_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+      if(activeAudio&&activeAudio!==audio){
+        activeAudio.pause();activeAudio.currentTime=0;
+        if(activeFill)activeFill.style.width='0%';
+        if(activePlayBtn)activePlayBtn.innerHTML=PLAY_ICON;
+      }
+      audio.ontimeupdate=()=>{
+        const d=audio.duration;
+        const valid=d&&isFinite(d)&&d>0;
+        fill.style.width=(valid?(audio.currentTime/d*100):0)+'%';
+        dur.textContent=fmtDur(audio.currentTime||(valid?d:0));
+      };
+      audio.onended=()=>{
+        fill.style.width='0%';dur.textContent=fmtDur(duration);
+        btn.innerHTML=PLAY_ICON;activeAudio=null;activePlayBtn=null;activeFill=null;
+      };
+      audio.onerror=()=>{btn.innerHTML=PLAY_ICON;showToast('Gagal memutar suara');};
       const doPlay=()=>{
         const pp=audio.play();
         if(pp&&pp.then){
@@ -842,7 +847,6 @@ function buildVoicePlayer(url,duration){
           }).catch(err=>{
             console.warn('play() attempt 1 failed:',err.name,err.message);
             btn.classList.add('loading');
-            // Retry setelah audio benar-benar siap (canplaythrough lebih reliable dari canplay)
             const onReady=()=>{
               audio.removeEventListener('canplaythrough',onReady);
               audio.removeEventListener('canplay',onReady);
@@ -873,15 +877,10 @@ function buildVoicePlayer(url,duration){
           activeAudio=audio;activePlayBtn=btn;activeFill=fill;btn.innerHTML=PAUSE_ICON;
         }
       };
-      doPlay();      audio.ontimeupdate=()=>{
-        const d=audio.duration;
-        const valid=d&&isFinite(d)&&d>0;
-        fill.style.width=(valid?(audio.currentTime/d*100):0)+'%';
-        dur.textContent=fmtDur(audio.currentTime||(valid?d:0));
-      };
-      audio.onended=()=>{fill.style.width='0%';dur.textContent=fmtDur(duration);btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';activeAudio=null;activePlayBtn=null;activeFill=null;};
-      audio.onerror=()=>{btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';showToast('Gagal memutar suara');};
-    }else{audio.pause();btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';}
+      doPlay();
+    }else{
+      audio.pause();btn.innerHTML=PLAY_ICON;
+    }
   };
   ww.addEventListener('click',e=>{
     if(!audio)return;
@@ -891,7 +890,6 @@ function buildVoicePlayer(url,duration){
       try{audio.currentTime=pct*audio.duration;}catch(_){}
     }
   });
-  // Touch support untuk seek di iOS
   ww.addEventListener('touchend',e=>{
     e.preventDefault();
     if(!audio)return;
@@ -952,9 +950,7 @@ async function startRecord(){
     const mime=mimes.find(m=>m===''||MediaRecorder.isTypeSupported(m))||'';
     const opts=mime?{mimeType:mime}:{};
     mediaRecorder=new MediaRecorder(stream,opts);
-    mediaRecorder.ondataavailable=e=>{
-      if(e.data&&e.data.size>0)audioChunks.push(e.data);
-    };
+    mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)audioChunks.push(e.data);};
     mediaRecorder.onerror=()=>{
       isRecording=false;el('record-btn').classList.remove('recording');
       try{stream.getTracks().forEach(t=>t.stop());}catch(_){}
@@ -969,7 +965,7 @@ async function startRecord(){
     mediaRecorder=null;audioChunks=[];
     if(e.name==='NotAllowedError')showToast('Izin mikrofon ditolak - aktifkan di Pengaturan > Safari');
     else if(e.name==='NotFoundError')showToast('Mikrofon tidak ditemukan');
-    else showToast('Mikrofon tidak bisa diakses: '+e.message);
+    else showToast('Mikrofon tidak bisa diakses');
   }
 }
 async function stopRecord(){
@@ -996,7 +992,7 @@ async function stopRecord(){
         const url=await getDownloadURL(sRef(storage,path));
         await addDoc(msgCol(),{
           senderId:currentUser.id,senderName:currentUser.name,
-          type:'voice',content:url,duration:dur,storagePath:path,
+          type:'voice',content:url,duration:dur,storagePath:path,mimeType:mime,
           timestamp:serverTimestamp(),reactions:{}
         });
       }catch(e){console.error('voice upload:',e);showToast('Gagal kirim suara');}
@@ -1095,7 +1091,8 @@ const EMOJI_CATS=[
 let _emojiTarget=null;
 let _emojiTargetDate=null;
 window.openEmojiPicker=(msgId,dateId)=>{
-  _emojiTarget=msgId;_emojiTargetDate=dateId||todayDateStr;
+  _emojiTarget=msgId;
+  _emojiTargetDate=dateId||todayDateStr;
   el('emoji-search').value='';
   el('emoji-picker-overlay').classList.remove('hidden');
   el('emoji-picker-sheet').classList.remove('hidden');
@@ -1126,15 +1123,13 @@ function renderEmojiGrid(emojis){
 }
 window.filterEmoji=q=>{
   if(!q.trim()){renderEmojiGrid(EMOJI_CATS[0].emojis);return;}
-  // Filter emoji yang mengandung karakter input (unicode match)
   const all=EMOJI_CATS.flatMap(cat=>cat.emojis);
-  // Karena emoji tidak punya nama, search by category name jika ada
   const matchedCat=EMOJI_CATS.filter(cat=>cat.name.toLowerCase().includes(q.toLowerCase()));
   if(matchedCat.length)renderEmojiGrid(matchedCat.flatMap(cat=>cat.emojis));
-  else renderEmojiGrid(all.slice(0,120));
+  else renderEmojiGrid(all.slice(0,160));
 };
 
-// Override addReaction agar bisa terima msgId langsung
+// addReaction — terima msgId dan dateId langsung (dipanggil dari action sheet/emoji picker)
 window.addReaction=async(emoji,msgIdParam,dateIdParam)=>{
   el('reaction-picker').classList.add('hidden');
   const msgId=msgIdParam||reactionTarget;
@@ -1147,7 +1142,7 @@ window.addReaction=async(emoji,msgIdParam,dateIdParam)=>{
     const key=emoji+'_'+currentUser.id;
     if(rx[key])delete rx[key];else rx[key]={emoji,userId:currentUser.id,ts:Date.now()};
     await updateDoc(mRef,{reactions:rx});
-  }catch(e){}
+  }catch(e){console.error('addReaction error:',e);showToast('Gagal memberi reaksi');}
   reactionTarget=null;
 };
 
@@ -1276,7 +1271,7 @@ async function handleStoryUpload(event){
   finally{prog.remove();}
 }
 // ── IDLE LOCK ────────────────────────────────────────
-const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 menit
+const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 menit
 let idleTimer = null;
 let lockPinBuf = "";
 let isLocked = false;
@@ -1333,14 +1328,16 @@ function updateLockDots(){
 async function checkLockPin(){
   if(!currentUser)return;
   const cfg = APP_CONFIG[currentUser.id];
-  let valid = false;
-  // Verifikasi via hash Firestore (PIN terbaru) atau PIN lokal
-  if(cfg._pinHash){
-    const inputHash = await sha256(lockPinBuf);
-    valid = (inputHash === cfg._pinHash);
-    if(valid && cfg.pin !== lockPinBuf){ cfg.pin = lockPinBuf; saveCfg(); }
-  } else {
-    valid = (lockPinBuf === cfg.pin);
+  let valid = (lockPinBuf === cfg.pin);
+  if(!valid){
+    try{
+      const snap=await getDoc(doc(db,'profiles',currentUser.id));
+      if(snap.exists()&&snap.data().pinHash){
+        const inputHash = await sha256(lockPinBuf);
+        valid = (inputHash === snap.data().pinHash);
+        if(valid){ cfg.pin = lockPinBuf; saveCfg(); }
+      }
+    }catch(e){console.warn('checkLockPin Firestore failed:',e);}
   }
   if(valid){
     unlockScreen();
@@ -1531,9 +1528,8 @@ function watchReadStatus(){
   // Tapi perlu update UI centang secara live
 }
 
-// ── REACTIONS (existing) ──
-window.showReactionPicker=(msgId,bubble)=>{reactionTarget=msgId;const picker=el('reaction-picker');picker.classList.remove('hidden');const rect=bubble.getBoundingClientRect();picker.style.top=Math.max(10,rect.top-60)+'px';picker.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-240))+'px';const close=e=>{if(!picker.contains(e.target)){picker.classList.add('hidden');document.removeEventListener('click',close);}};setTimeout(()=>document.addEventListener('click',close),50);};
-// addReaction versi lama dihapus — pakai versi dengan msgIdParam di atas
+// ── REACTIONS ── (addReaction sudah didefinisi di atas dengan versi terbaru; ini hanya redirect lama)
+window.showReactionPicker=(msgId,bubble,dateId)=>{openEmojiPicker(msgId,dateId);};
 function updateReactionsUI(row,reactions){const div=row.querySelector('.msg-reactions');if(!div)return;const groups={};Object.values(reactions).forEach(r=>{groups[r.emoji]=(groups[r.emoji]||0)+1;});div.innerHTML="";Object.entries(groups).forEach(([emoji,count])=>{const s=document.createElement('span');s.className='msg-reaction';s.textContent=emoji+(count>1?' '+count:'');div.appendChild(s);});}
 // THEMES
 function applyTheme(id){currentTheme=id;document.body.setAttribute('data-theme',id==='default'?'':id);localStorage.setItem('cc-theme',id);renderThemeGrid();}
@@ -1666,10 +1662,10 @@ function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el(
 window.openMyProfile=()=>{if(currentUser)openProfileModal(currentUser.id);};
 window.openProfileModal=uid=>{
   if(!uid)uid=currentUser?.id||'user1';
-  // Boleh buka profil sendiri kapanpun, atau profil siapapun jika admin
-  // Jika belum login (layar login), boleh edit profil manapun
-  const loggedIn = !!currentUser;
-  if(loggedIn && uid!==currentUser.id && !currentUser.isAdmin){
+  // Wajib sudah login untuk edit profil
+  if(!currentUser){showToast('Login dulu untuk edit profil');return;}
+  // Hanya bisa edit profil sendiri (kecuali admin)
+  if(uid!==currentUser.id&&!currentUser.isAdmin){
     showToast('Kamu hanya bisa edit profil sendiri');return;
   }
   profileModalTarget=uid;const cfg=APP_CONFIG[uid],photo=profilePhotos[uid];
@@ -1681,9 +1677,21 @@ window.openProfileModal=uid=>{
   el('profile-modal-sub').textContent=isSelf?'Tap foto untuk ganti • Isi field yang ingin diubah':'Profil '+cfg?.name+(currentUser?.isAdmin?' — edit sebagai admin':'');
   el('profile-name-input').value=cfg?.name||'';
   el('profile-pin-input').value='';
+  if(el('profile-current-pin-input'))el('profile-current-pin-input').value='';
+  if(el('current-pin-field'))el('current-pin-field').style.display='none';
   el('profile-modal').classList.remove('hidden');
 };
-window.closeProfileModal=()=>el('profile-modal').classList.add('hidden');
+window.closeProfileModal=()=>{
+  el('profile-modal').classList.add('hidden');
+  if(el('profile-current-pin-input'))el('profile-current-pin-input').value='';
+  if(el('profile-pin-input'))el('profile-pin-input').value='';
+  if(el('current-pin-field'))el('current-pin-field').style.display='none';
+};
+window.toggleCurrentPinField=()=>{
+  const v=el('profile-pin-input').value;
+  const f=el('current-pin-field');
+  if(f)f.style.display=v.length>0?'block':'none';
+};
 window.profileAvatarClick=()=>{
   if(!profileModalTarget)return;
   const photo=profilePhotos[profileModalTarget];
@@ -1697,26 +1705,46 @@ window.profileAvatarClick=()=>{
 };
 window.profileModalOutside=e=>{if(e.target===el('profile-modal'))closeProfileModal();};
 window.saveProfileChanges=async()=>{
-  if(!profileModalTarget)return;
+  if(!profileModalTarget||!currentUser)return;
   const newName=el('profile-name-input').value.trim();
   const newPin=el('profile-pin-input').value.trim();
+  const currentPinInput=(el('profile-current-pin-input')?.value||'').trim();
   if(!newName){showToast('Nama tidak boleh kosong');return;}
   if(newPin&&(newPin.length!==4||!/^\d{4}$/.test(newPin))){showToast('PIN harus tepat 4 digit');return;}
+  // Wajib verifikasi PIN lama sebelum ganti PIN
+  if(newPin){
+    const cfg=APP_CONFIG[profileModalTarget];
+    let pinOk=(currentPinInput===cfg.pin);
+    if(!pinOk){
+      try{
+        const snap=await getDoc(doc(db,'profiles',profileModalTarget));
+        if(snap.exists()&&snap.data().pinHash){
+          const h=await sha256(currentPinInput);
+          pinOk=(h===snap.data().pinHash);
+        }
+      }catch(e){}
+    }
+    if(!pinOk){showToast('PIN saat ini salah');return;}
+  }
   APP_CONFIG[profileModalTarget].name=newName;
-  if(newPin)APP_CONFIG[profileModalTarget].pin=newPin;
   saveCfg();
   el('name-user1').textContent=APP_CONFIG.user1.name;el('name-user2').textContent=APP_CONFIG.user2.name;
   if(currentUser)currentUser=APP_CONFIG[currentUser.id];if(otherUser)otherUser=APP_CONFIG[otherUser.id];
   try{
     const updateData={name:newName,updatedAt:serverTimestamp()};
-    // Simpan PIN sebagai hash SHA-256 ke Firestore agar sync ke device lain
     if(newPin){
       const pinHash=await sha256(newPin);
       updateData.pinHash=pinHash;
-      APP_CONFIG[profileModalTarget]._pinHash=pinHash; // update lokal juga
+      await setDoc(doc(db,'profiles',profileModalTarget),updateData,{merge:true});
+      APP_CONFIG[profileModalTarget].pin=newPin; // update lokal SETELAH Firestore berhasil
+      saveCfg();
+    }else{
+      await setDoc(doc(db,'profiles',profileModalTarget),updateData,{merge:true});
     }
-    await setDoc(doc(db,'profiles',profileModalTarget),updateData,{merge:true});
-  }catch(e){console.warn('Profile sync error:',e);}
+  }catch(e){
+    console.warn('Profile sync error:',e);
+    if(newPin){APP_CONFIG[profileModalTarget].pin=newPin;saveCfg();}
+  }
   closeProfileModal();showToast('Profil diperbarui \u2713');
 };
 window.uploadProfilePhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!profileModalTarget)return;
@@ -1738,11 +1766,7 @@ function loadPartnerProfile(){
       el('name-user2').textContent=APP_CONFIG.user2.name;
       changed=true;
     }
-    // Sync pinHash dari Firestore — agar PIN yang diubah partner terbaca di device ini
-    if(snap.data().pinHash){
-      APP_CONFIG[otherUser.id]._pinHash=snap.data().pinHash;
-      saveCfg();
-    }
+    // TIDAK sync pinHash partner — PIN orang lain tidak boleh ada di device ini
     if(changed){
       renderHeaderAvatars();
       // Refresh semua avatar bubble yang sudah ter-render
@@ -1768,10 +1792,25 @@ function refreshBubbleAvatars(){
 // ADMIN
 window.openAdminEntry=()=>{if(!currentUser?.isAdmin)return;adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.add('hidden');el('pin-admin-modal').classList.remove('hidden');};
 window.closeAdminEntry=()=>{el('pin-admin-modal').classList.add('hidden');adminPinBuf="";updateAdminPinDots();};
-window.adminPinInput=d=>{if(adminPinBuf.length>=4)return;adminPinBuf+=d;updateAdminPinDots();if(adminPinBuf.length===4)setTimeout(checkAdminPin,150);};
+window.adminPinInput=d=>{if(adminPinBuf.length>=4)return;adminPinBuf+=d;updateAdminPinDots();if(adminPinBuf.length===4)setTimeout(()=>checkAdminPin().catch(e=>{console.error('checkAdminPin:',e);adminPinBuf='';updateAdminPinDots();}),150);};
 window.adminPinClear=()=>{adminPinBuf=adminPinBuf.slice(0,-1);updateAdminPinDots();};
 function updateAdminPinDots(){document.querySelectorAll('#admin-pin-dots .pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<adminPinBuf.length));}
-function checkAdminPin(){if(adminPinBuf===currentUser.pin){el('pin-admin-modal').classList.add('hidden');adminPinBuf="";updateAdminPinDots();openAdmin();}else{adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.remove('hidden');setTimeout(()=>el('admin-pin-error').classList.add('hidden'),2000);}}
+async function checkAdminPin(){
+  const cfg=APP_CONFIG[currentUser.id];
+  let valid=(adminPinBuf===cfg.pin);
+  if(!valid){
+    try{
+      const snap=await getDoc(doc(db,'profiles',currentUser.id));
+      if(snap.exists()&&snap.data().pinHash){
+        const h=await sha256(adminPinBuf);
+        valid=(h===snap.data().pinHash);
+        if(valid){cfg.pin=adminPinBuf;saveCfg();}
+      }
+    }catch(e){}
+  }
+  if(valid){el('pin-admin-modal').classList.add('hidden');adminPinBuf="";updateAdminPinDots();openAdmin();}
+  else{adminPinBuf="";updateAdminPinDots();el('admin-pin-error').classList.remove('hidden');setTimeout(()=>el('admin-pin-error').classList.add('hidden'),2000);}
+}
 async function openAdmin(){selectedMedia=new Set();el('admin-panel').classList.remove('hidden');document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',i===0));adminTab='photos';await renderAdminTab();}
 window.closeAdmin=()=>{el('admin-panel').classList.add('hidden');selectedMedia=new Set();};
 window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',['photos','voices','stickers'][i]===tab));await renderAdminTab();};

@@ -93,6 +93,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .msg-row.me .voice-play-btn{background:rgba(255,255,255,0.25);color:#fff}
 .msg-row.other .voice-play-btn{background:var(--accent);color:#fff}
 .voice-play-btn:active{transform:scale(0.9)}
+.voice-play-btn.loading{opacity:0.5;pointer-events:none}
+.voice-play-btn.loading svg{animation:vspin 0.8s linear infinite}
+@keyframes vspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .voice-play-btn svg{width:14px;height:14px}
 .voice-waveform{flex:1;height:26px;position:relative;cursor:pointer}
 .voice-progress-bg{position:absolute;top:50%;left:0;right:0;height:3px;background:rgba(255,255,255,0.3);border-radius:2px;transform:translateY(-50%)}
@@ -733,6 +736,7 @@ function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').inner
   watchTyping(); // dipanggil sekali saja, bukan di dalam onSnapshot
 }
 function renderMessage(id,data,readOnly=false,container=null){
+  data._dateId=data._dateId||todayDateStr;
   const target=container||el('messages-inner');
   // Resolve identitas — aman untuk history view (currentUser bisa null jika dibuka dari login screen)
   // Untuk history view: pakai senderId dari data Firestore saja, bukan localStorage
@@ -817,7 +821,7 @@ function buildVoicePlayer(url,duration){
     if(!audio){
       audio=new Audio();
       audio.crossOrigin='anonymous';
-      audio.preload='metadata'; // load metadata dulu untuk dapat durasi
+      audio.preload='auto'; // load penuh agar cepat siap diputar
       audio.src=url;
       // Update durasi saat metadata berhasil dimuat
       audio.onloadedmetadata=()=>{
@@ -828,19 +832,37 @@ function buildVoicePlayer(url,duration){
     }
     if(audio.paused){
       if(activeAudio&&activeAudio!==audio){activeAudio.pause();activeAudio.currentTime=0;if(activeFill)activeFill.style.width='0%';if(activePlayBtn)activePlayBtn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';}
-      const _pp=audio.play();
-      if(_pp&&_pp.then){
-        _pp.then(()=>{
-          activeAudio=audio;activePlayBtn=btn;activeFill=fill;
-          btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-        }).catch(e=>{
-          console.warn('play rejected:',e);
-          showToast('Ketuk lagi untuk memutar suara');
-        });
-      }else{
-        activeAudio=audio;activePlayBtn=btn;activeFill=fill;
-        btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-      }
+      const PAUSE_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+      const PLAY_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+      const doPlay=()=>{
+        const pp=audio.play();
+        if(pp&&pp.then){
+          pp.then(()=>{
+            activeAudio=audio;activePlayBtn=btn;activeFill=fill;
+            btn.innerHTML=PAUSE_ICON;btn.classList.remove('loading');
+          }).catch(err=>{
+            // Jika belum ready, tunggu canplay lalu coba lagi otomatis
+            btn.classList.add('loading');
+            audio.load();
+            const onReady=()=>{
+              audio.removeEventListener('canplay',onReady);
+              audio.play().then(()=>{
+                activeAudio=audio;activePlayBtn=btn;activeFill=fill;
+                btn.innerHTML=PAUSE_ICON;btn.classList.remove('loading');
+              }).catch(()=>{
+                btn.classList.remove('loading');btn.innerHTML=PLAY_ICON;
+                showToast('Gagal memutar, coba lagi');
+              });
+            };
+            audio.addEventListener('canplay',onReady);
+            // Timeout fallback 8 detik
+            setTimeout(()=>{audio.removeEventListener('canplay',onReady);btn.classList.remove('loading');},8000);
+          });
+        }else{
+          activeAudio=audio;activePlayBtn=btn;activeFill=fill;btn.innerHTML=PAUSE_ICON;
+        }
+      };
+      doPlay();
       audio.ontimeupdate=()=>{
         const d=audio.duration;
         const valid=d&&isFinite(d)&&d>0;
@@ -1010,7 +1032,7 @@ function showMsgActionSheet(msgId,data,bubble,isMe){
     const btn=document.createElement('button');
     btn.style.cssText='font-size:26px;background:var(--surface2);border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;transition:transform 0.15s';
     btn.textContent=emoji;
-    btn.onclick=()=>{overlay.remove();sheet.remove();addReaction(emoji,msgId);};
+    btn.onclick=()=>{overlay.remove();sheet.remove();addReaction(emoji,msgId,data._dateId||todayDateStr);};
     btn.addEventListener('touchstart',()=>{btn.style.transform='scale(1.25)';},{passive:true});
     btn.addEventListener('touchend',()=>{btn.style.transform='';},{passive:true});
     quickRx.appendChild(btn);
@@ -1018,7 +1040,7 @@ function showMsgActionSheet(msgId,data,bubble,isMe){
   const moreBtn=document.createElement('button');
   moreBtn.style.cssText='font-size:18px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;width:44px;height:44px;cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;justify-content:center';
   moreBtn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>';
-  moreBtn.onclick=()=>{overlay.remove();sheet.remove();openEmojiPicker(msgId);};
+  moreBtn.onclick=()=>{overlay.remove();sheet.remove();openEmojiPicker(msgId,data._dateId||todayDateStr);};
   quickRx.appendChild(moreBtn);
   sheet.appendChild(quickRx);
   const divider=document.createElement('div');divider.className='action-sheet-divider';sheet.appendChild(divider);
@@ -1061,8 +1083,9 @@ const EMOJI_CATS=[
   {icon:'\uD83D\uDCA1',name:'Objek',emojis:['\u231A','\uD83D\uDCF1','\uD83D\uDCBB','\u2328\uFE0F','\uD83D\uDDA5\uFE0F','\uD83D\uDDA8\uFE0F','\uD83D\uDDB1\uFE0F','\uD83D\uDDB2\uFE0F','\uD83D\uDCBE','\uD83D\uDCBF','\uD83D\uDCC0','\uD83C\uDF9A\uFE0F','\uD83D\uDCF7','\uD83D\uDCF8','\uD83D\uDCF9','\uD83D\uDCFC','\uD83D\uDCDE','\u260E\uFE0F','\uD83D\uDCDF','\uD83D\uDCE0','\uD83D\uDCFA','\uD83D\uDCFB','\uD83E\uDDED','\u23F1\uFE0F','\u23F2\uFE0F','\u23F0','\uD83D\uDD70\uFE0F','\u231B','\uD83D\uDCE1','\uD83D\uDD0B','\uD83D\uDD0C','\uD83D\uDCA1','\uD83D\uDD26','\uD83D\uDD6F\uFE0F','\uD83E\uDE94','\uD83D\uDCB0','\uD83D\uDCB4','\uD83D\uDCB5','\uD83D\uDCB8','\uD83D\uDCB3','\uD83E\uDE99','\uD83D\uDCB9','\uD83D\uDCEC','\uD83D\uDCED','\uD83D\uDCEA','\uD83D\uDCEB','\uD83D\uDCEE','\uD83D\uDCEF','\uD83D\uDCE6','\uD83D\uDCE7','\uD83D\uDCE8','\uD83D\uDCE9','\uD83D\uDCE4','\uD83D\uDCE5','\uD83D\uDCE2','\uD83D\uDCE3','\uD83D\uDCCB','\uD83D\uDCC1','\uD83D\uDCC2','\uD83D\uDDC2\uFE0F','\uD83D\uDCC4','\uD83D\uDCC3','\uD83D\uDCF0','\uD83D\uDCD3','\uD83D\uDCD4','\uD83D\uDCD2','\uD83D\uDCD1','\uD83D\uDCDA','\uD83D\uDCD5','\uD83D\uDCD7','\uD83D\uDCD8','\uD83D\uDCD9','\uD83D\uDD16','\uD83D\uDFF7\uFE0F','\uD83D\uDCB1','\uD83D\uDCB2','\uD83D\uDCCA','\uD83D\uDCC8','\uD83D\uDCC9','\uD83D\uDCC6','\uD83D\uDCC5','\uD83D\uDCC7','\uD83D\uDCCC','\uD83D\uDCCD','\uD83D\uDD87\uFE0F','\uD83D\uDD8A\uFE0F','\uD83D\uDD8B\uFE0F','\u270F\uFE0F','\u2712\uFE0F','\uD83D\uDD0D','\uD83D\uDD0E','\uD83D\uDD12','\uD83D\uDD13','\uD83D\uDD10','\uD83D\uDD11','\uD83D\uDEAA']},
 ];
 let _emojiTarget=null;
-window.openEmojiPicker=msgId=>{
-  _emojiTarget=msgId;
+let _emojiTargetDate=null;
+window.openEmojiPicker=(msgId,dateId)=>{
+  _emojiTarget=msgId;_emojiTargetDate=dateId||todayDateStr;
   el('emoji-search').value='';
   el('emoji-picker-overlay').classList.remove('hidden');
   el('emoji-picker-sheet').classList.remove('hidden');
@@ -1087,7 +1110,7 @@ function renderEmojiGrid(emojis){
   const grid=el('emoji-grid');grid.innerHTML='';
   emojis.forEach(emoji=>{
     const cell=document.createElement('button');cell.className='emoji-cell';cell.textContent=emoji;
-    cell.onclick=()=>{closeEmojiPicker();if(_emojiTarget)addReaction(emoji,_emojiTarget);};
+    cell.onclick=()=>{const dt=_emojiTargetDate;closeEmojiPicker();if(_emojiTarget)addReaction(emoji,_emojiTarget,dt);};
     grid.appendChild(cell);
   });
 }
@@ -1102,12 +1125,13 @@ window.filterEmoji=q=>{
 };
 
 // Override addReaction agar bisa terima msgId langsung
-window.addReaction=async(emoji,msgIdParam)=>{
+window.addReaction=async(emoji,msgIdParam,dateIdParam)=>{
   el('reaction-picker').classList.add('hidden');
   const msgId=msgIdParam||reactionTarget;
   if(!msgId||!currentUser)return;
+  const targetDate=dateIdParam||todayDateStr;
   try{
-    const mRef=doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',msgId);
+    const mRef=doc(db,'rooms',APP_CONFIG.roomId,'dates',targetDate,'messages',msgId);
     const snap=await getDoc(mRef);
     const rx=snap.data()?.reactions||{};
     const key=emoji+'_'+currentUser.id;
@@ -1499,7 +1523,7 @@ function watchReadStatus(){
 
 // ── REACTIONS (existing) ──
 window.showReactionPicker=(msgId,bubble)=>{reactionTarget=msgId;const picker=el('reaction-picker');picker.classList.remove('hidden');const rect=bubble.getBoundingClientRect();picker.style.top=Math.max(10,rect.top-60)+'px';picker.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-240))+'px';const close=e=>{if(!picker.contains(e.target)){picker.classList.add('hidden');document.removeEventListener('click',close);}};setTimeout(()=>document.addEventListener('click',close),50);};
-window.addReaction=async emoji=>{el('reaction-picker').classList.add('hidden');if(!reactionTarget||!currentUser)return;try{const mRef=doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',reactionTarget);const snap=await getDoc(mRef);const rx=snap.data()?.reactions||{};const key=emoji+'_'+currentUser.id;if(rx[key])delete rx[key];else rx[key]={emoji,userId:currentUser.id,ts:Date.now()};await updateDoc(mRef,{reactions:rx});}catch(e){}reactionTarget=null;};
+// addReaction versi lama dihapus — pakai versi dengan msgIdParam di atas
 function updateReactionsUI(row,reactions){const div=row.querySelector('.msg-reactions');if(!div)return;const groups={};Object.values(reactions).forEach(r=>{groups[r.emoji]=(groups[r.emoji]||0)+1;});div.innerHTML="";Object.entries(groups).forEach(([emoji,count])=>{const s=document.createElement('span');s.className='msg-reaction';s.textContent=emoji+(count>1?' '+count:'');div.appendChild(s);});}
 // THEMES
 function applyTheme(id){currentTheme=id;document.body.setAttribute('data-theme',id==='default'?'':id);localStorage.setItem('cc-theme',id);renderThemeGrid();}
@@ -1611,7 +1635,7 @@ async function openHistoryView(dateStr){
       msgContainer.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-secondary);font-size:13px">Tidak ada pesan di tanggal ini.</div>';
       return;
     }
-    snap.docs.forEach(docSnap=>renderMessage(docSnap.id,docSnap.data(),true,msgContainer));
+    snap.docs.forEach(docSnap=>{const dd=docSnap.data();dd._dateId=dateStr;renderMessage(docSnap.id,dd,true,msgContainer);});
     // Jika ini hari ini, tampilkan note di bawah
     if(dateStr===getTodayStr()){
       const note=document.createElement('div');

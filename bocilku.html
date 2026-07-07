@@ -820,8 +820,7 @@ function buildVoicePlayer(url,duration){
   btn.onclick=()=>{
     if(!audio){
       audio=new Audio();
-      audio.crossOrigin='anonymous';
-      audio.preload='auto'; // load penuh agar cepat siap diputar
+      audio.preload='auto';
       audio.src=url;
       // Update durasi saat metadata berhasil dimuat
       audio.onloadedmetadata=()=>{
@@ -841,29 +840,40 @@ function buildVoicePlayer(url,duration){
             activeAudio=audio;activePlayBtn=btn;activeFill=fill;
             btn.innerHTML=PAUSE_ICON;btn.classList.remove('loading');
           }).catch(err=>{
-            // Jika belum ready, tunggu canplay lalu coba lagi otomatis
+            console.warn('play() attempt 1 failed:',err.name,err.message);
             btn.classList.add('loading');
-            audio.load();
+            // Retry setelah audio benar-benar siap (canplaythrough lebih reliable dari canplay)
             const onReady=()=>{
+              audio.removeEventListener('canplaythrough',onReady);
               audio.removeEventListener('canplay',onReady);
               audio.play().then(()=>{
                 activeAudio=audio;activePlayBtn=btn;activeFill=fill;
                 btn.innerHTML=PAUSE_ICON;btn.classList.remove('loading');
-              }).catch(()=>{
+              }).catch(err2=>{
+                console.error('play() attempt 2 failed:',err2.name,err2.message);
                 btn.classList.remove('loading');btn.innerHTML=PLAY_ICON;
-                showToast('Gagal memutar, coba lagi');
+                if(err2.name==='NotSupportedError')showToast('Format suara tidak didukung browser ini');
+                else if(err2.name==='NotAllowedError')showToast('Ketuk tombol putar sekali lagi');
+                else showToast('Gagal memutar suara');
               });
             };
-            audio.addEventListener('canplay',onReady);
-            // Timeout fallback 8 detik
-            setTimeout(()=>{audio.removeEventListener('canplay',onReady);btn.classList.remove('loading');},8000);
+            audio.addEventListener('canplaythrough',onReady,{once:true});
+            audio.addEventListener('canplay',onReady,{once:true});
+            audio.load();
+            setTimeout(()=>{
+              audio.removeEventListener('canplaythrough',onReady);
+              audio.removeEventListener('canplay',onReady);
+              if(btn.classList.contains('loading')){
+                btn.classList.remove('loading');btn.innerHTML=PLAY_ICON;
+                showToast('Waktu habis, coba lagi');
+              }
+            },8000);
           });
         }else{
           activeAudio=audio;activePlayBtn=btn;activeFill=fill;btn.innerHTML=PAUSE_ICON;
         }
       };
-      doPlay();
-      audio.ontimeupdate=()=>{
+      doPlay();      audio.ontimeupdate=()=>{
         const d=audio.duration;
         const valid=d&&isFinite(d)&&d>0;
         fill.style.width=(valid?(audio.currentTime/d*100):0)+'%';

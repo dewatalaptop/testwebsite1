@@ -27,6 +27,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 
 <style>
 /* =====================================================================
@@ -438,6 +439,17 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
 .logo-drop:hover{border-color:var(--primary); color:var(--primary);}
 .logo-preview{width:56px;height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--border);}
 
+/* Dashboard workflow pipeline */
+.workflow-pipeline{display:flex; align-items:center; overflow-x:auto; gap:2px; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
+.wf-step{flex:1; min-width:82px; text-align:center; padding:12px 6px; border-radius:12px; cursor:pointer; transition:background .15s var(--ease); flex-shrink:0;}
+.wf-step:hover{background:var(--bg-soft);}
+.wf-ic{width:36px;height:36px;border-radius:10px; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; margin:0 auto 8px;}
+.wf-ic svg{width:17px;height:17px;}
+.wf-count{font-family:var(--font-display); font-size:21px; font-weight:700; line-height:1;}
+.wf-label{font-size:10.8px; color:var(--text-muted); font-weight:600; margin-top:4px; text-transform:uppercase; letter-spacing:.03em;}
+.wf-arrow{color:var(--text-faint); flex-shrink:0;}
+.wf-arrow svg{width:15px;height:15px;}
+
 /* Coming-soon page (phases 2-4) */
 .coming-soon{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:80px 20px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);}
 .coming-soon .cs-ic{width:56px;height:56px; border-radius:16px; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; margin-bottom:18px;}
@@ -777,14 +789,32 @@ const LocalStore = {
     try{ return JSON.parse(localStorage.getItem(this.PREFIX+col) || "[]"); }
     catch(e){ return []; }
   },
-  saveAll(col, arr){ localStorage.setItem(this.PREFIX+col, JSON.stringify(arr)); },
+  saveAll(col, arr){
+    try{ localStorage.setItem(this.PREFIX+col, JSON.stringify(arr)); return true; }
+    catch(e){
+      console.error("localStorage save failed for", col, e);
+      if (e && (e.name === "QuotaExceededError" || e.code === 22)){
+        Toast.show("Penyimpanan di perangkat ini sudah penuh — export backup lalu hapus data lama di Settings.", "error");
+      } else {
+        Toast.show("Gagal menyimpan perubahan ke perangkat ini.", "error");
+      }
+      return false;
+    }
+  },
   seedIfEmpty(col, seedArr){
     const existing = this.getAll(col);
     if (existing.length === 0 && seedArr.length){ this.saveAll(col, seedArr); return seedArr; }
     return existing;
   },
   getDoc(key){ try{ return JSON.parse(localStorage.getItem(this.PREFIX+"doc_"+key) || "null"); }catch(e){ return null; } },
-  setDoc(key, val){ localStorage.setItem(this.PREFIX+"doc_"+key, JSON.stringify(val)); }
+  setDoc(key, val){
+    try{ localStorage.setItem(this.PREFIX+"doc_"+key, JSON.stringify(val)); return true; }
+    catch(e){
+      console.error("localStorage setDoc failed for", key, e);
+      Toast.show("Gagal menyimpan pengaturan ke perangkat ini — penyimpanan mungkin penuh.", "error");
+      return false;
+    }
+  }
 };
 
 /* ---------------------------------------------------------------------
@@ -856,6 +886,9 @@ const Stores = {
   conversions: new DataStore("conversions"),
   users: new DataStore("users"),
   purchaseRequests: new DataStore("purchaseRequests"),
+  menus: new DataStore("menus"),
+  sales: new DataStore("sales"),
+  recipeLearning: new DataStore("recipeLearning"),
   logs: new DataStore("logs")
 };
 
@@ -1055,7 +1088,7 @@ function seedDefaults(){
    6. RBAC
    --------------------------------------------------------------------- */
 const MODULES = ["items","categories","suppliers","outlets","conversions","users","settings",
-  "purchaseRequests","purchaseOrders","goodsReceipts","stockOpname","recipes","sales","analytics"];
+  "purchaseRequests","purchaseOrders","goodsReceipts","stockOpname","menus","recipes","sales","analytics"];
 function fullAccess(mods){ const o={}; mods.forEach(m=>o[m]=["view","create","edit","delete"]); return o; }
 function viewOnly(mods){ const o={}; mods.forEach(m=>o[m]=["view"]); return o; }
 
@@ -1177,15 +1210,16 @@ const NAV = [
     { route:"suppliers", label:"Suppliers", icon:"truck", mod:"suppliers" },
     { route:"outlets", label:"Outlets", icon:"store", mod:"outlets" },
     { route:"conversions", label:"Conversions", icon:"repeat", mod:"conversions" },
+    { route:"menus", label:"Menus", icon:"utensils-crossed", mod:"menus" },
     { route:"users", label:"Users & Roles", icon:"users", mod:"users" }
   ]},
   { group:"Operations", items:[
     { route:"purchase-requests", label:"Purchase Requests", icon:"clipboard-list", mod:"purchaseRequests" },
-    { route:"goods-receipt", label:"Goods Receipt", icon:"package-check", mod:"goodsReceipts", badge:"Phase 3" },
+    { route:"goods-receipt", label:"Goods Receipt", icon:"package-check", mod:"purchaseRequests" },
     { route:"stock-opname", label:"Stock Opname", icon:"clipboard-check", mod:"stockOpname", badge:"Phase 3" },
-    { route:"recipes", label:"Recipe Learning", icon:"brain-circuit", mod:"recipes", badge:"Phase 4" },
-    { route:"sales", label:"Sales", icon:"receipt", mod:"sales", badge:"Phase 3" },
-    { route:"analytics", label:"Analytics", icon:"bar-chart-3", mod:"analytics", badge:"Phase 3" }
+    { route:"sales", label:"Sales", icon:"receipt", mod:"sales" },
+    { route:"recipes", label:"Recipe Learning", icon:"brain-circuit", mod:"recipes" },
+    { route:"analytics", label:"Menu Analysis", icon:"bar-chart-3", mod:"analytics" }
   ]},
   { group:"System", items:[ { route:"settings", label:"Settings", icon:"settings", mod:"settings" } ]}
 ];
@@ -1638,7 +1672,15 @@ const itemsModule = new CrudModule({
     { key:"outletIds", label:"Biasa dipesan outlet mana", type:"multiselect", options:(ctx)=>ctx.outlets.map(o=>({value:o.id,label:o.name})), hint:"Kosongkan jika dipesan semua outlet." },
     { key:"notes", label:"Notes", type:"textarea" }
   ],
-  outletFilterEnabled: true
+  outletFilterEnabled: true,
+  beforeDelete: async(item)=>{
+    const conversions = await Stores.conversions.list();
+    if (conversions.some(c=>c.itemId===item.id)) return "Item ini masih punya aturan konversi — hapus dulu aturan konversinya di menu Conversions.";
+    const menus = await Stores.menus.list();
+    const usedInMenus = menus.filter(m=>(m.ingredientItemIds||[]).includes(item.id));
+    if (usedInMenus.length) return `Item ini dipakai di resep ${usedInMenus.length} menu (${usedInMenus.slice(0,3).map(m=>m.name).join(", ")}${usedInMenus.length>3?', dll':''}) — hapus dari resep dulu di halaman Recipe Learning.`;
+    return true;
+  }
 });
 
 class UsersModule extends CrudModule{
@@ -1760,7 +1802,8 @@ class PurchaseRequestModule{
 
   async render(container){
     this.container = container;
-    this.state = { statusFilter:null, outletFilter:null, search:"" };
+    this.state = { statusFilter: this.pendingStatusFilter || null, outletFilter:null, search:"" };
+    this.pendingStatusFilter = null;
     this.outlets = await Stores.outlets.list();
     this.items_all = await Stores.items.list();
     this.categories = await Stores.categories.list();
@@ -2119,6 +2162,12 @@ class PurchaseRequestModule{
         const nextBtn = document.getElementById("prNextBtn");
         if (nextBtn) nextBtn.addEventListener("click", async ()=>{
           const n = PR_NEXT_STATUS[record.status];
+          if (n === "received"){
+            // Receiving needs actual quantities recorded first, not a plain status flip.
+            Modal.close();
+            openGoodsReceiptForm(record, async ()=>{ this.records = await Stores.purchaseRequests.list(); this.paint(); refreshDashboardIfActive(); });
+            return;
+          }
           await Stores.purchaseRequests.update(record.id, { status:n });
           await Logger.log("updated","purchaseRequests", `status → ${PR_STATUS_LABEL[n]}`);
           Toast.show(`Status diubah ke ${PR_STATUS_LABEL[n]}.`, "success");
@@ -2240,6 +2289,948 @@ class PurchaseRequestModule{
 }
 const purchaseRequestsModule = new PurchaseRequestModule();
 
+/* =========================================================================
+   GOODS RECEIPT
+   Purchasing checks what actually arrived against an Ordered request and
+   records the real quantity per line. This is also what feeds Recipe
+   Learning a more accurate "supply" number than the originally ordered
+   quantity (see RecipeLearningEngine.buildDailySupply).
+   ========================================================================= */
+function receiptDiffBadge(ordered, received){
+  if (received===null || received===undefined || received==="") return `<span class="badge grey">Belum diisi</span>`;
+  const diff = received - ordered;
+  if (diff === 0) return `<span class="badge green">Sesuai</span>`;
+  if (diff < 0) return `<span class="badge red">Kurang ${Math.abs(diff)}</span>`;
+  return `<span class="badge amber">Lebih ${diff}</span>`;
+}
+
+function openGoodsReceiptForm(record, onDone){
+  const readOnly = record.status !== "ordered";
+  const outletsPromise = Stores.outlets.list();
+  outletsPromise.then(outlets=>{
+    const outlet = outlets.find(o=>o.id===record.outletId);
+    const bodyHtml = `
+      <p class="muted" style="font-size:12.5px; margin-bottom:14px;">
+        ${readOnly ? "Barang untuk request ini sudah dicatat diterima. Rekap di bawah ini bersifat baca-saja." : "Isi jumlah yang benar-benar datang untuk tiap item. Jumlah dipesan sudah terisi otomatis sebagai patokan — ubah kalau beda."}
+      </p>
+      <table class="data-table">
+        <thead><tr><th>Item</th><th>Dipesan</th><th style="width:110px;">Diterima</th><th>Selisih</th></tr></thead>
+        <tbody id="grLinesBody">
+          ${(record.items||[]).map((it,idx)=>`
+            <tr data-idx="${idx}">
+              <td class="cell-primary">${Utils.escapeHtml(it.name)}<div class="cell-sub">${Utils.escapeHtml(it.unit||'')}</div></td>
+              <td>${it.quantity??'—'}</td>
+              <td>${readOnly ? (it.receivedQty??'—') : `<input type="number" min="0" step="any" class="input" style="width:90px;" data-received="${idx}" value="${it.receivedQty??it.quantity??''}">`}</td>
+              <td data-diff="${idx}">${receiptDiffBadge(Number(it.quantity)||0, it.receivedQty)}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+    const footHtml = readOnly
+      ? `<button class="btn btn-ghost" id="grCloseBtn">Close</button>`
+      : `<button class="btn btn-ghost" id="grCloseBtn">Batal</button><button class="btn btn-primary" id="grSaveBtn"><svg data-lucide="package-check" style="width:15px;height:15px;"></svg> Simpan &amp; Tandai Diterima</button>`;
+    Modal.open({
+      title: `Terima Barang · ${outlet?outlet.name:''}`, bodyHtml, footHtml, wide:true,
+      onMount:(root)=>{
+        document.getElementById("grCloseBtn").addEventListener("click", Modal.close);
+        if (!readOnly){
+          root.querySelectorAll("[data-received]").forEach(input=>{
+            input.addEventListener("input", ()=>{
+              const idx = input.dataset.received;
+              const ordered = Number((record.items[idx]||{}).quantity)||0;
+              const val = input.value===""? null : Number(input.value);
+              root.querySelector(`[data-diff="${idx}"]`).innerHTML = receiptDiffBadge(ordered, val);
+            });
+          });
+          document.getElementById("grSaveBtn").addEventListener("click", async ()=>{
+            const btn = document.getElementById("grSaveBtn");
+            btn.disabled = true; btn.innerHTML = `<div class="spinner"></div>`;
+            const updatedItems = (record.items||[]).map((it,idx)=>{
+              const input = root.querySelector(`[data-received="${idx}"]`);
+              const val = input && input.value!=="" ? Number(input.value) : null;
+              return { ...it, receivedQty: val };
+            });
+            await Stores.purchaseRequests.update(record.id, { items: updatedItems, status:"received" });
+            await Logger.log("updated", "purchaseRequests", `barang diterima · ${outlet?outlet.name:''}`);
+            Toast.show("Barang diterima dicatat.", "success");
+            Modal.close();
+            if (onDone) onDone();
+          });
+        }
+      }
+    });
+  });
+}
+
+class GoodsReceiptModule{
+  constructor(){ this.state = { statusFilter:"ordered" }; }
+
+  async render(container){
+    this.outlets = await Stores.outlets.list();
+    this.records = await Stores.purchaseRequests.list();
+    container.innerHTML = `
+      <div class="page-head"><div><h2>Goods Receipt</h2><div class="page-sub">Cek barang yang datang terhadap pesanan yang sudah dikirim ke supplier.</div></div></div>
+      <div class="toolbar" id="grStatusChips"></div>
+      <div id="grCardGrid"></div>
+    `;
+    renderIcons(container);
+    this.paintChips();
+    this.paint();
+  }
+
+  paintChips(){
+    const wrap = document.getElementById("grStatusChips");
+    const chips = [
+      { id:"ordered", label:"Menunggu diterima" },
+      { id:"received", label:"Sudah diterima" },
+      { id:"completed", label:"Selesai" },
+    ];
+    wrap.innerHTML = chips.map(c=>`<span class="filter-chip ${this.state.statusFilter===c.id?'active':''}" data-status="${c.id}">${c.label}</span>`).join("");
+    wrap.querySelectorAll(".filter-chip").forEach(el=> el.addEventListener("click", ()=>{ this.state.statusFilter = el.dataset.status; this.paintChips(); this.paint(); }));
+  }
+
+  paint(){
+    const wrap = document.getElementById("grCardGrid");
+    const filtered = this.records.filter(r=>r.status===this.state.statusFilter).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    if (!filtered.length){
+      wrap.className = "";
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="package-check"></svg><div class="es-title">Tidak ada request di status ini</div><div class="es-sub">${this.state.statusFilter==='ordered'?'Semua pesanan sudah dicek, atau belum ada yang berstatus Ordered.':''}</div></div>`;
+      renderIcons(wrap); return;
+    }
+    wrap.className = "pr-card-grid";
+    wrap.innerHTML = filtered.map(r=>{
+      const outlet = this.outlets.find(o=>o.id===r.outletId);
+      const itemCount = (r.items||[]).length;
+      const withDiff = (r.items||[]).filter(it=>it.receivedQty!==null && it.receivedQty!==undefined && Number(it.receivedQty)!==Number(it.quantity));
+      return `
+        <div class="pr-card" data-id="${r.id}">
+          <div class="pr-card-top">
+            <div><div class="pr-card-outlet">${outlet?(outlet.shortCode?outlet.shortCode+' · ':'')+outlet.name:'—'}</div><div class="pr-card-date">${Utils.formatDate(r.createdAt)}</div></div>
+            <span class="badge ${PR_STATUS_COLOR[r.status]}">${PR_STATUS_LABEL[r.status]}</span>
+          </div>
+          <div class="pr-card-items">${itemCount} item${this.state.statusFilter!=='ordered'&&withDiff.length?` · <span style="color:var(--accent); font-weight:600;">${withDiff.length} beda jumlah</span>`:''}</div>
+        </div>`;
+    }).join("");
+    wrap.querySelectorAll(".pr-card").forEach(card=>{
+      const rec = this.records.find(r=>r.id===card.dataset.id);
+      card.addEventListener("click", ()=> openGoodsReceiptForm(rec, async ()=>{ this.records = await Stores.purchaseRequests.list(); this.paint(); refreshDashboardIfActive(); }));
+    });
+  }
+}
+const goodsReceiptModule = new GoodsReceiptModule();
+
+
+const menusModule = new CrudModule({
+  key:"menus", title:"Menus", subtitle:"Daftar masakan yang dijual — dasar untuk Sales dan Recipe Learning.",
+  emptyIcon:"utensils-crossed", emptyTitle:"Belum ada menu", emptySub:"Tambahkan menu yang dijual, lalu atur bahan-bahannya di halaman Recipe Learning.",
+  outletFilterEnabled: true,
+  columns:[
+    { key:"name", label:"Menu", render:(i)=>`<span class="cell-primary">${Utils.escapeHtml(i.name)}</span>` },
+    { key:"price", label:"Harga jual", render:(i)=> i.price? Utils.formatIDR(i.price) : '<span class="muted">—</span>' },
+    { key:"outletIds", label:"Outlet", sortable:false, render:(i,ctx)=>{
+        if (!i.outletIds || !i.outletIds.length) return '<span class="muted">Semua outlet</span>';
+        return i.outletIds.map(id=>{ const o=ctx.outlets.find(x=>x.id===id); return o?`<span class="badge grey" style="margin-right:4px;">${Utils.escapeHtml(o.name)}</span>`:''; }).join("");
+      } },
+    { key:"ingredientItemIds", label:"Resep", sortable:false, render:(i)=> (i.ingredientItemIds&&i.ingredientItemIds.length) ? `<span class="badge green">${i.ingredientItemIds.length} bahan</span>` : `<span class="badge amber">Belum diatur</span>` },
+    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
+  ],
+  fields:[
+    { key:"name", label:"Nama menu", required:true, placeholder:"e.g. Soto Ayam" },
+    { key:"price", label:"Harga jual (IDR)", type:"number", half:true, halfPos:"l" },
+    { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" },
+    { key:"outletIds", label:"Dijual di outlet", type:"multiselect", options:(ctx)=>ctx.outlets.map(o=>({value:o.id,label:o.name})), hint:"Kosongkan jika dijual di semua outlet." },
+    { key:"notes", label:"Catatan", type:"textarea" }
+  ],
+  beforeDelete: async(item)=>{
+    const sales = await Stores.sales.list();
+    if (sales.some(s=>s.menuId===item.id)) return "Menu ini punya riwayat penjualan — tidak bisa dihapus. Nonaktifkan saja lewat status Inactive.";
+    return true;
+  }
+});
+
+/* =========================================================================
+   RECIPE LEARNING ENGINE
+   No one tells the system how many grams a portion uses. Instead it looks
+   at two things that already exist — daily ingredient supply (from
+   Completed purchase requests) and daily portions sold per menu (from
+   Sales) — and solves a small least-squares regression per ingredient to
+   split that supply across the menus that use it.
+
+   Honesty built into the design, not bolted on:
+   - Needs at least (menus sharing the ingredient + 2) days of overlapping
+     data, or it reports "not enough data" instead of guessing.
+   - A negative or non-finite coefficient means the data isn't varied
+     enough to separate the menus yet — reported as insufficient, not
+     silently clamped to look confident.
+   - Confidence = R² scaled down for thin sample sizes (full weight only
+     once there are 14+ usable days).
+   - Purchases are used as a stand-in for consumption, since there's no
+     Goods Receipt or Stock Opname yet — see the note surfaced in the UI.
+   ========================================================================= */
+function matTranspose(A){ return A[0].map((_,i)=>A.map(row=>row[i])); }
+function matMul(A,B){
+  const result=[];
+  for (let i=0;i<A.length;i++){
+    result.push([]);
+    for (let j=0;j<B[0].length;j++){
+      let sum=0;
+      for (let k=0;k<B.length;k++) sum += A[i][k]*B[k][j];
+      result[i].push(sum);
+    }
+  }
+  return result;
+}
+function solveLinearSystem(A,b){
+  const n = A.length;
+  const M = A.map((row,i)=>[...row, b[i]]);
+  for (let col=0; col<n; col++){
+    let maxRow = col;
+    for (let r=col+1;r<n;r++) if (Math.abs(M[r][col])>Math.abs(M[maxRow][col])) maxRow=r;
+    [M[col],M[maxRow]] = [M[maxRow],M[col]];
+    if (Math.abs(M[col][col]) < 1e-9) return null;
+    for (let r=0;r<n;r++){
+      if (r===col) continue;
+      const factor = M[r][col]/M[col][col];
+      for (let c=col;c<=n;c++) M[r][c] -= factor*M[col][c];
+    }
+  }
+  return M.map((row,i)=>row[n]/row[i]);
+}
+
+const RecipeLearningEngine = {
+  MIN_EXTRA_DAYS: 2,
+
+  async buildDailySupply(itemId, purchaseRequests){
+    const map = {};
+    purchaseRequests.filter(r=>r.status==="completed").forEach(r=>{
+      const date = new Date(r.updatedAt||r.createdAt).toISOString().slice(0,10);
+      (r.items||[]).forEach(it=>{
+        if (it.itemId!==itemId) return;
+        // prefer the actually-received quantity (from Goods Receipt) over the
+        // originally ordered quantity, when it's been recorded
+        const qty = (it.receivedQty!==null && it.receivedQty!==undefined) ? it.receivedQty : it.quantity;
+        map[date] = (map[date]||0) + (Number(qty)||0);
+      });
+    });
+    return map;
+  },
+
+  async buildDailySales(sales){
+    const map = {};
+    sales.forEach(s=>{
+      map[s.date] = map[s.date] || {};
+      map[s.date][s.menuId] = (map[s.date][s.menuId]||0) + (Number(s.quantitySold)||0);
+    });
+    return map;
+  },
+
+  estimateForItem(itemId, menus, dailySupply, dailySalesByDate){
+    const menusUsing = menus.filter(m => (m.ingredientItemIds||[]).includes(itemId) && m.status==="active");
+    if (!menusUsing.length) return { results:[], sampleDays:0, insufficientReason:"Tidak ada menu aktif yang memakai bahan ini." };
+
+    const dates = Object.keys(dailySupply).filter(d =>
+      menusUsing.some(m => dailySalesByDate[d] && dailySalesByDate[d][m.id] > 0)
+    );
+    const minDaysNeeded = menusUsing.length + this.MIN_EXTRA_DAYS;
+    if (dates.length < minDaysNeeded){
+      return {
+        results: menusUsing.map(m=>({ menuId:m.id, usagePerPortion:null, confidence:0 })),
+        sampleDays: dates.length,
+        insufficientReason: `Baru ${dates.length} hari data yang cocok, butuh minimal ${minDaysNeeded} hari.`
+      };
+    }
+
+    const X = dates.map(d => menusUsing.map(m => dailySalesByDate[d]?.[m.id] || 0));
+    const y = dates.map(d => dailySupply[d]);
+    const Xt = matTranspose(X);
+    const coeffs = solveLinearSystem(matMul(Xt, X), matMul(Xt, y.map(v=>[v])).map(r=>r[0]));
+
+    if (!coeffs || coeffs.some(c => c < 0 || !isFinite(c))){
+      return {
+        results: menusUsing.map(m=>({ menuId:m.id, usagePerPortion:null, confidence:0 })),
+        sampleDays: dates.length,
+        insufficientReason: "Data belum cukup bervariasi untuk memisahkan pemakaian antar menu."
+      };
+    }
+
+    const predicted = X.map(row => row.reduce((sum,x,j)=>sum+x*coeffs[j],0));
+    const yMean = y.reduce((a,b)=>a+b,0)/y.length;
+    const ssRes = y.reduce((sum,yi,i)=>sum+(yi-predicted[i])**2,0);
+    const ssTot = y.reduce((sum,yi)=>sum+(yi-yMean)**2,0);
+    const r2 = ssTot>0 ? Math.max(0, 1-ssRes/ssTot) : 0;
+    const confidence = r2 * Math.min(1, dates.length/14);
+
+    return {
+      results: menusUsing.map((m,i)=>({ menuId:m.id, usagePerPortion: coeffs[i], confidence })),
+      sampleDays: dates.length,
+      insufficientReason: null
+    };
+  },
+
+  async relearnAll(){
+    const [menus, existingLearning, purchaseRequests, sales] = await Promise.all([
+      Stores.menus.list(), Stores.recipeLearning.list(), Stores.purchaseRequests.list(), Stores.sales.list()
+    ]);
+    const dailySalesByDate = await this.buildDailySales(sales);
+    const ingredientIds = [...new Set(menus.flatMap(m=>m.ingredientItemIds||[]))];
+    let updated = 0, insufficient = 0;
+    for (const itemId of ingredientIds){
+      const dailySupply = await this.buildDailySupply(itemId, purchaseRequests);
+      const { results, sampleDays, insufficientReason } = this.estimateForItem(itemId, menus, dailySupply, dailySalesByDate);
+      for (const r of results){
+        const payload = {
+          itemId, menuId: r.menuId,
+          estimatedUsagePerPortion: r.usagePerPortion,
+          confidence: r.confidence,
+          sampleDays, insufficientReason
+        };
+        if (r.usagePerPortion===null) insufficient++; else updated++;
+        const existing = existingLearning.find(x=>x.itemId===itemId && x.menuId===r.menuId);
+        if (existing) await Stores.recipeLearning.update(existing.id, payload);
+        else await Stores.recipeLearning.create({ ...payload, manualOverride:null, approved:false });
+      }
+    }
+    return { updated, insufficient, ingredientCount: ingredientIds.length };
+  },
+
+  effectiveUsage(row){ return (row.manualOverride!==null && row.manualOverride!==undefined) ? row.manualOverride : row.estimatedUsagePerPortion; }
+};
+
+/* =========================================================================
+   RECIPES — assign ingredients per menu, review/adjust/approve estimates
+   ========================================================================= */
+class RecipesModule{
+  get canEdit(){ return RBAC.can(CURRENT_USER.role, "recipes", "edit"); }
+
+  async render(container){
+    this.menus = await Stores.menus.list();
+    this.items_all = await Stores.items.list();
+    this.categories = await Stores.categories.list();
+    this.learning = await Stores.recipeLearning.list();
+    container.innerHTML = `
+      <div class="page-head">
+        <div><h2>Recipe Learning</h2><div class="page-sub">Centang bahan yang dipakai tiap menu — sistem menghitung sendiri perkiraan pemakaian per porsi dari data pembelian & penjualan.</div></div>
+        <div class="page-actions">${this.canEdit?`<button class="btn btn-primary" id="relearnBtn"><svg data-lucide="refresh-cw"></svg> Pelajari ulang semua</button>`:""}</div>
+      </div>
+      <div id="recipesCardGrid" class="pr-card-grid"></div>
+    `;
+    renderIcons(container);
+    if (this.canEdit) document.getElementById("relearnBtn").addEventListener("click", ()=>this.relearn());
+    this.paint(container);
+  }
+
+  async relearn(){
+    const btn = document.getElementById("relearnBtn");
+    btn.disabled = true; btn.innerHTML = `<div class="spinner"></div> Menghitung…`;
+    try{
+      const { updated, insufficient, ingredientCount } = await RecipeLearningEngine.relearnAll();
+      this.learning = await Stores.recipeLearning.list();
+      this.paint(document.getElementById("mainContent"));
+      Toast.show(`${updated} estimasi diperbarui${insufficient?`, ${insufficient} masih butuh data lebih banyak`:''} (${ingredientCount} bahan diperiksa).`, "success");
+    }catch(e){ Toast.show(e.message||"Gagal menghitung estimasi.", "error"); }
+    finally{ btn.disabled=false; btn.innerHTML = `<svg data-lucide="refresh-cw"></svg> Pelajari ulang semua`; renderIcons(btn); }
+  }
+
+  paint(container){
+    const wrap = document.getElementById("recipesCardGrid");
+    if (!this.menus.length){
+      wrap.className = "";
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="utensils-crossed"></svg><div class="es-title">Belum ada menu</div><div class="es-sub">Tambahkan menu dulu di halaman Menus.</div></div>`;
+      renderIcons(wrap); return;
+    }
+    wrap.className = "pr-card-grid";
+    wrap.innerHTML = this.menus.map(m=>{
+      const ingCount = (m.ingredientItemIds||[]).length;
+      const rows = this.learning.filter(l=>l.menuId===m.id);
+      const withEstimate = rows.filter(r=>RecipeLearningEngine.effectiveUsage(r)!==null && RecipeLearningEngine.effectiveUsage(r)!==undefined);
+      return `
+        <div class="pr-card" data-id="${m.id}">
+          <div class="pr-card-top">
+            <div><div class="pr-card-outlet">${Utils.escapeHtml(m.name)}</div><div class="pr-card-date">${m.price?Utils.formatIDR(m.price):'Harga belum diisi'}</div></div>
+            <span class="badge ${ingCount?'green':'amber'}">${ingCount} bahan</span>
+          </div>
+          <div class="pr-card-items">${ingCount ? `${withEstimate.length}/${ingCount} bahan sudah punya estimasi` : 'Tap untuk atur resep'}</div>
+        </div>`;
+    }).join("");
+    wrap.querySelectorAll(".pr-card").forEach(card=>{
+      const menu = this.menus.find(m=>m.id===card.dataset.id);
+      card.addEventListener("click", ()=>this.openMenu(menu));
+    });
+  }
+
+  openMenu(menu){
+    let selectedIds = [...(menu.ingredientItemIds||[])];
+    const bodyHtml = `
+      <h3 style="font-size:13.5px; margin-bottom:10px;">Bahan resep</h3>
+      <div id="recipeIngredientPicker"></div>
+      <div id="recipeEstimateWrap" style="margin-top:22px;"></div>
+    `;
+    const footHtml = this.canEdit
+      ? `<button class="btn btn-ghost" id="recipeCloseBtn">Close</button><button class="btn btn-primary" id="recipeSaveBtn">Simpan resep</button>`
+      : `<button class="btn btn-ghost" id="recipeCloseBtn">Close</button>`;
+    Modal.open({
+      title: menu.name, bodyHtml, footHtml, wide:true,
+      onMount:()=>{
+        const renderPicker = ()=>{
+          const wrap = document.getElementById("recipeIngredientPicker");
+          const byCat = {};
+          this.items_all.filter(i=>i.status==="active").forEach(i=>{ const key=i.categoryId||"uncategorized"; (byCat[key]=byCat[key]||[]).push(i); });
+          const orderedKeys = this.categories.map(c=>c.id).filter(id=>byCat[id]);
+          wrap.innerHTML = orderedKeys.map(key=>{
+            const cat = this.categories.find(c=>c.id===key);
+            return `
+              <div class="pr-cat-group" data-catgroup="${key}">
+                <div class="pr-cat-head" data-toggle="${key}">
+                  <span class="color-dot" style="background:${cat.color}"></span><span>${Utils.escapeHtml(cat.name)}</span>
+                  <span class="muted" style="font-size:11px;">${byCat[key].filter(i=>selectedIds.includes(i.id)).length}/${byCat[key].length}</span>
+                  <svg class="pr-cat-chevron" data-lucide="chevron-down"></svg>
+                </div>
+                <div class="pr-cat-items hidden" data-items="${key}">
+                  ${byCat[key].map(i=>`<label class="checkbox-row" style="background:var(--bg-soft); border-radius:8px; padding:6px 10px; margin:0;"><input type="checkbox" data-ingredient="${i.id}" ${selectedIds.includes(i.id)?"checked":""} ${!this.canEdit?"disabled":""}><span style="font-size:12.5px;">${Utils.escapeHtml(i.name)}</span></label>`).join("")}
+                </div>
+              </div>`;
+          }).join("");
+          renderIcons(wrap);
+          wrap.querySelectorAll("[data-toggle]").forEach(head=>{
+            head.addEventListener("click", ()=>{
+              const group = head.closest(".pr-cat-group");
+              group.classList.toggle("open");
+              group.querySelector(".pr-cat-items").classList.toggle("hidden");
+            });
+          });
+          wrap.querySelectorAll("[data-ingredient]").forEach(cb=>{
+            cb.addEventListener("change", ()=>{
+              const id = cb.dataset.ingredient;
+              if (cb.checked){ if (!selectedIds.includes(id)) selectedIds.push(id); }
+              else { selectedIds = selectedIds.filter(x=>x!==id); }
+              renderEstimates();
+            });
+          });
+        };
+
+        const renderEstimates = ()=>{
+          const wrap = document.getElementById("recipeEstimateWrap");
+          if (!selectedIds.length){ wrap.innerHTML = `<p class="muted" style="font-size:12.5px;">Pilih bahan dulu di atas untuk melihat estimasinya di sini.</p>`; return; }
+          wrap.innerHTML = `
+            <h3 style="font-size:13.5px; margin-bottom:10px;">Estimasi pemakaian per porsi</h3>
+            <table class="data-table">
+              <thead><tr><th>Bahan</th><th>Estimasi / porsi</th><th>Keyakinan</th><th>Sesuaikan manual</th><th></th></tr></thead>
+              <tbody>
+                ${selectedIds.map(id=>{
+                  const item = this.items_all.find(i=>i.id===id);
+                  const row = this.learning.find(l=>l.itemId===id && l.menuId===menu.id);
+                  const eff = row ? RecipeLearningEngine.effectiveUsage(row) : null;
+                  const conf = row?.confidence || 0;
+                  const confBadge = !row || eff===null||eff===undefined ? `<span class="badge grey">Belum cukup data</span>`
+                    : conf>=0.6 ? `<span class="badge green">Tinggi</span>`
+                    : conf>=0.3 ? `<span class="badge amber">Sedang</span>`
+                    : `<span class="badge red">Rendah</span>`;
+                  const isManual = row && row.manualOverride!==null && row.manualOverride!==undefined;
+                  return `
+                    <tr data-item="${id}">
+                      <td class="cell-primary">${Utils.escapeHtml(item?.name||id)}${isManual?'<div class="cell-sub">Manual</div>':row?.sampleDays?`<div class="cell-sub">${row.sampleDays} hari data</div>`:''}</td>
+                      <td>${eff!==null&&eff!==undefined? `${Number(eff).toFixed(3)} ${Utils.escapeHtml(item?.usageUnit||'')}` : '—'}</td>
+                      <td>${confBadge}</td>
+                      <td>${this.canEdit?`<input type="number" step="any" class="input" style="width:100px;" placeholder="manual…" data-override="${id}" value="${isManual?row.manualOverride:''}">`:'—'}</td>
+                      <td>${this.canEdit?`<button class="btn-icon btn-sm" data-save-override="${id}" title="Simpan"><svg data-lucide="check" style="width:13px;height:13px;"></svg></button>${isManual?`<button class="btn-icon btn-sm" data-reset="${id}" title="Reset ke hasil sistem"><svg data-lucide="rotate-ccw" style="width:13px;height:13px;"></svg></button>`:''}`:''}</td>
+                    </tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+            ${!this.learning.some(l=>l.menuId===menu.id) ? `<p class="muted" style="font-size:11.5px; margin-top:8px;">Belum pernah dihitung — simpan resep ini lalu tap \u201CPelajari ulang semua\u201D di halaman Recipe Learning.</p>` : ''}
+          `;
+          renderIcons(wrap);
+          if (this.canEdit){
+            wrap.querySelectorAll("[data-save-override]").forEach(btn=>{
+              btn.addEventListener("click", async ()=>{
+                const itemId = btn.dataset.saveOverride;
+                const input = wrap.querySelector(`[data-override="${itemId}"]`);
+                const val = input.value===""? null : Number(input.value);
+                await this.saveOverride(menu.id, itemId, val);
+                this.learning = await Stores.recipeLearning.list();
+                renderEstimates();
+                Toast.show("Estimasi manual disimpan.", "success");
+              });
+            });
+            wrap.querySelectorAll("[data-reset]").forEach(btn=>{
+              btn.addEventListener("click", async ()=>{
+                const itemId = btn.dataset.reset;
+                await this.saveOverride(menu.id, itemId, null);
+                this.learning = await Stores.recipeLearning.list();
+                renderEstimates();
+                Toast.show("Dikembalikan ke hasil sistem.", "success");
+              });
+            });
+          }
+        };
+
+        renderPicker();
+        renderEstimates();
+        document.getElementById("recipeCloseBtn").addEventListener("click", Modal.close);
+        const saveBtn = document.getElementById("recipeSaveBtn");
+        if (saveBtn){
+          saveBtn.addEventListener("click", async ()=>{
+            saveBtn.disabled = true; saveBtn.innerHTML = `<div class="spinner"></div>`;
+            await Stores.menus.update(menu.id, { ingredientItemIds: selectedIds });
+            await Logger.log("updated", "recipes", `resep ${menu.name}`);
+            Toast.show("Resep disimpan.", "success");
+            Modal.close();
+            this.menus = await Stores.menus.list();
+            this.paint(document.getElementById("mainContent"));
+          });
+        }
+      }
+    });
+  }
+
+  async saveOverride(menuId, itemId, value){
+    const all = await Stores.recipeLearning.list();
+    const existing = all.find(l=>l.itemId===itemId && l.menuId===menuId);
+    if (existing) await Stores.recipeLearning.update(existing.id, { manualOverride: value });
+    else await Stores.recipeLearning.create({ itemId, menuId, estimatedUsagePerPortion:null, confidence:0, sampleDays:0, insufficientReason:"Belum pernah dihitung sistem.", manualOverride: value, approved:false });
+  }
+}
+const recipesModule = new RecipesModule();
+
+/* =========================================================================
+   SALES — daily totals per menu, entered at closing
+   ========================================================================= */
+/* =========================================================================
+   SMART XLS/CSV IMPORT FOR SALES
+   Reads whatever column layout the file has — no fixed template required.
+   It fuzzy-matches text-column values against known Menu names to find the
+   "menu" column, and finds the "qty" column from numeric content (with a
+   bonus if the header text looks like a quantity word). Ambiguous rows are
+   left for the person to map manually in the preview step rather than
+   guessed silently.
+   ========================================================================= */
+const SalesImport = {
+  QTY_KEYWORDS: ["qty","jumlah","terjual","porsi","quantity","jual","total","pcs","unit"],
+  NAME_KEYWORDS: ["menu","nama","item","produk","product","makanan"],
+
+  normalize(s){
+    return String(s||"").toLowerCase().trim().replace(/[-_/]+/g," ").replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim();
+  },
+  tokenSet(s){ return new Set(this.normalize(s).split(" ").filter(Boolean)); },
+  similarity(a,b){
+    const na=this.normalize(a), nb=this.normalize(b);
+    if (!na || !nb) return 0;
+    if (na===nb) return 1;
+    if (na.includes(nb) || nb.includes(na)) return 0.85;
+    const ta=this.tokenSet(a), tb=this.tokenSet(b);
+    const inter=[...ta].filter(x=>tb.has(x)).length;
+    const union=new Set([...ta,...tb]).size;
+    return union ? inter/union : 0;
+  },
+  bestMenuMatch(name, menuNames){
+    let best = { name:null, score:0 };
+    for (const m of menuNames){ const s=this.similarity(name,m); if (s>best.score) best={name:m,score:s}; }
+    return best;
+  },
+  looksNumeric(v){
+    if (v===null||v===undefined||v==="") return false;
+    const n = Number(String(v).replace(/[.,](?=\d{3}\b)/g,"").replace(",","."));
+    return !isNaN(n) && n>=0;
+  },
+  parseNum(v){
+    if (typeof v==="number") return v;
+    const cleaned = String(v).replace(/[^\d.,-]/g,"").replace(",",".");
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  },
+
+  detectColumns(rows, menuNames){
+    if (!rows.length) return null;
+    let headerRowIdx = 0;
+    for (let i=0;i<Math.min(rows.length,5);i++){
+      const row = rows[i]||[];
+      const nonEmpty = row.filter(c=>c!==null&&c!==undefined&&String(c).trim()!=="");
+      const numericCount = nonEmpty.filter(c=>this.looksNumeric(c)).length;
+      if (nonEmpty.length>=2 && numericCount<nonEmpty.length){ headerRowIdx=i; break; }
+    }
+    const header = (rows[headerRowIdx]||[]).map(h=>String(h||"").trim());
+    const dataRows = rows.slice(headerRowIdx+1).filter(r=>r.some(c=>c!==null&&c!==undefined&&String(c).trim()!==""));
+    const colCount = Math.max(...rows.map(r=>r.length));
+
+    let bestNameCol=-1, bestNameScore=-1, bestQtyCol=-1, bestQtyScore=-1;
+    for (let c=0;c<colCount;c++){
+      const headerText = header[c]||"";
+      const values = dataRows.map(r=>r[c]).filter(v=>v!==null&&v!==undefined&&String(v).trim()!=="");
+      if (!values.length) continue;
+      const numericRatio = values.filter(v=>this.looksNumeric(v)).length/values.length;
+      const headerHasQtyWord = this.QTY_KEYWORDS.some(k=>this.normalize(headerText).includes(k));
+      const headerHasNameWord = this.NAME_KEYWORDS.some(k=>this.normalize(headerText).includes(k));
+      let qtyScore = numericRatio + (headerHasQtyWord?0.5:0);
+      if (qtyScore>bestQtyScore){ bestQtyScore=qtyScore; bestQtyCol=c; }
+      if (numericRatio<0.5 && menuNames.length){
+        const matchRate = values.reduce((sum,v)=>sum+this.bestMenuMatch(String(v),menuNames).score,0)/values.length;
+        const nameScore = matchRate + (headerHasNameWord?0.3:0);
+        if (nameScore>bestNameScore){ bestNameScore=nameScore; bestNameCol=c; }
+      }
+    }
+    if (bestNameCol===bestQtyCol){
+      bestQtyCol=-1; bestQtyScore=-1;
+      for (let c=0;c<colCount;c++){
+        if (c===bestNameCol) continue;
+        const values = dataRows.map(r=>r[c]).filter(v=>v!==null&&v!==undefined&&String(v).trim()!=="");
+        if (!values.length) continue;
+        const numericRatio = values.filter(v=>this.looksNumeric(v)).length/values.length;
+        const headerHasQtyWord = this.QTY_KEYWORDS.some(k=>this.normalize(header[c]||"").includes(k));
+        const score = numericRatio + (headerHasQtyWord?0.5:0);
+        if (score>bestQtyScore){ bestQtyScore=score; bestQtyCol=c; }
+      }
+    }
+    return { headerRowIdx, nameCol:bestNameCol, qtyCol:bestQtyCol, dataRows, header };
+  },
+
+  parseSheet(rows, menuNames){
+    const detection = this.detectColumns(rows, menuNames);
+    if (!detection || detection.nameCol===-1 || detection.qtyCol===-1){
+      return { ok:false, reason:"Tidak bisa menemukan kolom nama menu / jumlah terjual di file ini." };
+    }
+    const { nameCol, qtyCol, dataRows } = detection;
+    const results = dataRows.map(r=>{
+      const rawName = r[nameCol];
+      const rawQty = r[qtyCol];
+      if (rawName===null||rawName===undefined||String(rawName).trim()==="") return null;
+      const match = this.bestMenuMatch(String(rawName), menuNames);
+      return {
+        rawName: String(rawName).trim(),
+        matchedMenuName: match.score>=0.5 ? match.name : null,
+        matchScore: match.score,
+        quantity: this.parseNum(rawQty)
+      };
+    }).filter(Boolean);
+    return { ok:true, detection, results };
+  },
+
+  async readFile(file){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type:"array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    return XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
+  }
+};
+
+class SalesModule{
+  get canEdit(){ return RBAC.can(CURRENT_USER.role, "sales", "edit") || RBAC.can(CURRENT_USER.role, "sales", "create"); }
+
+  async render(container){
+    this.outlets = await Stores.outlets.list();
+    this.menus = await Stores.menus.list();
+    this.allSales = await Stores.sales.list();
+    this.state = { date: new Date().toISOString().slice(0,10), outletId: this.outlets.find(o=>o.status==="active")?.id || "" };
+    container.innerHTML = `
+      <div class="page-head">
+        <div><h2>Sales</h2><div class="page-sub">Input total porsi terjual per menu — biasanya diisi sekali saat closing.</div></div>
+        <div class="page-actions">${this.canEdit?`<button class="btn btn-ghost" id="salesImportBtn"><svg data-lucide="file-spreadsheet"></svg> Import dari Excel</button><input type="file" id="salesImportFile" class="hidden" accept=".xlsx,.xls,.csv">`:''}</div>
+      </div>
+      <div class="field" style="max-width:420px; display:flex; gap:10px;">
+        <div style="flex:1;"><label class="field-label">Tanggal</label><input type="date" class="input" id="salesDateInput" value="${this.state.date}"></div>
+      </div>
+      <div class="toolbar" id="salesOutletChips"></div>
+      <div id="salesEntryWrap"></div>
+      <h3 style="font-size:14px; margin:26px 0 10px;">Riwayat terbaru</h3>
+      <div class="table-wrap" id="salesHistoryWrap"></div>
+    `;
+    renderIcons(container);
+    document.getElementById("salesDateInput").addEventListener("change", (e)=>{ this.state.date = e.target.value; this.paintEntry(); });
+    const importBtn = document.getElementById("salesImportBtn");
+    if (importBtn){
+      const fileInput = document.getElementById("salesImportFile");
+      importBtn.addEventListener("click", ()=>{
+        if (typeof XLSX === "undefined"){ Toast.show("Pembaca Excel belum siap dimuat — coba lagi sebentar (perlu koneksi internet).", "error"); return; }
+        fileInput.value = "";
+        fileInput.click();
+      });
+      fileInput.addEventListener("change", (e)=>{ const file = e.target.files[0]; if (file) this.handleImportFile(file); });
+    }
+    this.paintOutletChips();
+    this.paintEntry();
+    this.paintHistory();
+  }
+
+  paintOutletChips(){
+    const wrap = document.getElementById("salesOutletChips");
+    const active = this.outlets.filter(o=>o.status==="active");
+    wrap.innerHTML = active.map(o=>`<span class="filter-chip ${this.state.outletId===o.id?'active':''}" data-outlet="${o.id}">${Utils.escapeHtml(o.name)}</span>`).join("");
+    wrap.querySelectorAll(".filter-chip").forEach(el=> el.addEventListener("click", ()=>{ this.state.outletId = el.dataset.outlet; this.paintOutletChips(); this.paintEntry(); }));
+  }
+
+  paintEntry(){
+    const wrap = document.getElementById("salesEntryWrap");
+    const relevantMenus = this.menus.filter(m=>m.status==="active" && (!m.outletIds||!m.outletIds.length||m.outletIds.includes(this.state.outletId)));
+    if (!relevantMenus.length){
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="utensils-crossed"></svg><div class="es-title">Belum ada menu untuk outlet ini</div><div class="es-sub">Tambahkan menu dulu di halaman Menus.</div></div>`;
+      renderIcons(wrap); return;
+    }
+    const existingForDay = this.allSales.filter(s=>s.date===this.state.date && s.outletId===this.state.outletId);
+    wrap.innerHTML = `
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Menu</th><th style="width:160px;">Porsi terjual</th></tr></thead>
+          <tbody>
+            ${relevantMenus.map(m=>{
+              const existing = existingForDay.find(s=>s.menuId===m.id);
+              return `<tr><td class="cell-primary">${Utils.escapeHtml(m.name)}</td><td><input type="number" min="0" class="input" data-menu="${m.id}" value="${existing?existing.quantitySold:''}" placeholder="0" ${this.canEdit?'':'disabled'}></td></tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+      ${this.canEdit?`<button class="btn btn-primary" id="salesSaveBtn" style="margin-top:14px;"><svg data-lucide="save" style="width:15px;height:15px;"></svg> Simpan penjualan hari ini</button>`:''}
+    `;
+    renderIcons(wrap);
+    const saveBtn = document.getElementById("salesSaveBtn");
+    if (saveBtn) saveBtn.addEventListener("click", ()=>this.saveDay());
+  }
+
+  async saveDay(){
+    const btn = document.getElementById("salesSaveBtn");
+    btn.disabled = true; btn.innerHTML = `<div class="spinner"></div>`;
+    try{
+      const inputs = document.querySelectorAll("#salesEntryWrap input[data-menu]");
+      for (const input of inputs){
+        const menuId = input.dataset.menu;
+        const qty = input.value===""? 0 : Number(input.value);
+        const existing = this.allSales.find(s=>s.date===this.state.date && s.outletId===this.state.outletId && s.menuId===menuId);
+        if (qty <= 0){
+          if (existing) await Stores.sales.remove(existing.id);
+          continue;
+        }
+        if (existing) await Stores.sales.update(existing.id, { quantitySold: qty });
+        else await Stores.sales.create({ date:this.state.date, outletId:this.state.outletId, menuId, quantitySold: qty });
+      }
+      await Logger.log("updated", "sales", `${this.state.date} · ${this.outlets.find(o=>o.id===this.state.outletId)?.name||''}`);
+      Toast.show("Penjualan disimpan.", "success");
+      this.allSales = await Stores.sales.list();
+      this.paintEntry();
+      this.paintHistory();
+    }catch(e){ Toast.show(e.message||"Gagal menyimpan.", "error"); }
+    finally{ const b=document.getElementById("salesSaveBtn"); if (b){ b.disabled=false; b.innerHTML = `<svg data-lucide="save" style="width:15px;height:15px;"></svg> Simpan penjualan hari ini`; renderIcons(b); } }
+  }
+
+  async handleImportFile(file){
+    let rows;
+    try{ rows = await SalesImport.readFile(file); }
+    catch(e){ Toast.show("Tidak bisa membaca file ini — pastikan formatnya .xlsx, .xls, atau .csv.", "error"); return; }
+
+    const activeMenus = this.menus.filter(m=>m.status==="active" && (!m.outletIds||!m.outletIds.length||m.outletIds.includes(this.state.outletId)));
+    const menuNames = activeMenus.map(m=>m.name);
+    const parsed = SalesImport.parseSheet(rows, menuNames);
+    if (!parsed.ok){ Toast.show(parsed.reason, "error"); return; }
+    if (!parsed.results.length){ Toast.show("File terbaca tapi tidak ada baris data yang bisa dipakai.", "error"); return; }
+
+    this.openImportPreview(parsed.results, activeMenus);
+  }
+
+  openImportPreview(rows, activeMenus){
+    const outlet = this.outlets.find(o=>o.id===this.state.outletId);
+    const workingRows = rows.map(r=>({ ...r, chosenMenuId: r.matchedMenuName ? activeMenus.find(m=>m.name===r.matchedMenuName)?.id : null }));
+    const bodyHtml = `
+      <p class="muted" style="font-size:12.5px; margin-bottom:14px;">
+        Untuk <b>${outlet?Utils.escapeHtml(outlet.name):''}</b>, tanggal <b>${Utils.formatDate(new Date(this.state.date).getTime())}</b>.
+        Baris yang belum cocok otomatis, pilih menunya secara manual — atau biarkan kosong untuk dilewati.
+      </p>
+      <table class="data-table">
+        <thead><tr><th>Nama di file</th><th>Menu</th><th style="width:90px;">Qty</th></tr></thead>
+        <tbody id="importPreviewBody">
+          ${workingRows.map((r,idx)=>`
+            <tr data-idx="${idx}">
+              <td class="cell-primary">${Utils.escapeHtml(r.rawName)}${r.matchedMenuName?'':'<div class="cell-sub">Tidak dikenali otomatis</div>'}</td>
+              <td>
+                <select class="select" data-menu-choice="${idx}">
+                  <option value="">— Lewati baris ini —</option>
+                  ${activeMenus.map(m=>`<option value="${m.id}" ${r.chosenMenuId===m.id?"selected":""}>${Utils.escapeHtml(m.name)}</option>`).join("")}
+                </select>
+              </td>
+              <td><input type="number" min="0" class="input" data-qty-choice="${idx}" value="${r.quantity}"></td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+    const footHtml = `<button class="btn btn-ghost" id="importCancelBtn">Batal</button><button class="btn btn-primary" id="importConfirmBtn"><svg data-lucide="check" style="width:15px;height:15px;"></svg> Import</button>`;
+    Modal.open({
+      title: "Pratinjau Import Penjualan", bodyHtml, footHtml, wide:true,
+      onMount:(root)=>{
+        document.getElementById("importCancelBtn").addEventListener("click", Modal.close);
+        root.querySelectorAll("[data-menu-choice]").forEach(sel=>{
+          sel.addEventListener("change", ()=>{ workingRows[sel.dataset.menuChoice].chosenMenuId = sel.value || null; });
+        });
+        root.querySelectorAll("[data-qty-choice]").forEach(inp=>{
+          inp.addEventListener("input", ()=>{ workingRows[inp.dataset.qtyChoice].quantity = inp.value===""?0:Number(inp.value); });
+        });
+        document.getElementById("importConfirmBtn").addEventListener("click", async ()=>{
+          const btn = document.getElementById("importConfirmBtn");
+          btn.disabled = true; btn.innerHTML = `<div class="spinner"></div>`;
+          let imported = 0;
+          for (const r of workingRows){
+            if (!r.chosenMenuId || !r.quantity) continue;
+            const existing = this.allSales.find(s=>s.date===this.state.date && s.outletId===this.state.outletId && s.menuId===r.chosenMenuId);
+            if (existing) await Stores.sales.update(existing.id, { quantitySold: r.quantity });
+            else await Stores.sales.create({ date:this.state.date, outletId:this.state.outletId, menuId:r.chosenMenuId, quantitySold:r.quantity });
+            imported++;
+          }
+          await Logger.log("created", "sales", `import Excel · ${imported} menu`);
+          Toast.show(`${imported} baris penjualan berhasil diimpor.`, "success");
+          Modal.close();
+          this.allSales = await Stores.sales.list();
+          this.paintEntry();
+          this.paintHistory();
+        });
+      }
+    });
+  }
+
+  paintHistory(){
+    const wrap = document.getElementById("salesHistoryWrap");
+    const byDayOutlet = {};
+    this.allSales.forEach(s=>{
+      const key = s.date+"__"+s.outletId;
+      byDayOutlet[key] = byDayOutlet[key] || { date:s.date, outletId:s.outletId, total:0 };
+      byDayOutlet[key].total += Number(s.quantitySold)||0;
+    });
+    const rows = Object.values(byDayOutlet).sort((a,b)=> b.date.localeCompare(a.date)).slice(0,20);
+    if (!rows.length){
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="receipt"></svg><div class="es-title">Belum ada riwayat penjualan</div></div>`;
+      renderIcons(wrap); return;
+    }
+    wrap.innerHTML = `
+      <table class="data-table">
+        <thead><tr><th>Tanggal</th><th>Outlet</th><th>Total porsi</th></tr></thead>
+        <tbody>${rows.map(r=>{
+          const outlet = this.outlets.find(o=>o.id===r.outletId);
+          return `<tr data-date="${r.date}" data-outlet="${r.outletId}" style="cursor:pointer;"><td>${Utils.formatDate(new Date(r.date).getTime())}</td><td>${outlet?Utils.escapeHtml(outlet.name):'—'}</td><td class="cell-primary">${r.total}</td></tr>`;
+        }).join("")}</tbody>
+      </table>`;
+    wrap.querySelectorAll("tr[data-date]").forEach(tr=>{
+      tr.addEventListener("click", ()=>{
+        this.state.date = tr.dataset.date; this.state.outletId = tr.dataset.outlet;
+        document.getElementById("salesDateInput").value = this.state.date;
+        this.paintOutletChips(); this.paintEntry();
+        window.scrollTo({top:0, behavior:"smooth"});
+      });
+    });
+  }
+}
+const salesModule = new SalesModule();
+
+/* =========================================================================
+   MENU ANALYSIS — top sellers, estimated cost per portion, rough waste
+   ========================================================================= */
+async function renderAnalytics(container){
+  const [menus, items, sales, learning, purchaseRequests] = await Promise.all([
+    Stores.menus.list(), Stores.items.list(), Stores.sales.list(), Stores.recipeLearning.list(), Stores.purchaseRequests.list()
+  ]);
+
+  const portionsByMenu = {};
+  sales.forEach(s=>{ portionsByMenu[s.menuId] = (portionsByMenu[s.menuId]||0) + (Number(s.quantitySold)||0); });
+  const topMenus = menus
+    .map(m=>({ menu:m, portions: portionsByMenu[m.id]||0 }))
+    .filter(x=>x.portions>0)
+    .sort((a,b)=>b.portions-a.portions);
+  const maxPortions = topMenus[0]?.portions || 1;
+
+  function costForMenu(menu){
+    const rows = learning.filter(l=>l.menuId===menu.id);
+    let cost = 0, knownCount = 0, totalCount = (menu.ingredientItemIds||[]).length;
+    rows.forEach(r=>{
+      const usage = RecipeLearningEngine.effectiveUsage(r);
+      const item = items.find(i=>i.id===r.itemId);
+      if (usage!==null && usage!==undefined && item?.latestPrice){ cost += usage*item.latestPrice; knownCount++; }
+    });
+    return { cost, knownCount, totalCount };
+  }
+
+  container.innerHTML = `
+    <div class="page-head"><div><h2>Menu Analysis</h2><div class="page-sub">Menu terlaris, estimasi biaya per porsi, dan perkiraan waste — dihitung dari data Sales &amp; Purchase Request.</div></div></div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-head"><h3>Menu terlaris</h3></div>
+      <div class="panel-body pad">
+        ${topMenus.length ? topMenus.slice(0,12).map(x=>`
+          <div style="margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; font-size:12.8px; margin-bottom:4px;"><span style="font-weight:600;">${Utils.escapeHtml(x.menu.name)}</span><span class="muted">${x.portions} porsi</span></div>
+            <div style="background:var(--bg-soft); border-radius:99px; height:8px; overflow:hidden;"><div style="width:${Math.round(x.portions/maxPortions*100)}%; height:100%; background:var(--primary); border-radius:99px;"></div></div>
+          </div>
+        `).join("") : `<div class="empty-state"><svg data-lucide="receipt"></svg><div class="es-title">Belum ada data penjualan</div><div class="es-sub">Isi Sales dulu supaya analisis ini bisa jalan.</div></div>`}
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-head"><h3>Estimasi biaya &amp; margin per porsi</h3></div>
+      <div class="panel-body">
+        ${menus.filter(m=>(m.ingredientItemIds||[]).length).length ? `
+        <table class="data-table">
+          <thead><tr><th>Menu</th><th>Estimasi biaya bahan</th><th>Harga jual</th><th>Estimasi margin</th></tr></thead>
+          <tbody>
+            ${menus.filter(m=>(m.ingredientItemIds||[]).length).map(m=>{
+              const { cost, knownCount, totalCount } = costForMenu(m);
+              const complete = knownCount===totalCount && totalCount>0;
+              const margin = m.price && complete ? Math.round((1-(cost/m.price))*100) : null;
+              return `<tr>
+                <td class="cell-primary">${Utils.escapeHtml(m.name)}</td>
+                <td>${complete?Utils.formatIDR(cost):`<span class="badge amber">${knownCount}/${totalCount} bahan punya estimasi</span>`}</td>
+                <td>${m.price?Utils.formatIDR(m.price):'<span class="muted">—</span>'}</td>
+                <td>${margin!==null ? `<span class="badge ${margin>=50?'green':margin>=25?'amber':'red'}">${margin}%</span>` : '<span class="muted">—</span>'}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>` : `<div class="empty-state"><svg data-lucide="brain-circuit"></svg><div class="es-title">Belum ada resep</div><div class="es-sub">Atur bahan tiap menu di halaman Recipe Learning dulu.</div></div>`}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Estimasi waste per bahan</h3></div>
+      <div class="panel-body pad">
+        <p class="muted" style="font-size:12px; margin-bottom:14px;">Perkiraan kasar: bahan yang masuk (Purchase Request Completed) dikurangi perkiraan bahan yang benar-benar terpakai (dari Recipe Learning × Sales). Tanpa Stock Opname rutin, angka ini belum memperhitungkan sisa stok — anggap sebagai sinyal awal, bukan angka final.</p>
+        ${renderWasteTable(learning, items, purchaseRequests, sales)}
+      </div>
+    </div>
+  `;
+  renderIcons(container);
+}
+
+function renderWasteTable(learning, items, purchaseRequests, sales){
+  const salesByMenu = {};
+  sales.forEach(s=>{ (salesByMenu[s.menuId] = salesByMenu[s.menuId]||[]).push(s); });
+
+  const itemIds = [...new Set(learning.map(l=>l.itemId))];
+  const rows = itemIds.map(itemId=>{
+    const item = items.find(i=>i.id===itemId);
+    const supplied = purchaseRequests.filter(r=>r.status==="completed")
+      .flatMap(r=>r.items||[]).filter(it=>it.itemId===itemId)
+      .reduce((sum,it)=>{ const qty = (it.receivedQty!==null && it.receivedQty!==undefined) ? it.receivedQty : it.quantity; return sum+(Number(qty)||0); }, 0);
+    const relevantRows = learning.filter(l=>l.itemId===itemId);
+    let consumed = 0, allKnown = relevantRows.length>0;
+    relevantRows.forEach(l=>{
+      const usage = RecipeLearningEngine.effectiveUsage(l);
+      if (usage===null || usage===undefined){ allKnown=false; return; }
+      const portions = (salesByMenu[l.menuId]||[]).reduce((s,x)=>s+(Number(x.quantitySold)||0),0);
+      consumed += usage*portions;
+    });
+    return { item, supplied, consumed, allKnown };
+  }).filter(r=>r.supplied>0);
+
+  if (!rows.length) return `<div class="empty-state"><svg data-lucide="inbox"></svg><div class="es-title">Belum ada data yang cukup</div></div>`;
+
+  return `
+    <table class="data-table">
+      <thead><tr><th>Bahan</th><th>Masuk (Completed PR)</th><th>Estimasi terpakai</th><th>Estimasi sisa/waste</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>{
+          const diff = r.supplied - r.consumed;
+          const unit = r.item?.purchaseUnit||'';
+          return `<tr>
+            <td class="cell-primary">${Utils.escapeHtml(r.item?.name||r.item)}</td>
+            <td>${r.supplied.toFixed(2)} ${unit}</td>
+            <td>${r.allKnown? r.consumed.toFixed(2)+' '+unit : '<span class="badge amber">Sebagian belum ada estimasi</span>'}</td>
+            <td>${r.allKnown? `<span class="badge ${diff>r.supplied*0.2?'red':diff>0?'amber':'green'}">${diff.toFixed(2)} ${unit}</span>` : '<span class="muted">—</span>'}</td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+}
+
 /* ---------------------------------------------------------------------
    14. DASHBOARD
    --------------------------------------------------------------------- */
@@ -2248,25 +3239,50 @@ function refreshDashboardIfActive(){ if (dashboardActive && (location.hash.slice
 
 async function renderDashboard(container){
   dashboardActive = true;
-  const [items, categories, suppliers, outlets, users, logs, requests] = await Promise.all([
-    Stores.items.list(), Stores.categories.list(), Stores.suppliers.list(), Stores.outlets.list(), Stores.users.list(), Stores.logs.list(), Stores.purchaseRequests.list()
+  const [items, categories, suppliers, outlets, users, logs, requests, sales, menus] = await Promise.all([
+    Stores.items.list(), Stores.categories.list(), Stores.suppliers.list(), Stores.outlets.list(), Stores.users.list(), Stores.logs.list(), Stores.purchaseRequests.list(), Stores.sales.list(), Stores.menus.list()
   ]);
   const activeItems = items.filter(i=>i.status==="active");
   const missingPrice = items.filter(i=>!i.latestPrice);
   const missingSupplier = items.filter(i=>!i.supplierId);
   const missingUnit = items.filter(i=>!i.purchaseUnit || !i.usageUnit);
-  const draftRequests = requests.filter(r=>r.status==="draft");
   const approvedRequests = requests.filter(r=>r.status==="approved");
   const recentLogs = [...logs].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,8);
+  const today = new Date().toISOString().slice(0,10);
+  const todaysSales = sales.filter(s=>s.date===today).reduce((sum,s)=>sum+(Number(s.quantitySold)||0),0);
+
+  const pipelineIcons = { draft:"pencil", approved:"check-circle", ordered:"truck", received:"package-check", completed:"check-circle" };
+  const pipelineLabels = { draft:"Draft", approved:"Approved", ordered:"Ordered", received:"Received", completed:"Completed" };
+  const counts = {};
+  ["draft","approved","ordered","received","completed"].forEach(s=>{ counts[s] = requests.filter(r=>r.status===s).length; });
 
   container.innerHTML = `
-    <div class="page-head"><div><h2>Welcome back, ${Utils.escapeHtml(CURRENT_USER.name.split(" ")[0])} 👋</h2><div class="page-sub">Here's what's happening across your outlets today.</div></div></div>
+    <div class="page-head"><div><h2>Welcome back, ${Utils.escapeHtml(CURRENT_USER.name.split(" ")[0])} 👋</h2><div class="page-sub">Begini posisi operasional hari ini.</div></div></div>
     <div class="grid-stats">
       <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="package"></svg></div></div><div class="stat-val">${activeItems.length}</div><div class="stat-label">Active items</div></div>
       <div class="stat-card"><div class="stat-top"><div class="stat-ic info"><svg data-lucide="truck"></svg></div></div><div class="stat-val">${suppliers.length}</div><div class="stat-label">Suppliers</div></div>
       <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="store"></svg></div></div><div class="stat-val">${outlets.filter(o=>o.status==='active').length}</div><div class="stat-label">Active outlets</div></div>
-      <div class="stat-card"><div class="stat-top"><div class="stat-ic ${draftRequests.length?'amber':''}"><svg data-lucide="clipboard-list"></svg></div></div><div class="stat-val">${draftRequests.length}</div><div class="stat-label">Draft requests</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic ${todaysSales?'':'amber'}"><svg data-lucide="receipt"></svg></div></div><div class="stat-val">${todaysSales}</div><div class="stat-label">Porsi terjual hari ini</div></div>
     </div>
+
+    ${RBAC.can(CURRENT_USER.role,"purchaseRequests","view") ? `
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-head"><h3>Alur Purchase Request</h3><span class="muted" style="font-size:11.3px;">Tap tahap untuk lihat requestnya</span></div>
+      <div class="panel-body pad">
+        <div class="workflow-pipeline">
+          ${["draft","approved","ordered","received","completed"].map((s,i,arr)=>`
+            <div class="wf-step" data-status="${s}">
+              <div class="wf-ic"><svg data-lucide="${pipelineIcons[s]}"></svg></div>
+              <div class="wf-count">${counts[s]}</div>
+              <div class="wf-label">${pipelineLabels[s]}</div>
+            </div>
+            ${i<arr.length-1?`<div class="wf-arrow"><svg data-lucide="chevron-right"></svg></div>`:''}
+          `).join("")}
+        </div>
+        ${approvedRequests.length ? `<div class="quicklink" id="dashBroadcastLink" style="margin-top:14px; margin-bottom:0;"><svg data-lucide="message-circle"></svg><span>${approvedRequests.length} request Approved siap dikirim ke WhatsApp per kategori</span></div>` : ''}
+      </div>
+    </div>` : ''}
+
     <div class="dash-grid">
       <div class="panel">
         <div class="panel-head"><h3>Recent activity</h3></div>
@@ -2284,9 +3300,9 @@ async function renderDashboard(container){
           <div class="panel-head"><h3>Quick actions</h3></div>
           <div class="panel-body pad">
             ${RBAC.can(CURRENT_USER.role,"purchaseRequests","create")?`<div class="quicklink" data-nav="purchase-requests"><svg data-lucide="clipboard-list"></svg><span>New purchase request</span></div>`:""}
-            ${approvedRequests.length && RBAC.can(CURRENT_USER.role,"purchaseRequests","view")?`<div class="quicklink" data-nav="purchase-requests"><svg data-lucide="message-circle"></svg><span>${approvedRequests.length} request siap di-broadcast</span></div>`:""}
-            ${RBAC.can(CURRENT_USER.role,"items","create")?`<div class="quicklink" data-nav="items"><svg data-lucide="plus-circle"></svg><span>Add a new item</span></div>`:""}
-            ${RBAC.can(CURRENT_USER.role,"suppliers","create")?`<div class="quicklink" data-nav="suppliers"><svg data-lucide="truck"></svg><span>Add a supplier</span></div>`:""}
+            ${RBAC.can(CURRENT_USER.role,"purchaseRequests","view")?`<div class="quicklink" data-nav="goods-receipt"><svg data-lucide="package-check"></svg><span>Cek barang datang</span></div>`:""}
+            ${RBAC.can(CURRENT_USER.role,"sales","create")?`<div class="quicklink" data-nav="sales"><svg data-lucide="receipt"></svg><span>Input penjualan hari ini</span></div>`:""}
+            ${RBAC.can(CURRENT_USER.role,"analytics","view")?`<div class="quicklink" data-nav="analytics"><svg data-lucide="bar-chart-3"></svg><span>Lihat Menu Analysis</span></div>`:""}
           </div>
         </div>
         <div class="panel">
@@ -2304,6 +3320,17 @@ async function renderDashboard(container){
   `;
   renderIcons(container);
   container.querySelectorAll("[data-nav]").forEach(el=> el.addEventListener("click", ()=>Router.navigate(el.dataset.nav)));
+  container.querySelectorAll(".wf-step").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      purchaseRequestsModule.pendingStatusFilter = el.dataset.status;
+      Router.navigate("purchase-requests");
+    });
+  });
+  const broadcastLink = document.getElementById("dashBroadcastLink");
+  if (broadcastLink) broadcastLink.addEventListener("click", ()=>{
+    purchaseRequestsModule.pendingStatusFilter = "approved";
+    Router.navigate("purchase-requests");
+  });
 }
 
 /* ---------------------------------------------------------------------
@@ -2598,6 +3625,11 @@ function registerRoutes(){
   Router.register("conversions", (c)=>{ dashboardActive=false; conversionsModule.render(c); });
   Router.register("users", (c)=>{ dashboardActive=false; usersModule.render(c); });
   Router.register("purchase-requests", (c)=>{ dashboardActive=false; purchaseRequestsModule.render(c); });
+  Router.register("goods-receipt", (c)=>{ dashboardActive=false; goodsReceiptModule.render(c); });
+  Router.register("menus", (c)=>{ dashboardActive=false; menusModule.render(c); });
+  Router.register("recipes", (c)=>{ dashboardActive=false; recipesModule.render(c); });
+  Router.register("sales", (c)=>{ dashboardActive=false; salesModule.render(c); });
+  Router.register("analytics", (c)=>{ dashboardActive=false; renderAnalytics(c); });
   Router.register("settings", (c)=>renderSettings(c, "profile"));
 }
 

@@ -366,6 +366,10 @@ table.data-table{width:100%; border-collapse:collapse; font-size:13px;}
 .qty-input::-webkit-outer-spin-button,.qty-input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
 .pr-unit-input{width:76px; flex-shrink:0;}
 .pr-notes-input{flex:1; min-width:120px;}
+.pr-broadcast-cat-card{border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:10px;}
+.pr-broadcast-cat-head{display:flex; align-items:center; gap:8px; margin-bottom:9px; flex-wrap:wrap;}
+.pr-broadcast-cat-name{font-weight:700; font-size:13px;}
+.pr-broadcast-cat-count{font-size:11px; color:var(--text-faint); margin-right:auto;}
 
 /* ---------- Purchase Request: status stepper ---------- */
 .status-stepper{display:flex; align-items:flex-start; margin:2px 0 18px;}
@@ -1037,7 +1041,8 @@ function seedDefaults(){
     LocalStore.seedIfEmpty("users", [
       { id:"local_owner", name:"Koum", email:"owner@dolansawah.id", role:"owner", outletIds:[], status:"active", localPassword:"owner123", createdAt:Date.now(), updatedAt:Date.now() },
       { id:"local_manager", name:"Manager Demo", email:"manager@dolansawah.id", role:"manager", outletIds:[], status:"active", localPassword:"manager123", createdAt:Date.now(), updatedAt:Date.now() },
-      { id:"local_kitchen", name:"Kitchen Demo", email:"kitchen@dolansawah.id", role:"kitchen", outletIds:["outlet_dolan_sawah"], status:"active", localPassword:"kitchen123", createdAt:Date.now(), updatedAt:Date.now() }
+      { id:"local_kitchen", name:"Kitchen Demo", email:"kitchen@dolansawah.id", role:"kitchen", outletIds:["outlet_dolan_sawah"], status:"active", localPassword:"kitchen123", createdAt:Date.now(), updatedAt:Date.now() },
+      { id:"local_purchasing", name:"Purchasing Demo", email:"purchasing@dolansawah.id", role:"purchasing", outletIds:[], status:"active", localPassword:"purchasing123", createdAt:Date.now(), updatedAt:Date.now() }
     ]);
   }
   if (!LocalStore.getDoc("settings")){
@@ -1060,7 +1065,7 @@ const ROLES = {
   owner:  { label:"Owner",  color:"green", permissions: fullAccess(MODULES) },
   manager:{ label:"Manager",color:"blue",  permissions: { ...fullAccess(["items","categories","suppliers","outlets","conversions","purchaseRequests","purchaseOrders","goodsReceipts","stockOpname","recipes","sales","analytics"]), users:["view"], settings:["view","edit"] } },
   kitchen:{ label:"Kitchen",color:"amber", permissions: { ...viewOnly(["items","categories","suppliers","outlets","conversions","analytics"]), purchaseRequests:["view","create","edit"], recipes:["view"] } },
-  purchasing:{ label:"Purchasing", color:"amber", permissions: { ...viewOnly(["items","categories","outlets","conversions","analytics"]), suppliers:["view","create","edit"], purchaseRequests:["view","edit"], purchaseOrders:["view","create","edit"] } },
+  purchasing:{ label:"Purchasing", color:"amber", permissions: { ...viewOnly(["items","categories","outlets","conversions","analytics"]), suppliers:["view","create","edit"], purchaseRequests:["view","create","edit"], purchaseOrders:["view","create","edit"] } },
   receiving:{ label:"Receiving", color:"grey", permissions: { ...viewOnly(["items","outlets","conversions"]), goodsReceipts:["view","create","edit"] } }
 };
 const RBAC = {
@@ -2148,53 +2153,80 @@ class PurchaseRequestModule{
     });
   }
 
-  /* Groups WhatsApp text: outlet section → category sub-heading → items. */
-  buildWhatsAppText(records){
-    const byOutlet = {};
-    records.forEach(r=>{ (byOutlet[r.outletId] = byOutlet[r.outletId]||[]).push(r); });
-    const lines = [];
-    this.outlets.filter(o=>byOutlet[o.id]).forEach(o=>{
-      lines.push(o.shortCode || o.name);
-      const byCat = {};
-      byOutlet[o.id].forEach(r=> (r.items||[]).forEach(it=>{
+  /* Buckets approved-request items into category → outlet → items, since in
+     practice each category ships to one supplier/WhatsApp group, but the
+     outlet split inside it still needs to stay visible for delivery. */
+  groupByCategory(records){
+    const byCat = {};
+    records.forEach(r=>{
+      (r.items||[]).forEach(it=>{
         const key = it.categoryId || "uncategorized";
-        (byCat[key] = byCat[key] || { name: it.categoryName || "Lainnya", lines: [] }).lines.push(it);
-      }));
-      const orderedKeys = [...this.categories.map(c=>c.id).filter(id=>byCat[id]), ...Object.keys(byCat).filter(k=>!this.categories.some(c=>c.id===k))];
-      orderedKeys.forEach(key=>{
-        lines.push(byCat[key].name);
-        byCat[key].lines.forEach(it=>{
-          const qty = (it.quantity!==null && it.quantity!==undefined && it.quantity!=="") ? it.quantity : "";
-          const unit = it.unit ? " "+it.unit : "";
-          lines.push(`• ${it.name}${qty!==""?' '+qty:''}${unit}`);
-        });
+        const cat = this.categories.find(c=>c.id===key);
+        byCat[key] = byCat[key] || { name: it.categoryName || (cat?cat.name:"Lainnya"), color: cat?cat.color:null, byOutlet:{} };
+        (byCat[key].byOutlet[r.outletId] = byCat[key].byOutlet[r.outletId]||[]).push(it);
       });
-      lines.push("");
+    });
+    const orderedKeys = [...this.categories.map(c=>c.id).filter(id=>byCat[id]), ...Object.keys(byCat).filter(k=>!this.categories.some(c=>c.id===k))];
+    return orderedKeys.map(key=>({ id:key, ...byCat[key] }));
+  }
+
+  categoryBucketToText(bucket){
+    const lines = [bucket.name];
+    this.outlets.filter(o=>bucket.byOutlet[o.id]).forEach(o=>{
+      lines.push(o.shortCode || o.name);
+      bucket.byOutlet[o.id].forEach(it=>{
+        const qty = (it.quantity!==null && it.quantity!==undefined && it.quantity!=="") ? it.quantity : "";
+        const unit = it.unit ? " "+it.unit : "";
+        lines.push(`• ${it.name}${qty!==""?' '+qty:''}${unit}`);
+      });
     });
     return lines.join("\n").trim();
   }
 
+  /* Full text across every category — used by the single-request "Copy
+     WhatsApp" button, and as the "copy everything" fallback in broadcast. */
+  buildWhatsAppText(records){
+    return this.groupByCategory(records).map(b=>this.categoryBucketToText(b)).join("\n\n").trim();
+  }
+
   openBroadcast(){
     const approved = this.records.filter(r=>r.status==="approved");
-    const text = this.buildWhatsAppText(approved);
+    const buckets = this.groupByCategory(approved);
+    const fullText = buckets.map(b=>this.categoryBucketToText(b)).join("\n\n").trim();
     const bodyHtml = `
       <div class="field">
-        <label class="field-label">Sumber</label>
-        <p class="muted" style="font-size:12.5px;">Menggabungkan semua request berstatus <b>Approved</b> (${approved.length} request) menjadi satu pesan, dikelompokkan per outlet lalu per kategori.</p>
+        <p class="muted" style="font-size:12.5px;">${approved.length} request berstatus Approved, dikelompokkan per kategori — tap <b>Copy</b> pada kategori yang mau dikirim ke grup WhatsApp masing-masing.</p>
       </div>
-      <div class="field">
-        <textarea class="textarea" id="prBroadcastText" style="min-height:240px; font-family:var(--font-mono); font-size:12.3px;" readonly>${Utils.escapeHtml(text)}</textarea>
+      <div id="prCategoryBroadcastList">
+        ${buckets.length ? buckets.map(b=>`
+          <div class="pr-broadcast-cat-card">
+            <div class="pr-broadcast-cat-head">
+              ${b.color?`<span class="color-dot" style="background:${b.color}"></span>`:''}
+              <span class="pr-broadcast-cat-name">${Utils.escapeHtml(b.name)}</span>
+              <span class="pr-broadcast-cat-count">${Object.values(b.byOutlet).reduce((s,arr)=>s+arr.length,0)} item</span>
+              <button class="btn btn-ghost btn-sm" data-copy-cat="${b.id}"><svg data-lucide="copy" style="width:13px;height:13px;"></svg> Copy</button>
+            </div>
+            <pre class="code-block" style="margin:0; white-space:pre-wrap;">${Utils.escapeHtml(this.categoryBucketToText(b))}</pre>
+          </div>
+        `).join("") : `<div class="empty-state"><svg data-lucide="message-circle"></svg><div class="es-title">Belum ada request Approved</div><div class="es-sub">Approve dulu request yang mau dikirim ke supplier.</div></div>`}
       </div>
     `;
-    const footHtml = `<button class="btn btn-ghost" id="prBcCloseBtn">Close</button><button class="btn btn-primary" id="prBcCopyBtn"><svg data-lucide="copy" style="width:14px;height:14px;"></svg> Copy text</button>`;
+    const footHtml = `<button class="btn btn-ghost" id="prBcCloseBtn">Close</button>${buckets.length?`<button class="btn btn-primary" id="prBcCopyAllBtn"><svg data-lucide="copy" style="width:14px;height:14px;"></svg> Copy semua kategori</button>`:''}`;
     Modal.open({
-      title:"WhatsApp broadcast", bodyHtml, footHtml,
-      onMount:()=>{
+      title:"WhatsApp broadcast", bodyHtml, footHtml, wide:true,
+      onMount:(root)=>{
         document.getElementById("prBcCloseBtn").addEventListener("click", Modal.close);
-        document.getElementById("prBcCopyBtn").addEventListener("click", async ()=>{
-          if (!text){ Toast.show("Tidak ada request Approved untuk disalin.", "error"); return; }
-          const ok = await Utils.copyText(text);
-          Toast.show(ok ? "Teks disalin ke clipboard." : "Gagal menyalin — coba lagi.", ok?"success":"error");
+        const allBtn = document.getElementById("prBcCopyAllBtn");
+        if (allBtn) allBtn.addEventListener("click", async ()=>{
+          const ok = await Utils.copyText(fullText);
+          Toast.show(ok ? "Semua kategori disalin ke clipboard." : "Gagal menyalin — coba lagi.", ok?"success":"error");
+        });
+        root.querySelectorAll("[data-copy-cat]").forEach(btn=>{
+          btn.addEventListener("click", async ()=>{
+            const bucket = buckets.find(b=>b.id===btn.dataset.copyCat);
+            const ok = await Utils.copyText(this.categoryBucketToText(bucket));
+            Toast.show(ok ? `${bucket.name} disalin ke clipboard.` : "Gagal menyalin — coba lagi.", ok?"success":"error");
+          });
         });
       }
     });

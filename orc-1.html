@@ -2,1494 +2,2109 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dolan Sawah · Ops Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>DSMC · Dolan Sawah Material Control</title>
+<meta name="description" content="Purchasing, stock, and material control across Dolan Sawah, Soto Sawah, and Sawah Senja.">
+
+<!-- ============================================================
+     PWA / iOS HOME-SCREEN META
+     iOS Safari ignores the installability prompt entirely and reads
+     these tags directly for "Add to Home Screen" — since this app is
+     used exclusively from an iPhone, these matter more than the
+     Web App Manifest below (which mainly serves Chrome/Android).
+     ============================================================ -->
+<meta name="theme-color" content="#0F1712" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#1B7A43" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DSMC">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" id="appleTouchIcon" href="">
+<link rel="icon" id="favicon" href="">
+<link rel="manifest" id="manifestLink" href="">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 
 <style>
+/* =====================================================================
+   DSMC DESIGN SYSTEM
+   Palette is grounded in the subject: "sawah" = rice paddy. Primary is a
+   deep paddy green, the warning/accent tone is a harvest amber (used for
+   low-price-confidence / data-quality flags), and the neutral scale is
+   warmed very slightly rather than pure grey. Signature element: the
+   outlet switcher in the topbar is rendered as three stepped "terraces"
+   rather than a flat dropdown — a quiet nod to the paddy terraces the
+   whole product is named after, without illustrating them literally.
+   ===================================================================== */
 :root{
-  --bg:#111410;
-  --bg2:#191c17;
-  --surface:#252922;
-  --acc:#7CDB6A;
-  --text:#E8EDE5;
-  --text2:#9BA696;
-  --border:#2a2f27;
-  --r:10px;
-  --nav:62px;
+  --bg:#FFFFFF; --bg-soft:#F5F8F6; --surface:#FFFFFF; --surface-2:#FAFCFB;
+  --border:#E3EAE6; --border-strong:#CFDAD4;
+  --text:#10231A; --text-muted:#5B6B63; --text-faint:#8A9A92;
+  --primary:#1B7A43; --primary-hover:#156636; --primary-soft:#E9F5EE; --primary-ring:rgba(27,122,67,.22);
+  --accent:#B4690E; --accent-soft:#FBF0DF;
+  --danger:#C82D2D; --danger-soft:#FCEAEA;
+  --info:#2E7DD6; --info-soft:#E9F1FC;
+  --font-display:'Sora',ui-sans-serif,system-ui,sans-serif;
+  --font-body:'Inter',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:18px; --radius-full:999px;
+  --shadow-sm:0 1px 2px rgba(16,35,26,.05),0 1px 1px rgba(16,35,26,.04);
+  --shadow-md:0 10px 26px -10px rgba(16,35,26,.16);
+  --shadow-lg:0 26px 54px -18px rgba(16,35,26,.24);
+  --ease:cubic-bezier(.4,0,.2,1);
+  --sidebar-w:264px; --sidebar-w-collapsed:76px; --topbar-h:64px;
 }
-
-/* RESET */
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
+[data-theme="dark"]{
+  --bg:#0B120E; --bg-soft:#0F1712; --surface:#131C16; --surface-2:#101913;
+  --border:#22322A; --border-strong:#324338;
+  --text:#EAF3EC; --text-muted:#93A79B; --text-faint:#6C8078;
+  --primary:#37C871; --primary-hover:#2FA35C; --primary-soft:rgba(55,200,113,.14); --primary-ring:rgba(55,200,113,.28);
+  --accent:#E3A144; --accent-soft:rgba(227,161,68,.14);
+  --danger:#F0716B; --danger-soft:rgba(240,113,107,.14);
+  --info:#6DAAF2; --info-soft:rgba(109,170,242,.14);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 10px 26px -10px rgba(0,0,0,.5);
+  --shadow-lg:0 26px 54px -18px rgba(0,0,0,.6);
 }
-
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;}
 body{
-  font-family:sans-serif;
-  background:var(--bg);
-  color:var(--text);
+  margin:0; background:var(--bg-soft); color:var(--text);
+  font-family:var(--font-body); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
+  transition:background .25s var(--ease),color .25s var(--ease);
 }
+h1,h2,h3,h4{font-family:var(--font-display); margin:0; letter-spacing:-.01em;}
+p{margin:0;}
+button{font-family:inherit;}
+a{color:inherit;}
+::selection{background:var(--primary-soft); color:var(--primary);}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:99px;}
+::-webkit-scrollbar-track{background:transparent;}
+:focus-visible{outline:2px solid var(--primary); outline-offset:2px; border-radius:4px;}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms !important; transition-duration:.001ms !important;}}
 
-/* APP CONTAINER */
-#app{
-  max-width:480px;
-  margin:auto;
-  min-height:100vh;
-}
+.hidden{display:none !important;}
+.mono{font-family:var(--font-mono);}
+.muted{color:var(--text-muted);}
 
-/* NAVIGATION */
-#bnav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  max-width:480px;
-  height:var(--nav);
-  background:var(--bg2);
-  display:flex;
-  border-top:1px solid var(--border);
-  z-index:10;
-}
-
-.nb{
-  flex:1;
-  border:none;
-  background:none;
-  color:var(--text2);
-  font-size:11px;
-}
-
-.nb.active{
-  color:var(--acc);
-}
-
-/* TAB */
-.tab{
-  display:none;
-  padding:12px 12px 80px;
-}
-
-.tab.active{
-  display:block;
-}
-
-/* CARD */
-.card{
-  background:var(--surface);
-  padding:12px;
-  border-radius:var(--r);
-  margin-bottom:10px;
-}
-
-/* INPUT */
-.inp{
-  width:100%;
-  padding:10px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  background:#00000020;
-  color:var(--text);
-  margin-top:6px;
-}
-
-/* BUTTON */
+/* ---------- Buttons ---------- */
 .btn{
-  padding:10px;
-  border:none;
-  border-radius:6px;
-  background:var(--acc);
-  color:#000;
-  font-weight:bold;
-  margin-top:8px;
-  width:100%;
+  display:inline-flex; align-items:center; gap:8px; justify-content:center;
+  padding:9px 16px; border-radius:var(--radius-sm); border:1px solid transparent;
+  font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap;
+  transition:all .15s var(--ease); background:var(--surface); color:var(--text);
 }
+.btn svg{width:16px;height:16px;flex-shrink:0;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--primary); color:#fff; box-shadow:var(--shadow-sm);}
+.btn-primary:hover{background:var(--primary-hover);}
+.btn-ghost{background:transparent; border-color:var(--border);}
+.btn-ghost:hover{background:var(--bg-soft); border-color:var(--border-strong);}
+.btn-danger{background:var(--danger-soft); color:var(--danger); border-color:transparent;}
+.btn-danger:hover{filter:brightness(.95);}
+.btn-sm{padding:6px 11px; font-size:12.5px; border-radius:7px;}
+.btn-icon{padding:8px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface);}
+.btn-icon:hover{background:var(--bg-soft);}
+.btn:disabled{opacity:.5; cursor:not-allowed;}
+.btn-block{width:100%;}
 
-/* SMALL BUTTON */
-.btn-sm{
-  padding:6px;
-  font-size:11px;
+/* ---------- Inputs ---------- */
+label.field-label{display:block; font-size:12.5px; font-weight:600; color:var(--text-muted); margin-bottom:6px;}
+.input,.select,.textarea{
+  width:100%; padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--border);
+  background:var(--surface); color:var(--text); font-size:14px; font-family:inherit;
+  transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
 }
+.input:focus,.select:focus,.textarea:focus{border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-ring); outline:none;}
+.textarea{resize:vertical; min-height:80px;}
+.field{margin-bottom:16px;}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.checkbox-row{display:flex; align-items:center; gap:8px;}
+.checkbox-row input{width:16px;height:16px;accent-color:var(--primary);}
+.input-icon-wrap{position:relative;}
+.input-icon-wrap svg{position:absolute; left:11px; top:50%; transform:translateY(-50%); width:16px;height:16px; color:var(--text-faint);}
+.input-icon-wrap .input{padding-left:36px;}
 
-/* FLEX */
-.row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:6px;
+/* ---------- Login ---------- */
+#loginScreen{
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background:
+    radial-gradient(1100px 520px at 15% -10%, var(--primary-soft), transparent 60%),
+    radial-gradient(900px 520px at 110% 10%, var(--accent-soft), transparent 55%),
+    var(--bg-soft);
+  padding:24px;
 }
+.login-card{
+  width:100%; max-width:392px; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); padding:36px 32px;
+  animation:riseIn .5s var(--ease);
+}
+@keyframes riseIn{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+.login-mark{width:46px;height:46px;border-radius:13px;background:var(--primary);display:flex;align-items:center;justify-content:center;margin-bottom:18px;box-shadow:var(--shadow-md);}
+.login-mark svg{width:24px;height:24px;color:#fff;}
+.login-card h1{font-size:21px; margin-bottom:4px;}
+.login-sub{color:var(--text-muted); font-size:13.5px; margin-bottom:26px;}
+.login-banner{
+  display:flex; gap:9px; align-items:flex-start; background:var(--accent-soft); color:var(--accent);
+  border-radius:var(--radius-sm); padding:11px 13px; font-size:12.5px; margin-bottom:20px; line-height:1.45;
+}
+.login-banner svg{width:16px;height:16px;flex-shrink:0; margin-top:1px;}
+.login-error{
+  display:flex; gap:8px; align-items:center; background:var(--danger-soft); color:var(--danger);
+  border-radius:var(--radius-sm); padding:10px 12px; font-size:12.5px; margin-bottom:16px;
+}
+.login-demo-users{margin-top:22px; padding-top:18px; border-top:1px dashed var(--border);}
+.demo-user-chip{
+  display:flex; align-items:center; justify-content:space-between; padding:9px 11px; border-radius:9px;
+  background:var(--bg-soft); font-size:12.5px; margin-bottom:6px; cursor:pointer; border:1px solid transparent;
+  transition:border-color .15s var(--ease);
+}
+.demo-user-chip:hover{border-color:var(--border-strong);}
+.demo-user-chip b{font-weight:600;}
+.role-pill{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 8px; border-radius:99px; background:var(--primary-soft); color:var(--primary);}
 
-/* TITLE */
-h2{
-  margin-bottom:10px;
-}
+/* ---------- App shell ---------- */
+#app{display:none;}
+#app.active{display:block;}
+.shell{display:flex; min-height:100vh;}
 
-/* TEXT SMALL */
-small{
-  color:var(--text2);
+/* Sidebar */
+.sidebar{
+  width:var(--sidebar-w); flex-shrink:0; background:var(--surface); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:40;
+  transition:width .2s var(--ease), transform .25s var(--ease);
 }
+.sidebar.collapsed{width:var(--sidebar-w-collapsed);}
+.sidebar-head{display:flex; align-items:center; gap:10px; padding:18px 18px 14px;}
+.sidebar-head .mark{width:34px;height:34px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sidebar-head .mark svg{width:18px;height:18px;color:#fff;}
+.sidebar-head .brand{font-family:var(--font-display); font-weight:700; font-size:15.5px; white-space:nowrap; overflow:hidden;}
+.sidebar-head .brand small{display:block; font-family:var(--font-body); font-weight:500; font-size:10.5px; color:var(--text-faint);}
+.sidebar.collapsed .brand{display:none;}
+.sidebar-nav{flex:1; overflow-y:auto; padding:6px 12px;}
+.nav-group-label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); padding:16px 10px 6px;}
+.sidebar.collapsed .nav-group-label{display:none;}
+.nav-item{
+  display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:9px; color:var(--text-muted);
+  font-size:13.5px; font-weight:600; cursor:pointer; margin-bottom:2px; position:relative; white-space:nowrap; overflow:hidden;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.nav-item svg{width:17px;height:17px; flex-shrink:0;}
+.nav-item:hover{background:var(--bg-soft); color:var(--text);}
+.nav-item.active{background:var(--primary-soft); color:var(--primary);}
+.nav-item .nav-label{overflow:hidden; text-overflow:ellipsis;}
+.sidebar.collapsed .nav-label,.sidebar.collapsed .nav-badge{display:none;}
+.nav-badge{margin-left:auto; font-size:9.5px; font-weight:700; background:var(--accent-soft); color:var(--accent); padding:2px 6px; border-radius:99px; letter-spacing:.02em;}
+.nav-item.disabled{cursor:default; opacity:.62;}
+.sidebar-foot{padding:12px; border-top:1px solid var(--border);}
+.collapse-btn{width:100%; justify-content:flex-start;}
 
-/* TAG BUTTON */
-.tag{
-  background:var(--acc);
-  color:#000;
-  border:none;
-  border-radius:6px;
-  padding:5px 8px;
-  font-size:11px;
+/* Topbar */
+.topbar{
+  height:var(--topbar-h); background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:14px; padding:0 22px; position:sticky; top:0; z-index:30;
 }
+.hamburger{display:none;}
+.outlet-switch{display:flex; align-items:center; gap:0; background:var(--bg-soft); border-radius:var(--radius-full); padding:3px; border:1px solid var(--border);}
+.outlet-step{
+  padding:6px 13px; border-radius:var(--radius-full); font-size:12px; font-weight:700; color:var(--text-muted);
+  cursor:pointer; transition:all .18s var(--ease); position:relative;
+}
+.outlet-step:nth-child(2){transform:translateY(-1px);}
+.outlet-step:nth-child(3){transform:translateY(-2px);}
+.outlet-step.active{background:var(--primary); color:#fff; box-shadow:var(--shadow-sm);}
+.topbar-search{flex:1; max-width:420px; position:relative;}
+.topbar-search input{padding-left:36px;}
+.topbar-search svg.search-ic{position:absolute; left:11px; top:50%; transform:translateY(-50%); width:16px;height:16px; color:var(--text-faint); pointer-events:none;}
+.search-kbd{position:absolute; right:9px; top:50%; transform:translateY(-50%); font-size:10.5px; color:var(--text-faint); background:var(--bg-soft); border:1px solid var(--border); padding:1px 6px; border-radius:5px;}
+.search-results{
+  position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-md); box-shadow:var(--shadow-lg); max-height:400px; overflow-y:auto; z-index:60; padding:6px;
+}
+.search-result-item{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer; font-size:13px;}
+.search-result-item:hover{background:var(--bg-soft);}
+.search-result-item .srm{color:var(--text-faint); font-size:11px; margin-left:auto;}
+.search-empty{padding:18px; text-align:center; color:var(--text-faint); font-size:12.5px;}
+.topbar-right{display:flex; align-items:center; gap:8px; margin-left:auto;}
+.conn-badge{display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; padding:6px 10px; border-radius:99px; background:var(--bg-soft); color:var(--text-muted);}
+.conn-dot{width:7px;height:7px;border-radius:50%; background:var(--text-faint);}
+.conn-badge.online .conn-dot{background:var(--primary); box-shadow:0 0 0 3px var(--primary-soft);}
+.conn-badge.offline .conn-dot{background:var(--danger); box-shadow:0 0 0 3px var(--danger-soft);}
+.user-menu-btn{display:flex; align-items:center; gap:9px; padding:5px 10px 5px 5px; border-radius:var(--radius-full); border:1px solid var(--border); background:var(--surface); cursor:pointer;}
+.avatar{width:28px;height:28px;border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0;}
+.user-menu-btn .um-name{font-size:12.5px; font-weight:600; text-align:left; line-height:1.2;}
+.user-menu-btn .um-role{font-size:10.5px; color:var(--text-faint); font-weight:500;}
+.dropdown{position:relative;}
+.dropdown-panel{
+  position:absolute; top:calc(100% + 10px); right:0; min-width:210px; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-md); box-shadow:var(--shadow-lg); padding:6px; z-index:60; animation:popIn .15s var(--ease);
+}
+@keyframes popIn{from{opacity:0; transform:translateY(-6px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);}}
+.dropdown-item{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer;}
+.dropdown-item:hover{background:var(--bg-soft);}
+.dropdown-item svg{width:16px;height:16px; color:var(--text-faint);}
+.dropdown-sep{height:1px; background:var(--border); margin:5px 2px;}
+
+/* Main content */
+.main-wrap{margin-left:var(--sidebar-w); transition:margin-left .2s var(--ease); min-height:100vh; display:flex; flex-direction:column;}
+.sidebar.collapsed ~ .main-wrap{margin-left:var(--sidebar-w-collapsed);}
+.main-content{flex:1; padding:26px 30px 60px;}
+.page-head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap;}
+.page-head h2{font-size:22px;}
+.page-head .page-sub{color:var(--text-muted); font-size:13px; margin-top:3px;}
+.page-actions{display:flex; gap:8px; align-items:center;}
+
+/* Cards / grid */
+.grid-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;}
+.stat-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:19px 20px; box-shadow:var(--shadow-sm); transition:transform .15s var(--ease), box-shadow .15s var(--ease);}
+.stat-card:hover{transform:translateY(-2px); box-shadow:var(--shadow-md);}
+.stat-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+.stat-ic{width:34px;height:34px;border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--primary-soft); color:var(--primary);}
+.stat-ic svg{width:17px;height:17px;}
+.stat-ic.amber{background:var(--accent-soft); color:var(--accent);}
+.stat-ic.info{background:var(--info-soft); color:var(--info);}
+.stat-ic.danger{background:var(--danger-soft); color:var(--danger);}
+.stat-val{font-family:var(--font-display); font-size:26px; font-weight:700; line-height:1;}
+.stat-label{color:var(--text-muted); font-size:12.5px; margin-top:6px; font-weight:500;}
+
+.dash-grid{display:grid; grid-template-columns:1.5fr 1fr; gap:18px;}
+.panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); overflow:hidden;}
+.panel-head{display:flex; align-items:center; justify-content:space-between; padding:16px 19px; border-bottom:1px solid var(--border);}
+.panel-head h3{font-size:14.5px;}
+.panel-body{padding:8px 10px;}
+.panel-body.pad{padding:18px 19px;}
+.activity-row{display:flex; align-items:flex-start; gap:11px; padding:11px 9px; border-radius:9px;}
+.activity-row:hover{background:var(--bg-soft);}
+.act-dot{width:30px;height:30px;border-radius:9px; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;}
+.act-dot svg{width:14px;height:14px;}
+.act-title{font-size:12.8px; font-weight:600;}
+.act-meta{font-size:11.3px; color:var(--text-faint); margin-top:2px;}
+.empty-state{padding:40px 20px; text-align:center; color:var(--text-faint);}
+.empty-state svg{width:34px;height:34px; margin-bottom:10px; opacity:.5;}
+.empty-state .es-title{font-size:13.5px; font-weight:600; color:var(--text-muted); margin-bottom:3px;}
+.empty-state .es-sub{font-size:12px;}
+.quicklink{display:flex; align-items:center; gap:11px; padding:11px 12px; border-radius:10px; border:1px solid var(--border); margin-bottom:8px; cursor:pointer; transition:all .15s var(--ease);}
+.quicklink:hover{border-color:var(--primary); background:var(--primary-soft);}
+.quicklink svg{width:16px;height:16px; color:var(--primary);}
+.quicklink span{font-size:12.8px; font-weight:600;}
+
+/* Data quality flags on dashboard */
+.flag-row{display:flex; align-items:center; gap:10px; padding:9px; border-radius:9px;}
+.flag-row:hover{background:var(--bg-soft);}
+.flag-row .fn{font-size:12.5px; font-weight:600; flex:1;}
+.flag-row .fr{font-size:11px; color:var(--accent); font-weight:700;}
+
+/* Toolbar for CRUD pages */
+.toolbar{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+.toolbar .input-icon-wrap{width:260px;}
+.result-count{font-size:12px; color:var(--text-faint); margin-left:auto;}
+
+/* Table */
+.table-wrap{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm);}
+table.data-table{width:100%; border-collapse:collapse; font-size:13px;}
+.data-table thead th{
+  text-align:left; padding:12px 16px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  color:var(--text-faint); background:var(--bg-soft); border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none;
+}
+.data-table thead th:hover{color:var(--text-muted);}
+.data-table thead th .sort-ic{width:11px;height:11px; margin-left:4px; vertical-align:-1px; opacity:.5;}
+.data-table tbody td{padding:12px 16px; border-bottom:1px solid var(--border); vertical-align:middle;}
+.data-table tbody tr:last-child td{border-bottom:none;}
+.data-table tbody tr{transition:background .12s var(--ease);}
+.data-table tbody tr:hover{background:var(--bg-soft);}
+.cell-primary{font-weight:600;}
+.cell-sub{font-size:11.5px; color:var(--text-faint); margin-top:1px;}
+.badge{display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px;}
+.badge.green{background:var(--primary-soft); color:var(--primary);}
+.badge.grey{background:var(--bg-soft); color:var(--text-muted); border:1px solid var(--border);}
+.badge.amber{background:var(--accent-soft); color:var(--accent);}
+.badge.red{background:var(--danger-soft); color:var(--danger);}
+.badge.blue{background:var(--info-soft); color:var(--info);}
+.color-dot{width:9px;height:9px;border-radius:50%; display:inline-block; margin-right:7px; flex-shrink:0;}
+.row-actions{display:flex; gap:6px; justify-content:flex-end;}
+.pagination{display:flex; align-items:center; justify-content:space-between; padding:13px 16px; border-top:1px solid var(--border);}
+.pagination .pg-info{font-size:12px; color:var(--text-faint);}
+.pg-btns{display:flex; gap:6px;}
+
+/* Modal */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(10,18,14,.5); backdrop-filter:blur(3px); z-index:100;
+  display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn .15s var(--ease);
+}
+@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+.modal-box{
+  background:var(--surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:100%; max-width:520px;
+  max-height:88vh; display:flex; flex-direction:column; animation:modalIn .2s var(--ease);
+}
+@keyframes modalIn{from{opacity:0; transform:translateY(14px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);}}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--border);}
+.modal-head h3{font-size:16px;}
+.modal-body{padding:22px; overflow-y:auto;}
+.modal-foot{display:flex; justify-content:flex-end; gap:10px; padding:16px 22px; border-top:1px solid var(--border);}
+
+/* Toasts */
+#toastRoot{position:fixed; bottom:22px; right:22px; z-index:200; display:flex; flex-direction:column; gap:10px; max-width:340px;}
+.toast{
+  display:flex; align-items:flex-start; gap:10px; background:var(--surface); border:1px solid var(--border);
+  box-shadow:var(--shadow-lg); border-radius:var(--radius-md); padding:13px 15px; animation:toastIn .25s var(--ease);
+  font-size:12.8px; font-weight:500;
+}
+@keyframes toastIn{from{opacity:0; transform:translateX(30px);} to{opacity:1; transform:translateX(0);}}
+.toast svg{width:17px;height:17px; flex-shrink:0; margin-top:1px;}
+.toast.success svg{color:var(--primary);}
+.toast.error svg{color:var(--danger);}
+.toast.info svg{color:var(--info);}
+
+.confirm-box{max-width:380px;}
+
+/* Settings */
+.settings-tabs{display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--border); overflow-x:auto;}
+.settings-tab{padding:10px 15px; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap;}
+.settings-tab.active{color:var(--primary); border-color:var(--primary);}
+.settings-section{max-width:600px;}
+.theme-options{display:flex; gap:10px;}
+.theme-opt{flex:1; border:2px solid var(--border); border-radius:var(--radius-md); padding:14px; cursor:pointer; text-align:center;}
+.theme-opt.active{border-color:var(--primary); background:var(--primary-soft);}
+.theme-opt svg{width:20px;height:20px; margin-bottom:6px;}
+.theme-opt div{font-size:12px; font-weight:600;}
+.units-list{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+.unit-chip{display:flex; align-items:center; gap:6px; background:var(--bg-soft); border:1px solid var(--border); padding:6px 10px; border-radius:99px; font-size:12px; font-weight:600;}
+.unit-chip button{background:none; border:none; cursor:pointer; color:var(--text-faint); display:flex; padding:0;}
+.unit-chip button svg{width:12px;height:12px;}
+.fb-status-card{display:flex; align-items:center; gap:14px; padding:16px; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:18px;}
+.fb-status-ic{width:38px;height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.fb-status-ic.off{background:var(--danger-soft); color:var(--danger);}
+.fb-status-ic.on{background:var(--primary-soft); color:var(--primary);}
+code.inline{background:var(--bg-soft); border:1px solid var(--border); padding:1px 6px; border-radius:5px; font-family:var(--font-mono); font-size:12px;}
+pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:13px; font-family:var(--font-mono); font-size:11.5px; overflow-x:auto; line-height:1.6;}
+.logo-drop{border:2px dashed var(--border); border-radius:var(--radius-md); padding:22px; text-align:center; cursor:pointer; color:var(--text-faint); font-size:12.5px;}
+.logo-drop:hover{border-color:var(--primary); color:var(--primary);}
+.logo-preview{width:56px;height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--border);}
+
+/* Coming-soon page (phases 2-4) */
+.coming-soon{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:80px 20px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);}
+.coming-soon .cs-ic{width:56px;height:56px; border-radius:16px; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; margin-bottom:18px;}
+.coming-soon .cs-ic svg{width:26px;height:26px;}
+.coming-soon h3{font-size:18px; margin-bottom:8px;}
+.coming-soon p{color:var(--text-muted); font-size:13px; max-width:380px;}
+.coming-soon .badge{margin-top:16px;}
+
+/* Install banner */
+#installBanner{
+  position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:var(--surface); border:1px solid var(--border);
+  box-shadow:var(--shadow-lg); border-radius:var(--radius-md); padding:12px 14px; display:flex; align-items:center; gap:12px;
+  z-index:150; max-width:calc(100vw - 32px);
+}
+#installBanner svg{width:20px;height:20px; color:var(--primary); flex-shrink:0;}
+#installBanner .ib-text{font-size:12px; line-height:1.35;}
+#installBanner .ib-text b{display:block; font-size:12.8px;}
+
+/* Spinner */
+.spinner{width:16px;height:16px; border:2px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#bootLoader{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:var(--bg-soft); z-index:999;}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1080px){
+  .grid-stats{grid-template-columns:repeat(2,1fr);}
+  .dash-grid{grid-template-columns:1fr;}
+}
+@media (max-width:860px){
+  .sidebar{transform:translateX(-100%); width:var(--sidebar-w) !important;}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .main-wrap{margin-left:0 !important;}
+  .hamburger{display:flex;}
+  .outlet-switch .outlet-step span.full{display:none;}
+  .field-row{grid-template-columns:1fr;}
+  .topbar{padding:0 14px; gap:8px;}
+  .topbar-search{max-width:none;}
+  .main-content{padding:18px 14px 90px;}
+  .user-menu-btn .um-text{display:none;}
+  .page-head{align-items:flex-start;}
+}
+@media (max-width:520px){
+  .grid-stats{grid-template-columns:1fr 1fr;}
+  .modal-box{max-height:94vh;}
+}
+.sidebar-scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:39;}
+.sidebar-scrim.show{display:block;}
 </style>
 </head>
-
 <body>
-<div id="app">
 
-<!-- =========================
-     NAVIGATION
-========================= -->
-<nav id="bnav">
-  <button class="nb active" onclick="goTab('belanja',this)">Belanja</button>
-  <button class="nb" onclick="goTab('penjualan',this)">Jual</button>
-  <button class="nb" onclick="goTab('dashboard',this)">Dash</button>
-  <button class="nb" onclick="goTab('admin',this)">Admin</button>
-</nav>
+<div id="bootLoader"><div class="spinner" style="width:26px;height:26px;border-width:3px;"></div></div>
 
-<!-- =========================
-     TAB BELANJA
-========================= -->
-<div id="tab-belanja" class="tab active">
-  <h2>Belanja</h2>
+<!-- ============================== LOGIN ============================== -->
+<div id="loginScreen" class="hidden">
+  <div class="login-card">
+    <div class="login-mark"><svg id="loginMarkIcon"></svg></div>
+    <h1>Dolan Sawah Material Control</h1>
+    <p class="login-sub">Sign in to manage purchasing &amp; stock across every outlet.</p>
 
-  <textarea id="bulk" class="inp" placeholder="Contoh:
-ayam 5 kg
-cabai 2
-minyak 1 liter"></textarea>
-
-  <button class="btn" onclick="process()">Tambah</button>
-
-  <!-- FAVORITE -->
-  <div id="favorite-wrap"></div>
-
-  <!-- LIST -->
-  <div id="list"></div>
-</div>
-
-<!-- =========================
-     TAB PENJUALAN
-========================= -->
-<div id="tab-penjualan" class="tab">
-  <h2>Penjualan</h2>
-
-  <textarea id="sale" class="inp" placeholder="Contoh:
-ayam geprek 5 100000"></textarea>
-
-  <button class="btn" onclick="processSale()">Tambah</button>
-
-  <div id="sale-list"></div>
-</div>
-
-<!-- =========================
-     TAB DASHBOARD
-========================= -->
-<div id="tab-dashboard" class="tab">
-  <h2>Dashboard</h2>
-  <div id="dash"></div>
-</div>
-
-<!-- =========================
-     TAB ADMIN
-========================= -->
-<div id="tab-admin" class="tab">
-  <h2>Admin</h2>
-
-  <!-- CATEGORY -->
-  <div class="card">
-    <b>Kategori</b>
-    <input id="new-cat" class="inp" placeholder="Tambah kategori">
-    <button class="btn" onclick="addCat()">Tambah</button>
-  </div>
-
-  <div id="cats"></div>
-
-  <!-- MASTER -->
-  <div id="master-wrap"></div>
-
-  <!-- UNKNOWN -->
-  <div id="unknown-wrap"></div>
-
-  <!-- TOOLS -->
-  <div id="tools-wrap"></div>
-</div>
-
-<!-- =========================
-     SCRIPT START
-========================= -->
-<script>
-/* ================================
-   NAVIGATION (SINGLE SOURCE)
-================================ */
-function goTab(tab, el){
-
-  document.querySelectorAll(".tab").forEach(t=>{
-    t.classList.remove("active");
-  });
-
-  document.querySelectorAll(".nb").forEach(b=>{
-    b.classList.remove("active");
-  });
-
-  document.getElementById("tab-" + tab).classList.add("active");
-  el.classList.add("active");
-
-  /* lazy render */
-  if (tab === "belanja") renderList();
-  if (tab === "penjualan") renderSales();
-  if (tab === "dashboard") renderDashboard();
-  if (tab === "admin") renderAdmin();
-}
-
-/* ================================
-   STORAGE LAYER (SAFE)
-================================ */
-const DB_KEY = {
-  categories: 'ds_categories',
-  purchases: 'ds_purchases',
-  sales: 'ds_sales',
-  items: 'ds_items',
-  usage_item: 'ds_usage_item',
-  usage_menu: 'ds_usage_menu',
-  unknown_items: 'ds_unknown_items',
-  unknown_menu: 'ds_unknown_menu'
-};
-
-const db = {
-  get(key, def = []){
-    try{
-      const v = localStorage.getItem(key);
-      return v ? JSON.parse(v) : def;
-    }catch{
-      return def;
-    }
-  },
-  set(key, val){
-    localStorage.setItem(key, JSON.stringify(val));
-  }
-};
-
-/* ================================
-   INIT DATA (ONCE)
-================================ */
-function initData(){
-
-  if (!localStorage.getItem(DB_KEY.categories)){
-    db.set(DB_KEY.categories, [
-      "Keringan",
-      "Ayam potong",
-      "Ayam kampung",
-      "Belanja Pusat",
-      "Sayur",
-      "Lainnya"
-    ]);
-  }
-
-  if (!localStorage.getItem(DB_KEY.purchases)){
-    db.set(DB_KEY.purchases, []);
-  }
-
-  if (!localStorage.getItem(DB_KEY.sales)){
-    db.set(DB_KEY.sales, []);
-  }
-
-  if (!localStorage.getItem(DB_KEY.items)){
-    db.set(DB_KEY.items, []);
-  }
-
-  if (!localStorage.getItem(DB_KEY.usage_item)){
-    db.set(DB_KEY.usage_item, {});
-  }
-
-  if (!localStorage.getItem(DB_KEY.usage_menu)){
-    db.set(DB_KEY.usage_menu, {});
-  }
-
-  if (!localStorage.getItem(DB_KEY.unknown_items)){
-    db.set(DB_KEY.unknown_items, []);
-  }
-
-  if (!localStorage.getItem(DB_KEY.unknown_menu)){
-    db.set(DB_KEY.unknown_menu, []);
-  }
-}
-
-/* ================================
-   UTIL
-================================ */
-function normalize(text){
-  return (text || "")
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g," ");
-}
-
-function formatRp(n){
-  return "Rp " + Number(n || 0).toLocaleString("id-ID");
-}
-
-function uid(){
-  return Date.now() + Math.random();
-}
-
-/* ================================
-   CATEGORY SYSTEM
-================================ */
-function getCategories(){
-  return db.get(DB_KEY.categories);
-}
-
-function renderCats(){
-
-  const cats = getCategories();
-  const el = document.getElementById("cats");
-
-  el.innerHTML = cats.map((c,i)=>`
-    <div class="card row">
-      <span>${c}</span>
-      <div>
-        <button class="btn-sm" onclick="renameCat(${i})">✏️</button>
-        <button class="btn-sm" onclick="deleteCat(${i})">🗑</button>
-      </div>
+    <div id="fbConfigBanner" class="login-banner hidden">
+      <svg data-lucide="info"></svg>
+      <span>Firebase isn't connected yet, so DSMC is running in <b>local mode</b> — everything works and saves to this device. Add your Firebase config in Settings → Firebase to sync it to the cloud.</span>
     </div>
-  `).join("");
-}
-
-function addCat(){
-  const input = document.getElementById("new-cat");
-  const val = input.value.trim();
-
-  if (!val) return;
-
-  const cats = getCategories();
-
-  if (cats.includes(val)){
-    alert("Kategori sudah ada");
-    return;
-  }
-
-  cats.push(val);
-  db.set(DB_KEY.categories, cats);
-
-  input.value = "";
-  renderCats();
-}
-
-function renameCat(index){
-
-  const cats = getCategories();
-  const oldName = cats[index];
-
-  const newName = prompt("Rename kategori:", oldName);
-  if (!newName) return;
-
-  cats[index] = newName;
-  db.set(DB_KEY.categories, cats);
-
-  /* update item */
-  let items = db.get(DB_KEY.items);
-  items = items.map(it=>{
-    if (it.category === oldName){
-      it.category = newName;
-    }
-    return it;
-  });
-
-  db.set(DB_KEY.items, items);
-
-  renderCats();
-}
-
-function deleteCat(index){
-
-  const cats = getCategories();
-  const name = cats[index];
-
-  if (!confirm("Hapus kategori: " + name + "?")) return;
-
-  cats.splice(index,1);
-  db.set(DB_KEY.categories, cats);
-
-  /* fallback */
-  let items = db.get(DB_KEY.items);
-  items = items.map(it=>{
-    if (it.category === name){
-      it.category = "Lainnya";
-    }
-    return it;
-  });
-
-  db.set(DB_KEY.items, items);
-
-  renderCats();
-}
-
-/* ================================
-   USAGE TRACKING (FAVORITE BASE)
-================================ */
-function trackUsage(type, name){
-
-  const key = type === "menu" ? DB_KEY.usage_menu : DB_KEY.usage_item;
-  let data = db.get(key, {});
-
-  name = normalize(name);
-
-  data[name] = (data[name] || 0) + 1;
-
-  db.set(key, data);
-}
-
-function getTopUsage(type, limit=5){
-
-  const key = type === "menu" ? DB_KEY.usage_menu : DB_KEY.usage_item;
-  const data = db.get(key, {});
-
-  return Object.entries(data)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,limit)
-    .map(x=>x[0]);
-}
-
-/* ================================
-   UNKNOWN SYSTEM
-================================ */
-function addUnknown(type, name){
-
-  const key = type === "menu" ? DB_KEY.unknown_menu : DB_KEY.unknown_items;
-  let data = db.get(key);
-
-  name = normalize(name);
-
-  if (data.includes(name)) return;
-
-  data.push(name);
-  db.set(key, data);
-}
-
-/* ================================
-   GLOBAL INIT
-================================ */
-function initApp(){
-
-  initData();
-
-  renderCats();
-  renderList();
-  renderSales();
-  renderDashboard();
-  renderAdmin();
-
-  console.log("✅ CORE READY");
-}
-
-/* ================================
-   START APP
-================================ */
-document.addEventListener("DOMContentLoaded", ()=>{
-  initApp();
-});
-/* ================================
-   WORD → NUMBER
-================================ */
-const WORD_NUM = {
-  satu:1, dua:2, tiga:3, empat:4, lima:5,
-  enam:6, tujuh:7, delapan:8, sembilan:9, sepuluh:10
-};
-
-function wordToNumber(word){
-  return WORD_NUM[word] || null;
-}
-
-/* ================================
-   PARSER BELANJA (FLEXIBLE)
-================================ */
-function parseInput(line){
-
-  line = normalize(line);
-  if (!line) return null;
-
-  let m;
-
-  // ayam 5 kg
-  m = line.match(/^(.+?)\s+([\d,.]+)\s*([a-zA-Z]*)$/);
-  if (m){
-    return {
-      name: normalize(m[1]),
-      qty: parseFloat(m[2].replace(",", ".")) || 1,
-      unit: m[3] || "pcs"
-    };
-  }
-
-  // 5 kg ayam
-  m = line.match(/^([\d,.]+)\s*([a-zA-Z]*)\s+(.+)$/);
-  if (m){
-    return {
-      name: normalize(m[3]),
-      qty: parseFloat(m[1]) || 1,
-      unit: m[2] || "pcs"
-    };
-  }
-
-  // ayam x5
-  m = line.match(/^(.+?)\s*x\s*([\d,.]+)$/);
-  if (m){
-    return {
-      name: normalize(m[1]),
-      qty: parseFloat(m[2]) || 1,
-      unit: "pcs"
-    };
-  }
-
-  // ayam lima kg
-  m = line.match(/^(.+?)\s+(satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh)\s*([a-zA-Z]*)$/);
-  if (m){
-    return {
-      name: normalize(m[1]),
-      qty: wordToNumber(m[2]) || 1,
-      unit: m[3] || "pcs"
-    };
-  }
-
-  // ayam 5
-  m = line.match(/^(.+?)\s+([\d,.]+)$/);
-  if (m){
-    return {
-      name: normalize(m[1]),
-      qty: parseFloat(m[2]) || 1,
-      unit: "pcs"
-    };
-  }
-
-  // fallback
-  return {
-    name: line,
-    qty: 1,
-    unit: "pcs",
-    unknown: true
-  };
-}
-
-/* ================================
-   AUTO CATEGORY
-================================ */
-function autoCategory(name){
-
-  name = normalize(name);
-
-  if (name.includes("ayam kampung")) return "Ayam kampung";
-  if (name.includes("ayam")) return "Ayam potong";
-  if (name.includes("cabai") || name.includes("sayur") || name.includes("tomat")) return "Sayur";
-  if (name.includes("kering") || name.includes("kerupuk")) return "Keringan";
-
-  return "Lainnya";
-}
-
-/* ================================
-   PROCESS BELANJA (CLEAN FLOW)
-================================ */
-function process(){
-
-  const text = document.getElementById("bulk").value;
-  const lines = text.split("\n").filter(l => l.trim());
-
-  if (!lines.length){
-    alert("Input kosong");
-    return;
-  }
-
-  let purchases = db.get(DB_KEY.purchases);
-  const master = db.get(DB_KEY.items);
-
-  lines.forEach(line=>{
-
-    const p = parseInput(line);
-    if (!p) return;
-
-    /* tracking */
-    trackUsage("item", p.name);
-
-    /* unknown detection */
-    const found = master.find(i=>i.name === p.name);
-    if (!found){
-      addUnknown("item", p.name);
-    }
-
-    purchases.push({
-      id: uid(),
-      name: p.name,
-      qty: p.qty,
-      unit: p.unit,
-      category: autoCategory(p.name),
-      date: new Date().toISOString()
-    });
-
-  });
-
-  db.set(DB_KEY.purchases, purchases);
-
-  document.getElementById("bulk").value = "";
-
-  renderList();
-}
-
-/* ================================
-   GROUP BELANJA
-================================ */
-function groupByCategory(items){
-
-  const map = {};
-
-  items.forEach(it=>{
-    if (!map[it.category]) map[it.category] = [];
-    map[it.category].push(it);
-  });
-
-  return map;
-}
-
-/* ================================
-   DELETE BELANJA
-================================ */
-function deleteItem(id){
-
-  let data = db.get(DB_KEY.purchases);
-  data = data.filter(d => d.id !== id);
-
-  db.set(DB_KEY.purchases, data);
-
-  renderList();
-}
-
-/* ================================
-   EDIT BELANJA
-================================ */
-function editPurchase(id){
-
-  let data = db.get(DB_KEY.purchases);
-  const item = data.find(d=>d.id===id);
-  if (!item) return;
-
-  const qty = prompt("Edit qty:", item.qty);
-  if (qty === null) return;
-
-  item.qty = parseFloat(qty) || item.qty;
-
-  db.set(DB_KEY.purchases, data);
-
-  renderList();
-}
-
-/* ================================
-   RENDER BELANJA
-================================ */
-function renderList(){
-
-  const data = db.get(DB_KEY.purchases);
-  const el = document.getElementById("list");
-
-  if (!data.length){
-    el.innerHTML = "<p>Belum ada data</p>";
-    return;
-  }
-
-  const grouped = groupByCategory(data);
-
-  let html = "";
-
-  Object.keys(grouped).forEach(cat=>{
-
-    html += `<div class="card"><b>${cat}</b>`;
-
-    grouped[cat].forEach(it=>{
-      html += `
-        <div class="row" style="margin-top:6px">
-          <span>${it.name} (${it.qty}${it.unit})</span>
-          <div>
-            <button class="btn-sm" onclick="editPurchase('${it.id}')">✏️</button>
-            <button class="btn-sm" onclick="deleteItem('${it.id}')">✕</button>
+    <div id="loginErrorBox" class="login-error hidden">
+      <svg data-lucide="alert-circle" style="width:15px;height:15px;"></svg>
+      <span id="loginErrorText"></span>
+    </div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label class="field-label">Email</label>
+        <div class="input-icon-wrap"><svg data-lucide="mail"></svg><input class="input" type="email" id="loginEmail" autocomplete="username" required placeholder="you@dolansawah.id"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <div class="input-icon-wrap"><svg data-lucide="lock"></svg><input class="input" type="password" id="loginPassword" autocomplete="current-password" required placeholder="••••••••"></div>
+      </div>
+      <div class="field" style="display:flex; align-items:center; justify-content:space-between;">
+        <label class="checkbox-row" style="font-size:12.5px; font-weight:500;"><input type="checkbox" id="rememberMe" checked> Remember me</label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
+        <svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Sign in
+      </button>
+    </form>
+
+    <div class="login-demo-users" id="localModeUsers"></div>
+  </div>
+</div>
+
+<!-- ============================== APP SHELL ============================== -->
+<div id="app">
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <div class="mark"><svg data-lucide="sprout"></svg></div>
+        <div class="brand">DSMC<small>Dolan Sawah Material Control</small></div>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+      <div class="sidebar-foot">
+        <button class="btn btn-ghost collapse-btn" id="collapseBtn">
+          <svg data-lucide="panel-left-close" style="width:15px;height:15px;"></svg><span>Collapse</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="topbar">
+        <button class="btn-icon hamburger" id="hamburgerBtn"><svg data-lucide="menu" style="width:18px;height:18px;"></svg></button>
+        <div class="outlet-switch" id="outletSwitch"></div>
+        <div class="topbar-search" id="topbarSearchWrap">
+          <svg class="search-ic" data-lucide="search"></svg>
+          <input class="input" id="globalSearchInput" placeholder="Search items, suppliers, outlets…" autocomplete="off">
+          <span class="search-kbd">/</span>
+          <div class="search-results hidden" id="searchResultsPanel"></div>
+        </div>
+        <div class="topbar-right">
+          <span class="conn-badge offline" id="connBadge"><span class="conn-dot"></span><span id="connBadgeText">Offline</span></span>
+          <button class="btn-icon" id="themeToggleBtn"><svg data-lucide="moon" style="width:16px;height:16px;"></svg></button>
+          <div class="dropdown" id="userMenuDropdown">
+            <button class="user-menu-btn" id="userMenuBtn">
+              <span class="avatar" id="userAvatar">?</span>
+              <span class="um-text"><span class="um-name" id="userMenuName">—</span><span class="um-role" id="userMenuRole">—</span></span>
+              <svg data-lucide="chevron-down" style="width:14px;height:14px;color:var(--text-faint);"></svg>
+            </button>
+            <div class="dropdown-panel hidden" id="userMenuPanel">
+              <div class="dropdown-item" data-nav="settings/profile"><svg data-lucide="user"></svg> My profile</div>
+              <div class="dropdown-item" data-nav="settings/appearance"><svg data-lucide="palette"></svg> Appearance</div>
+              <div class="dropdown-sep"></div>
+              <div class="dropdown-item" id="logoutBtn"><svg data-lucide="log-out"></svg> Sign out</div>
+            </div>
           </div>
         </div>
-      `;
-    });
-
-    html += `</div>`;
-  });
-
-  el.innerHTML = html;
-}
-
-/* ================================
-   PARSE PENJUALAN
-================================ */
-function parseSale(line){
-
-  line = normalize(line);
-  if (!line) return null;
-
-  const parts = line.split(" ");
-
-  if (parts.length < 3){
-    return { error:true };
-  }
-
-  const revenue = parseFloat(parts.pop());
-  const qty = parseInt(parts.pop());
-  const name = parts.join(" ");
-
-  if (isNaN(qty) || isNaN(revenue)){
-    return { error:true };
-  }
-
-  return { name, qty, revenue };
-}
-
-/* ================================
-   PROCESS PENJUALAN (CLEAN)
-================================ */
-function processSale(){
-
-  const text = document.getElementById("sale").value;
-  const lines = text.split("\n").filter(l=>l.trim());
-
-  if (!lines.length){
-    alert("Input kosong");
-    return;
-  }
-
-  let sales = db.get(DB_KEY.sales);
-  const master = db.get(DB_KEY.items);
-
-  lines.forEach(line=>{
-
-    const p = parseSale(line);
-    if (!p || p.error) return;
-
-    /* tracking */
-    trackUsage("menu", p.name);
-
-    /* unknown */
-    const found = master.find(i=>i.name === p.name);
-    if (!found){
-      addUnknown("menu", p.name);
-    }
-
-    sales.push({
-      id: uid(),
-      name: p.name,
-      qty: p.qty,
-      revenue: p.revenue,
-      date: new Date().toISOString()
-    });
-
-  });
-
-  db.set(DB_KEY.sales, sales);
-
-  document.getElementById("sale").value = "";
-
-  renderSales();
-}
-
-/* ================================
-   GROUP SALES
-================================ */
-function groupSales(data){
-
-  const map = {};
-
-  data.forEach(s=>{
-    if (!map[s.name]){
-      map[s.name] = { name:s.name, qty:0, revenue:0 };
-    }
-
-    map[s.name].qty += s.qty;
-    map[s.name].revenue += s.revenue;
-  });
-
-  return Object.values(map);
-}
-
-/* ================================
-   RENDER SALES (WITH PROFIT)
-================================ */
-function renderSales(){
-
-  const data = db.get(DB_KEY.sales);
-  const today = new Date().toISOString().slice(0,10);
-
-  const todaySales = data.filter(s=>s.date.startsWith(today));
-
-  const el = document.getElementById("sale-list");
-
-  if (!todaySales.length){
-    el.innerHTML = "<p>Belum ada penjualan</p>";
-    return;
-  }
-
-  const grouped = groupSales(todaySales);
-
-  const totalRevenue = grouped.reduce((s,g)=>s+g.revenue,0);
-  const totalProfit = totalRevenue * 0.4;
-
-  let html = `
-    <div class="card">
-      <b>Revenue: ${formatRp(totalRevenue)}</b><br>
-      <b>Profit: ${formatRp(totalProfit)}</b>
+      </header>
+      <main class="main-content" id="mainContent"></main>
     </div>
-  `;
+  </div>
+</div>
 
-  grouped.forEach(g=>{
-    const profit = g.revenue * 0.4;
-    const margin = Math.round((profit/g.revenue)*100);
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<div id="installBanner" class="hidden"></div>
 
-    html += `
-      <div class="card">
-        <div class="row">
-          <b>${g.name}</b>
-          <span>${formatRp(g.revenue)}</span>
+<script type="module">
+/* =====================================================================
+   DSMC — Dolan Sawah Material Control · Phase 1
+   Master Data, RBAC, Dashboard, PWA shell, Dark Mode, Offline-first.
+   Phases 2-4 (Purchase Requests, Goods Receipt, Stock Opname, Recipe
+   Learning) are intentionally scaffolded as "coming soon" nav entries —
+   agreed as a phased build rather than one monolithic pass.
+
+   ARCHITECTURE
+   - LocalStore     : localStorage-backed collection reader/writer
+   - DataStore      : unified CRUD facade — talks to Firestore when
+                       firebaseConfig is filled in, otherwise runs
+                       entirely against LocalStore. Every write also
+                       mirrors into LocalStore so the UI is instant and
+                       offline-first even when Firestore is connected.
+   - AuthService    : Firebase Auth when configured, local-mode auth
+                       (seeded demo accounts) otherwise
+   - RBAC           : static role → permission map
+   - Router         : hash-based SPA router
+   - CrudModule     : generic, config-driven table+form CRUD screen,
+                       extended by each master-data module
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. FIREBASE CONFIG
+   Paste your project's config here, then create the collections listed
+   below in Firestore. Nothing else needs to change — DataStore detects
+   a filled-in apiKey and switches from local mode to Firestore/Auth
+   automatically.
+   Collections used by Phase 1: items, categories, suppliers, outlets,
+   conversions, users, settings, logs.
+   --------------------------------------------------------------------- */
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+const IS_FIREBASE_CONFIGURED = !!(firebaseConfig.apiKey && firebaseConfig.projectId);
+
+let fbApp = null, fbAuth = null, fbDb = null, fbStorage = null;
+let fbSdk = null;
+
+async function initFirebase(){
+  if (!IS_FIREBASE_CONFIGURED) return false;
+  try{
+    const [{ initializeApp }, authMod, fsMod, stMod] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"),
+      import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"),
+      import("https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js")
+    ]);
+    fbApp = initializeApp(firebaseConfig);
+    fbAuth = authMod.getAuth(fbApp);
+    fbDb = fsMod.getFirestore(fbApp);
+    fbStorage = stMod.getStorage(fbApp);
+    fbSdk = { ...authMod, ...fsMod, ...stMod };
+    try{ await fsMod.enableIndexedDbPersistence(fbDb); }catch(e){ /* multiple tabs open, or unsupported — non-fatal */ }
+    return true;
+  }catch(err){
+    console.error("Firebase init failed, falling back to local mode:", err);
+    return false;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   2. UTILITIES
+   --------------------------------------------------------------------- */
+const Utils = {
+  uid(prefix=""){ return (prefix?prefix+"_":"") + Date.now().toString(36) + Math.random().toString(36).slice(2,8); },
+  escapeHtml(str){
+    if (str === null || str === undefined) return "";
+    return String(str).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  },
+  formatIDR(n){
+    n = Number(n)||0;
+    return "Rp " + n.toLocaleString("id-ID", { maximumFractionDigits:0 });
+  },
+  formatDate(ts){
+    if(!ts) return "—";
+    const d = new Date(ts);
+    return d.toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
+  },
+  timeAgo(ts){
+    if(!ts) return "—";
+    const s = Math.floor((Date.now()-ts)/1000);
+    if(s<60) return "just now";
+    if(s<3600) return Math.floor(s/60)+"m ago";
+    if(s<86400) return Math.floor(s/3600)+"h ago";
+    if(s<604800) return Math.floor(s/86400)+"d ago";
+    return Utils.formatDate(ts);
+  },
+  debounce(fn, ms=250){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; },
+  initials(name){
+    if(!name) return "?";
+    return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+  },
+  downloadFile(filename, content, mime="application/json"){
+    const blob = new Blob([content], { type:mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
+};
+
+/* ---------------------------------------------------------------------
+   3. TOAST / CONFIRM / MODAL UI HELPERS
+   --------------------------------------------------------------------- */
+const Toast = {
+  show(message, type="info"){
+    const root = document.getElementById("toastRoot");
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    const icon = type==="success" ? "check-circle" : type==="error" ? "x-circle" : "info";
+    el.innerHTML = `<svg data-lucide="${icon}"></svg><span>${Utils.escapeHtml(message)}</span>`;
+    root.appendChild(el);
+    renderIcons(el);
+    setTimeout(()=>{ el.style.opacity="0"; el.style.transform="translateX(30px)"; el.style.transition="all .25s ease"; setTimeout(()=>el.remove(),260); }, 3200);
+  }
+};
+
+const ConfirmDialog = {
+  ask({ title="Are you sure?", message="", confirmLabel="Delete", danger=true }){
+    return new Promise(resolve=>{
+      const root = document.getElementById("modalRoot");
+      root.innerHTML = `
+        <div class="modal-overlay" id="confirmOverlay">
+          <div class="modal-box confirm-box">
+            <div class="modal-head"><h3>${Utils.escapeHtml(title)}</h3></div>
+            <div class="modal-body"><p class="muted" style="font-size:13.5px; line-height:1.55;">${Utils.escapeHtml(message)}</p></div>
+            <div class="modal-foot">
+              <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+              <button class="btn ${danger?'btn-danger':'btn-primary'}" id="confirmOk">${Utils.escapeHtml(confirmLabel)}</button>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById("confirmCancel").onclick = ()=>{ root.innerHTML=""; resolve(false); };
+      document.getElementById("confirmOverlay").addEventListener("click", e=>{ if(e.target.id==="confirmOverlay"){ root.innerHTML=""; resolve(false); } });
+      document.getElementById("confirmOk").onclick = ()=>{ root.innerHTML=""; resolve(true); };
+    });
+  }
+};
+
+const Modal = {
+  open({ title, bodyHtml, footHtml, onMount, wide=false }){
+    const root = document.getElementById("modalRoot");
+    root.innerHTML = `
+      <div class="modal-overlay" id="genericOverlay">
+        <div class="modal-box" style="${wide?'max-width:680px;':''}">
+          <div class="modal-head"><h3>${Utils.escapeHtml(title)}</h3><button class="btn-icon" id="modalCloseBtn"><svg data-lucide="x" style="width:15px;height:15px;"></svg></button></div>
+          <div class="modal-body">${bodyHtml}</div>
+          ${footHtml? `<div class="modal-foot">${footHtml}</div>` : ""}
         </div>
-        <small>
-          ${g.qty} porsi · Profit: ${formatRp(profit)} · ${margin}%
-        </small>
-      </div>
-    `;
-  });
+      </div>`;
+    renderIcons(root);
+    document.getElementById("modalCloseBtn").onclick = Modal.close;
+    document.getElementById("genericOverlay").addEventListener("click", e=>{ if(e.target.id==="genericOverlay") Modal.close(); });
+    if (onMount) onMount(root);
+  },
+  close(){ document.getElementById("modalRoot").innerHTML = ""; }
+};
 
-  el.innerHTML = html;
-}
-/* ================================
-   STOCK CALCULATION
-================================ */
-function getStockIn(){
-
-  const purchases = db.get(DB_KEY.purchases);
-  const map = {};
-
-  purchases.forEach(p=>{
-    if (!map[p.name]) map[p.name] = 0;
-    map[p.name] += p.qty;
-  });
-
-  return map;
+function renderIcons(scope){
+  if (window.lucide) window.lucide.createIcons({ nameAttr:"data-lucide", attrs:{}, root: scope||document });
 }
 
-function getStockOut(){
+/* ---------------------------------------------------------------------
+   4. LOCAL STORE  (offline / local-mode data layer)
+   --------------------------------------------------------------------- */
+const LocalStore = {
+  PREFIX: "dsmc_",
+  getAll(col){
+    try{ return JSON.parse(localStorage.getItem(this.PREFIX+col) || "[]"); }
+    catch(e){ return []; }
+  },
+  saveAll(col, arr){ localStorage.setItem(this.PREFIX+col, JSON.stringify(arr)); },
+  seedIfEmpty(col, seedArr){
+    const existing = this.getAll(col);
+    if (existing.length === 0 && seedArr.length){ this.saveAll(col, seedArr); return seedArr; }
+    return existing;
+  },
+  getDoc(key){ try{ return JSON.parse(localStorage.getItem(this.PREFIX+"doc_"+key) || "null"); }catch(e){ return null; } },
+  setDoc(key, val){ localStorage.setItem(this.PREFIX+"doc_"+key, JSON.stringify(val)); }
+};
 
-  const sales = db.get(DB_KEY.sales);
-  const map = {};
-
-  sales.forEach(s=>{
-    if (!map[s.name]) map[s.name] = 0;
-    map[s.name] += s.qty;
-  });
-
-  return map;
+/* ---------------------------------------------------------------------
+   5. DATASTORE  (unified CRUD facade over Firestore or LocalStore)
+   --------------------------------------------------------------------- */
+class DataStore{
+  constructor(collectionName){ this.name = collectionName; }
+  async list(){
+    if (IS_FIREBASE_CONFIGURED && fbDb){
+      try{
+        const snap = await fbSdk.getDocs(fbSdk.collection(fbDb, this.name));
+        const arr = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+        LocalStore.saveAll(this.name, arr);
+        return arr;
+      }catch(e){ console.warn("Firestore list() failed, using local cache:", e); return LocalStore.getAll(this.name); }
+    }
+    return LocalStore.getAll(this.name);
+  }
+  subscribe(cb){
+    if (IS_FIREBASE_CONFIGURED && fbDb){
+      try{
+        return fbSdk.onSnapshot(fbSdk.collection(fbDb, this.name), snap=>{
+          const arr = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+          LocalStore.saveAll(this.name, arr);
+          cb(arr);
+        }, err=>{ console.warn("onSnapshot error, using local cache:", err); cb(LocalStore.getAll(this.name)); });
+      }catch(e){ cb(LocalStore.getAll(this.name)); return ()=>{}; }
+    }
+    cb(LocalStore.getAll(this.name));
+    return ()=>{};
+  }
+  async create(data){
+    const now = Date.now();
+    const payload = { ...data, createdAt: now, updatedAt: now };
+    let id;
+    if (IS_FIREBASE_CONFIGURED && fbDb){
+      try{ const ref = await fbSdk.addDoc(fbSdk.collection(fbDb, this.name), payload); id = ref.id; }
+      catch(e){ console.warn("Firestore create() failed, saving locally only:", e); id = Utils.uid(this.name); }
+    } else { id = Utils.uid(this.name); }
+    const arr = LocalStore.getAll(this.name);
+    arr.unshift({ id, ...payload });
+    LocalStore.saveAll(this.name, arr);
+    return id;
+  }
+  async update(id, data){
+    const payload = { ...data, updatedAt: Date.now() };
+    if (IS_FIREBASE_CONFIGURED && fbDb){
+      try{ await fbSdk.updateDoc(fbSdk.doc(fbDb, this.name, id), payload); }
+      catch(e){ console.warn("Firestore update() failed, saving locally only:", e); }
+    }
+    const arr = LocalStore.getAll(this.name).map(item => item.id===id ? { ...item, ...payload } : item);
+    LocalStore.saveAll(this.name, arr);
+  }
+  async remove(id){
+    if (IS_FIREBASE_CONFIGURED && fbDb){
+      try{ await fbSdk.deleteDoc(fbSdk.doc(fbDb, this.name, id)); }
+      catch(e){ console.warn("Firestore delete() failed, removing locally only:", e); }
+    }
+    const arr = LocalStore.getAll(this.name).filter(item => item.id!==id);
+    LocalStore.saveAll(this.name, arr);
+  }
 }
 
-function getFinalStock(){
+const Stores = {
+  items: new DataStore("items"),
+  categories: new DataStore("categories"),
+  suppliers: new DataStore("suppliers"),
+  outlets: new DataStore("outlets"),
+  conversions: new DataStore("conversions"),
+  users: new DataStore("users"),
+  logs: new DataStore("logs")
+};
 
-  const inMap = getStockIn();
-  const outMap = getStockOut();
-
-  const keys = new Set([
-    ...Object.keys(inMap),
-    ...Object.keys(outMap)
+function seedDefaults(){
+  LocalStore.seedIfEmpty("outlets", [
+    { id:"outlet_dolan_sawah", name:"Dolan Sawah", address:"Salatiga", phone:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"outlet_soto_sawah", name:"Soto Sawah", address:"Salatiga", phone:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"outlet_sawah_senja", name:"Sawah Senja", address:"Salatiga", phone:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() }
+  ]);
+  LocalStore.seedIfEmpty("categories", [
+    { id:"cat_sayuran", name:"Sayuran & Bumbu Segar", color:"#1B7A43", description:"Sayur, daun, dan bumbu segar", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"cat_kering", name:"Bumbu & Bahan Kering", color:"#B4690E", description:"Bumbu kemasan, bahan kering, dan perlengkapan dapur", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"cat_protein", name:"Daging, Ayam & Ikan", color:"#C82D2D", description:"Semua protein: ayam, daging, ikan, jeroan", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"cat_buah", name:"Buah & Jeruk", color:"#D9A441", description:"Buah segar dan jeruk", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"cat_snack", name:"Snack & Kue", color:"#A855F7", description:"Camilan dan kue", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"cat_vip", name:"VIP / Kebutuhan Pokok", color:"#64748B", description:"Beras, gas, dan kebutuhan pokok lain", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"cat_moonlight", name:"Moonlight", color:"#1E3A8A", description:"Bahan khusus menu Moonlight", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"cat_kemasan", name:"Kemasan", color:"#2E7DD6", description:"Packaging", createdAt:Date.now(), updatedAt:Date.now() }
   ]);
 
-  const result = {};
+  LocalStore.seedIfEmpty("suppliers", [
+    { id:"supplier_pusat", name:"Pusat", contactPerson:"", phone:"", address:"Pasar / grosir pusat", notes:"Belanja pusat — kelompok item yang biasa dibeli dari pasar/grosir langganan.", createdAt:Date.now(), updatedAt:Date.now() }
+  ]);
 
-  keys.forEach(k=>{
-    result[k] = (inMap[k] || 0) - (outMap[k] || 0);
-  });
+  LocalStore.seedIfEmpty("items", [
+    { id:"item_kolbis", name:"Kolbis", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jagung", name:"Jagung", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_wortel", name:"Wortel", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_onclang", name:"Onclang", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_seledri", name:"Seledri", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tomat", name:"Tomat", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tomat_ijo", name:"Tomat ijo", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_selada", name:"Selada", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_rawit_merah", name:"Rawit merah", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kentang", name:"Kentang", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jepan", name:"Jepan", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kacang_panjang", name:"Kacang panjang", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_plintir_merah", name:"Plintir merah", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_plintir_ijo", name:"Plintir ijo", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_teropong_merah", name:"Teropong merah", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_teropong_ijo", name:"Teropong ijo", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ceplus", name:"Ceplus", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_timun", name:"Timun", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sawi", name:"Sawi", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bangkol", name:"Bangkol", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kapri", name:"Kapri", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_buncis", name:"Buncis", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_pare", name:"Pare", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kangkung_aviary", name:"Kangkung aviary", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_wortel_aviary", name:"Wortel aviary", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bawang_putih", name:"Bawang putih", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bawang_merah", name:"Bawang merah", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bawang_bombay", name:"Bawang bombay", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tumbar_glondong", name:"Tumbar glondong", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tumbar_bubuk", name:"Tumbar bubuk", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kunyit_sachet", name:"Kunyit sachet", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_asam", name:"Asam", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bleng", name:"Bleng", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_terasi", name:"Terasi", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kemangi", name:"Kemangi", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tauge", name:"Tauge", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kacang_tanah_kupas", name:"Kacang tanah kupas", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kacang_tanah_utuh", name:"Kacang tanah utuh", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kemiri", name:"Kemiri", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_pala", name:"Pala", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sereh", name:"Sereh", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jahe", name:"Jahe", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_pandan", name:"Pandan", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_daun_jeruk", name:"Daun jeruk", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_lengkuas", name:"Lengkuas", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_daun_salam", name:"Daun salam", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_daun_pisang", name:"Daun pisang", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_daun_melinjo", name:"Daun melinjo", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_daun_pepaya", name:"Daun pepaya", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bunga_pepaya", name:"Bunga pepaya", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jantung_pisang", name:"Jantung pisang", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_daun_singkong_rebus", name:"Daun singkong rebus", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kelapa_parut_gudangan", name:"Kelapa parut gudangan", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kelapa_parut_santan", name:"Kelapa parut santan", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ubi_rambat", name:"Ubi rambat", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_krecek_sum", name:"Krecek sum", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_merica_glondong", name:"Merica glondong", categoryId:"cat_sayuran", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_micin", name:"Micin", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_royco", name:"Royco", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kecap", name:"Kecap", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_hemat", name:"Hemat", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kara", name:"Kara", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_gula_pasir", name:"Gula pasir", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sunco", name:"Sunco", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bihun_padamu", name:"Bihun Padamu", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_maizena", name:"Maizena", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tepung_pisang", name:"Tepung pisang", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_margarin_rose_brand", name:"Margarin Rose Brand", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_totole", name:"Totole", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_garam", name:"Garam", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tepung_beras_rose_brand", name:"Tepung beras Rose Brand", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tapioka", name:"Tapioka", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_mie_atom_bulan", name:"Mie atom bulan", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sunlight", name:"Sunlight", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tepung_segitiga", name:"Tepung segitiga", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_telur", name:"Telur", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sasa_crispy", name:"Sasa crispy", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_cleo_botol", name:"Cleo botol", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kecap_ikan", name:"Kecap ikan", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kecap_inggris", name:"Kecap inggris", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_saori", name:"Saori", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_cuka", name:"Cuka", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tepung_panir_coklat", name:"Tepung panir coklat", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_gula_aren", name:"Gula aren", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_brambang_goreng", name:"Brambang goreng", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_krupuk_udang", name:"Krupuk udang", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_krupuk_bawang", name:"Krupuk bawang", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jamur_hitam", name:"Jamur hitam", categoryId:"cat_kering", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_soun_biru", name:"Soun biru", categoryId:"cat_kering", outletIds:["outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ayam_paha_bawah", name:"Ayam paha bawah", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ayam_paha_atas", name:"Ayam paha atas", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ayam_fillet_paha_tepong", name:"Ayam fillet paha tepong", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ayam_fillet_dada", name:"Ayam fillet dada", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ayam_kampung_1_ekor_potong_4", name:"Ayam kampung 1 ekor potong 4", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ayam_kampung_ingkung", name:"Ayam kampung ingkung", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_usus_ayam", name:"Usus ayam", categoryId:"cat_protein", outletIds:["outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_ati_ampela", name:"Ati ampela", categoryId:"cat_protein", outletIds:["outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_daging_sapi_giling", name:"Daging sapi giling", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_daging_ayam_giling", name:"Daging ayam giling", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_abon", name:"Abon", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_adonan_bakso", name:"Adonan bakso", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tahu_pong", name:"Tahu pong", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tempe", name:"Tempe", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_teri", name:"Teri", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bandeng", name:"Bandeng", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_nila", name:"Nila", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_lele", name:"Lele", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_belut", name:"Belut", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kikil", name:"Kikil", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_babat", name:"Babat", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tetelan", name:"Tetelan", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_hati_sapi", name:"Hati sapi", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kakap_fillet", name:"Kakap fillet", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_iga_sapi", name:"Iga sapi", categoryId:"cat_protein", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_udang_rawa", name:"Udang rawa", categoryId:"cat_protein", outletIds:["outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_gandu_dengkul", name:"Gandu dengkul", categoryId:"cat_protein", outletIds:["outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jeruk_manis", name:"Jeruk manis", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jeruk_kecut", name:"Jeruk kecut", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jeruk_nipis", name:"Jeruk nipis", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_jeruk_buah", name:"Jeruk buah", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_lemon", name:"Lemon", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_semangka_tanpa_biji", name:"Semangka tanpa biji", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_melon", name:"Melon", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_nanas", name:"Nanas", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_pisang_kepok", name:"Pisang kepok", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_pisang_buah", name:"Pisang buah", categoryId:"cat_buah", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sosis_solo", name:"Sosis solo", categoryId:"cat_snack", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_pie_buah", name:"Pie buah", categoryId:"cat_snack", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_bolu_gulung", name:"Bolu gulung", categoryId:"cat_snack", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sate_ayam", name:"Sate ayam", categoryId:"cat_snack", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_mendut", name:"Mendut", categoryId:"cat_snack", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_tahu_bakso", name:"Tahu bakso", categoryId:"cat_snack", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_lontong", name:"Lontong", categoryId:"cat_snack", outletIds:["outlet_sawah_senja"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_karak", name:"Karak", categoryId:"cat_snack", outletIds:["outlet_soto_sawah"], supplierId:"supplier_pusat", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_cendol", name:"Cendol", categoryId:"cat_snack", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_beras", name:"Beras", categoryId:"cat_vip", outletIds:["outlet_dolan_sawah","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_gas", name:"Gas", categoryId:"cat_vip", outletIds:["outlet_dolan_sawah","outlet_sawah_senja","outlet_soto_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_arang", name:"Arang", categoryId:"cat_vip", outletIds:["outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_briket", name:"Briket", categoryId:"cat_vip", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_kopi_goodday", name:"Kopi Goodday", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sosis_jumbo", name:"Sosis jumbo", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_dumpling_keju", name:"Dumpling keju", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_salmon_fish", name:"Salmon fish", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sosis_merah", name:"Sosis merah", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_sosis_camp", name:"Sosis camp", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_saos_lada_hitam", name:"Saos lada hitam", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_saos_cabe", name:"Saos cabe", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah","outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_saos_tomat", name:"Saos tomat", categoryId:"cat_moonlight", outletIds:["outlet_dolan_sawah"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_nugget", name:"Nugget", categoryId:"cat_moonlight", outletIds:["outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"item_mayones", name:"Mayones", categoryId:"cat_moonlight", outletIds:["outlet_sawah_senja"], supplierId:"", purchaseUnit:"", usageUnit:"", conversionFactor:null, latestPrice:null, notes:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() }
+  ]);
 
-  return result;
+  LocalStore.seedIfEmpty("conversions", [
+    { id:"conv_ayam_paha_bawah", itemId:"item_ayam_paha_bawah", fromQty:1, fromUnit:"kg", toQty:8, toUnit:"pcs", notes:"Ayam paha bawah", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"conv_ayam_paha_atas", itemId:"item_ayam_paha_atas", fromQty:1, fromUnit:"kg", toQty:6, toUnit:"pcs", notes:"Ayam paha atas", createdAt:Date.now(), updatedAt:Date.now() }
+  ]);
+  if (!IS_FIREBASE_CONFIGURED){
+    LocalStore.seedIfEmpty("users", [
+      { id:"local_owner", name:"Koum", email:"owner@dolansawah.id", role:"owner", outletIds:[], status:"active", localPassword:"owner123", createdAt:Date.now(), updatedAt:Date.now() },
+      { id:"local_manager", name:"Manager Demo", email:"manager@dolansawah.id", role:"manager", outletIds:[], status:"active", localPassword:"manager123", createdAt:Date.now(), updatedAt:Date.now() },
+      { id:"local_kitchen", name:"Kitchen Demo", email:"kitchen@dolansawah.id", role:"kitchen", outletIds:["outlet_dolan_sawah"], status:"active", localPassword:"kitchen123", createdAt:Date.now(), updatedAt:Date.now() }
+    ]);
+  }
+  if (!LocalStore.getDoc("settings")){
+    LocalStore.setDoc("settings", {
+      businessName:"Dolan Sawah", currency:"IDR", logoUrl:"", theme:"system",
+      units:["kg","gram","liter","ml","pcs","ikat","pack","dus","botol","sachet"]
+    });
+  }
 }
 
-/* ================================
-   STOCK ALERT
-================================ */
-function getStockAlerts(){
+/* ---------------------------------------------------------------------
+   6. RBAC
+   --------------------------------------------------------------------- */
+const MODULES = ["items","categories","suppliers","outlets","conversions","users","settings",
+  "purchaseRequests","purchaseOrders","goodsReceipts","stockOpname","recipes","sales","analytics"];
+function fullAccess(mods){ const o={}; mods.forEach(m=>o[m]=["view","create","edit","delete"]); return o; }
+function viewOnly(mods){ const o={}; mods.forEach(m=>o[m]=["view"]); return o; }
 
-  const stock = getFinalStock();
-  const alerts = [];
+const ROLES = {
+  owner:  { label:"Owner",  color:"green", permissions: fullAccess(MODULES) },
+  manager:{ label:"Manager",color:"blue",  permissions: { ...fullAccess(["items","categories","suppliers","outlets","conversions","purchaseRequests","purchaseOrders","goodsReceipts","stockOpname","recipes","sales","analytics"]), users:["view"], settings:["view","edit"] } },
+  kitchen:{ label:"Kitchen",color:"amber", permissions: { ...viewOnly(["items","categories","suppliers","outlets","conversions","analytics"]), purchaseRequests:["view","create","edit"], recipes:["view"] } },
+  purchasing:{ label:"Purchasing", color:"amber", permissions: { ...viewOnly(["items","categories","outlets","conversions","analytics"]), suppliers:["view","create","edit"], purchaseRequests:["view","edit"], purchaseOrders:["view","create","edit"] } },
+  receiving:{ label:"Receiving", color:"grey", permissions: { ...viewOnly(["items","outlets","conversions"]), goodsReceipts:["view","create","edit"] } }
+};
+const RBAC = {
+  can(role, mod, action){
+    const r = ROLES[role]; if(!r) return false;
+    const perms = r.permissions[mod]; if(!perms) return false;
+    return perms.includes(action);
+  }
+};
 
-  Object.entries(stock).forEach(([name, qty])=>{
-    if (qty <= 0){
-      alerts.push(`❗ ${name} habis`);
-    } else if (qty < 3){
-      alerts.push(`⚠ ${name} hampir habis (${qty})`);
+/* ---------------------------------------------------------------------
+   7. AUTH SERVICE
+   --------------------------------------------------------------------- */
+let CURRENT_USER = null;
+
+const AuthService = {
+  async login(email, password, remember){
+    email = email.trim().toLowerCase();
+    if (IS_FIREBASE_CONFIGURED && fbAuth){
+      await fbSdk.setPersistence(fbAuth, remember ? fbSdk.browserLocalPersistence : fbSdk.browserSessionPersistence);
+      const cred = await fbSdk.signInWithEmailAndPassword(fbAuth, email, password);
+      await this._loadProfileFromUsers(cred.user.uid, email);
+      return CURRENT_USER;
     }
-  });
-
-  return alerts;
-}
-
-/* ================================
-   TOP DATA
-================================ */
-function getTopPurchased(){
-
-  const data = db.get(DB_KEY.purchases);
-  const map = {};
-
-  data.forEach(p=>{
-    if (!map[p.name]) map[p.name] = 0;
-    map[p.name] += p.qty;
-  });
-
-  return Object.entries(map)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5);
-}
-
-function getTopMenu(){
-
-  const data = db.get(DB_KEY.sales);
-  const map = {};
-
-  data.forEach(s=>{
-    if (!map[s.name]) map[s.name] = 0;
-    map[s.name] += s.revenue;
-  });
-
-  return Object.entries(map)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5);
-}
-
-/* ================================
-   SMART ALERT
-================================ */
-function generateInsights(){
-
-  const purchases = db.get(DB_KEY.purchases);
-  const sales = db.get(DB_KEY.sales);
-
-  const insights = [];
-
-  /* menu terlaris */
-  const menuMap = {};
-  sales.forEach(s=>{
-    if (!menuMap[s.name]) menuMap[s.name]=0;
-    menuMap[s.name]+=s.qty;
-  });
-
-  const topMenu = Object.entries(menuMap)
-    .sort((a,b)=>b[1]-a[1])[0];
-
-  if (topMenu){
-    insights.push(`🔥 Terlaris: ${topMenu[0]} (${topMenu[1]})`);
-  }
-
-  /* kategori dominan */
-  const catMap = {};
-  purchases.forEach(p=>{
-    if (!catMap[p.category]) catMap[p.category]=0;
-    catMap[p.category]++;
-  });
-
-  const topCat = Object.entries(catMap)
-    .sort((a,b)=>b[1]-a[1])[0];
-
-  if (topCat){
-    insights.push(`📦 Dominan: ${topCat[0]}`);
-  }
-
-  /* tidak ada penjualan */
-  if (sales.length === 0 && purchases.length > 0){
-    insights.push("⚠ Sudah belanja tapi belum ada penjualan");
-  }
-
-  return insights;
-}
-
-/* ================================
-   FILTER SYSTEM
-================================ */
-let DASH_FILTER = "today";
-
-function getDateRange(){
-
-  const now = new Date();
-
-  if (DASH_FILTER === "today"){
-    return [now.toISOString().slice(0,10)];
-  }
-
-  if (DASH_FILTER === "week"){
-    const arr = [];
-    for (let i=0;i<7;i++){
-      const d = new Date();
-      d.setDate(now.getDate()-i);
-      arr.push(d.toISOString().slice(0,10));
+    const users = LocalStore.getAll("users");
+    const match = users.find(u => u.email.toLowerCase()===email && u.localPassword===password);
+    if (!match) throw new Error("Email or password is incorrect.");
+    if (match.status === "inactive") throw new Error("This account has been deactivated.");
+    CURRENT_USER = { id:match.id, name:match.name, email:match.email, role:match.role, outletIds:match.outletIds||[] };
+    if (remember) LocalStore.setDoc("session", CURRENT_USER); else LocalStore.setDoc("session", null);
+    sessionStorage.setItem("dsmc_session", JSON.stringify(CURRENT_USER));
+    return CURRENT_USER;
+  },
+  async _loadProfileFromUsers(uid, email){
+    const users = await Stores.users.list();
+    let profile = users.find(u => u.id===uid || u.email?.toLowerCase()===email.toLowerCase());
+    if (!profile){
+      await Stores.users.create({ name: email.split("@")[0], email, role:"owner", outletIds:[] });
+      profile = { id:uid, name:email.split("@")[0], email, role:"owner", outletIds:[] };
     }
+    CURRENT_USER = { id:profile.id, name:profile.name, email:profile.email, role:profile.role, outletIds:profile.outletIds||[] };
+  },
+  async logout(){
+    if (IS_FIREBASE_CONFIGURED && fbAuth){ await fbSdk.signOut(fbAuth); }
+    CURRENT_USER = null;
+    sessionStorage.removeItem("dsmc_session");
+    LocalStore.setDoc("session", null);
+  },
+  restoreSession(){
+    if (IS_FIREBASE_CONFIGURED) return null;
+    const s = sessionStorage.getItem("dsmc_session");
+    if (s) return JSON.parse(s);
+    const persisted = LocalStore.getDoc("session");
+    if (persisted) return persisted;
+    return null;
+  },
+  async createAuthUser(email, password){
+    if (!IS_FIREBASE_CONFIGURED) return null;
+    const { initializeApp, deleteApp } = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js");
+    const secondaryApp = initializeApp(firebaseConfig, "secondary_"+Date.now());
+    const secondaryAuth = fbSdk.getAuth(secondaryApp);
+    try{
+      const cred = await fbSdk.createUserWithEmailAndPassword(secondaryAuth, email, password);
+      const newUid = cred.user.uid;
+      await fbSdk.signOut(secondaryAuth);
+      await deleteApp(secondaryApp);
+      return newUid;
+    }catch(err){ await deleteApp(secondaryApp); throw err; }
+  }
+};
+
+/* ---------------------------------------------------------------------
+   8. LOGGER
+   --------------------------------------------------------------------- */
+const Logger = {
+  async log(action, module, detail){
+    try{
+      await Stores.logs.create({ action, module, detail, userName: CURRENT_USER?.name || "System", userRole: CURRENT_USER?.role || "system" });
+    }catch(e){ /* logging must never break the UI */ }
+  }
+};
+
+/* ---------------------------------------------------------------------
+   9. ROUTER
+   --------------------------------------------------------------------- */
+const Router = {
+  routes: {},
+  register(path, renderFn){ this.routes[path] = renderFn; },
+  start(){ window.addEventListener("hashchange", ()=>this.resolve()); this.resolve(); },
+  navigate(path){ location.hash = path; },
+  resolve(){
+    const hash = (location.hash || "#dashboard").slice(1);
+    const [path] = hash.split("?");
+    const renderFn = this.routes[path] || this.routes["dashboard"];
+    document.querySelectorAll(".nav-item").forEach(el=> el.classList.toggle("active", el.dataset.route===path));
+    Modal.close();
+    const main = document.getElementById("mainContent");
+    main.innerHTML = "";
+    renderFn(main);
+    if (window.innerWidth <= 860) closeMobileSidebar();
+  }
+};
+window.Router = Router;
+
+/* ---------------------------------------------------------------------
+   10. NAV CONFIG
+   --------------------------------------------------------------------- */
+const NAV = [
+  { group:"Overview", items:[ { route:"dashboard", label:"Dashboard", icon:"layout-dashboard", mod:null } ]},
+  { group:"Master Data", items:[
+    { route:"items", label:"Items", icon:"package", mod:"items" },
+    { route:"categories", label:"Categories", icon:"tags", mod:"categories" },
+    { route:"suppliers", label:"Suppliers", icon:"truck", mod:"suppliers" },
+    { route:"outlets", label:"Outlets", icon:"store", mod:"outlets" },
+    { route:"conversions", label:"Conversions", icon:"repeat", mod:"conversions" },
+    { route:"users", label:"Users & Roles", icon:"users", mod:"users" }
+  ]},
+  { group:"Operations", items:[
+    { route:"purchase-requests", label:"Purchase Requests", icon:"clipboard-list", mod:"purchaseRequests", badge:"Phase 2" },
+    { route:"goods-receipt", label:"Goods Receipt", icon:"package-check", mod:"goodsReceipts", badge:"Phase 2" },
+    { route:"stock-opname", label:"Stock Opname", icon:"clipboard-check", mod:"stockOpname", badge:"Phase 3" },
+    { route:"recipes", label:"Recipe Learning", icon:"brain-circuit", mod:"recipes", badge:"Phase 4" },
+    { route:"sales", label:"Sales", icon:"receipt", mod:"sales", badge:"Phase 3" },
+    { route:"analytics", label:"Analytics", icon:"bar-chart-3", mod:"analytics", badge:"Phase 3" }
+  ]},
+  { group:"System", items:[ { route:"settings", label:"Settings", icon:"settings", mod:"settings" } ]}
+];
+
+function buildSidebarNav(){
+  const nav = document.getElementById("sidebarNav");
+  let html = "";
+  NAV.forEach(group=>{
+    const visibleItems = group.items.filter(it => !it.mod || RBAC.can(CURRENT_USER.role, it.mod, "view"));
+    if (!visibleItems.length) return;
+    html += `<div class="nav-group-label">${group.group}</div>`;
+    visibleItems.forEach(it=>{
+      const isComingSoon = !!it.badge;
+      html += `<div class="nav-item ${isComingSoon?'disabled':''}" data-route="${it.route}" ${isComingSoon?`data-comingsoon="1" data-label="${Utils.escapeHtml(it.label)}"`:`onclick="Router.navigate('${it.route}')"`}>
+        <svg data-lucide="${it.icon}"></svg><span class="nav-label">${it.label}</span>
+        ${it.badge?`<span class="nav-badge">${it.badge}</span>`:""}
+      </div>`;
+    });
+  });
+  nav.innerHTML = html;
+  nav.querySelectorAll('[data-comingsoon]').forEach(el=> el.addEventListener("click", ()=> renderComingSoon(el.dataset.label)));
+  renderIcons(nav);
+}
+
+function renderComingSoon(label){
+  dashboardActive = false;
+  const main = document.getElementById("mainContent");
+  main.innerHTML = `
+    <div class="page-head"><div><h2>${label}</h2><div class="page-sub">Not built yet in this phase</div></div></div>
+    <div class="coming-soon">
+      <div class="cs-ic"><svg data-lucide="hammer"></svg></div>
+      <h3>${label} is scheduled for a later phase</h3>
+      <p>Phase 1 covers authentication, RBAC, master data, the dashboard, and offline sync. This screen will be built once Phase 1 is confirmed working end-to-end.</p>
+      <span class="badge amber">Coming soon</span>
+    </div>`;
+  renderIcons(main);
+}
+
+/* ---------------------------------------------------------------------
+   11. OUTLET SWITCHER + GLOBAL SEARCH + CONNECTION BADGE
+   --------------------------------------------------------------------- */
+let ACTIVE_OUTLET_ID = null;
+
+async function buildOutletSwitch(){
+  const outlets = (await Stores.outlets.list()).filter(o=>o.status==="active");
+  const wrap = document.getElementById("outletSwitch");
+  if (!outlets.length){ wrap.innerHTML = ""; return; }
+  if (!ACTIVE_OUTLET_ID || !outlets.find(o=>o.id===ACTIVE_OUTLET_ID)) ACTIVE_OUTLET_ID = outlets[0].id;
+  wrap.innerHTML = outlets.slice(0,3).map(o=>`
+    <div class="outlet-step ${o.id===ACTIVE_OUTLET_ID?'active':''}" data-outlet="${o.id}"><span class="full">${Utils.escapeHtml(o.name)}</span></div>
+  `).join("");
+  wrap.querySelectorAll(".outlet-step").forEach(el=> el.addEventListener("click", ()=>{ ACTIVE_OUTLET_ID = el.dataset.outlet; buildOutletSwitch(); }));
+}
+
+async function runGlobalSearch(q){
+  const panel = document.getElementById("searchResultsPanel");
+  if (!q || q.trim().length < 1){ panel.classList.add("hidden"); panel.innerHTML=""; return; }
+  const query = q.trim().toLowerCase();
+  const [items, suppliers, categories, outlets, users] = await Promise.all([
+    Stores.items.list(), Stores.suppliers.list(), Stores.categories.list(), Stores.outlets.list(), Stores.users.list()
+  ]);
+  const results = [];
+  items.filter(i=>i.name?.toLowerCase().includes(query)).slice(0,5).forEach(i=>results.push({ label:i.name, meta:"Item", route:"items" }));
+  suppliers.filter(s=>s.name?.toLowerCase().includes(query)).slice(0,5).forEach(s=>results.push({ label:s.name, meta:"Supplier", route:"suppliers" }));
+  categories.filter(c=>c.name?.toLowerCase().includes(query)).slice(0,5).forEach(c=>results.push({ label:c.name, meta:"Category", route:"categories" }));
+  outlets.filter(o=>o.name?.toLowerCase().includes(query)).slice(0,5).forEach(o=>results.push({ label:o.name, meta:"Outlet", route:"outlets" }));
+  if (RBAC.can(CURRENT_USER.role,"users","view")) users.filter(u=>u.name?.toLowerCase().includes(query)).slice(0,5).forEach(u=>results.push({ label:u.name, meta:"User", route:"users" }));
+
+  if (!results.length){ panel.innerHTML = `<div class="search-empty">No results for "${Utils.escapeHtml(q)}"</div>`; }
+  else {
+    panel.innerHTML = results.slice(0,10).map(r=>`<div class="search-result-item" data-route="${r.route}"><span>${Utils.escapeHtml(r.label)}</span><span class="srm">${r.meta}</span></div>`).join("");
+    panel.querySelectorAll(".search-result-item").forEach(el=> el.addEventListener("click", ()=>{ Router.navigate(el.dataset.route); panel.classList.add("hidden"); document.getElementById("globalSearchInput").value=""; }));
+  }
+  panel.classList.remove("hidden");
+}
+
+function updateConnBadge(){
+  const badge = document.getElementById("connBadge");
+  const text = document.getElementById("connBadgeText");
+  const online = navigator.onLine;
+  badge.classList.toggle("online", online);
+  badge.classList.toggle("offline", !online);
+  text.textContent = online ? (IS_FIREBASE_CONFIGURED ? "Synced" : "Local mode") : "Offline";
+}
+
+/* ---------------------------------------------------------------------
+   12. GENERIC CRUD MODULE
+   --------------------------------------------------------------------- */
+class CrudModule{
+  constructor(cfg){
+    this.key = cfg.key; this.title = cfg.title; this.subtitle = cfg.subtitle || "";
+    this.columns = cfg.columns; this.fields = cfg.fields; this.searchKeys = cfg.searchKeys || ["name"];
+    this.emptyIcon = cfg.emptyIcon || "inbox"; this.emptyTitle = cfg.emptyTitle || "Nothing here yet";
+    this.emptySub = cfg.emptySub || "Add your first entry to get started.";
+    this.beforeSave = cfg.beforeSave || (async d=>d);
+    this.beforeDelete = cfg.beforeDelete || (async ()=>true);
+    this.outletFilterEnabled = !!cfg.outletFilterEnabled;
+    this.pageSize = 10;
+    this.state = { search:"", sortKey:null, sortDir:1, page:1, outletFilter:null };
+  }
+  get store(){ return Stores[this.key]; }
+  get canCreate(){ return RBAC.can(CURRENT_USER.role, this.key, "create"); }
+  get canEdit(){ return RBAC.can(CURRENT_USER.role, this.key, "edit"); }
+  get canDelete(){ return RBAC.can(CURRENT_USER.role, this.key, "delete"); }
+
+  async render(container){
+    this.container = container;
+    this.state = { search:"", sortKey:null, sortDir:1, page:1, outletFilter:null };
+    container.innerHTML = `
+      <div class="page-head">
+        <div><h2>${this.title}</h2><div class="page-sub">${this.subtitle}</div></div>
+        <div class="page-actions">${this.canCreate ? `<button class="btn btn-primary" id="crudAddBtn"><svg data-lucide="plus"></svg> Add ${this.title.replace(/s$/,'')}</button>` : ""}</div>
+      </div>
+      ${this.outletFilterEnabled ? `<div class="toolbar" id="outletFilterChips"></div>` : ""}
+      <div class="toolbar">
+        <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="crudSearchInput" placeholder="Search ${this.title.toLowerCase()}…"></div>
+        <span class="result-count" id="crudResultCount"></span>
+      </div>
+      <div class="table-wrap" id="crudTableWrap"></div>
+    `;
+    renderIcons(container);
+    document.getElementById("crudSearchInput").addEventListener("input", Utils.debounce(e=>{ this.state.search = e.target.value; this.state.page=1; this.paint(); }, 200));
+    if (this.canCreate) document.getElementById("crudAddBtn").addEventListener("click", ()=>this.openForm(null));
+    await this.loadLookups();
+    if (this.outletFilterEnabled) this.paintOutletChips();
+    this.items = await this.store.list();
+    this.paint();
+  }
+
+  paintOutletChips(){
+    const wrap = document.getElementById("outletFilterChips");
+    if (!wrap) return;
+    const activeOutlets = this.outlets.filter(o=>o.status==="active");
+    const chips = [{ id:null, name:"Semua outlet" }, ...activeOutlets];
+    wrap.innerHTML = chips.map(o=>`<span class="filter-chip ${this.state.outletFilter===o.id?'active':''}" data-outlet="${o.id||''}">${Utils.escapeHtml(o.name)}</span>`).join("");
+    wrap.querySelectorAll(".filter-chip").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        this.state.outletFilter = el.dataset.outlet || null;
+        this.state.page = 1;
+        this.paintOutletChips();
+        this.paint();
+      });
+    });
+  }
+
+  async loadLookups(){
+    this.categories = await Stores.categories.list();
+    this.suppliers = await Stores.suppliers.list();
+    this.outlets = await Stores.outlets.list();
+    this.items_all = this.key==="conversions" ? await Stores.items.list() : null;
+  }
+
+  filteredSorted(){
+    let arr = [...this.items];
+    if (this.state.outletFilter){
+      arr = arr.filter(item => Array.isArray(item.outletIds) && item.outletIds.includes(this.state.outletFilter));
+    }
+    if (this.state.search){
+      const q = this.state.search.toLowerCase();
+      arr = arr.filter(item => this.searchKeys.some(k => String(item[k]||"").toLowerCase().includes(q)));
+    }
+    if (this.state.sortKey){
+      arr.sort((a,b)=>{
+        const av = a[this.state.sortKey], bv = b[this.state.sortKey];
+        if (typeof av === "number" && typeof bv === "number") return (av-bv)*this.state.sortDir;
+        return String(av||"").localeCompare(String(bv||"")) * this.state.sortDir;
+      });
+    } else { arr.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); }
     return arr;
   }
 
-  return [];
-}
+  paint(){
+    const wrap = document.getElementById("crudTableWrap");
+    const all = this.filteredSorted();
+    const total = all.length;
+    const totalPages = Math.max(1, Math.ceil(total/this.pageSize));
+    this.state.page = Math.min(this.state.page, totalPages);
+    const pageItems = all.slice((this.state.page-1)*this.pageSize, this.state.page*this.pageSize);
+    document.getElementById("crudResultCount").textContent = `${total} total`;
 
-function filterData(data){
+    if (!total){
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="${this.emptyIcon}"></svg><div class="es-title">${this.emptyTitle}</div><div class="es-sub">${this.emptySub}</div></div>`;
+      renderIcons(wrap); return;
+    }
 
-  const dates = getDateRange();
-
-  return data.filter(d=>{
-    return dates.some(date => d.date.startsWith(date));
-  });
-}
-
-/* ================================
-   RENDER DASHBOARD (FINAL)
-================================ */
-function renderDashboard(){
-
-  const el = document.getElementById("dash");
-
-  const purchases = filterData(db.get(DB_KEY.purchases));
-  const sales = filterData(db.get(DB_KEY.sales));
-
-  const totalRevenue = sales.reduce((s,x)=>s+x.revenue,0);
-  const totalProfit = totalRevenue * 0.4;
-
-  const stock = getFinalStock();
-  const stockAlerts = getStockAlerts();
-  const insights = generateInsights();
-
-  const topItems = getTopPurchased();
-  const topMenu = getTopMenu();
-
-  let html = "";
-
-  /* FILTER */
-  html += `
-    <div class="card">
-      <b>Filter</b><br><br>
-      <button class="btn-sm" onclick="setDashFilter('today')">Hari Ini</button>
-      <button class="btn-sm" onclick="setDashFilter('week')">7 Hari</button>
-    </div>
-  `;
-
-  /* SUMMARY */
-  html += `
-    <div class="card">
-      <b>Revenue: ${formatRp(totalRevenue)}</b><br>
-      <b>Profit: ${formatRp(totalProfit)}</b>
-    </div>
-  `;
-
-  /* STOCK */
-  html += `<div class="card"><b>Stok</b>`;
-  Object.entries(stock).forEach(([n,q])=>{
-    html += `<div>${n}: ${q}</div>`;
-  });
-  html += `</div>`;
-
-  /* ALERT */
-  const allAlerts = [...stockAlerts, ...insights];
-  if (allAlerts.length){
-    html += `<div class="card"><b>Insight</b>`;
-    allAlerts.forEach(a=>{
-      html += `<div>${a}</div>`;
-    });
-    html += `</div>`;
-  }
-
-  /* TOP BELANJA */
-  html += `
-    <div class="card">
-      <b>Top Belanja</b>
-      ${topItems.map(i=>`<div>${i[0]} (${i[1]})</div>`).join("")}
-    </div>
-  `;
-
-  /* TOP MENU */
-  html += `
-    <div class="card">
-      <b>Top Menu</b>
-      ${topMenu.map(i=>`<div>${i[0]} (${formatRp(i[1])})</div>`).join("")}
-    </div>
-  `;
-
-  el.innerHTML = html;
-}
-
-/* ================================
-   SET FILTER
-================================ */
-function setDashFilter(type){
-  DASH_FILTER = type;
-  renderDashboard();
-}
-/* ================================
-   FAVORITE (SMART INPUT)
-================================ */
-function renderFavorites(){
-
-  const favs = getTopUsage("item", 6);
-  const wrap = document.getElementById("favorite-wrap");
-
-  if (!favs.length){
-    wrap.innerHTML = "";
-    return;
-  }
-
-  wrap.innerHTML = `
-    <div class="card">
-      <b>⚡ Favorit</b>
-      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:5px">
-        ${favs.map(f=>`
-          <button class="tag" onclick="quickAdd('${f}')">${f}</button>
-        `).join("")}
-      </div>
-    </div>
-  `;
-}
-
-function quickAdd(name){
-  const el = document.getElementById("bulk");
-  el.value += (el.value ? "\n" : "") + name + " 1";
-  el.focus();
-}
-
-/* ================================
-   UNKNOWN → MASTER
-================================ */
-function renderUnknown(){
-
-  const items = db.get(DB_KEY.unknown_items);
-  const menus = db.get(DB_KEY.unknown_menu);
-
-  const el = document.getElementById("unknown-wrap");
-
-  let html = "";
-
-  if (items.length){
-    html += `<div class="card"><b>Unknown Items</b>`;
-    items.forEach(n=>{
-      html += `
-        <div class="row">
-          <span>${n}</span>
-          <button class="btn-sm" onclick="convertItem('${n}')">✔</button>
-        </div>
-      `;
-    });
-    html += `</div>`;
-  }
-
-  if (menus.length){
-    html += `<div class="card"><b>Unknown Menu</b>`;
-    menus.forEach(n=>{
-      html += `
-        <div class="row">
-          <span>${n}</span>
-          <button class="btn-sm" onclick="convertMenu('${n}')">✔</button>
-        </div>
-      `;
-    });
-    html += `</div>`;
-  }
-
-  el.innerHTML = html;
-}
-
-function convertItem(name){
-
-  let items = db.get(DB_KEY.items);
-
-  items.push({
-    name: name,
-    category: "Lainnya"
-  });
-
-  db.set(DB_KEY.items, items);
-
-  let unk = db.get(DB_KEY.unknown_items).filter(x=>x!==name);
-  db.set(DB_KEY.unknown_items, unk);
-
-  renderAdmin();
-}
-
-function convertMenu(name){
-
-  let items = db.get(DB_KEY.items);
-
-  items.push({
-    name: name,
-    category: "Menu"
-  });
-
-  db.set(DB_KEY.items, items);
-
-  let unk = db.get(DB_KEY.unknown_menu).filter(x=>x!==name);
-  db.set(DB_KEY.unknown_menu, unk);
-
-  renderAdmin();
-}
-
-/* ================================
-   MASTER ITEM
-================================ */
-function renderMaster(){
-
-  const items = db.get(DB_KEY.items);
-  const cats = getCategories();
-  const el = document.getElementById("master-wrap");
-
-  let html = `<div class="card"><b>Master Items</b>`;
-
-  if (!items.length){
-    html += `<p>Belum ada</p>`;
-  }
-
-  items.forEach((it,i)=>{
-    html += `
-      <div style="margin-top:6px">
-        <div class="row">
-          <b>${it.name}</b>
-          <button class="btn-sm" onclick="deleteMaster(${i})">🗑</button>
-        </div>
-        <select onchange="changeMasterCat(${i}, this.value)">
-          ${cats.map(c=>`
-            <option value="${c}" ${it.category===c?'selected':''}>${c}</option>
+    wrap.innerHTML = `
+      <table class="data-table">
+        <thead><tr>
+          ${this.columns.map(c=>`<th data-sort="${c.key}">${c.label}${c.sortable!==false?'<svg class="sort-ic" data-lucide="chevrons-up-down"></svg>':''}</th>`).join("")}
+          <th style="text-align:right;">Actions</th>
+        </tr></thead>
+        <tbody>
+          ${pageItems.map(item=>`
+            <tr data-id="${item.id}">
+              ${this.columns.map(c=>`<td>${c.render ? c.render(item,this) : Utils.escapeHtml(item[c.key]??"—")}</td>`).join("")}
+              <td><div class="row-actions">
+                <button class="btn-icon btn-sm edit-btn" title="Edit"><svg data-lucide="pencil" style="width:14px;height:14px;"></svg></button>
+                ${this.canDelete?`<button class="btn-icon btn-sm del-btn" title="Delete"><svg data-lucide="trash-2" style="width:14px;height:14px;"></svg></button>`:""}
+              </div></td>
+            </tr>
           `).join("")}
-        </select>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="pg-info">Page ${this.state.page} of ${totalPages}</span>
+        <div class="pg-btns">
+          <button class="btn btn-ghost btn-sm" id="pgPrev" ${this.state.page<=1?"disabled":""}>Prev</button>
+          <button class="btn btn-ghost btn-sm" id="pgNext" ${this.state.page>=totalPages?"disabled":""}>Next</button>
+        </div>
       </div>
     `;
-  });
+    renderIcons(wrap);
+    wrap.querySelectorAll("th[data-sort]").forEach(th=>{
+      th.addEventListener("click", ()=>{
+        const k = th.dataset.sort;
+        this.state.sortDir = (this.state.sortKey===k) ? -this.state.sortDir : 1;
+        this.state.sortKey = k;
+        this.paint();
+      });
+    });
+    wrap.querySelectorAll("tr[data-id]").forEach(tr=>{
+      const item = this.items.find(i=>i.id===tr.dataset.id);
+      const editBtn = tr.querySelector(".edit-btn");
+      if (editBtn) editBtn.addEventListener("click", ()=> this.canEdit ? this.openForm(item) : this.openForm(item, true));
+      const delBtn = tr.querySelector(".del-btn");
+      if (delBtn) delBtn.addEventListener("click", ()=> this.handleDelete(item));
+    });
+    const prev = document.getElementById("pgPrev"), next = document.getElementById("pgNext");
+    if (prev) prev.addEventListener("click", ()=>{ this.state.page--; this.paint(); });
+    if (next) next.addEventListener("click", ()=>{ this.state.page++; this.paint(); });
+  }
 
-  html += `</div>
-  <div class="card">
-    <button class="btn" onclick="addMaster()">＋ Tambah Item</button>
-  </div>`;
+  fieldHtml(f, value){
+    const v = value ?? f.default ?? "";
+    if (f.type === "select"){
+      const opts = typeof f.options === "function" ? f.options(this) : f.options;
+      return `<select class="select" id="f_${f.key}" ${f.required?"required":""}>
+        <option value="">${f.placeholder||"Select…"}</option>
+        ${opts.map(o=>`<option value="${o.value}" ${String(v)===String(o.value)?"selected":""}>${Utils.escapeHtml(o.label)}</option>`).join("")}
+      </select>`;
+    }
+    if (f.type === "textarea") return `<textarea class="textarea" id="f_${f.key}" placeholder="${f.placeholder||""}">${Utils.escapeHtml(v)}</textarea>`;
+    if (f.type === "checkbox") return `<label class="checkbox-row"><input type="checkbox" id="f_${f.key}" ${v?"checked":""}> <span style="font-size:13px;">${f.checkLabel||""}</span></label>`;
+    if (f.type === "multiselect"){
+      const opts = typeof f.options === "function" ? f.options(this) : f.options;
+      const selected = Array.isArray(v) ? v.map(String) : [];
+      if (!opts.length) return `<p class="muted" style="font-size:12.5px;">${f.emptyHint||"Nothing to choose from yet."}</p>`;
+      return `<div class="multiselect-group" data-field="${f.key}">${opts.map(o=>`
+        <label class="checkbox-row" style="margin-bottom:7px;">
+          <input type="checkbox" class="ms-field-${f.key}" value="${o.value}" ${selected.includes(String(o.value))?"checked":""}>
+          <span style="font-size:13px;">${Utils.escapeHtml(o.label)}</span>
+        </label>`).join("")}
+        ${f.hint?`<p class="muted" style="font-size:11.5px; margin-top:2px;">${f.hint}</p>`:""}
+      </div>`;
+    }
+    if (f.type === "color") return `<input type="color" class="input" id="f_${f.key}" value="${v||'#1B7A43'}" style="height:42px; padding:4px;">`;
+    return `<input type="${f.type||'text'}" class="input" id="f_${f.key}" value="${Utils.escapeHtml(v)}" placeholder="${f.placeholder||''}" ${f.required?"required":""} ${f.step?`step="${f.step}"`:""}>`;
+  }
 
-  el.innerHTML = html;
+  openForm(item, readOnly=false){
+    const isEdit = !!item;
+    const bodyHtml = `<form id="crudForm">${this.fields.map(f=>`
+        <div class="field" style="${f.half?'display:inline-block;width:calc(50% - 7px);':''}${f.half&&f.halfPos==='r'?'margin-left:14px;':''}">
+          ${f.type!=="checkbox" ? `<label class="field-label">${f.label}${f.required?' *':''}</label>` : ""}
+          ${this.fieldHtml(f, item?.[f.key])}
+        </div>`).join("")}</form>`;
+    const footHtml = readOnly
+      ? `<button class="btn btn-ghost" id="crudCancelBtn">Close</button>`
+      : `<button class="btn btn-ghost" id="crudCancelBtn">Cancel</button><button class="btn btn-primary" id="crudSaveBtn">${isEdit?'Save changes':'Create'}</button>`;
+    Modal.open({
+      title: (isEdit ? (readOnly?"View ":"Edit ") : "Add ") + this.title.replace(/s$/,''),
+      bodyHtml, footHtml,
+      onMount: (root)=>{
+        if (readOnly){ root.querySelectorAll("input,select,textarea").forEach(el=>el.disabled=true); }
+        document.getElementById("crudCancelBtn").addEventListener("click", Modal.close);
+        if (!readOnly) document.getElementById("crudSaveBtn").addEventListener("click", ()=> this.handleSave(item));
+      }
+    });
+  }
+
+  collectFormData(){
+    const data = {};
+    for (const f of this.fields){
+      if (f.type === "multiselect"){
+        data[f.key] = [...document.querySelectorAll(`.ms-field-${f.key}:checked`)].map(el=>el.value);
+        continue;
+      }
+      const el = document.getElementById("f_"+f.key);
+      if (!el) continue;
+      if (f.type === "checkbox") data[f.key] = el.checked;
+      else if (f.type === "number") data[f.key] = el.value===""? null : Number(el.value);
+      else data[f.key] = el.value;
+    }
+    return data;
+  }
+
+  validate(data){
+    for (const f of this.fields){
+      if (f.required && (data[f.key]===undefined || data[f.key]===null || data[f.key]==="")) return `${f.label} is required.`;
+    }
+    return null;
+  }
+
+  async handleSave(existingItem){
+    let data = this.collectFormData();
+    const err = this.validate(data);
+    if (err){ Toast.show(err, "error"); return; }
+    try{ data = await this.beforeSave(data, existingItem); }
+    catch(e){ Toast.show(e.message || "Could not save.", "error"); return; }
+    const saveBtn = document.getElementById("crudSaveBtn");
+    if (saveBtn){ saveBtn.disabled = true; saveBtn.innerHTML = `<div class="spinner"></div>`; }
+    try{
+      if (existingItem){
+        await this.store.update(existingItem.id, data);
+        await Logger.log("updated", this.key, data.name || existingItem.name || existingItem.id);
+        Toast.show(`${this.title.replace(/s$/,'')} updated.`, "success");
+      } else {
+        await this.store.create(data);
+        await Logger.log("created", this.key, data.name || "new entry");
+        Toast.show(`${this.title.replace(/s$/,'')} created.`, "success");
+      }
+      Modal.close();
+      this.items = await this.store.list();
+      this.paint();
+      refreshDashboardIfActive();
+    }catch(e){
+      Toast.show(e.message || "Something went wrong saving this.", "error");
+      if (saveBtn){ saveBtn.disabled=false; saveBtn.textContent = existingItem?'Save changes':'Create'; }
+    }
+  }
+
+  async handleDelete(item){
+    const ok = await ConfirmDialog.ask({ title:`Delete "${item.name||item.id}"?`, message:"This can't be undone. Anything referencing this record may show as missing." });
+    if (!ok) return;
+    try{
+      const allowed = await this.beforeDelete(item);
+      if (allowed !== true){ Toast.show(allowed || "This can't be deleted right now.", "error"); return; }
+      await this.store.remove(item.id);
+      await Logger.log("deleted", this.key, item.name || item.id);
+      Toast.show(`Deleted.`, "success");
+      this.items = await this.store.list();
+      this.paint();
+      refreshDashboardIfActive();
+    }catch(e){ Toast.show(e.message || "Could not delete.", "error"); }
+  }
 }
 
-function addMaster(){
+/* ---------------------------------------------------------------------
+   13. MODULE DEFINITIONS
+   --------------------------------------------------------------------- */
+const categoriesModule = new CrudModule({
+  key:"categories", title:"Categories", subtitle:"Group items for reporting and quick filtering.",
+  emptyIcon:"tags", emptyTitle:"No categories yet", emptySub:"Categories help you group and filter items, e.g. Bumbu, Protein, Sayur.",
+  columns:[
+    { key:"name", label:"Name", render:(i)=>`<span class="color-dot" style="background:${i.color||'#1B7A43'}"></span><span class="cell-primary">${Utils.escapeHtml(i.name)}</span>` },
+    { key:"description", label:"Description", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.description||"—")}</span>` },
+    { key:"createdAt", label:"Created", render:(i)=>Utils.formatDate(i.createdAt) }
+  ],
+  fields:[
+    { key:"name", label:"Name", required:true, placeholder:"e.g. Bumbu & Rempah" },
+    { key:"color", label:"Color tag", type:"color" },
+    { key:"description", label:"Description", type:"textarea", placeholder:"Optional" }
+  ],
+  beforeDelete: async(item)=>{ const items = await Stores.items.list(); if (items.some(i=>i.categoryId===item.id)) return "Move or delete items in this category first."; return true; }
+});
 
-  const name = prompt("Nama item:");
-  if (!name) return;
+const suppliersModule = new CrudModule({
+  key:"suppliers", title:"Suppliers", subtitle:"Vendors you purchase materials from.",
+  emptyIcon:"truck", emptyTitle:"No suppliers yet", emptySub:"Add suppliers so items can be linked to where they're purchased.",
+  columns:[
+    { key:"name", label:"Supplier", render:(i)=>`<div class="cell-primary">${Utils.escapeHtml(i.name)}</div><div class="cell-sub">${Utils.escapeHtml(i.contactPerson||"")}</div>` },
+    { key:"phone", label:"WhatsApp / Phone" },
+    { key:"address", label:"Address", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.address||"—")}</span>` }
+  ],
+  fields:[
+    { key:"name", label:"Supplier name", required:true },
+    { key:"contactPerson", label:"Contact person", half:true, halfPos:"l" },
+    { key:"phone", label:"WhatsApp / Phone", half:true, halfPos:"r" },
+    { key:"address", label:"Address", type:"textarea" },
+    { key:"notes", label:"Notes", type:"textarea" }
+  ],
+  beforeDelete: async(item)=>{ const items = await Stores.items.list(); if (items.some(i=>i.supplierId===item.id)) return "This supplier is linked to existing items — reassign those items first."; return true; }
+});
 
-  const cats = getCategories();
-  const cat = prompt("Kategori:", cats[0]);
+const outletsModule = new CrudModule({
+  key:"outlets", title:"Outlets", subtitle:"Every location this data is tracked across.",
+  emptyIcon:"store", emptyTitle:"No outlets yet", emptySub:"Add Dolan Sawah, Soto Sawah, Sawah Senja, or any new location.",
+  columns:[
+    { key:"name", label:"Outlet", render:(i)=>`<span class="cell-primary">${Utils.escapeHtml(i.name)}</span>` },
+    { key:"address", label:"Address", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.address||"—")}</span>` },
+    { key:"phone", label:"Phone" },
+    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
+  ],
+  fields:[
+    { key:"name", label:"Outlet name", required:true },
+    { key:"phone", label:"Phone", half:true, halfPos:"l" },
+    { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" },
+    { key:"address", label:"Address", type:"textarea" }
+  ]
+});
 
-  let items = db.get(DB_KEY.items);
+const conversionsModule = new CrudModule({
+  key:"conversions", title:"Conversions", subtitle:"Custom unit-to-unit rules, e.g. 1 kg ayam paha bawah = 8 pcs.",
+  emptyIcon:"repeat", emptyTitle:"No conversions yet", emptySub:"Add rules like 1 kg = 1000 gram, or item-specific ones like 1 kg jeruk nipis = 18 pcs.",
+  searchKeys:["fromUnit","toUnit","notes"],
+  columns:[
+    { key:"rule", label:"Rule", sortable:false, render:(i,ctx)=>{
+        const item = ctx.items_all?.find(x=>x.id===i.itemId);
+        return `<span class="cell-primary">${i.fromQty} ${Utils.escapeHtml(i.fromUnit)} = ${i.toQty} ${Utils.escapeHtml(i.toUnit)}</span>${item?`<div class="cell-sub">${Utils.escapeHtml(item.name)}</div>`:'<div class="cell-sub">Global rule</div>'}`;
+      } },
+    { key:"notes", label:"Notes", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.notes||"—")}</span>` }
+  ],
+  fields:[
+    { key:"itemId", label:"Specific item (optional)", type:"select", options:(ctx)=> (ctx.items_all||[]).map(i=>({value:i.id,label:i.name})), placeholder:"Leave blank for a global unit rule" },
+    { key:"fromQty", label:"From qty", type:"number", required:true, half:true, halfPos:"l", default:1 },
+    { key:"fromUnit", label:"From unit", required:true, half:true, halfPos:"r", placeholder:"kg" },
+    { key:"toQty", label:"To qty", type:"number", required:true, half:true, halfPos:"l" },
+    { key:"toUnit", label:"To unit", required:true, half:true, halfPos:"r", placeholder:"gram" },
+    { key:"notes", label:"Notes", type:"textarea" }
+  ]
+});
 
-  items.push({
-    name: normalize(name),
-    category: cat || "Lainnya"
-  });
+const itemsModule = new CrudModule({
+  key:"items", title:"Items", subtitle:"Every material tracked across purchasing, stock and recipes.",
+  emptyIcon:"package", emptyTitle:"No items yet", emptySub:"Add your first item — set its unit, supplier, and latest price.",
+  columns:[
+    { key:"name", label:"Item", render:(i,ctx)=>{
+        const cat = ctx.categories.find(c=>c.id===i.categoryId);
+        return `<div class="cell-primary">${Utils.escapeHtml(i.name)}</div><div class="cell-sub">${cat?`<span class="color-dot" style="background:${cat.color}"></span>${Utils.escapeHtml(cat.name)}`:'No category'}</div>`;
+      } },
+    { key:"purchaseUnit", label:"Unit", render:(i)=>`<span class="mono">${Utils.escapeHtml(i.purchaseUnit||"—")}</span> → <span class="mono">${Utils.escapeHtml(i.usageUnit||"—")}</span>` },
+    { key:"supplierId", label:"Supplier", render:(i,ctx)=>{ const s = ctx.suppliers.find(s=>s.id===i.supplierId); return s?Utils.escapeHtml(s.name):'<span class="muted">—</span>'; } },
+    { key:"outletIds", label:"Outlets", sortable:false, render:(i,ctx)=>{
+        if (!i.outletIds || !i.outletIds.length) return '<span class="muted">Semua outlet</span>';
+        return i.outletIds.map(id=>{ const o=ctx.outlets.find(x=>x.id===id); return o?`<span class="badge grey" style="margin-right:4px;">${Utils.escapeHtml(o.name)}</span>`:''; }).join("");
+      } },
+    { key:"latestPrice", label:"Latest price", render:(i)=> i.latestPrice? Utils.formatIDR(i.latestPrice) : '<span class="badge amber">No price</span>' },
+    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
+  ],
+  fields:[
+    { key:"name", label:"Item name", required:true, placeholder:"e.g. Ayam paha bawah" },
+    { key:"categoryId", label:"Category", type:"select", half:true, halfPos:"l", options:(ctx)=>ctx.categories.map(c=>({value:c.id,label:c.name})) },
+    { key:"supplierId", label:"Supplier", type:"select", half:true, halfPos:"r", options:(ctx)=>ctx.suppliers.map(s=>({value:s.id,label:s.name})) },
+    { key:"purchaseUnit", label:"Purchase unit", required:true, half:true, halfPos:"l", placeholder:"kg" },
+    { key:"usageUnit", label:"Usage unit", required:true, half:true, halfPos:"r", placeholder:"gram" },
+    { key:"conversionFactor", label:"Conversion factor (1 purchase unit = ? usage units)", type:"number", half:true, halfPos:"l", placeholder:"1000" },
+    { key:"latestPrice", label:"Latest price (IDR)", type:"number", half:true, halfPos:"r" },
+    { key:"status", label:"Status", type:"select", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" },
+    { key:"outletIds", label:"Biasa dipesan outlet mana", type:"multiselect", options:(ctx)=>ctx.outlets.map(o=>({value:o.id,label:o.name})), hint:"Kosongkan jika dipesan semua outlet." },
+    { key:"notes", label:"Notes", type:"textarea" }
+  ],
+  outletFilterEnabled: true
+});
 
-  db.set(DB_KEY.items, items);
-
-  renderAdmin();
+class UsersModule extends CrudModule{
+  constructor(){
+    super({
+      key:"users", title:"Users & Roles", subtitle:"Who has access, and what they can do.",
+      emptyIcon:"users", emptyTitle:"No users yet", emptySub:"Add teammates and assign a role.",
+      columns:[
+        { key:"name", label:"User", render:(i)=>`<div style="display:flex;align-items:center;gap:10px;"><span class="avatar" style="width:30px;height:30px;font-size:11px;">${Utils.initials(i.name)}</span><div><div class="cell-primary">${Utils.escapeHtml(i.name)}</div><div class="cell-sub">${Utils.escapeHtml(i.email)}</div></div></div>` },
+        { key:"role", label:"Role", render:(i)=>`<span class="badge ${ROLES[i.role]?.color||'grey'}">${ROLES[i.role]?.label||i.role}</span>` },
+        { key:"outletIds", label:"Outlets", render:(i)=>{
+            if (!i.outletIds || !i.outletIds.length) return '<span class="muted">All outlets</span>';
+            const names = i.outletIds.map(id=>this.outlets.find(o=>o.id===id)?.name).filter(Boolean);
+            return names.map(n=>`<span class="badge grey" style="margin-right:4px;">${Utils.escapeHtml(n)}</span>`).join("");
+          } },
+        { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
+      ],
+      fields:[
+        { key:"name", label:"Full name", required:true },
+        { key:"email", label:"Email", type:"email", required:true },
+        { key:"role", label:"Role", type:"select", required:true, half:true, halfPos:"l", options:Object.keys(ROLES).map(k=>({value:k,label:ROLES[k].label})) },
+        { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" }
+      ]
+    });
+  }
+  openForm(item, readOnly=false){
+    const isEdit = !!item;
+    const extra = (!isEdit) ? `<div class="field"><label class="field-label">Temporary password *</label><input type="text" class="input" id="f_localPassword" placeholder="Min. 6 characters" required></div>` : "";
+    const bodyHtml = `<form id="crudForm">${this.fields.map(f=>`
+        <div class="field" style="${f.half?'display:inline-block;width:calc(50% - 7px);':''}${f.half&&f.halfPos==='r'?'margin-left:14px;':''}">
+          <label class="field-label">${f.label}${f.required?' *':''}</label>
+          ${this.fieldHtml(f, item?.[f.key])}
+        </div>`).join("")}${extra}</form>`;
+    const footHtml = readOnly ? `<button class="btn btn-ghost" id="crudCancelBtn">Close</button>`
+      : `<button class="btn btn-ghost" id="crudCancelBtn">Cancel</button><button class="btn btn-primary" id="crudSaveBtn">${isEdit?'Save changes':'Create user'}</button>`;
+    Modal.open({
+      title: isEdit ? "Edit user" : "Add user", bodyHtml, footHtml,
+      onMount:()=>{
+        if (readOnly){ document.querySelectorAll("#modalRoot input,#modalRoot select").forEach(el=>el.disabled=true); }
+        document.getElementById("crudCancelBtn").addEventListener("click", Modal.close);
+        if (!readOnly) document.getElementById("crudSaveBtn").addEventListener("click", ()=>this.handleSave(item));
+      }
+    });
+  }
+  async handleSave(existingItem){
+    const data = this.collectFormData();
+    const err = this.validate(data);
+    if (err){ Toast.show(err, "error"); return; }
+    const saveBtn = document.getElementById("crudSaveBtn");
+    saveBtn.disabled = true; saveBtn.innerHTML = `<div class="spinner"></div>`;
+    try{
+      if (existingItem){
+        if (existingItem.role==="owner" && data.role!=="owner"){
+          const owners = this.items.filter(u=>u.role==="owner");
+          if (owners.length<=1){ Toast.show("At least one Owner is required.", "error"); saveBtn.disabled=false; saveBtn.textContent="Save changes"; return; }
+        }
+        await this.store.update(existingItem.id, data);
+        await Logger.log("updated", "users", data.name);
+        Toast.show("User updated.", "success");
+      } else {
+        const pwEl = document.getElementById("f_localPassword");
+        const password = pwEl ? pwEl.value : "";
+        if (!IS_FIREBASE_CONFIGURED && password.length < 6){ Toast.show("Password must be at least 6 characters.", "error"); saveBtn.disabled=false; saveBtn.textContent="Create user"; return; }
+        if (IS_FIREBASE_CONFIGURED){
+          const uid = await AuthService.createAuthUser(data.email, password || Math.random().toString(36).slice(2,10)+"Aa1!");
+          await fbSdk.setDoc(fbSdk.doc(fbDb, "users", uid), { ...data, createdAt:Date.now(), updatedAt:Date.now() });
+        } else {
+          const arr = LocalStore.getAll("users");
+          arr.unshift({ id:Utils.uid("user"), ...data, localPassword:password, createdAt:Date.now(), updatedAt:Date.now() });
+          LocalStore.saveAll("users", arr);
+        }
+        await Logger.log("created", "users", data.name);
+        Toast.show("User created.", "success");
+      }
+      Modal.close();
+      this.items = await this.store.list();
+      this.paint();
+    }catch(e){
+      Toast.show(e.message || "Could not save this user.", "error");
+      saveBtn.disabled=false; saveBtn.textContent = existingItem?"Save changes":"Create user";
+    }
+  }
+  async handleDelete(item){
+    if (item.id === CURRENT_USER.id){ Toast.show("You can't delete your own account.", "error"); return; }
+    if (item.role==="owner"){
+      const owners = this.items.filter(u=>u.role==="owner");
+      if (owners.length<=1){ Toast.show("At least one Owner is required.", "error"); return; }
+    }
+    return super.handleDelete(item);
+  }
 }
+const usersModule = new UsersModule();
 
-function deleteMaster(i){
+/* ---------------------------------------------------------------------
+   14. DASHBOARD
+   --------------------------------------------------------------------- */
+let dashboardActive = false;
+function refreshDashboardIfActive(){ if (dashboardActive && (location.hash.slice(1)||"dashboard")==="dashboard") renderDashboard(document.getElementById("mainContent")); }
 
-  if (!confirm("Hapus item?")) return;
+async function renderDashboard(container){
+  dashboardActive = true;
+  const [items, categories, suppliers, outlets, users, logs] = await Promise.all([
+    Stores.items.list(), Stores.categories.list(), Stores.suppliers.list(), Stores.outlets.list(), Stores.users.list(), Stores.logs.list()
+  ]);
+  const activeItems = items.filter(i=>i.status==="active");
+  const missingPrice = items.filter(i=>!i.latestPrice);
+  const missingSupplier = items.filter(i=>!i.supplierId);
+  const missingUnit = items.filter(i=>!i.purchaseUnit || !i.usageUnit);
+  const recentLogs = [...logs].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,8);
 
-  let items = db.get(DB_KEY.items);
-  items.splice(i,1);
-
-  db.set(DB_KEY.items, items);
-
-  renderAdmin();
-}
-
-function changeMasterCat(i, cat){
-
-  let items = db.get(DB_KEY.items);
-  items[i].category = cat;
-
-  db.set(DB_KEY.items, items);
-}
-
-/* ================================
-   TOOLS (EXPORT / RESET)
-================================ */
-function renderTools(){
-
-  const el = document.getElementById("tools-wrap");
-
-  el.innerHTML = `
-    <div class="card">
-      <b>Tools</b><br><br>
-
-      <button class="btn" onclick="exportData()">Export Data</button>
-      <button class="btn" onclick="triggerImport()">Import Data</button>
-
-      <button class="btn" onclick="resetPurchases()">Reset Belanja</button>
-      <button class="btn" onclick="resetSales()">Reset Penjualan</button>
-
-      <button class="btn" style="background:red;color:#fff"
-        onclick="resetAll()">RESET TOTAL</button>
+  container.innerHTML = `
+    <div class="page-head"><div><h2>Welcome back, ${Utils.escapeHtml(CURRENT_USER.name.split(" ")[0])} 👋</h2><div class="page-sub">Here's what's happening across your outlets today.</div></div></div>
+    <div class="grid-stats">
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="package"></svg></div></div><div class="stat-val">${activeItems.length}</div><div class="stat-label">Active items</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic info"><svg data-lucide="truck"></svg></div></div><div class="stat-val">${suppliers.length}</div><div class="stat-label">Suppliers</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="store"></svg></div></div><div class="stat-val">${outlets.filter(o=>o.status==='active').length}</div><div class="stat-label">Active outlets</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic ${missingPrice.length?'amber':''}"><svg data-lucide="alert-triangle"></svg></div></div><div class="stat-val">${missingPrice.length}</div><div class="stat-label">Items missing a price</div></div>
+    </div>
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="panel-head"><h3>Recent activity</h3></div>
+        <div class="panel-body">
+          ${recentLogs.length? recentLogs.map(l=>`
+            <div class="activity-row">
+              <div class="act-dot"><svg data-lucide="${l.action==='deleted'?'trash-2':l.action==='created'?'plus':'pencil'}"></svg></div>
+              <div><div class="act-title">${Utils.escapeHtml(l.userName)} ${l.action} ${Utils.escapeHtml((l.module||"").replace(/s$/,''))} <b>${Utils.escapeHtml(l.detail||"")}</b></div>
+              <div class="act-meta">${Utils.timeAgo(l.createdAt)}</div></div>
+            </div>`).join("") : `<div class="empty-state"><svg data-lucide="activity"></svg><div class="es-title">No activity yet</div><div class="es-sub">Actions across the app will show up here.</div></div>`}
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:18px;">
+        <div class="panel">
+          <div class="panel-head"><h3>Quick actions</h3></div>
+          <div class="panel-body pad">
+            ${RBAC.can(CURRENT_USER.role,"items","create")?`<div class="quicklink" data-nav="items"><svg data-lucide="plus-circle"></svg><span>Add a new item</span></div>`:""}
+            ${RBAC.can(CURRENT_USER.role,"suppliers","create")?`<div class="quicklink" data-nav="suppliers"><svg data-lucide="truck"></svg><span>Add a supplier</span></div>`:""}
+            ${RBAC.can(CURRENT_USER.role,"outlets","view")?`<div class="quicklink" data-nav="outlets"><svg data-lucide="store"></svg><span>Manage outlets</span></div>`:""}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Data quality</h3></div>
+          <div class="panel-body pad">
+            ${(missingPrice.length===0 && missingSupplier.length===0 && missingUnit.length===0) ? `<div class="empty-state" style="padding:16px 6px;"><svg data-lucide="check-circle" style="color:var(--primary);opacity:1;"></svg><div class="es-title">All items look complete</div></div>` : `
+              ${missingUnit.length ? `<div class="flag-row"><span class="fn">${missingUnit.length} item belum ada satuan</span><span class="fr">No unit</span></div>` : ""}
+              ${missingPrice.slice(0,3).map(i=>`<div class="flag-row"><span class="fn">${Utils.escapeHtml(i.name)}</span><span class="fr">No price</span></div>`).join("")}
+              ${missingSupplier.slice(0,2).map(i=>`<div class="flag-row"><span class="fn">${Utils.escapeHtml(i.name)}</span><span class="fr">No supplier</span></div>`).join("")}
+            `}
+          </div>
+        </div>
+      </div>
     </div>
   `;
+  renderIcons(container);
+  container.querySelectorAll("[data-nav]").forEach(el=> el.addEventListener("click", ()=>Router.navigate(el.dataset.nav)));
 }
 
-/* ================================
-   EXPORT / IMPORT
-================================ */
-function exportData(){
+/* ---------------------------------------------------------------------
+   15. SETTINGS
+   --------------------------------------------------------------------- */
+function renderSettings(container, initialTab="profile"){
+  dashboardActive = false;
+  const settings = LocalStore.getDoc("settings") || { businessName:"Dolan Sawah", currency:"IDR", units:[], theme:"system", logoUrl:"" };
+  const tabs = [
+    { id:"profile", label:"Business Profile" }, { id:"appearance", label:"Appearance" },
+    { id:"units", label:"Units & Currency" }, { id:"firebase", label:"Firebase" }, { id:"backup", label:"Backup & Restore" }
+  ];
+  container.innerHTML = `
+    <div class="page-head"><div><h2>Settings</h2><div class="page-sub">Configure how DSMC looks and connects.</div></div></div>
+    <div class="settings-tabs" id="settingsTabs">${tabs.map(t=>`<div class="settings-tab ${t.id===initialTab?'active':''}" data-tab="${t.id}">${t.label}</div>`).join("")}</div>
+    <div id="settingsTabBody"></div>
+  `;
+  const body = document.getElementById("settingsTabBody");
+  function paintTab(tabId){
+    document.querySelectorAll("#settingsTabs .settings-tab").forEach(el=>el.classList.toggle("active", el.dataset.tab===tabId));
+    if (tabId==="profile") paintProfile();
+    else if (tabId==="appearance") paintAppearance();
+    else if (tabId==="units") paintUnits();
+    else if (tabId==="firebase") paintFirebase();
+    else if (tabId==="backup") paintBackup();
+  }
+  document.querySelectorAll("#settingsTabs .settings-tab").forEach(el=> el.addEventListener("click", ()=>paintTab(el.dataset.tab)));
 
-  const data = {
-    categories: db.get(DB_KEY.categories),
-    purchases: db.get(DB_KEY.purchases),
-    sales: db.get(DB_KEY.sales),
-    items: db.get(DB_KEY.items)
-  };
-
-  const blob = new Blob(
-    [JSON.stringify(data,null,2)],
-    {type:"application/json"}
-  );
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "backup.json";
-  a.click();
-}
-
-function triggerImport(){
-
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".json";
-
-  input.onchange = function(e){
-
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function(ev){
-
-      try{
-        const data = JSON.parse(ev.target.result);
-
-        if (!confirm("Timpa data lama?")) return;
-
-        if (data.categories) db.set(DB_KEY.categories,data.categories);
-        if (data.purchases) db.set(DB_KEY.purchases,data.purchases);
-        if (data.sales) db.set(DB_KEY.sales,data.sales);
-        if (data.items) db.set(DB_KEY.items,data.items);
-
-        location.reload();
-
-      }catch{
-        alert("File error");
+  function paintProfile(){
+    body.innerHTML = `
+      <div class="settings-section">
+        <div class="field">
+          <label class="field-label">Logo</label>
+          <div style="display:flex; align-items:center; gap:14px;">
+            ${settings.logoUrl?`<img class="logo-preview" src="${settings.logoUrl}">`:`<div class="logo-preview" style="display:flex;align-items:center;justify-content:center;background:var(--bg-soft);color:var(--text-faint);"><svg data-lucide="image" style="width:22px;height:22px;"></svg></div>`}
+            <div style="flex:1;"><div class="logo-drop" id="logoDrop">Click to upload a logo (stored ${IS_FIREBASE_CONFIGURED?'in Firebase Storage':'on this device'})</div><input type="file" id="logoInput" accept="image/*" class="hidden"></div>
+          </div>
+        </div>
+        <div class="field"><label class="field-label">Business name</label><input class="input" id="stBusinessName" value="${Utils.escapeHtml(settings.businessName)}"></div>
+        <button class="btn btn-primary" id="saveProfileBtn"><svg data-lucide="save" style="width:15px;height:15px;"></svg> Save</button>
+      </div>`;
+    renderIcons(body);
+    document.getElementById("logoDrop").addEventListener("click", ()=>document.getElementById("logoInput").click());
+    document.getElementById("logoInput").addEventListener("change", async (e)=>{
+      const file = e.target.files[0]; if (!file) return;
+      if (IS_FIREBASE_CONFIGURED && fbStorage){
+        try{
+          const path = `logos/${Date.now()}_${file.name}`;
+          const sref = fbSdk.ref(fbStorage, path);
+          await fbSdk.uploadBytes(sref, file);
+          settings.logoUrl = await fbSdk.getDownloadURL(sref);
+          Toast.show("Logo uploaded.", "success");
+        }catch(err){ Toast.show("Upload failed: "+err.message, "error"); return; }
+      } else {
+        settings.logoUrl = await new Promise(res=>{ const r = new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); });
+        Toast.show("Logo saved locally.", "success");
       }
+      LocalStore.setDoc("settings", settings);
+      paintProfile();
+    });
+    document.getElementById("saveProfileBtn").addEventListener("click", ()=>{
+      settings.businessName = document.getElementById("stBusinessName").value.trim() || "Dolan Sawah";
+      LocalStore.setDoc("settings", settings);
+      document.querySelector(".sidebar-head .brand").innerHTML = `DSMC<small>${Utils.escapeHtml(settings.businessName)} · Material Control</small>`;
+      Toast.show("Business profile saved.", "success");
+    });
+  }
 
-    };
+  function paintAppearance(){
+    body.innerHTML = `
+      <div class="settings-section">
+        <label class="field-label">Theme</label>
+        <div class="theme-options">
+          <div class="theme-opt ${settings.theme==='light'?'active':''}" data-theme-choice="light"><svg data-lucide="sun"></svg><div>Light</div></div>
+          <div class="theme-opt ${settings.theme==='dark'?'active':''}" data-theme-choice="dark"><svg data-lucide="moon"></svg><div>Dark</div></div>
+          <div class="theme-opt ${settings.theme==='system'?'active':''}" data-theme-choice="system"><svg data-lucide="monitor"></svg><div>System</div></div>
+        </div>
+      </div>`;
+    renderIcons(body);
+    body.querySelectorAll("[data-theme-choice]").forEach(el=>{
+      el.addEventListener("click", ()=>{ settings.theme = el.dataset.themeChoice; LocalStore.setDoc("settings", settings); applyTheme(); paintAppearance(); });
+    });
+  }
 
-    reader.readAsText(file);
+  function paintUnits(){
+    body.innerHTML = `
+      <div class="settings-section">
+        <div class="field"><label class="field-label">Currency symbol</label><input class="input" id="stCurrency" value="${Utils.escapeHtml(settings.currency||'IDR')}" style="max-width:160px;"></div>
+        <label class="field-label">Base units</label>
+        <div class="units-list" id="unitsList">${(settings.units||[]).map(u=>`<span class="unit-chip">${Utils.escapeHtml(u)}<button data-unit="${Utils.escapeHtml(u)}"><svg data-lucide="x"></svg></button></span>`).join("")}</div>
+        <div style="display:flex; gap:8px; margin-bottom:16px;"><input class="input" id="newUnitInput" placeholder="e.g. karung" style="max-width:200px;"><button class="btn btn-ghost" id="addUnitBtn"><svg data-lucide="plus" style="width:15px;height:15px;"></svg> Add unit</button></div>
+        <button class="btn btn-primary" id="saveUnitsBtn"><svg data-lucide="save" style="width:15px;height:15px;"></svg> Save</button>
+      </div>`;
+    renderIcons(body);
+    document.getElementById("addUnitBtn").addEventListener("click", ()=>{
+      const el = document.getElementById("newUnitInput");
+      const v = el.value.trim();
+      if (v && !settings.units.includes(v)){ settings.units.push(v); paintUnits(); }
+    });
+    body.querySelectorAll("[data-unit]").forEach(btn=> btn.addEventListener("click", ()=>{ settings.units = settings.units.filter(u=>u!==btn.dataset.unit); paintUnits(); }));
+    document.getElementById("saveUnitsBtn").addEventListener("click", ()=>{
+      settings.currency = document.getElementById("stCurrency").value.trim() || "IDR";
+      LocalStore.setDoc("settings", settings);
+      Toast.show("Units & currency saved.", "success");
+    });
+  }
+
+  function paintFirebase(){
+    body.innerHTML = `
+      <div class="settings-section">
+        <div class="fb-status-card">
+          <div class="fb-status-ic ${IS_FIREBASE_CONFIGURED?'on':'off'}"><svg data-lucide="${IS_FIREBASE_CONFIGURED?'cloud':'cloud-off'}"></svg></div>
+          <div>
+            <div style="font-weight:700; font-size:13.5px;">${IS_FIREBASE_CONFIGURED?'Connected to Firebase':'Running in local mode'}</div>
+            <div class="muted" style="font-size:12px;">${IS_FIREBASE_CONFIGURED? Utils.escapeHtml(firebaseConfig.projectId) : 'Data is saved to this device only.'}</div>
+          </div>
+        </div>
+        ${!IS_FIREBASE_CONFIGURED ? `
+          <p class="muted" style="font-size:13px; line-height:1.6; margin-bottom:14px;">To connect Firebase: open <code class="inline">index.html</code>, find the <code class="inline">firebaseConfig</code> object near the top of the script, and paste in your project's keys. Then create these collections in Firestore:</p>
+          <pre class="code-block">items, categories, suppliers, outlets,
+conversions, users, settings, logs</pre>
+          <p class="muted" style="font-size:12.5px; margin-top:12px;">Everything you've entered locally is kept — once connected, use "Backup & Restore" to push your local data into Firestore.</p>
+        ` : `<p class="muted" style="font-size:13px;">Auth, Firestore, and Storage are all live. Offline persistence is enabled — DSMC keeps working if the connection drops.</p>`}
+      </div>`;
+    renderIcons(body);
+  }
+
+  function paintBackup(){
+    body.innerHTML = `
+      <div class="settings-section">
+        <h3 style="font-size:14px; margin-bottom:6px;">Export</h3>
+        <p class="muted" style="font-size:12.8px; margin-bottom:14px;">Download every master-data record as a single JSON file.</p>
+        <button class="btn btn-ghost" id="exportBtn" style="margin-bottom:26px;"><svg data-lucide="download" style="width:15px;height:15px;"></svg> Export backup (.json)</button>
+        <h3 style="font-size:14px; margin-bottom:6px;">Restore</h3>
+        <p class="muted" style="font-size:12.8px; margin-bottom:14px;">Upload a previously exported backup file. This merges into existing data by ID.</p>
+        <input type="file" id="restoreInput" accept="application/json" class="hidden">
+        <button class="btn btn-ghost" id="restoreBtn"><svg data-lucide="upload" style="width:15px;height:15px;"></svg> Restore from file</button>
+      </div>`;
+    renderIcons(body);
+    document.getElementById("exportBtn").addEventListener("click", async ()=>{
+      const payload = {};
+      for (const k of Object.keys(Stores)) payload[k] = await Stores[k].list();
+      payload.settings = LocalStore.getDoc("settings");
+      payload.exportedAt = new Date().toISOString();
+      Utils.downloadFile(`dsmc-backup-${Date.now()}.json`, JSON.stringify(payload, null, 2));
+      Toast.show("Backup downloaded.", "success");
+    });
+    document.getElementById("restoreBtn").addEventListener("click", ()=>document.getElementById("restoreInput").click());
+    document.getElementById("restoreInput").addEventListener("change", async (e)=>{
+      const file = e.target.files[0]; if (!file) return;
+      try{
+        const text = await file.text();
+        const data = JSON.parse(text);
+        for (const key of Object.keys(Stores)){
+          if (Array.isArray(data[key])){
+            for (const record of data[key]){ await Stores[key].update(record.id, record).catch(()=> Stores[key].create(record)); }
+          }
+        }
+        if (data.settings) LocalStore.setDoc("settings", data.settings);
+        Toast.show("Restore complete.", "success");
+      }catch(err){ Toast.show("Couldn't read that file — is it a DSMC backup?", "error"); }
+    });
+  }
+
+  paintTab(initialTab);
+}
+
+/* ---------------------------------------------------------------------
+   16. THEME
+   --------------------------------------------------------------------- */
+function applyTheme(){
+  const settings = LocalStore.getDoc("settings") || { theme:"system" };
+  let mode = settings.theme || "system";
+  if (mode === "system") mode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.dataset.theme = mode;
+  const btnIcon = document.querySelector("#themeToggleBtn svg");
+  if (btnIcon) btnIcon.setAttribute("data-lucide", mode==="dark"?"sun":"moon");
+  renderIcons(document.getElementById("themeToggleBtn"));
+}
+
+/* ---------------------------------------------------------------------
+   17. PWA — manifest injection, iOS icon, service worker, install banner
+   --------------------------------------------------------------------- */
+function setupPWA(){
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#1B7A43"/><path d="M50 20 C 35 32, 30 48, 40 62 C 44 68, 50 70, 50 70 C 50 70, 56 68, 60 62 C 70 48, 65 32, 50 20 Z" fill="#EAF6EE"/><rect x="47" y="62" width="6" height="18" rx="3" fill="#EAF6EE"/></svg>`;
+  const iconDataUri = "data:image/svg+xml;base64," + btoa(iconSvg);
+  document.getElementById("appleTouchIcon").href = iconDataUri;
+  document.getElementById("favicon").href = iconDataUri;
+  const loginIcon = document.getElementById("loginMarkIcon");
+  if (loginIcon) loginIcon.outerHTML = iconSvg.replace("<svg ", '<svg id="loginMarkIcon" ').replace('viewBox="0 0 100 100"', 'viewBox="0 0 100 100" width="24" height="24"');
+
+  const manifest = {
+    name: "Dolan Sawah Material Control", short_name: "DSMC",
+    start_url: ".", scope: ".", display: "standalone",
+    background_color: "#F5F8F6", theme_color: "#1B7A43",
+    icons: [{ src: iconDataUri, sizes: "any", type: "image/svg+xml", purpose: "any maskable" }]
   };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+  document.getElementById("manifestLink").href = URL.createObjectURL(manifestBlob);
 
-  input.click();
+  if ("serviceWorker" in navigator){
+    const swCode = `
+      const CACHE = "dsmc-shell-v1";
+      self.addEventListener("install", e => { self.skipWaiting(); });
+      self.addEventListener("activate", e => { self.clients.claim(); });
+      self.addEventListener("fetch", e => {
+        if (e.request.method !== "GET") return;
+        e.respondWith(
+          caches.open(CACHE).then(cache =>
+            cache.match(e.request).then(cached => {
+              const fetchPromise = fetch(e.request).then(res => { if (res.ok) cache.put(e.request, res.clone()); return res; }).catch(() => cached);
+              return cached || fetchPromise;
+            })
+          )
+        );
+      });
+    `;
+    const swBlob = new Blob([swCode], { type: "text/javascript" });
+    const swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl).catch(err=>console.warn("Service worker registration skipped:", err));
+  }
+
+  let deferredPrompt = null;
+  window.addEventListener("beforeinstallprompt", (e)=>{
+    e.preventDefault(); deferredPrompt = e;
+    if (localStorage.getItem("dsmc_install_dismissed")) return;
+    const banner = document.getElementById("installBanner");
+    banner.classList.remove("hidden");
+    banner.innerHTML = `<svg data-lucide="download"></svg><div class="ib-text"><b>Install DSMC</b>Add it to your home screen for one-tap access.</div>
+      <button class="btn btn-primary btn-sm" id="installNowBtn">Install</button>
+      <button class="btn-icon btn-sm" id="installDismissBtn"><svg data-lucide="x" style="width:13px;height:13px;"></svg></button>`;
+    renderIcons(banner);
+    document.getElementById("installNowBtn").addEventListener("click", async ()=>{ banner.classList.add("hidden"); deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; });
+    document.getElementById("installDismissBtn").addEventListener("click", ()=>{ banner.classList.add("hidden"); localStorage.setItem("dsmc_install_dismissed","1"); });
+  });
 }
 
-/* ================================
-   RESET
-================================ */
-function resetPurchases(){
-  if (!confirm("Reset belanja?")) return;
-  db.set(DB_KEY.purchases, []);
-  renderList();
+/* ---------------------------------------------------------------------
+   18. SIDEBAR / MOBILE INTERACTIONS
+   --------------------------------------------------------------------- */
+function closeMobileSidebar(){
+  document.getElementById("sidebar").classList.remove("mobile-open");
+  document.getElementById("sidebarScrim").classList.remove("show");
 }
+function setupChrome(){
+  document.getElementById("collapseBtn").addEventListener("click", ()=>{ document.getElementById("sidebar").classList.toggle("collapsed"); });
+  document.getElementById("hamburgerBtn").addEventListener("click", ()=>{ document.getElementById("sidebar").classList.add("mobile-open"); document.getElementById("sidebarScrim").classList.add("show"); });
+  document.getElementById("sidebarScrim").addEventListener("click", closeMobileSidebar);
 
-function resetSales(){
-  if (!confirm("Reset penjualan?")) return;
-  db.set(DB_KEY.sales, []);
-  renderSales();
-}
-
-function resetAll(){
-
-  if (!confirm("Reset semua data?")) return;
-
-  const code = prompt("Ketik RESET:");
-  if (code !== "RESET") return;
-
-  Object.values(DB_KEY).forEach(k=>{
-    localStorage.removeItem(k);
+  document.getElementById("themeToggleBtn").addEventListener("click", ()=>{
+    const settings = LocalStore.getDoc("settings") || {};
+    const current = document.documentElement.dataset.theme;
+    settings.theme = current === "dark" ? "light" : "dark";
+    LocalStore.setDoc("settings", settings);
+    applyTheme();
   });
 
-  location.reload();
+  const userMenuBtn = document.getElementById("userMenuBtn");
+  const userMenuPanel = document.getElementById("userMenuPanel");
+  userMenuBtn.addEventListener("click", (e)=>{ e.stopPropagation(); userMenuPanel.classList.toggle("hidden"); });
+  document.addEventListener("click", ()=> userMenuPanel.classList.add("hidden"));
+  userMenuPanel.querySelectorAll("[data-nav]").forEach(el=> el.addEventListener("click", ()=>{
+    const [route, tab] = el.dataset.nav.split("/");
+    Router.navigate(route);
+    if (tab) setTimeout(()=>renderSettings(document.getElementById("mainContent"), tab), 30);
+  }));
+  document.getElementById("logoutBtn").addEventListener("click", async ()=>{ await AuthService.logout(); location.hash = ""; showLogin(); });
+
+  const searchInput = document.getElementById("globalSearchInput");
+  searchInput.addEventListener("input", Utils.debounce(e=>runGlobalSearch(e.target.value), 220));
+  document.addEventListener("click", (e)=>{ if (!document.getElementById("topbarSearchWrap").contains(e.target)) document.getElementById("searchResultsPanel").classList.add("hidden"); });
+  document.addEventListener("keydown", (e)=>{
+    if (e.key === "/" && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA"){ e.preventDefault(); searchInput.focus(); }
+    if (e.key === "Escape"){ Modal.close(); document.getElementById("searchResultsPanel").classList.add("hidden"); }
+  });
+
+  window.addEventListener("online", updateConnBadge);
+  window.addEventListener("offline", updateConnBadge);
+  updateConnBadge();
 }
 
-/* ================================
-   ADMIN RENDER (CENTRAL)
-================================ */
-function renderAdmin(){
-
-  renderCats();
-  renderMaster();
-  renderUnknown();
-  renderTools();
+/* ---------------------------------------------------------------------
+   19. ROUTE REGISTRATION
+   --------------------------------------------------------------------- */
+function registerRoutes(){
+  Router.register("dashboard", renderDashboard);
+  Router.register("items", (c)=>{ dashboardActive=false; itemsModule.render(c); });
+  Router.register("categories", (c)=>{ dashboardActive=false; categoriesModule.render(c); });
+  Router.register("suppliers", (c)=>{ dashboardActive=false; suppliersModule.render(c); });
+  Router.register("outlets", (c)=>{ dashboardActive=false; outletsModule.render(c); });
+  Router.register("conversions", (c)=>{ dashboardActive=false; conversionsModule.render(c); });
+  Router.register("users", (c)=>{ dashboardActive=false; usersModule.render(c); });
+  Router.register("settings", (c)=>renderSettings(c, "profile"));
 }
 
-/* ================================
-   UX ENHANCEMENT
-================================ */
-function setupUX(){
+/* ---------------------------------------------------------------------
+   20. LOGIN SCREEN LOGIC
+   --------------------------------------------------------------------- */
+function showLogin(){
+  document.getElementById("app").classList.remove("active");
+  document.getElementById("loginScreen").classList.remove("hidden");
+  document.getElementById("fbConfigBanner").classList.toggle("hidden", IS_FIREBASE_CONFIGURED);
+  document.getElementById("loginErrorBox").classList.add("hidden");
 
-  const bulk = document.getElementById("bulk");
-  const sale = document.getElementById("sale");
+  const demoWrap = document.getElementById("localModeUsers");
+  if (!IS_FIREBASE_CONFIGURED){
+    const users = LocalStore.getAll("users");
+    demoWrap.innerHTML = `<div class="page-sub" style="margin-bottom:10px; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint);">Local demo accounts</div>` +
+      users.map(u=>`<div class="demo-user-chip" data-email="${u.email}" data-pass="${u.localPassword}"><span><b>${Utils.escapeHtml(u.name)}</b> · ${Utils.escapeHtml(u.email)}</span><span class="role-pill">${ROLES[u.role]?.label}</span></div>`).join("");
+    demoWrap.querySelectorAll(".demo-user-chip").forEach(el=>{
+      el.addEventListener("click", ()=>{ document.getElementById("loginEmail").value = el.dataset.email; document.getElementById("loginPassword").value = el.dataset.pass; });
+    });
+  } else { demoWrap.innerHTML = ""; }
+  renderIcons(document.getElementById("loginScreen"));
+}
 
-  bulk.addEventListener("keydown", e=>{
-    if (e.ctrlKey && e.key === "Enter"){
-      process();
+function setupLoginForm(){
+  document.getElementById("loginForm").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+    const remember = document.getElementById("rememberMe").checked;
+    const btn = document.getElementById("loginSubmitBtn");
+    const errBox = document.getElementById("loginErrorBox");
+    errBox.classList.add("hidden");
+    btn.disabled = true; btn.innerHTML = `<div class="spinner"></div>`;
+    try{
+      await AuthService.login(email, password, remember);
+      await boot();
+    }catch(err){
+      document.getElementById("loginErrorText").textContent = err.message || "Couldn't sign in. Please try again.";
+      errBox.classList.remove("hidden");
+      btn.disabled = false; btn.innerHTML = `<svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Sign in`;
+      renderIcons(btn);
     }
   });
-
-  sale.addEventListener("keydown", e=>{
-    if (e.ctrlKey && e.key === "Enter"){
-      processSale();
-    }
-  });
 }
 
-/* ================================
-   PERFORMANCE (LIGHT)
-================================ */
-function trimOldData(){
-
-  const limit = new Date();
-  limit.setDate(limit.getDate()-30);
-
-  let p = db.get(DB_KEY.purchases).filter(x=>x.date >= limit.toISOString());
-  let s = db.get(DB_KEY.sales).filter(x=>x.date >= limit.toISOString());
-
-  db.set(DB_KEY.purchases, p);
-  db.set(DB_KEY.sales, s);
+/* ---------------------------------------------------------------------
+   21. BOOT
+   --------------------------------------------------------------------- */
+async function boot(){
+  if (!CURRENT_USER) return;
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("app").classList.add("active");
+  document.getElementById("userAvatar").textContent = Utils.initials(CURRENT_USER.name);
+  document.getElementById("userMenuName").textContent = CURRENT_USER.name;
+  document.getElementById("userMenuRole").textContent = ROLES[CURRENT_USER.role]?.label || CURRENT_USER.role;
+  const settings = LocalStore.getDoc("settings");
+  if (settings?.businessName) document.querySelector(".sidebar-head .brand").innerHTML = `DSMC<small>${Utils.escapeHtml(settings.businessName)} · Material Control</small>`;
+  buildSidebarNav();
+  await buildOutletSwitch();
+  Router.start();
 }
 
-/* ================================
-   FINAL INIT EXTENSION
-================================ */
-(function(){
+async function main(){
+  await initFirebase();
+  seedDefaults();
+  applyTheme();
+  setupPWA();
+  registerRoutes();
+  setupChrome();
+  setupLoginForm();
+  renderIcons(document.body);
 
-  const oldInit = initApp;
+  document.getElementById("bootLoader").remove();
 
-  initApp = function(){
-    oldInit();
+  if (IS_FIREBASE_CONFIGURED && fbAuth){
+    fbSdk.onAuthStateChanged(fbAuth, async (user)=>{
+      if (user){ await AuthService._loadProfileFromUsers(user.uid, user.email || ""); await boot(); }
+      else { CURRENT_USER = null; showLogin(); }
+    });
+  } else {
+    const restored = AuthService.restoreSession();
+    if (restored){ CURRENT_USER = restored; await boot(); }
+    else showLogin();
+  }
+}
 
-    renderFavorites();
-    setupUX();
-    trimOldData();
-
-    console.log("🔥 APP FULL READY");
-  };
-
-})();
+main();
 </script>
 </body>
 </html>

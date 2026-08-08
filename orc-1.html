@@ -1039,9 +1039,7 @@ function seedDefaults(){
   ]);
   if (!IS_FIREBASE_CONFIGURED){
     LocalStore.seedIfEmpty("users", [
-      { id:"local_owner", name:"Koum", email:"owner@dolansawah.id", role:"owner", outletIds:[], status:"active", localPassword:"owner123", createdAt:Date.now(), updatedAt:Date.now() },
-      { id:"local_manager", name:"Manager Demo", email:"manager@dolansawah.id", role:"manager", outletIds:[], status:"active", localPassword:"manager123", createdAt:Date.now(), updatedAt:Date.now() },
-      { id:"local_kitchen", name:"Kitchen Demo", email:"kitchen@dolansawah.id", role:"kitchen", outletIds:["outlet_dolan_sawah"], status:"active", localPassword:"kitchen123", createdAt:Date.now(), updatedAt:Date.now() },
+      { id:"local_manager", name:"Koum", email:"manager@dolansawah.id", role:"manager", outletIds:[], status:"active", localPassword:"manager123", createdAt:Date.now(), updatedAt:Date.now() },
       { id:"local_purchasing", name:"Purchasing Demo", email:"purchasing@dolansawah.id", role:"purchasing", outletIds:[], status:"active", localPassword:"purchasing123", createdAt:Date.now(), updatedAt:Date.now() }
     ]);
   }
@@ -1062,11 +1060,8 @@ function fullAccess(mods){ const o={}; mods.forEach(m=>o[m]=["view","create","ed
 function viewOnly(mods){ const o={}; mods.forEach(m=>o[m]=["view"]); return o; }
 
 const ROLES = {
-  owner:  { label:"Owner",  color:"green", permissions: fullAccess(MODULES) },
-  manager:{ label:"Manager",color:"blue",  permissions: { ...fullAccess(["items","categories","suppliers","outlets","conversions","purchaseRequests","purchaseOrders","goodsReceipts","stockOpname","recipes","sales","analytics"]), users:["view"], settings:["view","edit"] } },
-  kitchen:{ label:"Kitchen",color:"amber", permissions: { ...viewOnly(["items","categories","suppliers","outlets","conversions","analytics"]), purchaseRequests:["view","create","edit"], recipes:["view"] } },
-  purchasing:{ label:"Purchasing", color:"amber", permissions: { ...viewOnly(["items","categories","outlets","conversions","analytics"]), suppliers:["view","create","edit"], purchaseRequests:["view","create","edit"], purchaseOrders:["view","create","edit"] } },
-  receiving:{ label:"Receiving", color:"grey", permissions: { ...viewOnly(["items","outlets","conversions"]), goodsReceipts:["view","create","edit"] } }
+  manager:{ label:"Manager", color:"green", permissions: { ...fullAccess(MODULES), purchaseRequests:["view","create","edit","delete","approve"] } },
+  purchasing:{ label:"Purchasing", color:"amber", permissions: { ...viewOnly(["items","categories","outlets","conversions","analytics"]), suppliers:["view","create","edit"], purchaseRequests:["view","create","edit","delete"], purchaseOrders:["view","create","edit"] } }
 };
 const RBAC = {
   can(role, mod, action){
@@ -1103,8 +1098,9 @@ const AuthService = {
     const users = await Stores.users.list();
     let profile = users.find(u => u.id===uid || u.email?.toLowerCase()===email.toLowerCase());
     if (!profile){
-      await Stores.users.create({ name: email.split("@")[0], email, role:"owner", outletIds:[] });
-      profile = { id:uid, name:email.split("@")[0], email, role:"owner", outletIds:[] };
+      // first Firebase login with no matching profile doc yet — provision as Manager (the top-tier role) so setup can continue
+      await Stores.users.create({ name: email.split("@")[0], email, role:"manager", outletIds:[] });
+      profile = { id:uid, name:email.split("@")[0], email, role:"manager", outletIds:[] };
     }
     CURRENT_USER = { id:profile.id, name:profile.name, email:profile.email, role:profile.role, outletIds:profile.outletIds||[] };
   },
@@ -1695,9 +1691,9 @@ class UsersModule extends CrudModule{
     saveBtn.disabled = true; saveBtn.innerHTML = `<div class="spinner"></div>`;
     try{
       if (existingItem){
-        if (existingItem.role==="owner" && data.role!=="owner"){
-          const owners = this.items.filter(u=>u.role==="owner");
-          if (owners.length<=1){ Toast.show("At least one Owner is required.", "error"); saveBtn.disabled=false; saveBtn.textContent="Save changes"; return; }
+        if (existingItem.role==="manager" && data.role!=="manager"){
+          const managers = this.items.filter(u=>u.role==="manager");
+          if (managers.length<=1){ Toast.show("At least one Manager is required.", "error"); saveBtn.disabled=false; saveBtn.textContent="Save changes"; return; }
         }
         await this.store.update(existingItem.id, data);
         await Logger.log("updated", "users", data.name);
@@ -1727,9 +1723,9 @@ class UsersModule extends CrudModule{
   }
   async handleDelete(item){
     if (item.id === CURRENT_USER.id){ Toast.show("You can't delete your own account.", "error"); return; }
-    if (item.role==="owner"){
-      const owners = this.items.filter(u=>u.role==="owner");
-      if (owners.length<=1){ Toast.show("At least one Owner is required.", "error"); return; }
+    if (item.role==="manager"){
+      const managers = this.items.filter(u=>u.role==="manager");
+      if (managers.length<=1){ Toast.show("At least one Manager is required.", "error"); return; }
     }
     return super.handleDelete(item);
   }
@@ -1738,9 +1734,10 @@ const usersModule = new UsersModule();
 
 /* ---------------------------------------------------------------------
    13b. PURCHASE REQUESTS (Phase 2)
-   Kitchen builds a request per outlet from master-data items, Owner or
-   Manager approves it, and approved requests can be exported as one
-   WhatsApp-ready message grouped by outlet short code.
+   Purchasing builds a request per outlet from master-data items, Manager
+   approves or un-approves it (separation of duties — see canTransition),
+   and approved requests can be exported as WhatsApp-ready text grouped by
+   category then by outlet short code.
    --------------------------------------------------------------------- */
 const PR_STATUSES = ["draft","approved","ordered","received","completed"];
 const PR_STATUS_LABEL = { draft:"Draft", approved:"Approved", ordered:"Ordered", received:"Received", completed:"Completed" };
@@ -1753,6 +1750,13 @@ class PurchaseRequestModule{
   get canCreate(){ return RBAC.can(CURRENT_USER.role, this.key, "create"); }
   get canEdit(){ return RBAC.can(CURRENT_USER.role, this.key, "edit"); }
   get canDelete(){ return RBAC.can(CURRENT_USER.role, this.key, "delete"); }
+  get canApprove(){ return RBAC.can(CURRENT_USER.role, this.key, "approve"); }
+  /* The Draft ↔ Approved edge is a deliberate approval gate in both
+     directions (approving, and un-approving) — separation of duties:
+     Purchasing builds the list, only Manager can approve/un-approve it.
+     Every other transition just needs ordinary edit rights. */
+  isApprovalEdge(a, b){ return (a==="draft" && b==="approved") || (a==="approved" && b==="draft"); }
+  canTransition(fromStatus, toStatus){ return this.isApprovalEdge(fromStatus, toStatus) ? this.canApprove : this.canEdit; }
 
   async render(container){
     this.container = container;
@@ -1896,13 +1900,15 @@ class PurchaseRequestModule{
 
     const next = record ? PR_NEXT_STATUS[record.status] : null;
     const prev = record ? PR_PREV_STATUS[record.status] : null;
+    const nextAllowed = record && next ? this.canTransition(record.status, next) : false;
+    const prevAllowed = record && prev ? this.canTransition(record.status, prev) : false;
     const footHtml = `
       <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-ghost btn-sm" id="prCopyBtn"><svg data-lucide="copy" style="width:13px;height:13px;"></svg> Copy WhatsApp</button>
           ${isEdit?`<button class="btn btn-ghost btn-sm" id="prDuplicateBtn"><svg data-lucide="copy-plus" style="width:13px;height:13px;"></svg> Duplikat</button>`:''}
-          ${isEdit && this.canEdit && prev ? `<button class="btn btn-ghost btn-sm" id="prPrevBtn">← ${PR_STATUS_LABEL[prev]}</button>`:''}
-          ${isEdit && this.canEdit && next ? `<button class="btn btn-primary btn-sm" id="prNextBtn">Tandai ${PR_STATUS_LABEL[next]} →</button>`:''}
+          ${isEdit && prevAllowed ? `<button class="btn btn-ghost btn-sm" id="prPrevBtn">← ${PR_STATUS_LABEL[prev]}</button>`:''}
+          ${isEdit && nextAllowed ? `<button class="btn btn-primary btn-sm" id="prNextBtn">Tandai ${PR_STATUS_LABEL[next]} →</button>`:''}
           ${isEdit && this.canDelete ? `<button class="btn btn-danger btn-sm" id="prDeleteBtn"><svg data-lucide="trash-2" style="width:13px;height:13px;"></svg> Hapus</button>`:''}
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px;">

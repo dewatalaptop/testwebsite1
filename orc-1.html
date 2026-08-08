@@ -532,11 +532,13 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
 
 <script type="module">
 /* =====================================================================
-   DSMC — Dolan Sawah Material Control · Phase 1
-   Master Data, RBAC, Dashboard, PWA shell, Dark Mode, Offline-first.
-   Phases 2-4 (Purchase Requests, Goods Receipt, Stock Opname, Recipe
-   Learning) are intentionally scaffolded as "coming soon" nav entries —
-   agreed as a phased build rather than one monolithic pass.
+   DSMC — Dolan Sawah Material Control · Phase 1 + Phase 2
+   Phase 1: Master Data, RBAC, Dashboard, PWA shell, Dark Mode, Offline-first.
+   Phase 2: Purchase Requests (per-outlet request → approve → order →
+   receive → complete, with a WhatsApp broadcast export).
+   Goods Receipt, Stock Opname, and Recipe Learning are still scaffolded
+   as "coming soon" nav entries — agreed as a phased build rather than
+   one monolithic pass.
 
    ARCHITECTURE
    - LocalStore     : localStorage-backed collection reader/writer
@@ -551,6 +553,8 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
    - Router         : hash-based SPA router
    - CrudModule     : generic, config-driven table+form CRUD screen,
                        extended by each master-data module
+   - PurchaseRequestModule : bespoke module (line items + status
+                       workflow + WhatsApp export don't fit CrudModule)
    ===================================================================== */
 
 /* ---------------------------------------------------------------------
@@ -559,8 +563,8 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
    below in Firestore. Nothing else needs to change — DataStore detects
    a filled-in apiKey and switches from local mode to Firestore/Auth
    automatically.
-   Collections used by Phase 1: items, categories, suppliers, outlets,
-   conversions, users, settings, logs.
+   Collections used so far: items, categories, suppliers, outlets,
+   conversions, users, purchaseRequests, settings, logs.
    --------------------------------------------------------------------- */
 const firebaseConfig = {
   apiKey: "",
@@ -786,14 +790,15 @@ const Stores = {
   outlets: new DataStore("outlets"),
   conversions: new DataStore("conversions"),
   users: new DataStore("users"),
+  purchaseRequests: new DataStore("purchaseRequests"),
   logs: new DataStore("logs")
 };
 
 function seedDefaults(){
   LocalStore.seedIfEmpty("outlets", [
-    { id:"outlet_dolan_sawah", name:"Dolan Sawah", address:"Salatiga", phone:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
-    { id:"outlet_soto_sawah", name:"Soto Sawah", address:"Salatiga", phone:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
-    { id:"outlet_sawah_senja", name:"Sawah Senja", address:"Salatiga", phone:"", status:"active", createdAt:Date.now(), updatedAt:Date.now() }
+    { id:"outlet_dolan_sawah", name:"Dolan Sawah", address:"Salatiga", phone:"", shortCode:"DS", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"outlet_soto_sawah", name:"Soto Sawah", address:"Salatiga", phone:"", shortCode:"SP", status:"active", createdAt:Date.now(), updatedAt:Date.now() },
+    { id:"outlet_sawah_senja", name:"Sawah Senja", address:"Salatiga", phone:"", shortCode:"SS", status:"active", createdAt:Date.now(), updatedAt:Date.now() }
   ]);
   LocalStore.seedIfEmpty("categories", [
     { id:"cat_sayuran", name:"Sayuran & Bumbu Segar", color:"#1B7A43", description:"Sayur, daun, dan bumbu segar", createdAt:Date.now(), updatedAt:Date.now() },
@@ -1113,8 +1118,8 @@ const NAV = [
     { route:"users", label:"Users & Roles", icon:"users", mod:"users" }
   ]},
   { group:"Operations", items:[
-    { route:"purchase-requests", label:"Purchase Requests", icon:"clipboard-list", mod:"purchaseRequests", badge:"Phase 2" },
-    { route:"goods-receipt", label:"Goods Receipt", icon:"package-check", mod:"goodsReceipts", badge:"Phase 2" },
+    { route:"purchase-requests", label:"Purchase Requests", icon:"clipboard-list", mod:"purchaseRequests" },
+    { route:"goods-receipt", label:"Goods Receipt", icon:"package-check", mod:"goodsReceipts", badge:"Phase 3" },
     { route:"stock-opname", label:"Stock Opname", icon:"clipboard-check", mod:"stockOpname", badge:"Phase 3" },
     { route:"recipes", label:"Recipe Learning", icon:"brain-circuit", mod:"recipes", badge:"Phase 4" },
     { route:"sales", label:"Sales", icon:"receipt", mod:"sales", badge:"Phase 3" },
@@ -1507,13 +1512,14 @@ const outletsModule = new CrudModule({
   key:"outlets", title:"Outlets", subtitle:"Every location this data is tracked across.",
   emptyIcon:"store", emptyTitle:"No outlets yet", emptySub:"Add Dolan Sawah, Soto Sawah, Sawah Senja, or any new location.",
   columns:[
-    { key:"name", label:"Outlet", render:(i)=>`<span class="cell-primary">${Utils.escapeHtml(i.name)}</span>` },
+    { key:"name", label:"Outlet", render:(i)=>`<span class="cell-primary">${Utils.escapeHtml(i.name)}</span>${i.shortCode?`<div class="cell-sub">${Utils.escapeHtml(i.shortCode)}</div>`:''}` },
     { key:"address", label:"Address", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.address||"—")}</span>` },
     { key:"phone", label:"Phone" },
     { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
   ],
   fields:[
-    { key:"name", label:"Outlet name", required:true },
+    { key:"name", label:"Outlet name", required:true, half:true, halfPos:"l" },
+    { key:"shortCode", label:"Short code (WhatsApp)", half:true, halfPos:"r", placeholder:"e.g. DS" },
     { key:"phone", label:"Phone", half:true, halfPos:"l" },
     { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" },
     { key:"address", label:"Address", type:"textarea" }
@@ -1665,6 +1671,350 @@ class UsersModule extends CrudModule{
 const usersModule = new UsersModule();
 
 /* ---------------------------------------------------------------------
+   13b. PURCHASE REQUESTS (Phase 2)
+   Kitchen builds a request per outlet from master-data items, Owner or
+   Manager approves it, and approved requests can be exported as one
+   WhatsApp-ready message grouped by outlet short code.
+   --------------------------------------------------------------------- */
+const PR_STATUSES = ["draft","approved","ordered","received","completed"];
+const PR_STATUS_LABEL = { draft:"Draft", approved:"Approved", ordered:"Ordered", received:"Received", completed:"Completed" };
+const PR_STATUS_COLOR = { draft:"grey", approved:"blue", ordered:"amber", received:"green", completed:"green" };
+const PR_NEXT_STATUS = { draft:"approved", approved:"ordered", ordered:"received", received:"completed" };
+const PR_PREV_STATUS = { approved:"draft", ordered:"approved", received:"ordered" };
+
+class PurchaseRequestModule{
+  constructor(){ this.key = "purchaseRequests"; this.state = { statusFilter:null, outletFilter:null, search:"" }; }
+  get canCreate(){ return RBAC.can(CURRENT_USER.role, this.key, "create"); }
+  get canEdit(){ return RBAC.can(CURRENT_USER.role, this.key, "edit"); }
+  get canDelete(){ return RBAC.can(CURRENT_USER.role, this.key, "delete"); }
+
+  async render(container){
+    this.container = container;
+    this.state = { statusFilter:null, outletFilter:null, search:"" };
+    this.outlets = await Stores.outlets.list();
+    this.items_all = await Stores.items.list();
+    container.innerHTML = `
+      <div class="page-head">
+        <div><h2>Purchase Requests</h2><div class="page-sub">Belanja per outlet — dari draft sampai selesai.</div></div>
+        <div class="page-actions">
+          <button class="btn btn-ghost" id="prBroadcastBtn"><svg data-lucide="message-circle"></svg> WhatsApp broadcast</button>
+          ${this.canCreate?`<button class="btn btn-primary" id="prAddBtn"><svg data-lucide="plus"></svg> New request</button>`:""}
+        </div>
+      </div>
+      <div class="toolbar" id="prStatusChips"></div>
+      <div class="toolbar" id="prOutletChips"></div>
+      <div class="toolbar">
+        <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="prSearchInput" placeholder="Search requests…"></div>
+        <span class="result-count" id="prResultCount"></span>
+      </div>
+      <div class="table-wrap" id="prTableWrap"></div>
+    `;
+    renderIcons(container);
+    document.getElementById("prSearchInput").addEventListener("input", Utils.debounce(e=>{ this.state.search=e.target.value; this.paint(); }, 200));
+    if (this.canCreate) document.getElementById("prAddBtn").addEventListener("click", ()=>this.openForm(null));
+    document.getElementById("prBroadcastBtn").addEventListener("click", ()=>this.openBroadcast());
+    this.paintStatusChips();
+    this.paintOutletChips();
+    this.records = await Stores.purchaseRequests.list();
+    this.paint();
+  }
+
+  paintStatusChips(){
+    const wrap = document.getElementById("prStatusChips");
+    const chips = [{id:null,label:"Semua status"}, ...PR_STATUSES.map(s=>({id:s,label:PR_STATUS_LABEL[s]}))];
+    wrap.innerHTML = chips.map(c=>`<span class="filter-chip ${this.state.statusFilter===c.id?'active':''}" data-status="${c.id||''}">${c.label}</span>`).join("");
+    wrap.querySelectorAll(".filter-chip").forEach(el=> el.addEventListener("click", ()=>{ this.state.statusFilter = el.dataset.status||null; this.paintStatusChips(); this.paint(); }));
+  }
+  paintOutletChips(){
+    const wrap = document.getElementById("prOutletChips");
+    const active = this.outlets.filter(o=>o.status==="active");
+    const chips = [{id:null,name:"Semua outlet"}, ...active];
+    wrap.innerHTML = chips.map(o=>`<span class="filter-chip ${this.state.outletFilter===o.id?'active':''}" data-outlet="${o.id||''}">${Utils.escapeHtml(o.name)}</span>`).join("");
+    wrap.querySelectorAll(".filter-chip").forEach(el=> el.addEventListener("click", ()=>{ this.state.outletFilter = el.dataset.outlet||null; this.paintOutletChips(); this.paint(); }));
+  }
+
+  filtered(){
+    let arr = [...this.records];
+    if (this.state.statusFilter) arr = arr.filter(r=>r.status===this.state.statusFilter);
+    if (this.state.outletFilter) arr = arr.filter(r=>r.outletId===this.state.outletFilter);
+    if (this.state.search){
+      const q = this.state.search.toLowerCase();
+      arr = arr.filter(r => (r.items||[]).some(it=>it.name.toLowerCase().includes(q)) || (r.notes||"").toLowerCase().includes(q));
+    }
+    arr.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    return arr;
+  }
+
+  paint(){
+    const wrap = document.getElementById("prTableWrap");
+    const all = this.filtered();
+    document.getElementById("prResultCount").textContent = `${all.length} total`;
+    if (!all.length){
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="clipboard-list"></svg><div class="es-title">Belum ada purchase request</div><div class="es-sub">Buat permintaan belanja pertama untuk salah satu outlet.</div></div>`;
+      renderIcons(wrap); return;
+    }
+    wrap.innerHTML = `
+      <table class="data-table">
+        <thead><tr><th>Outlet</th><th>Items</th><th>Status</th><th>Dibuat oleh</th><th>Tanggal</th><th style="text-align:right;">Aksi</th></tr></thead>
+        <tbody>
+          ${all.map(r=>{
+            const outlet = this.outlets.find(o=>o.id===r.outletId);
+            const itemNames = (r.items||[]).slice(0,3).map(it=>Utils.escapeHtml(it.name)).join(", ");
+            const more = (r.items||[]).length>3 ? ` +${r.items.length-3} lagi` : "";
+            return `<tr data-id="${r.id}">
+              <td><span class="cell-primary">${outlet?Utils.escapeHtml(outlet.name):'—'}</span></td>
+              <td><span class="muted">${itemNames||'—'}${more}</span></td>
+              <td><span class="badge ${PR_STATUS_COLOR[r.status]}">${PR_STATUS_LABEL[r.status]}</span></td>
+              <td>${Utils.escapeHtml(r.createdByName||'—')}</td>
+              <td class="muted">${Utils.formatDate(r.createdAt)}</td>
+              <td><div class="row-actions"><button class="btn-icon btn-sm view-btn" title="Open"><svg data-lucide="chevron-right" style="width:14px;height:14px;"></svg></button></div></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+    renderIcons(wrap);
+    wrap.querySelectorAll("tr[data-id]").forEach(tr=>{
+      const rec = this.records.find(r=>r.id===tr.dataset.id);
+      tr.addEventListener("click", ()=>this.openForm(rec));
+    });
+  }
+
+  itemOptionsForOutlet(outletId){
+    return this.items_all.filter(i => i.status==="active" && (!i.outletIds || !i.outletIds.length || i.outletIds.includes(outletId)));
+  }
+
+  openForm(record){
+    const isEdit = !!record;
+    const editableLines = this.canEdit && (!record || record.status === "draft");
+    let workingItems = record ? JSON.parse(JSON.stringify(record.items||[])) : [];
+    let workingOutletId = record ? record.outletId : (this.outlets.find(o=>o.status==="active")?.id || "");
+
+    const bodyHtml = `
+      <div class="field">
+        <label class="field-label">Outlet *</label>
+        <select class="select" id="prOutletSelect" ${!editableLines?'disabled':''}>
+          ${this.outlets.filter(o=>o.status==='active').map(o=>`<option value="${o.id}" ${o.id===workingOutletId?'selected':''}>${Utils.escapeHtml(o.name)}</option>`).join("")}
+        </select>
+      </div>
+      ${editableLines ? `
+        <div class="field">
+          <label class="field-label">Tambah item</label>
+          <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="prItemSearch" placeholder="Cari item untuk outlet ini…" autocomplete="off"></div>
+          <div id="prItemPickerResults" class="search-results hidden" style="position:relative; top:6px;"></div>
+        </div>` : ''}
+      <div id="prLinesWrap"></div>
+      ${editableLines ? '' : `<p class="muted" style="font-size:12px; margin-top:4px;">Item terkunci setelah request di-approve. Kembalikan ke Draft untuk mengubah isinya.</p>`}
+      <div class="field" style="margin-top:14px;">
+        <label class="field-label">Catatan</label>
+        <textarea class="textarea" id="prNotes" ${!editableLines?'disabled':''}>${Utils.escapeHtml(record?.notes||'')}</textarea>
+      </div>
+    `;
+
+    const statusActionsHtml = this.buildStatusActionsHtml(record);
+    const footHtml = `
+      <div style="display:flex; justify-content:space-between; width:100%; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">${statusActionsHtml}</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" id="prCloseBtn">Close</button>
+          ${editableLines ? `<button class="btn btn-primary" id="prSaveBtn">${isEdit?'Simpan':'Simpan draft'}</button>` : ''}
+        </div>
+      </div>
+    `;
+
+    Modal.open({
+      title: isEdit ? `Request ${this.outlets.find(o=>o.id===record.outletId)?.name||''} · ${PR_STATUS_LABEL[record.status]}` : "New Purchase Request",
+      bodyHtml, footHtml, wide:true,
+      onMount:(root)=>{
+        const renderLines = ()=>{
+          const wrap = document.getElementById("prLinesWrap");
+          if (!workingItems.length){
+            wrap.innerHTML = `<p class="muted" style="font-size:12.5px; padding:10px 0;">Belum ada item ditambahkan.</p>`;
+            return;
+          }
+          wrap.innerHTML = `
+            <table class="data-table" style="margin-top:6px;">
+              <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Catatan</th>${editableLines?'<th></th>':''}</tr></thead>
+              <tbody>
+                ${workingItems.map((it,idx)=>`
+                  <tr>
+                    <td class="cell-primary">${Utils.escapeHtml(it.name)}</td>
+                    <td>${editableLines?`<input type="number" min="0" step="any" class="input" style="width:80px;" data-line="${idx}" data-field="quantity" value="${it.quantity??''}">`:`${it.quantity??'—'}`}</td>
+                    <td>${editableLines?`<input type="text" class="input" style="width:80px;" data-line="${idx}" data-field="unit" value="${Utils.escapeHtml(it.unit||'')}">`:`${Utils.escapeHtml(it.unit||'—')}`}</td>
+                    <td>${editableLines?`<input type="text" class="input" data-line="${idx}" data-field="notes" value="${Utils.escapeHtml(it.notes||'')}">`:`${Utils.escapeHtml(it.notes||'—')}`}</td>
+                    ${editableLines?`<td><button class="btn-icon btn-sm" data-remove="${idx}"><svg data-lucide="x" style="width:13px;height:13px;"></svg></button></td>`:''}
+                  </tr>`).join("")}
+              </tbody>
+            </table>`;
+          renderIcons(wrap);
+          if (editableLines){
+            wrap.querySelectorAll("input[data-line]").forEach(el=>{
+              el.addEventListener("input", ()=>{
+                const idx = Number(el.dataset.line), field = el.dataset.field;
+                workingItems[idx][field] = field==="quantity" ? (el.value===""?null:Number(el.value)) : el.value;
+              });
+            });
+            wrap.querySelectorAll("[data-remove]").forEach(btn=>{
+              btn.addEventListener("click", ()=>{ workingItems.splice(Number(btn.dataset.remove),1); renderLines(); });
+            });
+          }
+        };
+        renderLines();
+
+        if (editableLines){
+          const outletSelect = document.getElementById("prOutletSelect");
+          outletSelect.addEventListener("change", ()=>{ workingOutletId = outletSelect.value; });
+
+          const searchInput = document.getElementById("prItemSearch");
+          const resultsPanel = document.getElementById("prItemPickerResults");
+          searchInput.addEventListener("input", Utils.debounce(()=>{
+            const q = searchInput.value.trim().toLowerCase();
+            if (!q){ resultsPanel.classList.add("hidden"); return; }
+            const options = this.itemOptionsForOutlet(outletSelect.value)
+              .filter(i=>i.name.toLowerCase().includes(q) && !workingItems.some(w=>w.itemId===i.id))
+              .slice(0,8);
+            if (!options.length){ resultsPanel.innerHTML = `<div class="search-empty">Tidak ada item cocok</div>`; }
+            else {
+              resultsPanel.innerHTML = options.map(i=>`<div class="search-result-item" data-add="${i.id}"><span>${Utils.escapeHtml(i.name)}</span><span class="srm">${Utils.escapeHtml(i.purchaseUnit||'')}</span></div>`).join("");
+              resultsPanel.querySelectorAll("[data-add]").forEach(el=>{
+                el.addEventListener("click", ()=>{
+                  const item = this.items_all.find(i=>i.id===el.dataset.add);
+                  workingItems.push({ itemId:item.id, name:item.name, quantity:1, unit:item.purchaseUnit||"", notes:"" });
+                  searchInput.value=""; resultsPanel.classList.add("hidden"); renderLines();
+                });
+              });
+            }
+            resultsPanel.classList.remove("hidden");
+          }, 180));
+        }
+
+        document.getElementById("prCloseBtn").addEventListener("click", Modal.close);
+        const saveBtn = document.getElementById("prSaveBtn");
+        if (saveBtn){
+          saveBtn.addEventListener("click", async ()=>{
+            if (!workingOutletId){ Toast.show("Pilih outlet dulu.", "error"); return; }
+            if (!workingItems.length){ Toast.show("Tambahkan minimal satu item.", "error"); return; }
+            saveBtn.disabled = true; saveBtn.innerHTML = `<div class="spinner"></div>`;
+            const payload = {
+              outletId: workingOutletId,
+              items: workingItems,
+              notes: document.getElementById("prNotes").value,
+              status: record?.status || "draft",
+              createdByName: record?.createdByName || CURRENT_USER.name
+            };
+            try{
+              if (record){ await Stores.purchaseRequests.update(record.id, payload); await Logger.log("updated","purchaseRequests", this.outlets.find(o=>o.id===workingOutletId)?.name||''); Toast.show("Request disimpan.","success"); }
+              else { await Stores.purchaseRequests.create(payload); await Logger.log("created","purchaseRequests", this.outlets.find(o=>o.id===workingOutletId)?.name||''); Toast.show("Request dibuat.","success"); }
+              Modal.close();
+              this.records = await Stores.purchaseRequests.list();
+              this.paint();
+              refreshDashboardIfActive();
+            }catch(e){ Toast.show(e.message||"Gagal menyimpan.", "error"); saveBtn.disabled=false; saveBtn.textContent="Simpan"; }
+          });
+        }
+        this.wireStatusActions(record);
+      }
+    });
+  }
+
+  buildStatusActionsHtml(record){
+    if (!record || !this.canEdit) return "";
+    const next = PR_NEXT_STATUS[record.status];
+    const prev = PR_PREV_STATUS[record.status];
+    let html = "";
+    if (prev) html += `<button class="btn btn-ghost btn-sm" id="prPrevBtn">← ${PR_STATUS_LABEL[prev]}</button>`;
+    if (next) html += `<button class="btn btn-primary btn-sm" id="prNextBtn">Tandai ${PR_STATUS_LABEL[next]} →</button>`;
+    if (record.status==="draft" && this.canDelete) html += `<button class="btn btn-danger btn-sm" id="prDeleteBtn">Hapus</button>`;
+    return html;
+  }
+
+  wireStatusActions(record){
+    if (!record) return;
+    const nextBtn = document.getElementById("prNextBtn");
+    const prevBtn = document.getElementById("prPrevBtn");
+    const delBtn = document.getElementById("prDeleteBtn");
+    if (nextBtn) nextBtn.addEventListener("click", async ()=>{
+      const next = PR_NEXT_STATUS[record.status];
+      await Stores.purchaseRequests.update(record.id, { status: next });
+      await Logger.log("updated","purchaseRequests", `status → ${PR_STATUS_LABEL[next]}`);
+      Toast.show(`Status diubah ke ${PR_STATUS_LABEL[next]}.`, "success");
+      Modal.close();
+      this.records = await Stores.purchaseRequests.list();
+      this.paint();
+      refreshDashboardIfActive();
+    });
+    if (prevBtn) prevBtn.addEventListener("click", async ()=>{
+      const prev = PR_PREV_STATUS[record.status];
+      await Stores.purchaseRequests.update(record.id, { status: prev });
+      await Logger.log("updated","purchaseRequests", `status → ${PR_STATUS_LABEL[prev]}`);
+      Toast.show(`Status dikembalikan ke ${PR_STATUS_LABEL[prev]}.`, "success");
+      Modal.close();
+      this.records = await Stores.purchaseRequests.list();
+      this.paint();
+      refreshDashboardIfActive();
+    });
+    if (delBtn) delBtn.addEventListener("click", async ()=>{
+      const ok = await ConfirmDialog.ask({ title:"Hapus request ini?", message:"Request yang masih draft akan dihapus permanen." });
+      if (!ok) return;
+      await Stores.purchaseRequests.remove(record.id);
+      await Logger.log("deleted","purchaseRequests", "draft request");
+      Toast.show("Request dihapus.", "success");
+      Modal.close();
+      this.records = await Stores.purchaseRequests.list();
+      this.paint();
+      refreshDashboardIfActive();
+    });
+  }
+
+  buildWhatsAppText(records){
+    const byOutlet = {};
+    records.forEach(r=>{ (byOutlet[r.outletId] = byOutlet[r.outletId]||[]).push(r); });
+    const lines = [];
+    this.outlets.filter(o=>byOutlet[o.id]).forEach(o=>{
+      lines.push(o.shortCode || o.name);
+      byOutlet[o.id].forEach(r=> (r.items||[]).forEach(it=>{
+        const qty = (it.quantity!==null && it.quantity!==undefined) ? it.quantity : "";
+        const unit = it.unit ? " "+it.unit : "";
+        lines.push(`• ${it.name}${qty!==""?' '+qty:''}${unit}`);
+      }));
+      lines.push("");
+    });
+    return lines.join("\n").trim();
+  }
+
+  openBroadcast(){
+    const approved = this.records.filter(r=>r.status==="approved");
+    const bodyHtml = `
+      <div class="field">
+        <label class="field-label">Sumber</label>
+        <p class="muted" style="font-size:12.5px;">Menggabungkan semua request berstatus <b>Approved</b> (${approved.length} request) menjadi satu pesan, dikelompokkan per outlet.</p>
+      </div>
+      <div class="field">
+        <textarea class="textarea" id="prBroadcastText" style="min-height:220px; font-family:var(--font-mono); font-size:12.5px;" readonly>${Utils.escapeHtml(this.buildWhatsAppText(approved))}</textarea>
+      </div>
+    `;
+    const footHtml = `<button class="btn btn-ghost" id="prBcCloseBtn">Close</button><button class="btn btn-primary" id="prBcCopyBtn"><svg data-lucide="copy" style="width:14px;height:14px;"></svg> Copy text</button>`;
+    Modal.open({
+      title:"WhatsApp broadcast", bodyHtml, footHtml,
+      onMount:()=>{
+        document.getElementById("prBcCloseBtn").addEventListener("click", Modal.close);
+        document.getElementById("prBcCopyBtn").addEventListener("click", async ()=>{
+          const text = document.getElementById("prBroadcastText").value;
+          if (!text){ Toast.show("Tidak ada request Approved untuk disalin.", "error"); return; }
+          try{ await navigator.clipboard.writeText(text); Toast.show("Teks disalin ke clipboard.", "success"); }
+          catch(e){
+            const ta = document.getElementById("prBroadcastText");
+            ta.removeAttribute("readonly"); ta.focus(); ta.select();
+            Toast.show("Tidak bisa auto-copy — teks sudah diseleksi, tekan Cmd/Ctrl+C.", "info");
+          }
+        });
+      }
+    });
+  }
+}
+const purchaseRequestsModule = new PurchaseRequestModule();
+
+/* ---------------------------------------------------------------------
    14. DASHBOARD
    --------------------------------------------------------------------- */
 let dashboardActive = false;
@@ -1672,13 +2022,15 @@ function refreshDashboardIfActive(){ if (dashboardActive && (location.hash.slice
 
 async function renderDashboard(container){
   dashboardActive = true;
-  const [items, categories, suppliers, outlets, users, logs] = await Promise.all([
-    Stores.items.list(), Stores.categories.list(), Stores.suppliers.list(), Stores.outlets.list(), Stores.users.list(), Stores.logs.list()
+  const [items, categories, suppliers, outlets, users, logs, requests] = await Promise.all([
+    Stores.items.list(), Stores.categories.list(), Stores.suppliers.list(), Stores.outlets.list(), Stores.users.list(), Stores.logs.list(), Stores.purchaseRequests.list()
   ]);
   const activeItems = items.filter(i=>i.status==="active");
   const missingPrice = items.filter(i=>!i.latestPrice);
   const missingSupplier = items.filter(i=>!i.supplierId);
   const missingUnit = items.filter(i=>!i.purchaseUnit || !i.usageUnit);
+  const draftRequests = requests.filter(r=>r.status==="draft");
+  const approvedRequests = requests.filter(r=>r.status==="approved");
   const recentLogs = [...logs].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,8);
 
   container.innerHTML = `
@@ -1687,7 +2039,7 @@ async function renderDashboard(container){
       <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="package"></svg></div></div><div class="stat-val">${activeItems.length}</div><div class="stat-label">Active items</div></div>
       <div class="stat-card"><div class="stat-top"><div class="stat-ic info"><svg data-lucide="truck"></svg></div></div><div class="stat-val">${suppliers.length}</div><div class="stat-label">Suppliers</div></div>
       <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="store"></svg></div></div><div class="stat-val">${outlets.filter(o=>o.status==='active').length}</div><div class="stat-label">Active outlets</div></div>
-      <div class="stat-card"><div class="stat-top"><div class="stat-ic ${missingPrice.length?'amber':''}"><svg data-lucide="alert-triangle"></svg></div></div><div class="stat-val">${missingPrice.length}</div><div class="stat-label">Items missing a price</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic ${draftRequests.length?'amber':''}"><svg data-lucide="clipboard-list"></svg></div></div><div class="stat-val">${draftRequests.length}</div><div class="stat-label">Draft requests</div></div>
     </div>
     <div class="dash-grid">
       <div class="panel">
@@ -1705,9 +2057,10 @@ async function renderDashboard(container){
         <div class="panel">
           <div class="panel-head"><h3>Quick actions</h3></div>
           <div class="panel-body pad">
+            ${RBAC.can(CURRENT_USER.role,"purchaseRequests","create")?`<div class="quicklink" data-nav="purchase-requests"><svg data-lucide="clipboard-list"></svg><span>New purchase request</span></div>`:""}
+            ${approvedRequests.length && RBAC.can(CURRENT_USER.role,"purchaseRequests","view")?`<div class="quicklink" data-nav="purchase-requests"><svg data-lucide="message-circle"></svg><span>${approvedRequests.length} request siap di-broadcast</span></div>`:""}
             ${RBAC.can(CURRENT_USER.role,"items","create")?`<div class="quicklink" data-nav="items"><svg data-lucide="plus-circle"></svg><span>Add a new item</span></div>`:""}
             ${RBAC.can(CURRENT_USER.role,"suppliers","create")?`<div class="quicklink" data-nav="suppliers"><svg data-lucide="truck"></svg><span>Add a supplier</span></div>`:""}
-            ${RBAC.can(CURRENT_USER.role,"outlets","view")?`<div class="quicklink" data-nav="outlets"><svg data-lucide="store"></svg><span>Manage outlets</span></div>`:""}
           </div>
         </div>
         <div class="panel">
@@ -1845,7 +2198,8 @@ function renderSettings(container, initialTab="profile"){
         ${!IS_FIREBASE_CONFIGURED ? `
           <p class="muted" style="font-size:13px; line-height:1.6; margin-bottom:14px;">To connect Firebase: open <code class="inline">index.html</code>, find the <code class="inline">firebaseConfig</code> object near the top of the script, and paste in your project's keys. Then create these collections in Firestore:</p>
           <pre class="code-block">items, categories, suppliers, outlets,
-conversions, users, settings, logs</pre>
+conversions, users, purchaseRequests,
+settings, logs</pre>
           <p class="muted" style="font-size:12.5px; margin-top:12px;">Everything you've entered locally is kept — once connected, use "Backup & Restore" to push your local data into Firestore.</p>
         ` : `<p class="muted" style="font-size:13px;">Auth, Firestore, and Storage are all live. Offline persistence is enabled — DSMC keeps working if the connection drops.</p>`}
       </div>`;
@@ -2017,6 +2371,7 @@ function registerRoutes(){
   Router.register("outlets", (c)=>{ dashboardActive=false; outletsModule.render(c); });
   Router.register("conversions", (c)=>{ dashboardActive=false; conversionsModule.render(c); });
   Router.register("users", (c)=>{ dashboardActive=false; usersModule.render(c); });
+  Router.register("purchase-requests", (c)=>{ dashboardActive=false; purchaseRequestsModule.render(c); });
   Router.register("settings", (c)=>renderSettings(c, "profile"));
 }
 

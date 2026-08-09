@@ -25,7 +25,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 
@@ -41,34 +41,38 @@
    whole product is named after, without illustrating them literally.
    ===================================================================== */
 :root{
-  --bg:#FFFFFF; --bg-soft:#F5F8F6; --surface:#FFFFFF; --surface-2:#FAFCFB;
-  --border:#E3EAE6; --border-strong:#CFDAD4;
-  --text:#10231A; --text-muted:#5B6B63; --text-faint:#8A9A92;
-  --primary:#1B7A43; --primary-hover:#156636; --primary-soft:#E9F5EE; --primary-ring:rgba(27,122,67,.22);
-  --accent:#B4690E; --accent-soft:#FBF0DF;
-  --danger:#C82D2D; --danger-soft:#FCEAEA;
-  --info:#2E7DD6; --info-soft:#E9F1FC;
-  --font-display:'Sora',ui-sans-serif,system-ui,sans-serif;
+  --bg:#FAF7EC; --bg-soft:#F1EEDF; --surface:#FFFFFF; --surface-2:#FDFBF3;
+  --border:#E6E1CE; --border-strong:#D3CCAE;
+  --text:#18241A; --text-muted:#5C6553; --text-faint:#8C9481;
+  --primary:#0E8A4C; --primary-hover:#0A7040; --primary-soft:#E3F5EA; --primary-ring:rgba(14,138,76,.25);
+  --primary-grad:linear-gradient(135deg,#17A25C 0%,#0A7040 100%);
+  --accent:#C98A1E; --accent-soft:#FBF0D9;
+  --accent-grad:linear-gradient(135deg,#EAB446 0%,#C98A1E 100%);
+  --danger:#C4432E; --danger-soft:#FBEAE5;
+  --info:#2D6FBE; --info-soft:#E8F0FB;
+  --font-display:'Fraunces',ui-serif,Georgia,serif;
   --font-body:'Inter',ui-sans-serif,system-ui,-apple-system,sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-  --radius-sm:8px; --radius-md:12px; --radius-lg:18px; --radius-full:999px;
-  --shadow-sm:0 1px 2px rgba(16,35,26,.05),0 1px 1px rgba(16,35,26,.04);
-  --shadow-md:0 10px 26px -10px rgba(16,35,26,.16);
-  --shadow-lg:0 26px 54px -18px rgba(16,35,26,.24);
+  --radius-sm:10px; --radius-md:16px; --radius-lg:22px; --radius-full:999px;
+  --shadow-sm:0 2px 6px rgba(24,36,26,.06);
+  --shadow-md:0 14px 34px -14px rgba(14,138,76,.30);
+  --shadow-lg:0 32px 64px -20px rgba(14,138,76,.34);
   --ease:cubic-bezier(.4,0,.2,1);
   --sidebar-w:264px; --sidebar-w-collapsed:76px; --topbar-h:64px;
 }
 [data-theme="dark"]{
-  --bg:#0B120E; --bg-soft:#0F1712; --surface:#131C16; --surface-2:#101913;
-  --border:#22322A; --border-strong:#324338;
-  --text:#EAF3EC; --text-muted:#93A79B; --text-faint:#6C8078;
-  --primary:#37C871; --primary-hover:#2FA35C; --primary-soft:rgba(55,200,113,.14); --primary-ring:rgba(55,200,113,.28);
-  --accent:#E3A144; --accent-soft:rgba(227,161,68,.14);
-  --danger:#F0716B; --danger-soft:rgba(240,113,107,.14);
-  --info:#6DAAF2; --info-soft:rgba(109,170,242,.14);
-  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
-  --shadow-md:0 10px 26px -10px rgba(0,0,0,.5);
-  --shadow-lg:0 26px 54px -18px rgba(0,0,0,.6);
+  --bg:#0C130E; --bg-soft:#111A13; --surface:#16201A; --surface-2:#131C16;
+  --border:#26362B; --border-strong:#37493C;
+  --text:#EEF5EC; --text-muted:#9DAC96; --text-faint:#71806B;
+  --primary:#34C878; --primary-hover:#2AAE68; --primary-soft:rgba(52,200,120,.15); --primary-ring:rgba(52,200,120,.3);
+  --primary-grad:linear-gradient(135deg,#3FDB88 0%,#219456 100%);
+  --accent:#E3AC4E; --accent-soft:rgba(227,172,78,.15);
+  --accent-grad:linear-gradient(135deg,#F0C06C 0%,#D69A34 100%);
+  --danger:#EC7A68; --danger-soft:rgba(236,122,104,.15);
+  --info:#6DAAF2; --info-soft:rgba(109,170,242,.15);
+  --shadow-sm:0 2px 6px rgba(0,0,0,.4);
+  --shadow-md:0 14px 34px -14px rgba(0,0,0,.55);
+  --shadow-lg:0 32px 64px -20px rgba(0,0,0,.65);
 }
 *,*::before,*::after{box-sizing:border-box;}
 html,body{height:100%;}
@@ -78,7 +82,7 @@ body{
   -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
   transition:background .25s var(--ease),color .25s var(--ease);
 }
-h1,h2,h3,h4{font-family:var(--font-display); margin:0; letter-spacing:-.01em;}
+h1,h2,h3,h4{font-family:var(--font-display); margin:0; letter-spacing:-.005em; font-weight:600;}
 p{margin:0;}
 button{font-family:inherit;}
 a{color:inherit;}
@@ -102,8 +106,8 @@ a{color:inherit;}
 }
 .btn svg{width:16px;height:16px;flex-shrink:0;}
 .btn:active{transform:scale(.97);}
-.btn-primary{background:var(--primary); color:#fff; box-shadow:var(--shadow-sm);}
-.btn-primary:hover{background:var(--primary-hover);}
+.btn-primary{background:var(--primary-grad); color:#fff; box-shadow:0 8px 20px -8px rgba(14,138,76,.55);}
+.btn-primary:hover{filter:brightness(1.07); box-shadow:0 10px 24px -8px rgba(14,138,76,.62);}
 .btn-ghost{background:transparent; border-color:var(--border);}
 .btn-ghost:hover{background:var(--bg-soft); border-color:var(--border-strong);}
 .btn-danger{background:var(--danger-soft); color:var(--danger); border-color:transparent;}
@@ -135,8 +139,9 @@ label.field-label{display:block; font-size:12.5px; font-weight:600; color:var(--
 #loginScreen{
   min-height:100vh; display:flex; align-items:center; justify-content:center;
   background:
-    radial-gradient(1100px 520px at 15% -10%, var(--primary-soft), transparent 60%),
-    radial-gradient(900px 520px at 110% 10%, var(--accent-soft), transparent 55%),
+    radial-gradient(900px 480px at 10% -8%, rgba(14,138,76,.20), transparent 60%),
+    radial-gradient(760px 460px at 108% 6%, rgba(201,138,30,.20), transparent 55%),
+    radial-gradient(700px 500px at 50% 118%, rgba(14,138,76,.14), transparent 60%),
     var(--bg-soft);
   padding:24px;
 }
@@ -207,7 +212,8 @@ label.field-label{display:block; font-size:12.5px; font-weight:600; color:var(--
 
 /* Topbar */
 .topbar{
-  height:var(--topbar-h); background:var(--surface); border-bottom:1px solid var(--border);
+  height:var(--topbar-h); background:var(--surface); background:color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
   display:flex; align-items:center; gap:14px; padding:0 22px; position:sticky; top:0; z-index:30;
 }
 .hamburger{display:none;}
@@ -438,6 +444,62 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
 .logo-drop{border:2px dashed var(--border); border-radius:var(--radius-md); padding:22px; text-align:center; cursor:pointer; color:var(--text-faint); font-size:12.5px;}
 .logo-drop:hover{border-color:var(--primary); color:var(--primary);}
 .logo-preview{width:56px;height:56px; border-radius:12px; object-fit:cover; border:1px solid var(--border);}
+
+/* Dashboard hero — a paddy-field-at-dawn gradient wash behind the greeting,
+   the one deliberately bold moment on the page; everything else stays quiet. */
+.dash-hero{
+  border-radius:var(--radius-lg); padding:30px 28px; margin-bottom:22px; position:relative; overflow:hidden;
+  background:
+    radial-gradient(560px 240px at 8% 0%, rgba(255,255,255,.20), transparent 60%),
+    radial-gradient(520px 300px at 95% 110%, rgba(255,255,255,.14), transparent 55%),
+    var(--primary-grad);
+  box-shadow:var(--shadow-md);
+}
+.dash-hero-inner h2{color:#fff; font-size:26px;}
+.dash-hero-sub{color:rgba(255,255,255,.86); font-size:13.5px; margin-top:6px;}
+[data-theme="dark"] .dash-hero{box-shadow:0 14px 34px -14px rgba(0,0,0,.5);}
+
+/* Terrace-tab cards — a colored step at the top-left, echoing paddy terraces,
+   used specifically for the category order cards. */
+.terrace-card{position:relative; padding-top:8px;}
+.terrace-tab{
+  position:absolute; top:0; left:18px; width:46px; height:8px; border-radius:6px 6px 0 0;
+  transform:translateY(-100%);
+}
+
+/* Order cards (category-grouped, all outlets, copyable to WhatsApp) */
+.order-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); margin-bottom:16px; overflow:hidden;}
+.order-card-head{display:flex; align-items:center; gap:10px; padding:16px 18px 12px;}
+.order-card-title{font-family:var(--font-display); font-weight:600; font-size:17px;}
+.order-card-count{margin-left:auto; font-size:11.5px; color:var(--text-faint); font-weight:600;}
+.order-card-body{padding:2px 18px 16px;}
+.order-outlet-group{margin-bottom:14px;}
+.order-outlet-group:last-child{margin-bottom:0;}
+.order-outlet-badge{display:inline-flex; align-items:center; font-size:11px; font-weight:700; letter-spacing:.03em; color:var(--primary); background:var(--primary-soft); padding:3px 10px; border-radius:99px; margin-bottom:8px;}
+.order-item-row{display:flex; align-items:baseline; justify-content:space-between; padding:5px 0; font-size:13.3px; border-bottom:1px dashed var(--border);}
+.order-item-row:last-child{border-bottom:none;}
+.order-item-qty{font-family:var(--font-mono); font-weight:600; color:var(--text); flex-shrink:0; margin-left:10px;}
+.order-card-foot{display:flex; padding:14px 18px; border-top:1px solid var(--border); background:var(--bg-soft);}
+
+/* View toggle (category vs outlet) */
+.view-toggle{display:inline-flex; background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-full); padding:3px; margin-bottom:16px; gap:2px;}
+.view-toggle-btn{display:flex; align-items:center; gap:6px; padding:7px 15px; border-radius:var(--radius-full); border:none; background:transparent; font-size:12.5px; font-weight:700; color:var(--text-muted); cursor:pointer; transition:all .15s var(--ease);}
+.view-toggle-btn.active{background:var(--surface); color:var(--primary); box-shadow:var(--shadow-sm);}
+
+/* Quick order grid (fast multi-outlet entry) */
+.qo-summary{position:sticky; top:calc(var(--topbar-h) + 8px); z-index:5; display:flex; gap:10px; flex-wrap:wrap; background:var(--primary-soft); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:16px; font-size:12.5px; font-weight:600; color:var(--primary);}
+.qo-cat-group{border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:10px; overflow:hidden;}
+.qo-cat-group.open .pr-cat-chevron{transform:rotate(180deg);}
+.qo-cat-head{display:flex; align-items:center; gap:9px; padding:12px 14px; cursor:pointer; background:var(--bg-soft); font-size:13px; font-weight:700;}
+.qo-cat-count{margin-left:auto; font-size:11px; color:var(--text-faint); font-weight:600;}
+.qo-row{display:flex; align-items:center; gap:10px; padding:10px 14px; border-top:1px solid var(--border);}
+.qo-row-name{flex:1; font-size:13px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.qo-outlet-inputs{display:flex; gap:6px; flex-shrink:0;}
+.qo-outlet-col{display:flex; flex-direction:column; align-items:center; gap:3px;}
+.qo-outlet-label{font-size:9.5px; font-weight:700; color:var(--text-faint); text-transform:uppercase;}
+.qo-qty-input{width:46px; height:34px; text-align:center; border:1px solid var(--border); border-radius:8px; font-size:13px; font-weight:600; font-family:var(--font-mono); background:var(--surface); color:var(--text);}
+.qo-qty-input:focus{border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-ring); outline:none;}
+.qo-qty-input.has-value{border-color:var(--primary); background:var(--primary-soft);}
 
 /* Dashboard workflow pipeline */
 .workflow-pipeline{display:flex; align-items:center; overflow-x:auto; gap:2px; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
@@ -1186,6 +1248,10 @@ const Router = {
   start(){ window.addEventListener("hashchange", ()=>this.resolve()); this.resolve(); },
   navigate(path){ location.hash = path; },
   resolve(){
+    // Logging out changes the hash (to clear routing state) before the login
+    // screen takes over — without this guard, that hash change fires a
+    // dashboard render with a null CURRENT_USER and throws.
+    if (!CURRENT_USER) return;
     const hash = (location.hash || "#dashboard").slice(1);
     const [path] = hash.split("?");
     const renderFn = this.routes[path] || this.routes["dashboard"];
@@ -1233,14 +1299,24 @@ function buildSidebarNav(){
     html += `<div class="nav-group-label">${group.group}</div>`;
     visibleItems.forEach(it=>{
       const isComingSoon = !!it.badge;
-      html += `<div class="nav-item ${isComingSoon?'disabled':''}" data-route="${it.route}" ${isComingSoon?`data-comingsoon="1" data-label="${Utils.escapeHtml(it.label)}"`:`onclick="Router.navigate('${it.route}')"`}>
+      html += `<div class="nav-item ${isComingSoon?'disabled':''}" data-route="${it.route}" ${isComingSoon?`data-comingsoon="1" data-label="${Utils.escapeHtml(it.label)}"`:``}>
         <svg data-lucide="${it.icon}"></svg><span class="nav-label">${it.label}</span>
         ${it.badge?`<span class="nav-badge">${it.badge}</span>`:""}
       </div>`;
     });
   });
   nav.innerHTML = html;
-  nav.querySelectorAll('[data-comingsoon]').forEach(el=> el.addEventListener("click", ()=> renderComingSoon(el.dataset.label)));
+  // Every nav item closes the mobile drawer on tap, even when tapping the
+  // route that's already active — Router.navigate() only fires on an actual
+  // hash change, so relying on that alone left the drawer stuck open when
+  // someone tapped the current page from the menu.
+  nav.querySelectorAll('.nav-item').forEach(el=>{
+    el.addEventListener("click", ()=>{
+      if (el.dataset.comingsoon) renderComingSoon(el.dataset.label);
+      else Router.navigate(el.dataset.route);
+      closeMobileSidebar();
+    });
+  });
   renderIcons(nav);
 }
 
@@ -1802,21 +1878,25 @@ class PurchaseRequestModule{
 
   async render(container){
     this.container = container;
-    this.state = { statusFilter: this.pendingStatusFilter || null, outletFilter:null, search:"" };
+    this.state = { statusFilter: this.pendingStatusFilter || null, outletFilter:null, search:"", view: this.state?.view || "category" };
     this.pendingStatusFilter = null;
     this.outlets = await Stores.outlets.list();
     this.items_all = await Stores.items.list();
     this.categories = await Stores.categories.list();
     container.innerHTML = `
       <div class="page-head">
-        <div><h2>Purchase Requests</h2><div class="page-sub">Belanja per outlet — dari draft sampai selesai.</div></div>
+        <div><h2>Purchase Requests</h2><div class="page-sub">Belanja lintas outlet — dari draft sampai selesai.</div></div>
         <div class="page-actions">
-          <button class="btn btn-ghost" id="prBroadcastBtn"><svg data-lucide="message-circle"></svg> WhatsApp broadcast</button>
-          ${this.canCreate?`<button class="btn btn-primary" id="prAddBtn"><svg data-lucide="plus"></svg> New request</button>`:""}
+          ${this.canCreate?`<button class="btn btn-primary" id="prQuickBtn"><svg data-lucide="zap"></svg> Pesanan Cepat</button>`:""}
+          <button class="btn btn-ghost" id="prBroadcastBtn"><svg data-lucide="message-circle"></svg> Broadcast semua</button>
         </div>
       </div>
+      <div class="view-toggle" id="prViewToggle">
+        <button class="view-toggle-btn ${this.state.view==='category'?'active':''}" data-view="category"><svg data-lucide="layout-grid" style="width:14px;height:14px;"></svg> Per Kategori</button>
+        <button class="view-toggle-btn ${this.state.view==='outlet'?'active':''}" data-view="outlet"><svg data-lucide="list" style="width:14px;height:14px;"></svg> Per Outlet</button>
+      </div>
       <div class="toolbar" id="prStatusChips"></div>
-      <div class="toolbar" id="prOutletChips"></div>
+      <div class="toolbar" id="prOutletChips" style="display:${this.state.view==='outlet'?'flex':'none'};"></div>
       <div class="toolbar">
         <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="prSearchInput" placeholder="Search requests…"></div>
         <span class="result-count" id="prResultCount"></span>
@@ -1825,8 +1905,16 @@ class PurchaseRequestModule{
     `;
     renderIcons(container);
     document.getElementById("prSearchInput").addEventListener("input", Utils.debounce(e=>{ this.state.search=e.target.value; this.paint(); }, 200));
-    if (this.canCreate) document.getElementById("prAddBtn").addEventListener("click", ()=>this.openForm(null));
+    if (this.canCreate) document.getElementById("prQuickBtn").addEventListener("click", ()=>this.openQuickOrder());
     document.getElementById("prBroadcastBtn").addEventListener("click", ()=>this.openBroadcast());
+    document.querySelectorAll("#prViewToggle .view-toggle-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        this.state.view = btn.dataset.view;
+        document.querySelectorAll("#prViewToggle .view-toggle-btn").forEach(b=>b.classList.toggle("active", b===btn));
+        document.getElementById("prOutletChips").style.display = this.state.view==="outlet" ? "flex" : "none";
+        this.paint();
+      });
+    });
     this.paintStatusChips();
     this.paintOutletChips();
     this.records = await Stores.purchaseRequests.list();
@@ -1860,11 +1948,38 @@ class PurchaseRequestModule{
   }
 
   paint(){
+    if (this.state.view === "category") this.paintCategoryView();
+    else this.paintOutletView();
+  }
+
+  paintCategoryView(){
+    const wrap = document.getElementById("prCardGrid");
+    const all = this.filtered();
+    document.getElementById("prResultCount").textContent = `${all.length} request`;
+    const buckets = this.groupByCategory(all);
+    if (!buckets.length){
+      wrap.className = "";
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="layout-grid"></svg><div class="es-title">Belum ada pesanan</div><div class="es-sub">Tap "Pesanan Cepat" untuk mulai mengisi belanja semua outlet sekaligus.</div></div>`;
+      renderIcons(wrap); return;
+    }
+    wrap.className = "";
+    wrap.innerHTML = buckets.map(b=>this.renderOrderCardHtml(b)).join("");
+    renderIcons(wrap);
+    wrap.querySelectorAll("[data-copy-cat]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const bucket = buckets.find(b=>b.id===btn.dataset.copyCat);
+        const ok = await Utils.copyText(this.categoryBucketToText(bucket));
+        Toast.show(ok ? `${bucket.name} disalin ke clipboard.` : "Gagal menyalin — coba lagi.", ok?"success":"error");
+      });
+    });
+  }
+
+  paintOutletView(){
     const wrap = document.getElementById("prCardGrid");
     const all = this.filtered();
     document.getElementById("prResultCount").textContent = `${all.length} total`;
     if (!all.length){
-      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="clipboard-list"></svg><div class="es-title">Belum ada purchase request</div><div class="es-sub">Buat permintaan belanja pertama untuk salah satu outlet.</div></div>`;
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="clipboard-list"></svg><div class="es-title">Belum ada purchase request</div><div class="es-sub">Buat permintaan belanja pertama lewat "Pesanan Cepat".</div></div>`;
       renderIcons(wrap); return;
     }
     wrap.className = "pr-card-grid";
@@ -1902,6 +2017,149 @@ class PurchaseRequestModule{
       const cls = i<curIdx ? 'done' : (i===curIdx ? 'current' : '');
       return `<div class="status-step ${cls}"><div class="status-step-line"></div><div class="status-step-dot">${i<curIdx?'✓':i+1}</div><div class="status-step-label">${PR_STATUS_LABEL[s]}</div></div>`;
     }).join("")}</div>`;
+  }
+
+  /* Fast multi-outlet entry: browse items once, fill quantities for
+     whichever outlets need them, save everything in one action. Pre-loads
+     whatever's already in each outlet's current Draft so re-opening this
+     continues where you left off rather than starting over. */
+  async openQuickOrder(){
+    const activeOutlets = this.outlets.filter(o=>o.status==="active");
+    if (!activeOutlets.length){ Toast.show("Belum ada outlet aktif.", "error"); return; }
+    const allRecords = await Stores.purchaseRequests.list();
+    const draftByOutlet = {};
+    activeOutlets.forEach(o=>{ draftByOutlet[o.id] = allRecords.find(r=>r.outletId===o.id && r.status==="draft") || null; });
+
+    // working[itemId][outletId] = qty
+    const working = {};
+    activeOutlets.forEach(o=>{
+      const draft = draftByOutlet[o.id];
+      if (draft) (draft.items||[]).forEach(it=>{
+        working[it.itemId] = working[it.itemId] || {};
+        working[it.itemId][o.id] = it.quantity;
+      });
+    });
+
+    const relevantItems = this.items_all.filter(i=>i.status==="active");
+    const byCat = {};
+    relevantItems.forEach(i=>{ const key=i.categoryId||"uncategorized"; (byCat[key]=byCat[key]||[]).push(i); });
+    const orderedCatKeys = this.categories.map(c=>c.id).filter(id=>byCat[id]);
+
+    const bodyHtml = `
+      <div class="field">
+        <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="qoSearchInput" placeholder="Cari item…" autocomplete="off"></div>
+      </div>
+      <div class="qo-summary" id="qoSummary"></div>
+      <div id="qoCatGroups">
+        ${orderedCatKeys.map(key=>{
+          const cat = this.categories.find(c=>c.id===key);
+          return `
+            <div class="qo-cat-group" data-catgroup="${key}">
+              <div class="qo-cat-head" data-toggle="${key}">
+                <span class="color-dot" style="background:${cat.color}"></span>
+                <span>${Utils.escapeHtml(cat.name)}</span>
+                <span class="qo-cat-count">${byCat[key].length} item</span>
+                <svg class="pr-cat-chevron" data-lucide="chevron-down"></svg>
+              </div>
+              <div class="qo-cat-items hidden" data-items="${key}">
+                ${byCat[key].map(item=>`
+                  <div class="qo-row" data-item-row="${item.id}" data-item-name="${Utils.escapeHtml(item.name.toLowerCase())}">
+                    <span class="qo-row-name">${Utils.escapeHtml(item.name)}</span>
+                    <div class="qo-outlet-inputs">
+                      ${activeOutlets.map(o=>`
+                        <div class="qo-outlet-col">
+                          <span class="qo-outlet-label">${Utils.escapeHtml(o.shortCode||o.name.slice(0,2))}</span>
+                          <input type="number" min="0" class="qo-qty-input ${working[item.id]?.[o.id]?'has-value':''}" data-qo="${item.id}|${o.id}" value="${working[item.id]?.[o.id]??''}">
+                        </div>
+                      `).join("")}
+                    </div>
+                  </div>`).join("")}
+              </div>
+            </div>`;
+        }).join("")}
+      </div>
+    `;
+    const footHtml = `<button class="btn btn-ghost" id="qoCloseBtn">Batal</button><button class="btn btn-primary" id="qoSaveBtn"><svg data-lucide="zap" style="width:15px;height:15px;"></svg> Simpan Semua Pesanan</button>`;
+
+    Modal.open({
+      title: "Pesanan Cepat — Semua Outlet", bodyHtml, footHtml, wide:true,
+      onMount:(root)=>{
+        const updateSummary = ()=>{
+          const bar = document.getElementById("qoSummary");
+          const counts = activeOutlets.map(o=>{
+            const n = Object.values(working).filter(m=>m[o.id]>0).length;
+            return `${Utils.escapeHtml(o.shortCode||o.name)}: ${n} item`;
+          });
+          bar.textContent = counts.join("  ·  ");
+        };
+        updateSummary();
+
+        root.querySelectorAll("[data-toggle]").forEach(head=>{
+          head.addEventListener("click", ()=>{
+            const group = head.closest(".qo-cat-group");
+            group.classList.toggle("open");
+            group.querySelector(".qo-cat-items").classList.toggle("hidden");
+          });
+        });
+        root.querySelectorAll("[data-qo]").forEach(input=>{
+          input.addEventListener("input", ()=>{
+            const [itemId, outletId] = input.dataset.qo.split("|");
+            const val = input.value===""? null : Number(input.value);
+            working[itemId] = working[itemId] || {};
+            if (val>0) working[itemId][outletId] = val; else delete working[itemId][outletId];
+            input.classList.toggle("has-value", val>0);
+            updateSummary();
+          });
+        });
+        document.getElementById("qoSearchInput").addEventListener("input", Utils.debounce((e)=>{
+          const q = e.target.value.trim().toLowerCase();
+          root.querySelectorAll("[data-item-row]").forEach(row=>{
+            row.classList.toggle("hidden", q && !row.dataset.itemName.includes(q));
+          });
+          root.querySelectorAll(".qo-cat-group").forEach(group=>{
+            const items = group.querySelector(".qo-cat-items");
+            const anyVisible = [...items.querySelectorAll("[data-item-row]")].some(r=>!r.classList.contains("hidden"));
+            if (q){ items.classList.toggle("hidden", !anyVisible); group.classList.toggle("open", anyVisible); }
+            else if (!group.classList.contains("open")){ items.classList.add("hidden"); }
+          });
+        }, 150));
+
+        document.getElementById("qoCloseBtn").addEventListener("click", Modal.close);
+        document.getElementById("qoSaveBtn").addEventListener("click", async ()=>{
+          const btn = document.getElementById("qoSaveBtn");
+          btn.disabled = true; btn.innerHTML = `<div class="spinner"></div>`;
+          try{
+            let outletsTouched = 0;
+            for (const outlet of activeOutlets){
+              const items = [];
+              for (const item of relevantItems){
+                const qty = working[item.id]?.[outlet.id];
+                if (!qty || qty<=0) continue;
+                const cat = this.categories.find(c=>c.id===item.categoryId);
+                items.push({ itemId:item.id, name:item.name, categoryId:item.categoryId||"", categoryName:cat?cat.name:"Lainnya", quantity:qty, unit:item.purchaseUnit||"", notes:"" });
+              }
+              const existingDraft = draftByOutlet[outlet.id];
+              if (!items.length){
+                continue; // nothing selected for this outlet — leave any existing draft untouched
+              }
+              outletsTouched++;
+              if (existingDraft){
+                await Stores.purchaseRequests.update(existingDraft.id, { items });
+              } else {
+                await Stores.purchaseRequests.create({ outletId:outlet.id, items, notes:"", status:"draft", createdByName:CURRENT_USER.name });
+              }
+            }
+            if (!outletsTouched){ Toast.show("Belum ada jumlah yang diisi.", "error"); btn.disabled=false; btn.innerHTML=`<svg data-lucide="zap" style="width:15px;height:15px;"></svg> Simpan Semua Pesanan`; renderIcons(btn); return; }
+            await Logger.log("created","purchaseRequests", `Pesanan Cepat · ${outletsTouched} outlet`);
+            Toast.show(`Pesanan tersimpan untuk ${outletsTouched} outlet.`, "success");
+            Modal.close();
+            this.records = await Stores.purchaseRequests.list();
+            this.paint();
+            refreshDashboardIfActive();
+          }catch(e){ Toast.show(e.message||"Gagal menyimpan.", "error"); btn.disabled=false; btn.innerHTML=`<svg data-lucide="zap" style="width:15px;height:15px;"></svg> Simpan Semua Pesanan`; renderIcons(btn); }
+        });
+      }
+    });
   }
 
   openForm(record){
@@ -2244,6 +2502,36 @@ class PurchaseRequestModule{
     return this.groupByCategory(records).map(b=>this.categoryBucketToText(b)).join("\n\n").trim();
   }
 
+  /* Structured HTML version of a category bucket — used both in the modal
+     and the primary "Per Kategori" page view. The plain-text version
+     (categoryBucketToText) stays separate since that's what actually gets
+     copied to WhatsApp. */
+  renderOrderCardHtml(bucket){
+    const itemCount = Object.values(bucket.byOutlet).reduce((s,arr)=>s+arr.length,0);
+    return `
+      <div class="order-card terrace-card">
+        <div class="terrace-tab" style="background:${bucket.color||'var(--primary)'}"></div>
+        <div class="order-card-head">
+          ${bucket.color?`<span class="color-dot" style="background:${bucket.color}"></span>`:''}
+          <span class="order-card-title">${Utils.escapeHtml(bucket.name)}</span>
+          <span class="order-card-count">${itemCount} item</span>
+        </div>
+        <div class="order-card-body">
+          ${this.outlets.filter(o=>bucket.byOutlet[o.id]).map(o=>`
+            <div class="order-outlet-group">
+              <span class="order-outlet-badge">${Utils.escapeHtml(o.shortCode||o.name)}</span>
+              ${bucket.byOutlet[o.id].map(it=>`
+                <div class="order-item-row"><span>${Utils.escapeHtml(it.name)}</span><span class="order-item-qty">${it.quantity??''}${it.unit?' '+Utils.escapeHtml(it.unit):''}</span></div>
+              `).join("")}
+            </div>
+          `).join("")}
+        </div>
+        <div class="order-card-foot">
+          <button class="btn btn-primary btn-block" data-copy-cat="${bucket.id}"><svg data-lucide="copy" style="width:14px;height:14px;"></svg> Copy untuk WhatsApp</button>
+        </div>
+      </div>`;
+  }
+
   openBroadcast(){
     const approved = this.records.filter(r=>r.status==="approved");
     const buckets = this.groupByCategory(approved);
@@ -2253,17 +2541,7 @@ class PurchaseRequestModule{
         <p class="muted" style="font-size:12.5px;">${approved.length} request berstatus Approved, dikelompokkan per kategori — tap <b>Copy</b> pada kategori yang mau dikirim ke grup WhatsApp masing-masing.</p>
       </div>
       <div id="prCategoryBroadcastList">
-        ${buckets.length ? buckets.map(b=>`
-          <div class="pr-broadcast-cat-card">
-            <div class="pr-broadcast-cat-head">
-              ${b.color?`<span class="color-dot" style="background:${b.color}"></span>`:''}
-              <span class="pr-broadcast-cat-name">${Utils.escapeHtml(b.name)}</span>
-              <span class="pr-broadcast-cat-count">${Object.values(b.byOutlet).reduce((s,arr)=>s+arr.length,0)} item</span>
-              <button class="btn btn-ghost btn-sm" data-copy-cat="${b.id}"><svg data-lucide="copy" style="width:13px;height:13px;"></svg> Copy</button>
-            </div>
-            <pre class="code-block" style="margin:0; white-space:pre-wrap;">${Utils.escapeHtml(this.categoryBucketToText(b))}</pre>
-          </div>
-        `).join("") : `<div class="empty-state"><svg data-lucide="message-circle"></svg><div class="es-title">Belum ada request Approved</div><div class="es-sub">Approve dulu request yang mau dikirim ke supplier.</div></div>`}
+        ${buckets.length ? buckets.map(b=>this.renderOrderCardHtml(b)).join("") : `<div class="empty-state"><svg data-lucide="message-circle"></svg><div class="es-title">Belum ada request Approved</div><div class="es-sub">Approve dulu request yang mau dikirim ke supplier.</div></div>`}
       </div>
     `;
     const footHtml = `<button class="btn btn-ghost" id="prBcCloseBtn">Close</button>${buckets.length?`<button class="btn btn-primary" id="prBcCopyAllBtn"><svg data-lucide="copy" style="width:14px;height:14px;"></svg> Copy semua kategori</button>`:''}`;
@@ -2313,18 +2591,22 @@ function openGoodsReceiptForm(record, onDone){
       <p class="muted" style="font-size:12.5px; margin-bottom:14px;">
         ${readOnly ? "Barang untuk request ini sudah dicatat diterima. Rekap di bawah ini bersifat baca-saja." : "Isi jumlah yang benar-benar datang untuk tiap item. Jumlah dipesan sudah terisi otomatis sebagai patokan — ubah kalau beda."}
       </p>
-      <table class="data-table">
-        <thead><tr><th>Item</th><th>Dipesan</th><th style="width:110px;">Diterima</th><th>Selisih</th></tr></thead>
-        <tbody id="grLinesBody">
-          ${(record.items||[]).map((it,idx)=>`
-            <tr data-idx="${idx}">
-              <td class="cell-primary">${Utils.escapeHtml(it.name)}<div class="cell-sub">${Utils.escapeHtml(it.unit||'')}</div></td>
-              <td>${it.quantity??'—'}</td>
-              <td>${readOnly ? (it.receivedQty??'—') : `<input type="number" min="0" step="any" class="input" style="width:90px;" data-received="${idx}" value="${it.receivedQty??it.quantity??''}">`}</td>
-              <td data-diff="${idx}">${receiptDiffBadge(Number(it.quantity)||0, it.receivedQty)}</td>
-            </tr>`).join("")}
-        </tbody>
-      </table>
+      <div id="grLinesBody">
+        ${(record.items||[]).map((it,idx)=>`
+          <div class="pr-line-card" data-idx="${idx}">
+            <div class="pr-line-top">
+              <span class="pr-line-name">${Utils.escapeHtml(it.name)}${it.unit?` <span class="muted" style="font-weight:500;">(${Utils.escapeHtml(it.unit)})</span>`:''}</span>
+              <span data-diff="${idx}">${receiptDiffBadge(Number(it.quantity)||0, it.receivedQty)}</span>
+            </div>
+            <div class="pr-line-controls">
+              <span class="muted" style="font-size:12.5px;">Dipesan: <b style="color:var(--text);">${it.quantity??'—'}</b></span>
+              ${readOnly
+                ? `<span class="muted" style="font-size:12.5px;">Diterima: <b style="color:var(--text);">${it.receivedQty??'—'}</b></span>`
+                : `<div class="qty-stepper"><input type="number" min="0" step="any" class="qty-input" style="width:70px;" data-received="${idx}" value="${it.receivedQty??it.quantity??''}"></div>`
+              }
+            </div>
+          </div>`).join("")}
+      </div>
     `;
     const footHtml = readOnly
       ? `<button class="btn btn-ghost" id="grCloseBtn">Close</button>`
@@ -3257,7 +3539,12 @@ async function renderDashboard(container){
   ["draft","approved","ordered","received","completed"].forEach(s=>{ counts[s] = requests.filter(r=>r.status===s).length; });
 
   container.innerHTML = `
-    <div class="page-head"><div><h2>Welcome back, ${Utils.escapeHtml(CURRENT_USER.name.split(" ")[0])} 👋</h2><div class="page-sub">Begini posisi operasional hari ini.</div></div></div>
+    <div class="dash-hero">
+      <div class="dash-hero-inner">
+        <h2>Selamat datang, ${Utils.escapeHtml(CURRENT_USER.name.split(" ")[0])} 👋</h2>
+        <div class="dash-hero-sub">Begini posisi operasional Dolan Sawah hari ini.</div>
+      </div>
+    </div>
     <div class="grid-stats">
       <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="package"></svg></div></div><div class="stat-val">${activeItems.length}</div><div class="stat-label">Active items</div></div>
       <div class="stat-card"><div class="stat-top"><div class="stat-ic info"><svg data-lucide="truck"></svg></div></div><div class="stat-val">${suppliers.length}</div><div class="stat-label">Suppliers</div></div>
@@ -3299,7 +3586,7 @@ async function renderDashboard(container){
         <div class="panel">
           <div class="panel-head"><h3>Quick actions</h3></div>
           <div class="panel-body pad">
-            ${RBAC.can(CURRENT_USER.role,"purchaseRequests","create")?`<div class="quicklink" data-nav="purchase-requests"><svg data-lucide="clipboard-list"></svg><span>New purchase request</span></div>`:""}
+            ${RBAC.can(CURRENT_USER.role,"purchaseRequests","create")?`<div class="quicklink" data-nav="purchase-requests"><svg data-lucide="zap"></svg><span>Pesanan Cepat</span></div>`:""}
             ${RBAC.can(CURRENT_USER.role,"purchaseRequests","view")?`<div class="quicklink" data-nav="goods-receipt"><svg data-lucide="package-check"></svg><span>Cek barang datang</span></div>`:""}
             ${RBAC.can(CURRENT_USER.role,"sales","create")?`<div class="quicklink" data-nav="sales"><svg data-lucide="receipt"></svg><span>Input penjualan hari ini</span></div>`:""}
             ${RBAC.can(CURRENT_USER.role,"analytics","view")?`<div class="quicklink" data-nav="analytics"><svg data-lucide="bar-chart-3"></svg><span>Lihat Menu Analysis</span></div>`:""}
@@ -3532,27 +3819,18 @@ function setupPWA(){
   const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
   document.getElementById("manifestLink").href = URL.createObjectURL(manifestBlob);
 
-  if ("serviceWorker" in navigator){
-    const swCode = `
-      const CACHE = "dsmc-shell-v1";
-      self.addEventListener("install", e => { self.skipWaiting(); });
-      self.addEventListener("activate", e => { self.clients.claim(); });
-      self.addEventListener("fetch", e => {
-        if (e.request.method !== "GET") return;
-        e.respondWith(
-          caches.open(CACHE).then(cache =>
-            cache.match(e.request).then(cached => {
-              const fetchPromise = fetch(e.request).then(res => { if (res.ok) cache.put(e.request, res.clone()); return res; }).catch(() => cached);
-              return cached || fetchPromise;
-            })
-          )
-        );
-      });
-    `;
-    const swBlob = new Blob([swCode], { type: "text/javascript" });
-    const swUrl = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl).catch(err=>console.warn("Service worker registration skipped:", err));
-  }
+  // NOTE: a real Service Worker (for caching the app shell itself so the
+  // page can still load with zero connectivity) requires a same-origin
+  // http(s) script URL — browsers reject registering one from a blob: URL,
+  // which is the only script source available in a single HTML file. That
+  // was attempted here in an earlier version and silently failed every
+  // time (verified via a real browser during QA testing), so it's removed
+  // rather than left in as dead code that looks like it works. This does
+  // NOT affect the app's actual offline behaviour: every screen already
+  // reads/writes straight to localStorage regardless of network state, so
+  // DSMC keeps working offline as long as the tab stays open — a Service
+  // Worker would only help the page reload while fully offline, which
+  // would need a companion sw.js served from the real deployed origin.
 
   let deferredPrompt = null;
   window.addEventListener("beforeinstallprompt", (e)=>{
@@ -3641,6 +3919,15 @@ function showLogin(){
   document.getElementById("loginScreen").classList.remove("hidden");
   document.getElementById("fbConfigBanner").classList.toggle("hidden", IS_FIREBASE_CONFIGURED);
   document.getElementById("loginErrorBox").classList.add("hidden");
+
+  // The login form/button persist in the DOM across sessions (only hidden,
+  // never destroyed) — reset them in case a previous login left the button
+  // stuck mid-spinner, otherwise a second login attempt after logout can
+  // silently do nothing.
+  const submitBtn = document.getElementById("loginSubmitBtn");
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = `<svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Sign in`;
+  document.getElementById("loginForm").reset();
 
   const demoWrap = document.getElementById("localModeUsers");
   if (!IS_FIREBASE_CONFIGURED){

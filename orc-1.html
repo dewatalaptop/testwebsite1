@@ -459,6 +459,19 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
 .dash-hero-sub{color:rgba(255,255,255,.86); font-size:13.5px; margin-top:6px;}
 [data-theme="dark"] .dash-hero{box-shadow:0 14px 34px -14px rgba(0,0,0,.5);}
 
+/* Purchasing's shortcut dashboard */
+.shortcut-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;}
+.shortcut-card{position:relative; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:26px 22px; box-shadow:var(--shadow-sm); cursor:pointer; transition:transform .15s var(--ease), box-shadow .15s var(--ease);}
+.shortcut-card:hover{transform:translateY(-3px); box-shadow:var(--shadow-md);}
+.shortcut-ic{width:52px;height:52px; border-radius:14px; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; margin-bottom:16px;}
+.shortcut-ic svg{width:24px;height:24px;}
+.shortcut-ic.amber{background:var(--accent-soft); color:var(--accent);}
+.shortcut-ic.info{background:var(--info-soft); color:var(--info);}
+.shortcut-title{font-family:var(--font-display); font-weight:600; font-size:19px; margin-bottom:5px;}
+.shortcut-sub{font-size:13px; color:var(--text-muted);}
+.shortcut-badge{position:absolute; top:20px; right:20px; font-size:11px; font-weight:700; padding:4px 10px; border-radius:99px; background:var(--primary-soft); color:var(--primary);}
+.shortcut-badge.amber{background:var(--accent-soft); color:var(--accent);}
+
 /* Terrace-tab cards — a colored step at the top-left, echoing paddy terraces,
    used specifically for the category order cards. */
 .terrace-card{position:relative; padding-top:8px;}
@@ -570,11 +583,11 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
   <div class="login-card">
     <div class="login-mark"><svg id="loginMarkIcon"></svg></div>
     <h1>Dolan Sawah Material Control</h1>
-    <p class="login-sub">Sign in to manage purchasing &amp; stock across every outlet.</p>
+    <p class="login-sub">Masuk untuk mengelola belanja &amp; stok di semua outlet.</p>
 
     <div id="fbConfigBanner" class="login-banner hidden">
       <svg data-lucide="info"></svg>
-      <span>Firebase isn't connected yet, so DSMC is running in <b>local mode</b> — everything works and saves to this device. Add your Firebase config in Settings → Firebase to sync it to the cloud.</span>
+      <span>Firebase belum tersambung, jadi DSMC berjalan dalam <b>mode lokal</b> — semua fitur tetap berfungsi dan tersimpan di perangkat ini. Tambahkan konfigurasi Firebase di Pengaturan → Firebase untuk sinkron ke cloud.</span>
     </div>
     <div id="loginErrorBox" class="login-error hidden">
       <svg data-lucide="alert-circle" style="width:15px;height:15px;"></svg>
@@ -591,10 +604,10 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
         <div class="input-icon-wrap"><svg data-lucide="lock"></svg><input class="input" type="password" id="loginPassword" autocomplete="current-password" required placeholder="••••••••"></div>
       </div>
       <div class="field" style="display:flex; align-items:center; justify-content:space-between;">
-        <label class="checkbox-row" style="font-size:12.5px; font-weight:500;"><input type="checkbox" id="rememberMe" checked> Remember me</label>
+        <label class="checkbox-row" style="font-size:12.5px; font-weight:500;"><input type="checkbox" id="rememberMe" checked> Ingat saya</label>
       </div>
       <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
-        <svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Sign in
+        <svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Masuk
       </button>
     </form>
 
@@ -639,10 +652,10 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
               <svg data-lucide="chevron-down" style="width:14px;height:14px;color:var(--text-faint);"></svg>
             </button>
             <div class="dropdown-panel hidden" id="userMenuPanel">
-              <div class="dropdown-item" data-nav="settings/profile"><svg data-lucide="user"></svg> My profile</div>
-              <div class="dropdown-item" data-nav="settings/appearance"><svg data-lucide="palette"></svg> Appearance</div>
+              <div class="dropdown-item" data-nav="settings/profile"><svg data-lucide="user"></svg> Profil saya</div>
+              <div class="dropdown-item" data-nav="settings/appearance"><svg data-lucide="palette"></svg> Tampilan</div>
               <div class="dropdown-sep"></div>
-              <div class="dropdown-item" id="logoutBtn"><svg data-lucide="log-out"></svg> Sign out</div>
+              <div class="dropdown-item" id="logoutBtn"><svg data-lucide="log-out"></svg> Keluar</div>
             </div>
           </div>
         </div>
@@ -798,7 +811,7 @@ const Toast = {
 };
 
 const ConfirmDialog = {
-  ask({ title="Are you sure?", message="", confirmLabel="Delete", danger=true }){
+  ask({ title="Yakin?", message="", confirmLabel="Hapus", danger=true }){
     return new Promise(resolve=>{
       const root = document.getElementById("modalRoot");
       root.innerHTML = `
@@ -807,7 +820,7 @@ const ConfirmDialog = {
             <div class="modal-head"><h3>${Utils.escapeHtml(title)}</h3></div>
             <div class="modal-body"><p class="muted" style="font-size:13.5px; line-height:1.55;">${Utils.escapeHtml(message)}</p></div>
             <div class="modal-foot">
-              <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+              <button class="btn btn-ghost" id="confirmCancel">Batal</button>
               <button class="btn ${danger?'btn-danger':'btn-primary'}" id="confirmOk">${Utils.escapeHtml(confirmLabel)}</button>
             </div>
           </div>
@@ -1156,7 +1169,7 @@ function viewOnly(mods){ const o={}; mods.forEach(m=>o[m]=["view"]); return o; }
 
 const ROLES = {
   manager:{ label:"Manager", color:"green", permissions: { ...fullAccess(MODULES), purchaseRequests:["view","create","edit","delete","approve"] } },
-  purchasing:{ label:"Purchasing", color:"amber", permissions: { ...viewOnly(["items","categories","outlets","conversions","analytics"]), suppliers:["view","create","edit"], purchaseRequests:["view","create","edit","delete"], purchaseOrders:["view","create","edit"] } }
+  purchasing:{ label:"Purchasing", color:"amber", permissions: { ...viewOnly(["items","categories","outlets","conversions"]), suppliers:["view","create","edit"], purchaseRequests:["view","create","edit","delete"], purchaseOrders:["view","create","edit"], recipes:["view","create","edit"] } }
 };
 const RBAC = {
   can(role, mod, action){
@@ -1269,25 +1282,25 @@ window.Router = Router;
    10. NAV CONFIG
    --------------------------------------------------------------------- */
 const NAV = [
-  { group:"Overview", items:[ { route:"dashboard", label:"Dashboard", icon:"layout-dashboard", mod:null } ]},
-  { group:"Master Data", items:[
-    { route:"items", label:"Items", icon:"package", mod:"items" },
-    { route:"categories", label:"Categories", icon:"tags", mod:"categories" },
-    { route:"suppliers", label:"Suppliers", icon:"truck", mod:"suppliers" },
-    { route:"outlets", label:"Outlets", icon:"store", mod:"outlets" },
-    { route:"conversions", label:"Conversions", icon:"repeat", mod:"conversions" },
-    { route:"menus", label:"Menus", icon:"utensils-crossed", mod:"menus" },
-    { route:"users", label:"Users & Roles", icon:"users", mod:"users" }
+  { group:"Ringkasan", items:[ { route:"dashboard", label:"Dashboard", icon:"layout-dashboard", mod:null } ]},
+  { group:"Data Master", items:[
+    { route:"items", label:"Bahan Baku", icon:"package", mod:"items" },
+    { route:"categories", label:"Kategori", icon:"tags", mod:"categories" },
+    { route:"suppliers", label:"Supplier", icon:"truck", mod:"suppliers" },
+    { route:"outlets", label:"Outlet", icon:"store", mod:"outlets" },
+    { route:"conversions", label:"Konversi Satuan", icon:"repeat", mod:"conversions" },
+    { route:"menus", label:"Menu", icon:"utensils-crossed", mod:"menus" },
+    { route:"users", label:"Pengguna & Peran", icon:"users", mod:"users" }
   ]},
-  { group:"Operations", items:[
-    { route:"purchase-requests", label:"Purchase Requests", icon:"clipboard-list", mod:"purchaseRequests" },
-    { route:"goods-receipt", label:"Goods Receipt", icon:"package-check", mod:"purchaseRequests" },
-    { route:"stock-opname", label:"Stock Opname", icon:"clipboard-check", mod:"stockOpname", badge:"Phase 3" },
-    { route:"sales", label:"Sales", icon:"receipt", mod:"sales" },
-    { route:"recipes", label:"Recipe Learning", icon:"brain-circuit", mod:"recipes" },
-    { route:"analytics", label:"Menu Analysis", icon:"bar-chart-3", mod:"analytics" }
+  { group:"Operasional", items:[
+    { route:"purchase-requests", label:"Pesanan Belanja", icon:"clipboard-list", mod:"purchaseRequests" },
+    { route:"goods-receipt", label:"Terima Barang", icon:"package-check", mod:"purchaseRequests" },
+    { route:"stock-opname", label:"Stock Opname", icon:"clipboard-check", mod:"stockOpname", badge:"Fase 3" },
+    { route:"sales", label:"Penjualan", icon:"receipt", mod:"sales" },
+    { route:"recipes", label:"Resep", icon:"brain-circuit", mod:"recipes" },
+    { route:"analytics", label:"Analisis Menu", icon:"bar-chart-3", mod:"analytics" }
   ]},
-  { group:"System", items:[ { route:"settings", label:"Settings", icon:"settings", mod:"settings" } ]}
+  { group:"Sistem", items:[ { route:"settings", label:"Pengaturan", icon:"settings", mod:"settings" } ]}
 ];
 
 function buildSidebarNav(){
@@ -1324,12 +1337,12 @@ function renderComingSoon(label){
   dashboardActive = false;
   const main = document.getElementById("mainContent");
   main.innerHTML = `
-    <div class="page-head"><div><h2>${label}</h2><div class="page-sub">Not built yet in this phase</div></div></div>
+    <div class="page-head"><div><h2>${label}</h2><div class="page-sub">Belum tersedia di fase ini</div></div></div>
     <div class="coming-soon">
       <div class="cs-ic"><svg data-lucide="hammer"></svg></div>
-      <h3>${label} is scheduled for a later phase</h3>
-      <p>Phase 1 covers authentication, RBAC, master data, the dashboard, and offline sync. This screen will be built once Phase 1 is confirmed working end-to-end.</p>
-      <span class="badge amber">Coming soon</span>
+      <h3>${label} akan dibangun di fase berikutnya</h3>
+      <p>Fitur ini menunggu giliran dikembangkan. Fase yang sudah berjalan mencakup data master, Pesanan Belanja, Terima Barang, Penjualan, dan Resep.</p>
+      <span class="badge amber">Segera hadir</span>
     </div>`;
   renderIcons(main);
 }
@@ -1358,13 +1371,13 @@ async function runGlobalSearch(q){
     Stores.items.list(), Stores.suppliers.list(), Stores.categories.list(), Stores.outlets.list(), Stores.users.list()
   ]);
   const results = [];
-  items.filter(i=>i.name?.toLowerCase().includes(query)).slice(0,5).forEach(i=>results.push({ label:i.name, meta:"Item", route:"items" }));
+  items.filter(i=>i.name?.toLowerCase().includes(query)).slice(0,5).forEach(i=>results.push({ label:i.name, meta:"Bahan", route:"items" }));
   suppliers.filter(s=>s.name?.toLowerCase().includes(query)).slice(0,5).forEach(s=>results.push({ label:s.name, meta:"Supplier", route:"suppliers" }));
-  categories.filter(c=>c.name?.toLowerCase().includes(query)).slice(0,5).forEach(c=>results.push({ label:c.name, meta:"Category", route:"categories" }));
+  categories.filter(c=>c.name?.toLowerCase().includes(query)).slice(0,5).forEach(c=>results.push({ label:c.name, meta:"Kategori", route:"categories" }));
   outlets.filter(o=>o.name?.toLowerCase().includes(query)).slice(0,5).forEach(o=>results.push({ label:o.name, meta:"Outlet", route:"outlets" }));
-  if (RBAC.can(CURRENT_USER.role,"users","view")) users.filter(u=>u.name?.toLowerCase().includes(query)).slice(0,5).forEach(u=>results.push({ label:u.name, meta:"User", route:"users" }));
+  if (RBAC.can(CURRENT_USER.role,"users","view")) users.filter(u=>u.name?.toLowerCase().includes(query)).slice(0,5).forEach(u=>results.push({ label:u.name, meta:"Pengguna", route:"users" }));
 
-  if (!results.length){ panel.innerHTML = `<div class="search-empty">No results for "${Utils.escapeHtml(q)}"</div>`; }
+  if (!results.length){ panel.innerHTML = `<div class="search-empty">Tidak ada hasil untuk "${Utils.escapeHtml(q)}"</div>`; }
   else {
     panel.innerHTML = results.slice(0,10).map(r=>`<div class="search-result-item" data-route="${r.route}"><span>${Utils.escapeHtml(r.label)}</span><span class="srm">${r.meta}</span></div>`).join("");
     panel.querySelectorAll(".search-result-item").forEach(el=> el.addEventListener("click", ()=>{ Router.navigate(el.dataset.route); panel.classList.add("hidden"); document.getElementById("globalSearchInput").value=""; }));
@@ -1378,7 +1391,7 @@ function updateConnBadge(){
   const online = navigator.onLine;
   badge.classList.toggle("online", online);
   badge.classList.toggle("offline", !online);
-  text.textContent = online ? (IS_FIREBASE_CONFIGURED ? "Synced" : "Local mode") : "Offline";
+  text.textContent = online ? (IS_FIREBASE_CONFIGURED ? "Tersinkron" : "Mode lokal") : "Offline";
 }
 
 /* ---------------------------------------------------------------------
@@ -1387,9 +1400,10 @@ function updateConnBadge(){
 class CrudModule{
   constructor(cfg){
     this.key = cfg.key; this.title = cfg.title; this.subtitle = cfg.subtitle || "";
+    this.singularLabel = cfg.singularLabel || cfg.title;
     this.columns = cfg.columns; this.fields = cfg.fields; this.searchKeys = cfg.searchKeys || ["name"];
-    this.emptyIcon = cfg.emptyIcon || "inbox"; this.emptyTitle = cfg.emptyTitle || "Nothing here yet";
-    this.emptySub = cfg.emptySub || "Add your first entry to get started.";
+    this.emptyIcon = cfg.emptyIcon || "inbox"; this.emptyTitle = cfg.emptyTitle || "Belum ada data";
+    this.emptySub = cfg.emptySub || "Tambahkan data pertama untuk mulai.";
     this.beforeSave = cfg.beforeSave || (async d=>d);
     this.beforeDelete = cfg.beforeDelete || (async ()=>true);
     this.outletFilterEnabled = !!cfg.outletFilterEnabled;
@@ -1407,11 +1421,11 @@ class CrudModule{
     container.innerHTML = `
       <div class="page-head">
         <div><h2>${this.title}</h2><div class="page-sub">${this.subtitle}</div></div>
-        <div class="page-actions">${this.canCreate ? `<button class="btn btn-primary" id="crudAddBtn"><svg data-lucide="plus"></svg> Add ${this.title.replace(/s$/,'')}</button>` : ""}</div>
+        <div class="page-actions">${this.canCreate ? `<button class="btn btn-primary" id="crudAddBtn"><svg data-lucide="plus"></svg> Tambah ${this.singularLabel}</button>` : ""}</div>
       </div>
       ${this.outletFilterEnabled ? `<div class="toolbar" id="outletFilterChips"></div>` : ""}
       <div class="toolbar">
-        <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="crudSearchInput" placeholder="Search ${this.title.toLowerCase()}…"></div>
+        <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="crudSearchInput" placeholder="Cari ${this.title.toLowerCase()}…"></div>
         <span class="result-count" id="crudResultCount"></span>
       </div>
       <div class="table-wrap" id="crudTableWrap"></div>
@@ -1485,7 +1499,7 @@ class CrudModule{
       <table class="data-table">
         <thead><tr>
           ${this.columns.map(c=>`<th data-sort="${c.key}">${c.label}${c.sortable!==false?'<svg class="sort-ic" data-lucide="chevrons-up-down"></svg>':''}</th>`).join("")}
-          <th style="text-align:right;">Actions</th>
+          <th style="text-align:right;">Aksi</th>
         </tr></thead>
         <tbody>
           ${pageItems.map(item=>`
@@ -1493,17 +1507,17 @@ class CrudModule{
               ${this.columns.map(c=>`<td>${c.render ? c.render(item,this) : Utils.escapeHtml(item[c.key]??"—")}</td>`).join("")}
               <td><div class="row-actions">
                 <button class="btn-icon btn-sm edit-btn" title="Edit"><svg data-lucide="pencil" style="width:14px;height:14px;"></svg></button>
-                ${this.canDelete?`<button class="btn-icon btn-sm del-btn" title="Delete"><svg data-lucide="trash-2" style="width:14px;height:14px;"></svg></button>`:""}
+                ${this.canDelete?`<button class="btn-icon btn-sm del-btn" title="Hapus"><svg data-lucide="trash-2" style="width:14px;height:14px;"></svg></button>`:""}
               </div></td>
             </tr>
           `).join("")}
         </tbody>
       </table>
       <div class="pagination">
-        <span class="pg-info">Page ${this.state.page} of ${totalPages}</span>
+        <span class="pg-info">Halaman ${this.state.page} dari ${totalPages}</span>
         <div class="pg-btns">
-          <button class="btn btn-ghost btn-sm" id="pgPrev" ${this.state.page<=1?"disabled":""}>Prev</button>
-          <button class="btn btn-ghost btn-sm" id="pgNext" ${this.state.page>=totalPages?"disabled":""}>Next</button>
+          <button class="btn btn-ghost btn-sm" id="pgPrev" ${this.state.page<=1?"disabled":""}>Sebelumnya</button>
+          <button class="btn btn-ghost btn-sm" id="pgNext" ${this.state.page>=totalPages?"disabled":""}>Berikutnya</button>
         </div>
       </div>
     `;
@@ -1533,7 +1547,7 @@ class CrudModule{
     if (f.type === "select"){
       const opts = typeof f.options === "function" ? f.options(this) : f.options;
       return `<select class="select" id="f_${f.key}" ${f.required?"required":""}>
-        <option value="">${f.placeholder||"Select…"}</option>
+        <option value="">${f.placeholder||"Pilih…"}</option>
         ${opts.map(o=>`<option value="${o.value}" ${String(v)===String(o.value)?"selected":""}>${Utils.escapeHtml(o.label)}</option>`).join("")}
       </select>`;
     }
@@ -1542,7 +1556,7 @@ class CrudModule{
     if (f.type === "multiselect"){
       const opts = typeof f.options === "function" ? f.options(this) : f.options;
       const selected = Array.isArray(v) ? v.map(String) : [];
-      if (!opts.length) return `<p class="muted" style="font-size:12.5px;">${f.emptyHint||"Nothing to choose from yet."}</p>`;
+      if (!opts.length) return `<p class="muted" style="font-size:12.5px;">${f.emptyHint||"Belum ada pilihan."}</p>`;
       return `<div class="multiselect-group" data-field="${f.key}">${opts.map(o=>`
         <label class="checkbox-row" style="margin-bottom:7px;">
           <input type="checkbox" class="ms-field-${f.key}" value="${o.value}" ${selected.includes(String(o.value))?"checked":""}>
@@ -1563,10 +1577,10 @@ class CrudModule{
           ${this.fieldHtml(f, item?.[f.key])}
         </div>`).join("")}</form>`;
     const footHtml = readOnly
-      ? `<button class="btn btn-ghost" id="crudCancelBtn">Close</button>`
-      : `<button class="btn btn-ghost" id="crudCancelBtn">Cancel</button><button class="btn btn-primary" id="crudSaveBtn">${isEdit?'Save changes':'Create'}</button>`;
+      ? `<button class="btn btn-ghost" id="crudCancelBtn">Tutup</button>`
+      : `<button class="btn btn-ghost" id="crudCancelBtn">Batal</button><button class="btn btn-primary" id="crudSaveBtn">${isEdit?'Simpan perubahan':'Buat'}</button>`;
     Modal.open({
-      title: (isEdit ? (readOnly?"View ":"Edit ") : "Add ") + this.title.replace(/s$/,''),
+      title: (isEdit ? (readOnly?"Lihat ":"Ubah ") : "Tambah ") + this.singularLabel,
       bodyHtml, footHtml,
       onMount: (root)=>{
         if (readOnly){ root.querySelectorAll("input,select,textarea").forEach(el=>el.disabled=true); }
@@ -1594,7 +1608,7 @@ class CrudModule{
 
   validate(data){
     for (const f of this.fields){
-      if (f.required && (data[f.key]===undefined || data[f.key]===null || data[f.key]==="")) return `${f.label} is required.`;
+      if (f.required && (data[f.key]===undefined || data[f.key]===null || data[f.key]==="")) return `${f.label} wajib diisi.`;
     }
     return null;
   }
@@ -1604,42 +1618,42 @@ class CrudModule{
     const err = this.validate(data);
     if (err){ Toast.show(err, "error"); return; }
     try{ data = await this.beforeSave(data, existingItem); }
-    catch(e){ Toast.show(e.message || "Could not save.", "error"); return; }
+    catch(e){ Toast.show(e.message || "Gagal menyimpan.", "error"); return; }
     const saveBtn = document.getElementById("crudSaveBtn");
     if (saveBtn){ saveBtn.disabled = true; saveBtn.innerHTML = `<div class="spinner"></div>`; }
     try{
       if (existingItem){
         await this.store.update(existingItem.id, data);
         await Logger.log("updated", this.key, data.name || existingItem.name || existingItem.id);
-        Toast.show(`${this.title.replace(/s$/,'')} updated.`, "success");
+        Toast.show(`${this.singularLabel} diperbarui.`, "success");
       } else {
         await this.store.create(data);
-        await Logger.log("created", this.key, data.name || "new entry");
-        Toast.show(`${this.title.replace(/s$/,'')} created.`, "success");
+        await Logger.log("created", this.key, data.name || "entri baru");
+        Toast.show(`${this.singularLabel} dibuat.`, "success");
       }
       Modal.close();
       this.items = await this.store.list();
       this.paint();
       refreshDashboardIfActive();
     }catch(e){
-      Toast.show(e.message || "Something went wrong saving this.", "error");
-      if (saveBtn){ saveBtn.disabled=false; saveBtn.textContent = existingItem?'Save changes':'Create'; }
+      Toast.show(e.message || "Terjadi kesalahan saat menyimpan.", "error");
+      if (saveBtn){ saveBtn.disabled=false; saveBtn.textContent = existingItem?'Simpan perubahan':'Buat'; }
     }
   }
 
   async handleDelete(item){
-    const ok = await ConfirmDialog.ask({ title:`Delete "${item.name||item.id}"?`, message:"This can't be undone. Anything referencing this record may show as missing." });
+    const ok = await ConfirmDialog.ask({ title:`Hapus "${item.name||item.id}"?`, message:"Tindakan ini tidak bisa dibatalkan. Data lain yang merujuk ke sini mungkin akan tampil kosong." });
     if (!ok) return;
     try{
       const allowed = await this.beforeDelete(item);
-      if (allowed !== true){ Toast.show(allowed || "This can't be deleted right now.", "error"); return; }
+      if (allowed !== true){ Toast.show(allowed || "Belum bisa dihapus sekarang.", "error"); return; }
       await this.store.remove(item.id);
       await Logger.log("deleted", this.key, item.name || item.id);
-      Toast.show(`Deleted.`, "success");
+      Toast.show(`Berhasil dihapus.`, "success");
       this.items = await this.store.list();
       this.paint();
       refreshDashboardIfActive();
-    }catch(e){ Toast.show(e.message || "Could not delete.", "error"); }
+    }catch(e){ Toast.show(e.message || "Gagal menghapus.", "error"); }
   }
 }
 
@@ -1647,114 +1661,114 @@ class CrudModule{
    13. MODULE DEFINITIONS
    --------------------------------------------------------------------- */
 const categoriesModule = new CrudModule({
-  key:"categories", title:"Categories", subtitle:"Group items for reporting and quick filtering.",
-  emptyIcon:"tags", emptyTitle:"No categories yet", emptySub:"Categories help you group and filter items, e.g. Bumbu, Protein, Sayur.",
+  key:"categories", title:"Kategori", singularLabel:"Kategori", subtitle:"Kelompokkan bahan untuk memudahkan laporan dan filter.",
+  emptyIcon:"tags", emptyTitle:"Belum ada kategori", emptySub:"Kategori membantu mengelompokkan & memfilter bahan, misalnya Bumbu, Protein, Sayur.",
   columns:[
-    { key:"name", label:"Name", render:(i)=>`<span class="color-dot" style="background:${i.color||'#1B7A43'}"></span><span class="cell-primary">${Utils.escapeHtml(i.name)}</span>` },
-    { key:"description", label:"Description", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.description||"—")}</span>` },
-    { key:"createdAt", label:"Created", render:(i)=>Utils.formatDate(i.createdAt) }
+    { key:"name", label:"Nama", render:(i)=>`<span class="color-dot" style="background:${i.color||'#1B7A43'}"></span><span class="cell-primary">${Utils.escapeHtml(i.name)}</span>` },
+    { key:"description", label:"Deskripsi", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.description||"—")}</span>` },
+    { key:"createdAt", label:"Dibuat", render:(i)=>Utils.formatDate(i.createdAt) }
   ],
   fields:[
-    { key:"name", label:"Name", required:true, placeholder:"e.g. Bumbu & Rempah" },
-    { key:"color", label:"Color tag", type:"color" },
-    { key:"description", label:"Description", type:"textarea", placeholder:"Optional" }
+    { key:"name", label:"Nama", required:true, placeholder:"cth. Bumbu & Rempah" },
+    { key:"color", label:"Warna penanda", type:"color" },
+    { key:"description", label:"Deskripsi", type:"textarea", placeholder:"Opsional" }
   ],
-  beforeDelete: async(item)=>{ const items = await Stores.items.list(); if (items.some(i=>i.categoryId===item.id)) return "Move or delete items in this category first."; return true; }
+  beforeDelete: async(item)=>{ const items = await Stores.items.list(); if (items.some(i=>i.categoryId===item.id)) return "Pindahkan atau hapus dulu bahan di kategori ini."; return true; }
 });
 
 const suppliersModule = new CrudModule({
-  key:"suppliers", title:"Suppliers", subtitle:"Vendors you purchase materials from.",
-  emptyIcon:"truck", emptyTitle:"No suppliers yet", emptySub:"Add suppliers so items can be linked to where they're purchased.",
+  key:"suppliers", title:"Supplier", singularLabel:"Supplier", subtitle:"Vendor tempat bahan baku dibeli.",
+  emptyIcon:"truck", emptyTitle:"Belum ada supplier", emptySub:"Tambahkan supplier supaya bahan bisa dikaitkan ke tempat belinya.",
   columns:[
     { key:"name", label:"Supplier", render:(i)=>`<div class="cell-primary">${Utils.escapeHtml(i.name)}</div><div class="cell-sub">${Utils.escapeHtml(i.contactPerson||"")}</div>` },
-    { key:"phone", label:"WhatsApp / Phone" },
-    { key:"address", label:"Address", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.address||"—")}</span>` }
+    { key:"phone", label:"WhatsApp / Telepon" },
+    { key:"address", label:"Alamat", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.address||"—")}</span>` }
   ],
   fields:[
-    { key:"name", label:"Supplier name", required:true },
-    { key:"contactPerson", label:"Contact person", half:true, halfPos:"l" },
-    { key:"phone", label:"WhatsApp / Phone", half:true, halfPos:"r" },
-    { key:"address", label:"Address", type:"textarea" },
-    { key:"notes", label:"Notes", type:"textarea" }
+    { key:"name", label:"Nama supplier", required:true },
+    { key:"contactPerson", label:"Nama kontak", half:true, halfPos:"l" },
+    { key:"phone", label:"WhatsApp / Telepon", half:true, halfPos:"r" },
+    { key:"address", label:"Alamat", type:"textarea" },
+    { key:"notes", label:"Catatan", type:"textarea" }
   ],
-  beforeDelete: async(item)=>{ const items = await Stores.items.list(); if (items.some(i=>i.supplierId===item.id)) return "This supplier is linked to existing items — reassign those items first."; return true; }
+  beforeDelete: async(item)=>{ const items = await Stores.items.list(); if (items.some(i=>i.supplierId===item.id)) return "Supplier ini masih terkait dengan bahan tertentu — pindahkan dulu bahan-bahan itu."; return true; }
 });
 
 const outletsModule = new CrudModule({
-  key:"outlets", title:"Outlets", subtitle:"Every location this data is tracked across.",
-  emptyIcon:"store", emptyTitle:"No outlets yet", emptySub:"Add Dolan Sawah, Soto Sawah, Sawah Senja, or any new location.",
+  key:"outlets", title:"Outlet", singularLabel:"Outlet", subtitle:"Semua lokasi yang datanya dipantau di sini.",
+  emptyIcon:"store", emptyTitle:"Belum ada outlet", emptySub:"Tambahkan Dolan Sawah, Soto Sawah, Sawah Senja, atau lokasi baru lainnya.",
   columns:[
     { key:"name", label:"Outlet", render:(i)=>`<span class="cell-primary">${Utils.escapeHtml(i.name)}</span>${i.shortCode?`<div class="cell-sub">${Utils.escapeHtml(i.shortCode)}</div>`:''}` },
-    { key:"address", label:"Address", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.address||"—")}</span>` },
-    { key:"phone", label:"Phone" },
-    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
+    { key:"address", label:"Alamat", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.address||"—")}</span>` },
+    { key:"phone", label:"Telepon" },
+    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Aktif':'Tidak Aktif'}</span>` }
   ],
   fields:[
-    { key:"name", label:"Outlet name", required:true, half:true, halfPos:"l" },
-    { key:"shortCode", label:"Short code (WhatsApp)", half:true, halfPos:"r", placeholder:"e.g. DS" },
-    { key:"phone", label:"Phone", half:true, halfPos:"l" },
-    { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" },
-    { key:"address", label:"Address", type:"textarea" }
+    { key:"name", label:"Nama outlet", required:true, half:true, halfPos:"l" },
+    { key:"shortCode", label:"Kode singkat (WhatsApp)", half:true, halfPos:"r", placeholder:"cth. DS" },
+    { key:"phone", label:"Telepon", half:true, halfPos:"l" },
+    { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Aktif"},{value:"inactive",label:"Tidak Aktif"}], default:"active" },
+    { key:"address", label:"Alamat", type:"textarea" }
   ]
 });
 
 const conversionsModule = new CrudModule({
-  key:"conversions", title:"Conversions", subtitle:"Custom unit-to-unit rules, e.g. 1 kg ayam paha bawah = 8 pcs.",
-  emptyIcon:"repeat", emptyTitle:"No conversions yet", emptySub:"Add rules like 1 kg = 1000 gram, or item-specific ones like 1 kg jeruk nipis = 18 pcs.",
+  key:"conversions", title:"Konversi Satuan", singularLabel:"Konversi", subtitle:"Aturan satuan khusus, misalnya 1 kg ayam paha bawah = 8 pcs.",
+  emptyIcon:"repeat", emptyTitle:"Belum ada konversi", emptySub:"Tambahkan aturan seperti 1 kg = 1000 gram, atau yang spesifik per bahan seperti 1 kg jeruk nipis = 18 pcs.",
   searchKeys:["fromUnit","toUnit","notes"],
   columns:[
-    { key:"rule", label:"Rule", sortable:false, render:(i,ctx)=>{
+    { key:"rule", label:"Aturan", sortable:false, render:(i,ctx)=>{
         const item = ctx.items_all?.find(x=>x.id===i.itemId);
-        return `<span class="cell-primary">${i.fromQty} ${Utils.escapeHtml(i.fromUnit)} = ${i.toQty} ${Utils.escapeHtml(i.toUnit)}</span>${item?`<div class="cell-sub">${Utils.escapeHtml(item.name)}</div>`:'<div class="cell-sub">Global rule</div>'}`;
+        return `<span class="cell-primary">${i.fromQty} ${Utils.escapeHtml(i.fromUnit)} = ${i.toQty} ${Utils.escapeHtml(i.toUnit)}</span>${item?`<div class="cell-sub">${Utils.escapeHtml(item.name)}</div>`:'<div class="cell-sub">Aturan umum</div>'}`;
       } },
-    { key:"notes", label:"Notes", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.notes||"—")}</span>` }
+    { key:"notes", label:"Catatan", render:(i)=>`<span class="muted">${Utils.escapeHtml(i.notes||"—")}</span>` }
   ],
   fields:[
-    { key:"itemId", label:"Specific item (optional)", type:"select", options:(ctx)=> (ctx.items_all||[]).map(i=>({value:i.id,label:i.name})), placeholder:"Leave blank for a global unit rule" },
-    { key:"fromQty", label:"From qty", type:"number", required:true, half:true, halfPos:"l", default:1 },
-    { key:"fromUnit", label:"From unit", required:true, half:true, halfPos:"r", placeholder:"kg" },
-    { key:"toQty", label:"To qty", type:"number", required:true, half:true, halfPos:"l" },
-    { key:"toUnit", label:"To unit", required:true, half:true, halfPos:"r", placeholder:"gram" },
-    { key:"notes", label:"Notes", type:"textarea" }
+    { key:"itemId", label:"Bahan tertentu (opsional)", type:"select", options:(ctx)=> (ctx.items_all||[]).map(i=>({value:i.id,label:i.name})), placeholder:"Kosongkan untuk aturan satuan umum" },
+    { key:"fromQty", label:"Jumlah asal", type:"number", required:true, half:true, halfPos:"l", default:1 },
+    { key:"fromUnit", label:"Satuan asal", required:true, half:true, halfPos:"r", placeholder:"kg" },
+    { key:"toQty", label:"Jumlah tujuan", type:"number", required:true, half:true, halfPos:"l" },
+    { key:"toUnit", label:"Satuan tujuan", required:true, half:true, halfPos:"r", placeholder:"gram" },
+    { key:"notes", label:"Catatan", type:"textarea" }
   ]
 });
 
 const itemsModule = new CrudModule({
-  key:"items", title:"Items", subtitle:"Every material tracked across purchasing, stock and recipes.",
-  emptyIcon:"package", emptyTitle:"No items yet", emptySub:"Add your first item — set its unit, supplier, and latest price.",
+  key:"items", title:"Bahan Baku", singularLabel:"Bahan", subtitle:"Semua bahan yang dipantau lintas belanja, stok, dan resep.",
+  emptyIcon:"package", emptyTitle:"Belum ada bahan", emptySub:"Tambahkan bahan pertama — atur satuan, supplier, dan harga terakhirnya.",
   columns:[
-    { key:"name", label:"Item", render:(i,ctx)=>{
+    { key:"name", label:"Bahan", render:(i,ctx)=>{
         const cat = ctx.categories.find(c=>c.id===i.categoryId);
-        return `<div class="cell-primary">${Utils.escapeHtml(i.name)}</div><div class="cell-sub">${cat?`<span class="color-dot" style="background:${cat.color}"></span>${Utils.escapeHtml(cat.name)}`:'No category'}</div>`;
+        return `<div class="cell-primary">${Utils.escapeHtml(i.name)}</div><div class="cell-sub">${cat?`<span class="color-dot" style="background:${cat.color}"></span>${Utils.escapeHtml(cat.name)}`:'Tanpa kategori'}</div>`;
       } },
-    { key:"purchaseUnit", label:"Unit", render:(i)=>`<span class="mono">${Utils.escapeHtml(i.purchaseUnit||"—")}</span> → <span class="mono">${Utils.escapeHtml(i.usageUnit||"—")}</span>` },
+    { key:"purchaseUnit", label:"Satuan", render:(i)=>`<span class="mono">${Utils.escapeHtml(i.purchaseUnit||"—")}</span> → <span class="mono">${Utils.escapeHtml(i.usageUnit||"—")}</span>` },
     { key:"supplierId", label:"Supplier", render:(i,ctx)=>{ const s = ctx.suppliers.find(s=>s.id===i.supplierId); return s?Utils.escapeHtml(s.name):'<span class="muted">—</span>'; } },
-    { key:"outletIds", label:"Outlets", sortable:false, render:(i,ctx)=>{
+    { key:"outletIds", label:"Outlet", sortable:false, render:(i,ctx)=>{
         if (!i.outletIds || !i.outletIds.length) return '<span class="muted">Semua outlet</span>';
         return i.outletIds.map(id=>{ const o=ctx.outlets.find(x=>x.id===id); return o?`<span class="badge grey" style="margin-right:4px;">${Utils.escapeHtml(o.name)}</span>`:''; }).join("");
       } },
-    { key:"latestPrice", label:"Latest price", render:(i)=> i.latestPrice? Utils.formatIDR(i.latestPrice) : '<span class="badge amber">No price</span>' },
-    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
+    { key:"latestPrice", label:"Harga terakhir", render:(i)=> i.latestPrice? Utils.formatIDR(i.latestPrice) : '<span class="badge amber">Belum ada harga</span>' },
+    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Aktif':'Tidak Aktif'}</span>` }
   ],
   fields:[
-    { key:"name", label:"Item name", required:true, placeholder:"e.g. Ayam paha bawah" },
-    { key:"categoryId", label:"Category", type:"select", half:true, halfPos:"l", options:(ctx)=>ctx.categories.map(c=>({value:c.id,label:c.name})) },
+    { key:"name", label:"Nama bahan", required:true, placeholder:"cth. Ayam paha bawah" },
+    { key:"categoryId", label:"Kategori", type:"select", half:true, halfPos:"l", options:(ctx)=>ctx.categories.map(c=>({value:c.id,label:c.name})) },
     { key:"supplierId", label:"Supplier", type:"select", half:true, halfPos:"r", options:(ctx)=>ctx.suppliers.map(s=>({value:s.id,label:s.name})) },
-    { key:"purchaseUnit", label:"Purchase unit", required:true, half:true, halfPos:"l", placeholder:"kg" },
-    { key:"usageUnit", label:"Usage unit", required:true, half:true, halfPos:"r", placeholder:"gram" },
-    { key:"conversionFactor", label:"Conversion factor (1 purchase unit = ? usage units)", type:"number", half:true, halfPos:"l", placeholder:"1000" },
-    { key:"latestPrice", label:"Latest price (IDR)", type:"number", half:true, halfPos:"r" },
-    { key:"status", label:"Status", type:"select", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" },
+    { key:"purchaseUnit", label:"Satuan beli", required:true, half:true, halfPos:"l", placeholder:"kg" },
+    { key:"usageUnit", label:"Satuan pakai", required:true, half:true, halfPos:"r", placeholder:"gram" },
+    { key:"conversionFactor", label:"Faktor konversi (1 satuan beli = ? satuan pakai)", type:"number", half:true, halfPos:"l", placeholder:"1000" },
+    { key:"latestPrice", label:"Harga terakhir (IDR)", type:"number", half:true, halfPos:"r" },
+    { key:"status", label:"Status", type:"select", options:[{value:"active",label:"Aktif"},{value:"inactive",label:"Tidak Aktif"}], default:"active" },
     { key:"outletIds", label:"Biasa dipesan outlet mana", type:"multiselect", options:(ctx)=>ctx.outlets.map(o=>({value:o.id,label:o.name})), hint:"Kosongkan jika dipesan semua outlet." },
-    { key:"notes", label:"Notes", type:"textarea" }
+    { key:"notes", label:"Catatan", type:"textarea" }
   ],
   outletFilterEnabled: true,
   beforeDelete: async(item)=>{
     const conversions = await Stores.conversions.list();
-    if (conversions.some(c=>c.itemId===item.id)) return "Item ini masih punya aturan konversi — hapus dulu aturan konversinya di menu Conversions.";
+    if (conversions.some(c=>c.itemId===item.id)) return "Bahan ini masih punya aturan konversi — hapus dulu aturan konversinya di menu Konversi Satuan.";
     const menus = await Stores.menus.list();
     const usedInMenus = menus.filter(m=>(m.ingredientItemIds||[]).includes(item.id));
-    if (usedInMenus.length) return `Item ini dipakai di resep ${usedInMenus.length} menu (${usedInMenus.slice(0,3).map(m=>m.name).join(", ")}${usedInMenus.length>3?', dll':''}) — hapus dari resep dulu di halaman Recipe Learning.`;
+    if (usedInMenus.length) return `Bahan ini dipakai di resep ${usedInMenus.length} menu (${usedInMenus.slice(0,3).map(m=>m.name).join(", ")}${usedInMenus.length>3?', dll':''}) — hapus dari resep dulu di halaman Resep.`;
     return true;
   }
 });
@@ -1762,38 +1776,38 @@ const itemsModule = new CrudModule({
 class UsersModule extends CrudModule{
   constructor(){
     super({
-      key:"users", title:"Users & Roles", subtitle:"Who has access, and what they can do.",
-      emptyIcon:"users", emptyTitle:"No users yet", emptySub:"Add teammates and assign a role.",
+      key:"users", title:"Pengguna & Peran", singularLabel:"Pengguna", subtitle:"Siapa saja yang punya akses, dan bisa melakukan apa.",
+      emptyIcon:"users", emptyTitle:"Belum ada pengguna", emptySub:"Tambahkan anggota tim dan tentukan perannya.",
       columns:[
-        { key:"name", label:"User", render:(i)=>`<div style="display:flex;align-items:center;gap:10px;"><span class="avatar" style="width:30px;height:30px;font-size:11px;">${Utils.initials(i.name)}</span><div><div class="cell-primary">${Utils.escapeHtml(i.name)}</div><div class="cell-sub">${Utils.escapeHtml(i.email)}</div></div></div>` },
-        { key:"role", label:"Role", render:(i)=>`<span class="badge ${ROLES[i.role]?.color||'grey'}">${ROLES[i.role]?.label||i.role}</span>` },
-        { key:"outletIds", label:"Outlets", render:(i)=>{
-            if (!i.outletIds || !i.outletIds.length) return '<span class="muted">All outlets</span>';
+        { key:"name", label:"Pengguna", render:(i)=>`<div style="display:flex;align-items:center;gap:10px;"><span class="avatar" style="width:30px;height:30px;font-size:11px;">${Utils.initials(i.name)}</span><div><div class="cell-primary">${Utils.escapeHtml(i.name)}</div><div class="cell-sub">${Utils.escapeHtml(i.email)}</div></div></div>` },
+        { key:"role", label:"Peran", render:(i)=>`<span class="badge ${ROLES[i.role]?.color||'grey'}">${ROLES[i.role]?.label||i.role}</span>` },
+        { key:"outletIds", label:"Outlet", render:(i)=>{
+            if (!i.outletIds || !i.outletIds.length) return '<span class="muted">Semua outlet</span>';
             const names = i.outletIds.map(id=>this.outlets.find(o=>o.id===id)?.name).filter(Boolean);
             return names.map(n=>`<span class="badge grey" style="margin-right:4px;">${Utils.escapeHtml(n)}</span>`).join("");
           } },
-        { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
+        { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Aktif':'Tidak Aktif'}</span>` }
       ],
       fields:[
-        { key:"name", label:"Full name", required:true },
+        { key:"name", label:"Nama lengkap", required:true },
         { key:"email", label:"Email", type:"email", required:true },
-        { key:"role", label:"Role", type:"select", required:true, half:true, halfPos:"l", options:Object.keys(ROLES).map(k=>({value:k,label:ROLES[k].label})) },
-        { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" }
+        { key:"role", label:"Peran", type:"select", required:true, half:true, halfPos:"l", options:Object.keys(ROLES).map(k=>({value:k,label:ROLES[k].label})) },
+        { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Aktif"},{value:"inactive",label:"Tidak Aktif"}], default:"active" }
       ]
     });
   }
   openForm(item, readOnly=false){
     const isEdit = !!item;
-    const extra = (!isEdit) ? `<div class="field"><label class="field-label">Temporary password *</label><input type="text" class="input" id="f_localPassword" placeholder="Min. 6 characters" required></div>` : "";
+    const extra = (!isEdit) ? `<div class="field"><label class="field-label">Password sementara *</label><input type="text" class="input" id="f_localPassword" placeholder="Minimal 6 karakter" required></div>` : "";
     const bodyHtml = `<form id="crudForm">${this.fields.map(f=>`
         <div class="field" style="${f.half?'display:inline-block;width:calc(50% - 7px);':''}${f.half&&f.halfPos==='r'?'margin-left:14px;':''}">
           <label class="field-label">${f.label}${f.required?' *':''}</label>
           ${this.fieldHtml(f, item?.[f.key])}
         </div>`).join("")}${extra}</form>`;
-    const footHtml = readOnly ? `<button class="btn btn-ghost" id="crudCancelBtn">Close</button>`
-      : `<button class="btn btn-ghost" id="crudCancelBtn">Cancel</button><button class="btn btn-primary" id="crudSaveBtn">${isEdit?'Save changes':'Create user'}</button>`;
+    const footHtml = readOnly ? `<button class="btn btn-ghost" id="crudCancelBtn">Tutup</button>`
+      : `<button class="btn btn-ghost" id="crudCancelBtn">Batal</button><button class="btn btn-primary" id="crudSaveBtn">${isEdit?'Simpan perubahan':'Buat pengguna'}</button>`;
     Modal.open({
-      title: isEdit ? "Edit user" : "Add user", bodyHtml, footHtml,
+      title: isEdit ? "Ubah pengguna" : "Tambah pengguna", bodyHtml, footHtml,
       onMount:()=>{
         if (readOnly){ document.querySelectorAll("#modalRoot input,#modalRoot select").forEach(el=>el.disabled=true); }
         document.getElementById("crudCancelBtn").addEventListener("click", Modal.close);
@@ -1811,15 +1825,15 @@ class UsersModule extends CrudModule{
       if (existingItem){
         if (existingItem.role==="manager" && data.role!=="manager"){
           const managers = this.items.filter(u=>u.role==="manager");
-          if (managers.length<=1){ Toast.show("At least one Manager is required.", "error"); saveBtn.disabled=false; saveBtn.textContent="Save changes"; return; }
+          if (managers.length<=1){ Toast.show("Minimal harus ada satu Manager.", "error"); saveBtn.disabled=false; saveBtn.textContent="Simpan perubahan"; return; }
         }
         await this.store.update(existingItem.id, data);
         await Logger.log("updated", "users", data.name);
-        Toast.show("User updated.", "success");
+        Toast.show("Pengguna diperbarui.", "success");
       } else {
         const pwEl = document.getElementById("f_localPassword");
         const password = pwEl ? pwEl.value : "";
-        if (!IS_FIREBASE_CONFIGURED && password.length < 6){ Toast.show("Password must be at least 6 characters.", "error"); saveBtn.disabled=false; saveBtn.textContent="Create user"; return; }
+        if (!IS_FIREBASE_CONFIGURED && password.length < 6){ Toast.show("Password minimal 6 karakter.", "error"); saveBtn.disabled=false; saveBtn.textContent="Buat pengguna"; return; }
         if (IS_FIREBASE_CONFIGURED){
           const uid = await AuthService.createAuthUser(data.email, password || Math.random().toString(36).slice(2,10)+"Aa1!");
           await fbSdk.setDoc(fbSdk.doc(fbDb, "users", uid), { ...data, createdAt:Date.now(), updatedAt:Date.now() });
@@ -1829,21 +1843,21 @@ class UsersModule extends CrudModule{
           LocalStore.saveAll("users", arr);
         }
         await Logger.log("created", "users", data.name);
-        Toast.show("User created.", "success");
+        Toast.show("Pengguna dibuat.", "success");
       }
       Modal.close();
       this.items = await this.store.list();
       this.paint();
     }catch(e){
-      Toast.show(e.message || "Could not save this user.", "error");
-      saveBtn.disabled=false; saveBtn.textContent = existingItem?"Save changes":"Create user";
+      Toast.show(e.message || "Gagal menyimpan pengguna ini.", "error");
+      saveBtn.disabled=false; saveBtn.textContent = existingItem?"Simpan perubahan":"Buat pengguna";
     }
   }
   async handleDelete(item){
-    if (item.id === CURRENT_USER.id){ Toast.show("You can't delete your own account.", "error"); return; }
+    if (item.id === CURRENT_USER.id){ Toast.show("Kamu tidak bisa menghapus akun sendiri.", "error"); return; }
     if (item.role==="manager"){
       const managers = this.items.filter(u=>u.role==="manager");
-      if (managers.length<=1){ Toast.show("At least one Manager is required.", "error"); return; }
+      if (managers.length<=1){ Toast.show("Minimal harus ada satu Manager.", "error"); return; }
     }
     return super.handleDelete(item);
   }
@@ -1858,7 +1872,7 @@ const usersModule = new UsersModule();
    category then by outlet short code.
    --------------------------------------------------------------------- */
 const PR_STATUSES = ["draft","approved","ordered","received","completed"];
-const PR_STATUS_LABEL = { draft:"Draft", approved:"Approved", ordered:"Ordered", received:"Received", completed:"Completed" };
+const PR_STATUS_LABEL = { draft:"Draft", approved:"Disetujui", ordered:"Dipesan", received:"Diterima", completed:"Selesai" };
 const PR_STATUS_COLOR = { draft:"grey", approved:"blue", ordered:"amber", received:"green", completed:"green" };
 const PR_NEXT_STATUS = { draft:"approved", approved:"ordered", ordered:"received", received:"completed" };
 const PR_PREV_STATUS = { approved:"draft", ordered:"approved", received:"ordered" };
@@ -1878,27 +1892,29 @@ class PurchaseRequestModule{
 
   async render(container){
     this.container = container;
-    this.state = { statusFilter: this.pendingStatusFilter || null, outletFilter:null, search:"", view: this.state?.view || "category" };
+    const isSimple = CURRENT_USER.role === "purchasing";
+    this.state = { statusFilter: this.pendingStatusFilter || null, outletFilter:null, search:"", view: isSimple ? "category" : (this.state?.view || "category") };
     this.pendingStatusFilter = null;
     this.outlets = await Stores.outlets.list();
     this.items_all = await Stores.items.list();
     this.categories = await Stores.categories.list();
     container.innerHTML = `
       <div class="page-head">
-        <div><h2>Purchase Requests</h2><div class="page-sub">Belanja lintas outlet — dari draft sampai selesai.</div></div>
+        <div><h2>Pesanan Belanja</h2><div class="page-sub">${isSimple ? "Belanja untuk Dolan Sawah, Soto Sawah, dan Sawah Senja." : "Belanja lintas outlet — dari draft sampai selesai."}</div></div>
         <div class="page-actions">
           ${this.canCreate?`<button class="btn btn-primary" id="prQuickBtn"><svg data-lucide="zap"></svg> Pesanan Cepat</button>`:""}
-          <button class="btn btn-ghost" id="prBroadcastBtn"><svg data-lucide="message-circle"></svg> Broadcast semua</button>
+          ${isSimple ? "" : `<button class="btn btn-ghost" id="prBroadcastBtn"><svg data-lucide="message-circle"></svg> Broadcast semua</button>`}
         </div>
       </div>
+      ${isSimple ? "" : `
       <div class="view-toggle" id="prViewToggle">
         <button class="view-toggle-btn ${this.state.view==='category'?'active':''}" data-view="category"><svg data-lucide="layout-grid" style="width:14px;height:14px;"></svg> Per Kategori</button>
         <button class="view-toggle-btn ${this.state.view==='outlet'?'active':''}" data-view="outlet"><svg data-lucide="list" style="width:14px;height:14px;"></svg> Per Outlet</button>
-      </div>
+      </div>`}
       <div class="toolbar" id="prStatusChips"></div>
-      <div class="toolbar" id="prOutletChips" style="display:${this.state.view==='outlet'?'flex':'none'};"></div>
+      <div class="toolbar" id="prOutletChips" style="display:${!isSimple && this.state.view==='outlet'?'flex':'none'};"></div>
       <div class="toolbar">
-        <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="prSearchInput" placeholder="Search requests…"></div>
+        <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="prSearchInput" placeholder="Cari pesanan…"></div>
         <span class="result-count" id="prResultCount"></span>
       </div>
       <div id="prCardGrid"></div>
@@ -1906,7 +1922,7 @@ class PurchaseRequestModule{
     renderIcons(container);
     document.getElementById("prSearchInput").addEventListener("input", Utils.debounce(e=>{ this.state.search=e.target.value; this.paint(); }, 200));
     if (this.canCreate) document.getElementById("prQuickBtn").addEventListener("click", ()=>this.openQuickOrder());
-    document.getElementById("prBroadcastBtn").addEventListener("click", ()=>this.openBroadcast());
+    if (!isSimple) document.getElementById("prBroadcastBtn").addEventListener("click", ()=>this.openBroadcast());
     document.querySelectorAll("#prViewToggle .view-toggle-btn").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         this.state.view = btn.dataset.view;
@@ -1919,6 +1935,7 @@ class PurchaseRequestModule{
     this.paintOutletChips();
     this.records = await Stores.purchaseRequests.list();
     this.paint();
+    if (this.pendingAction === "quick-order"){ this.pendingAction = null; this.openQuickOrder(); }
   }
 
   paintStatusChips(){
@@ -1979,7 +1996,7 @@ class PurchaseRequestModule{
     const all = this.filtered();
     document.getElementById("prResultCount").textContent = `${all.length} total`;
     if (!all.length){
-      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="clipboard-list"></svg><div class="es-title">Belum ada purchase request</div><div class="es-sub">Buat permintaan belanja pertama lewat "Pesanan Cepat".</div></div>`;
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="clipboard-list"></svg><div class="es-title">Belum ada pesanan belanja</div><div class="es-sub">Buat permintaan belanja pertama lewat "Pesanan Cepat".</div></div>`;
       renderIcons(wrap); return;
     }
     wrap.className = "pr-card-grid";
@@ -2213,14 +2230,14 @@ class PurchaseRequestModule{
           ${isEdit && this.canDelete ? `<button class="btn btn-danger btn-sm" id="prDeleteBtn"><svg data-lucide="trash-2" style="width:13px;height:13px;"></svg> Hapus</button>`:''}
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="btn btn-ghost" id="prCloseBtn">Close</button>
+          <button class="btn btn-ghost" id="prCloseBtn">Tutup</button>
           ${editableLines ? `<button class="btn btn-primary" id="prSaveBtn">${isEdit?'Simpan':'Simpan draft'}</button>` : ''}
         </div>
       </div>
     `;
 
     Modal.open({
-      title: isEdit ? `Request ${this.outlets.find(o=>o.id===record.outletId)?.name||''}` : "New Purchase Request",
+      title: isEdit ? `Pesanan ${this.outlets.find(o=>o.id===record.outletId)?.name||''}` : "Pesanan Belanja Baru",
       bodyHtml, footHtml, wide:true,
       onMount:()=>{
         const updateSummary = ()=>{
@@ -2389,8 +2406,8 @@ class PurchaseRequestModule{
               createdByName: record?.createdByName || CURRENT_USER.name
             };
             try{
-              if (record){ await Stores.purchaseRequests.update(record.id, payload); await Logger.log("updated","purchaseRequests", this.outlets.find(o=>o.id===workingOutletId)?.name||''); Toast.show("Request disimpan.","success"); }
-              else { await Stores.purchaseRequests.create(payload); await Logger.log("created","purchaseRequests", this.outlets.find(o=>o.id===workingOutletId)?.name||''); Toast.show("Request dibuat.","success"); }
+              if (record){ await Stores.purchaseRequests.update(record.id, payload); await Logger.log("updated","purchaseRequests", this.outlets.find(o=>o.id===workingOutletId)?.name||''); Toast.show("Pesanan disimpan.","success"); }
+              else { await Stores.purchaseRequests.create(payload); await Logger.log("created","purchaseRequests", this.outlets.find(o=>o.id===workingOutletId)?.name||''); Toast.show("Pesanan dibuat.","success"); }
               Modal.close();
               this.records = await Stores.purchaseRequests.list();
               this.paint();
@@ -2450,13 +2467,13 @@ class PurchaseRequestModule{
         const delBtn = document.getElementById("prDeleteBtn");
         if (delBtn) delBtn.addEventListener("click", async ()=>{
           const ok = await ConfirmDialog.ask({
-            title:"Hapus request ini?",
-            message: record.status==="draft" ? "Request draft ini akan dihapus permanen." : `Request ini berstatus "${PR_STATUS_LABEL[record.status]}" — yakin mau menghapus?`
+            title:"Hapus pesanan ini?",
+            message: record.status==="draft" ? "Pesanan draft ini akan dihapus permanen." : `Pesanan ini berstatus "${PR_STATUS_LABEL[record.status]}" — yakin mau menghapus?`
           });
           if (!ok) return;
           await Stores.purchaseRequests.remove(record.id);
           await Logger.log("deleted","purchaseRequests", `${PR_STATUS_LABEL[record.status]} request`);
-          Toast.show("Request dihapus.", "success");
+          Toast.show("Pesanan dihapus.", "success");
           Modal.close();
           this.records = await Stores.purchaseRequests.list();
           this.paint();
@@ -2541,10 +2558,10 @@ class PurchaseRequestModule{
         <p class="muted" style="font-size:12.5px;">${approved.length} request berstatus Approved, dikelompokkan per kategori — tap <b>Copy</b> pada kategori yang mau dikirim ke grup WhatsApp masing-masing.</p>
       </div>
       <div id="prCategoryBroadcastList">
-        ${buckets.length ? buckets.map(b=>this.renderOrderCardHtml(b)).join("") : `<div class="empty-state"><svg data-lucide="message-circle"></svg><div class="es-title">Belum ada request Approved</div><div class="es-sub">Approve dulu request yang mau dikirim ke supplier.</div></div>`}
+        ${buckets.length ? buckets.map(b=>this.renderOrderCardHtml(b)).join("") : `<div class="empty-state"><svg data-lucide="message-circle"></svg><div class="es-title">Belum ada pesanan yang Disetujui</div><div class="es-sub">Setujui dulu pesanan yang mau dikirim ke supplier.</div></div>`}
       </div>
     `;
-    const footHtml = `<button class="btn btn-ghost" id="prBcCloseBtn">Close</button>${buckets.length?`<button class="btn btn-primary" id="prBcCopyAllBtn"><svg data-lucide="copy" style="width:14px;height:14px;"></svg> Copy semua kategori</button>`:''}`;
+    const footHtml = `<button class="btn btn-ghost" id="prBcCloseBtn">Tutup</button>${buckets.length?`<button class="btn btn-primary" id="prBcCopyAllBtn"><svg data-lucide="copy" style="width:14px;height:14px;"></svg> Copy semua kategori</button>`:''}`;
     Modal.open({
       title:"WhatsApp broadcast", bodyHtml, footHtml, wide:true,
       onMount:(root)=>{
@@ -2589,7 +2606,7 @@ function openGoodsReceiptForm(record, onDone){
     const outlet = outlets.find(o=>o.id===record.outletId);
     const bodyHtml = `
       <p class="muted" style="font-size:12.5px; margin-bottom:14px;">
-        ${readOnly ? "Barang untuk request ini sudah dicatat diterima. Rekap di bawah ini bersifat baca-saja." : "Isi jumlah yang benar-benar datang untuk tiap item. Jumlah dipesan sudah terisi otomatis sebagai patokan — ubah kalau beda."}
+        ${readOnly ? "Barang untuk pesanan ini sudah dicatat diterima. Rekap di bawah ini bersifat baca-saja." : "Isi jumlah yang benar-benar datang untuk tiap item. Jumlah dipesan sudah terisi otomatis sebagai patokan — ubah kalau beda."}
       </p>
       <div id="grLinesBody">
         ${(record.items||[]).map((it,idx)=>`
@@ -2609,7 +2626,7 @@ function openGoodsReceiptForm(record, onDone){
       </div>
     `;
     const footHtml = readOnly
-      ? `<button class="btn btn-ghost" id="grCloseBtn">Close</button>`
+      ? `<button class="btn btn-ghost" id="grCloseBtn">Tutup</button>`
       : `<button class="btn btn-ghost" id="grCloseBtn">Batal</button><button class="btn btn-primary" id="grSaveBtn"><svg data-lucide="package-check" style="width:15px;height:15px;"></svg> Simpan &amp; Tandai Diterima</button>`;
     Modal.open({
       title: `Terima Barang · ${outlet?outlet.name:''}`, bodyHtml, footHtml, wide:true,
@@ -2651,7 +2668,7 @@ class GoodsReceiptModule{
     this.outlets = await Stores.outlets.list();
     this.records = await Stores.purchaseRequests.list();
     container.innerHTML = `
-      <div class="page-head"><div><h2>Goods Receipt</h2><div class="page-sub">Cek barang yang datang terhadap pesanan yang sudah dikirim ke supplier.</div></div></div>
+      <div class="page-head"><div><h2>Terima Barang</h2><div class="page-sub">Cek barang yang datang terhadap pesanan yang sudah dikirim ke supplier.</div></div></div>
       <div class="toolbar" id="grStatusChips"></div>
       <div id="grCardGrid"></div>
     `;
@@ -2676,7 +2693,7 @@ class GoodsReceiptModule{
     const filtered = this.records.filter(r=>r.status===this.state.statusFilter).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
     if (!filtered.length){
       wrap.className = "";
-      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="package-check"></svg><div class="es-title">Tidak ada request di status ini</div><div class="es-sub">${this.state.statusFilter==='ordered'?'Semua pesanan sudah dicek, atau belum ada yang berstatus Ordered.':''}</div></div>`;
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="package-check"></svg><div class="es-title">Tidak ada pesanan di status ini</div><div class="es-sub">${this.state.statusFilter==='ordered'?'Semua pesanan sudah dicek, atau belum ada yang berstatus Dipesan.':''}</div></div>`;
       renderIcons(wrap); return;
     }
     wrap.className = "pr-card-grid";
@@ -2703,8 +2720,8 @@ const goodsReceiptModule = new GoodsReceiptModule();
 
 
 const menusModule = new CrudModule({
-  key:"menus", title:"Menus", subtitle:"Daftar masakan yang dijual — dasar untuk Sales dan Recipe Learning.",
-  emptyIcon:"utensils-crossed", emptyTitle:"Belum ada menu", emptySub:"Tambahkan menu yang dijual, lalu atur bahan-bahannya di halaman Recipe Learning.",
+  key:"menus", title:"Menu", singularLabel:"Menu", subtitle:"Daftar masakan yang dijual — dasar untuk Penjualan dan Resep.",
+  emptyIcon:"utensils-crossed", emptyTitle:"Belum ada menu", emptySub:"Tambahkan menu yang dijual, lalu atur bahan-bahannya di halaman Resep.",
   outletFilterEnabled: true,
   columns:[
     { key:"name", label:"Menu", render:(i)=>`<span class="cell-primary">${Utils.escapeHtml(i.name)}</span>` },
@@ -2714,18 +2731,18 @@ const menusModule = new CrudModule({
         return i.outletIds.map(id=>{ const o=ctx.outlets.find(x=>x.id===id); return o?`<span class="badge grey" style="margin-right:4px;">${Utils.escapeHtml(o.name)}</span>`:''; }).join("");
       } },
     { key:"ingredientItemIds", label:"Resep", sortable:false, render:(i)=> (i.ingredientItemIds&&i.ingredientItemIds.length) ? `<span class="badge green">${i.ingredientItemIds.length} bahan</span>` : `<span class="badge amber">Belum diatur</span>` },
-    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Active':'Inactive'}</span>` }
+    { key:"status", label:"Status", render:(i)=>`<span class="badge ${i.status==='active'?'green':'grey'}">${i.status==='active'?'Aktif':'Tidak Aktif'}</span>` }
   ],
   fields:[
     { key:"name", label:"Nama menu", required:true, placeholder:"e.g. Soto Ayam" },
     { key:"price", label:"Harga jual (IDR)", type:"number", half:true, halfPos:"l" },
-    { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}], default:"active" },
+    { key:"status", label:"Status", type:"select", half:true, halfPos:"r", options:[{value:"active",label:"Aktif"},{value:"inactive",label:"Tidak Aktif"}], default:"active" },
     { key:"outletIds", label:"Dijual di outlet", type:"multiselect", options:(ctx)=>ctx.outlets.map(o=>({value:o.id,label:o.name})), hint:"Kosongkan jika dijual di semua outlet." },
     { key:"notes", label:"Catatan", type:"textarea" }
   ],
   beforeDelete: async(item)=>{
     const sales = await Stores.sales.list();
-    if (sales.some(s=>s.menuId===item.id)) return "Menu ini punya riwayat penjualan — tidak bisa dihapus. Nonaktifkan saja lewat status Inactive.";
+    if (sales.some(s=>s.menuId===item.id)) return "Menu ini punya riwayat penjualan — tidak bisa dihapus. Nonaktifkan saja lewat status Tidak Aktif.";
     return true;
   }
 });
@@ -2891,7 +2908,7 @@ class RecipesModule{
     this.learning = await Stores.recipeLearning.list();
     container.innerHTML = `
       <div class="page-head">
-        <div><h2>Recipe Learning</h2><div class="page-sub">Centang bahan yang dipakai tiap menu — sistem menghitung sendiri perkiraan pemakaian per porsi dari data pembelian & penjualan.</div></div>
+        <div><h2>Resep</h2><div class="page-sub">Centang bahan yang dipakai tiap menu — sistem menghitung sendiri perkiraan pemakaian per porsi dari data pembelian & penjualan.</div></div>
         <div class="page-actions">${this.canEdit?`<button class="btn btn-primary" id="relearnBtn"><svg data-lucide="refresh-cw"></svg> Pelajari ulang semua</button>`:""}</div>
       </div>
       <div id="recipesCardGrid" class="pr-card-grid"></div>
@@ -2948,8 +2965,8 @@ class RecipesModule{
       <div id="recipeEstimateWrap" style="margin-top:22px;"></div>
     `;
     const footHtml = this.canEdit
-      ? `<button class="btn btn-ghost" id="recipeCloseBtn">Close</button><button class="btn btn-primary" id="recipeSaveBtn">Simpan resep</button>`
-      : `<button class="btn btn-ghost" id="recipeCloseBtn">Close</button>`;
+      ? `<button class="btn btn-ghost" id="recipeCloseBtn">Tutup</button><button class="btn btn-primary" id="recipeSaveBtn">Simpan resep</button>`
+      : `<button class="btn btn-ghost" id="recipeCloseBtn">Tutup</button>`;
     Modal.open({
       title: menu.name, bodyHtml, footHtml, wide:true,
       onMount:()=>{
@@ -3019,7 +3036,7 @@ class RecipesModule{
                 }).join("")}
               </tbody>
             </table>
-            ${!this.learning.some(l=>l.menuId===menu.id) ? `<p class="muted" style="font-size:11.5px; margin-top:8px;">Belum pernah dihitung — simpan resep ini lalu tap \u201CPelajari ulang semua\u201D di halaman Recipe Learning.</p>` : ''}
+            ${!this.learning.some(l=>l.menuId===menu.id) ? `<p class="muted" style="font-size:11.5px; margin-top:8px;">Belum pernah dihitung — simpan resep ini lalu tap \u201CPelajari ulang semua\u201D di halaman Resep.</p>` : ''}
           `;
           renderIcons(wrap);
           if (this.canEdit){
@@ -3204,7 +3221,7 @@ class SalesModule{
     this.state = { date: new Date().toISOString().slice(0,10), outletId: this.outlets.find(o=>o.status==="active")?.id || "" };
     container.innerHTML = `
       <div class="page-head">
-        <div><h2>Sales</h2><div class="page-sub">Input total porsi terjual per menu — biasanya diisi sekali saat closing.</div></div>
+        <div><h2>Penjualan</h2><div class="page-sub">Input total porsi terjual per menu — biasanya diisi sekali saat closing.</div></div>
         <div class="page-actions">${this.canEdit?`<button class="btn btn-ghost" id="salesImportBtn"><svg data-lucide="file-spreadsheet"></svg> Import dari Excel</button><input type="file" id="salesImportFile" class="hidden" accept=".xlsx,.xls,.csv">`:''}</div>
       </div>
       <div class="field" style="max-width:420px; display:flex; gap:10px;">
@@ -3314,7 +3331,7 @@ class SalesModule{
         Baris yang belum cocok otomatis, pilih menunya secara manual — atau biarkan kosong untuk dilewati.
       </p>
       <table class="data-table">
-        <thead><tr><th>Nama di file</th><th>Menu</th><th style="width:90px;">Qty</th></tr></thead>
+        <thead><tr><th>Nama di file</th><th>Menu</th><th style="width:90px;">Jumlah</th></tr></thead>
         <tbody id="importPreviewBody">
           ${workingRows.map((r,idx)=>`
             <tr data-idx="${idx}">
@@ -3424,7 +3441,7 @@ async function renderAnalytics(container){
   }
 
   container.innerHTML = `
-    <div class="page-head"><div><h2>Menu Analysis</h2><div class="page-sub">Menu terlaris, estimasi biaya per porsi, dan perkiraan waste — dihitung dari data Sales &amp; Purchase Request.</div></div></div>
+    <div class="page-head"><div><h2>Analisis Menu</h2><div class="page-sub">Menu terlaris, estimasi biaya per porsi, dan perkiraan bahan terbuang — dihitung dari data Penjualan &amp; Pesanan Belanja.</div></div></div>
 
     <div class="panel" style="margin-bottom:18px;">
       <div class="panel-head"><h3>Menu terlaris</h3></div>
@@ -3434,7 +3451,7 @@ async function renderAnalytics(container){
             <div style="display:flex; justify-content:space-between; font-size:12.8px; margin-bottom:4px;"><span style="font-weight:600;">${Utils.escapeHtml(x.menu.name)}</span><span class="muted">${x.portions} porsi</span></div>
             <div style="background:var(--bg-soft); border-radius:99px; height:8px; overflow:hidden;"><div style="width:${Math.round(x.portions/maxPortions*100)}%; height:100%; background:var(--primary); border-radius:99px;"></div></div>
           </div>
-        `).join("") : `<div class="empty-state"><svg data-lucide="receipt"></svg><div class="es-title">Belum ada data penjualan</div><div class="es-sub">Isi Sales dulu supaya analisis ini bisa jalan.</div></div>`}
+        `).join("") : `<div class="empty-state"><svg data-lucide="receipt"></svg><div class="es-title">Belum ada data penjualan</div><div class="es-sub">Isi Penjualan dulu supaya analisis ini bisa jalan.</div></div>`}
       </div>
     </div>
 
@@ -3457,14 +3474,14 @@ async function renderAnalytics(container){
               </tr>`;
             }).join("")}
           </tbody>
-        </table>` : `<div class="empty-state"><svg data-lucide="brain-circuit"></svg><div class="es-title">Belum ada resep</div><div class="es-sub">Atur bahan tiap menu di halaman Recipe Learning dulu.</div></div>`}
+        </table>` : `<div class="empty-state"><svg data-lucide="brain-circuit"></svg><div class="es-title">Belum ada resep</div><div class="es-sub">Atur bahan tiap menu di halaman Resep dulu.</div></div>`}
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h3>Estimasi waste per bahan</h3></div>
+      <div class="panel-head"><h3>Perkiraan bahan terbuang</h3></div>
       <div class="panel-body pad">
-        <p class="muted" style="font-size:12px; margin-bottom:14px;">Perkiraan kasar: bahan yang masuk (Purchase Request Completed) dikurangi perkiraan bahan yang benar-benar terpakai (dari Recipe Learning × Sales). Tanpa Stock Opname rutin, angka ini belum memperhitungkan sisa stok — anggap sebagai sinyal awal, bukan angka final.</p>
+        <p class="muted" style="font-size:12px; margin-bottom:14px;">Perkiraan kasar: bahan yang masuk (Pesanan Belanja berstatus Selesai) dikurangi perkiraan bahan yang benar-benar terpakai (dari Resep × Penjualan). Tanpa Stock Opname rutin, angka ini belum memperhitungkan sisa stok — anggap sebagai sinyal awal, bukan angka final.</p>
         ${renderWasteTable(learning, items, purchaseRequests, sales)}
       </div>
     </div>
@@ -3497,7 +3514,7 @@ function renderWasteTable(learning, items, purchaseRequests, sales){
 
   return `
     <table class="data-table">
-      <thead><tr><th>Bahan</th><th>Masuk (Completed PR)</th><th>Estimasi terpakai</th><th>Estimasi sisa/waste</th></tr></thead>
+      <thead><tr><th>Bahan</th><th>Masuk (Pesanan Selesai)</th><th>Estimasi terpakai</th><th>Estimasi sisa/terbuang</th></tr></thead>
       <tbody>
         ${rows.map(r=>{
           const diff = r.supplied - r.consumed;
@@ -3519,8 +3536,53 @@ function renderWasteTable(learning, items, purchaseRequests, sales){
 let dashboardActive = false;
 function refreshDashboardIfActive(){ if (dashboardActive && (location.hash.slice(1)||"dashboard")==="dashboard") renderDashboard(document.getElementById("mainContent")); }
 
+/* Purchasing's dashboard is deliberately not the Manager's — no stats, no
+   pipeline, no data-quality panel. Just the three things their job
+   actually is: order, receive, and keep recipes up to date. */
+async function renderPurchasingDashboard(container){
+  const requests = await Stores.purchaseRequests.list();
+  const draftCount = requests.filter(r=>r.status==="draft").length;
+  const orderedCount = requests.filter(r=>r.status==="ordered").length;
+
+  container.innerHTML = `
+    <div class="dash-hero">
+      <div class="dash-hero-inner">
+        <h2>Halo, ${Utils.escapeHtml(CURRENT_USER.name.split(" ")[0])} 👋</h2>
+        <div class="dash-hero-sub">Mau kerjakan yang mana hari ini?</div>
+      </div>
+    </div>
+    <div class="shortcut-grid">
+      <div class="shortcut-card" data-action="quick-order">
+        ${draftCount?`<span class="shortcut-badge">${draftCount} draft</span>`:''}
+        <div class="shortcut-ic"><svg data-lucide="zap"></svg></div>
+        <div class="shortcut-title">Pesanan Belanja</div>
+        <div class="shortcut-sub">Isi kebutuhan belanja untuk besok</div>
+      </div>
+      <div class="shortcut-card" data-nav="goods-receipt">
+        ${orderedCount?`<span class="shortcut-badge amber">${orderedCount} menunggu</span>`:''}
+        <div class="shortcut-ic amber"><svg data-lucide="package-check"></svg></div>
+        <div class="shortcut-title">Terima Barang</div>
+        <div class="shortcut-sub">Cek &amp; catat barang yang datang</div>
+      </div>
+      <div class="shortcut-card" data-nav="recipes">
+        <div class="shortcut-ic info"><svg data-lucide="brain-circuit"></svg></div>
+        <div class="shortcut-title">Buat Resep</div>
+        <div class="shortcut-sub">Atur bahan yang dipakai tiap menu</div>
+      </div>
+    </div>
+  `;
+  renderIcons(container);
+  container.querySelectorAll("[data-nav]").forEach(el=> el.addEventListener("click", ()=>Router.navigate(el.dataset.nav)));
+  const quickCard = container.querySelector('[data-action="quick-order"]');
+  if (quickCard) quickCard.addEventListener("click", ()=>{
+    purchaseRequestsModule.pendingAction = "quick-order";
+    Router.navigate("purchase-requests");
+  });
+}
+
 async function renderDashboard(container){
   dashboardActive = true;
+  if (CURRENT_USER.role === "purchasing") return renderPurchasingDashboard(container);
   const [items, categories, suppliers, outlets, users, logs, requests, sales, menus] = await Promise.all([
     Stores.items.list(), Stores.categories.list(), Stores.suppliers.list(), Stores.outlets.list(), Stores.users.list(), Stores.logs.list(), Stores.purchaseRequests.list(), Stores.sales.list(), Stores.menus.list()
   ]);
@@ -3534,7 +3596,7 @@ async function renderDashboard(container){
   const todaysSales = sales.filter(s=>s.date===today).reduce((sum,s)=>sum+(Number(s.quantitySold)||0),0);
 
   const pipelineIcons = { draft:"pencil", approved:"check-circle", ordered:"truck", received:"package-check", completed:"check-circle" };
-  const pipelineLabels = { draft:"Draft", approved:"Approved", ordered:"Ordered", received:"Received", completed:"Completed" };
+  const pipelineLabels = PR_STATUS_LABEL;
   const counts = {};
   ["draft","approved","ordered","received","completed"].forEach(s=>{ counts[s] = requests.filter(r=>r.status===s).length; });
 
@@ -3546,15 +3608,15 @@ async function renderDashboard(container){
       </div>
     </div>
     <div class="grid-stats">
-      <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="package"></svg></div></div><div class="stat-val">${activeItems.length}</div><div class="stat-label">Active items</div></div>
-      <div class="stat-card"><div class="stat-top"><div class="stat-ic info"><svg data-lucide="truck"></svg></div></div><div class="stat-val">${suppliers.length}</div><div class="stat-label">Suppliers</div></div>
-      <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="store"></svg></div></div><div class="stat-val">${outlets.filter(o=>o.status==='active').length}</div><div class="stat-label">Active outlets</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="package"></svg></div></div><div class="stat-val">${activeItems.length}</div><div class="stat-label">Bahan aktif</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic info"><svg data-lucide="truck"></svg></div></div><div class="stat-val">${suppliers.length}</div><div class="stat-label">Supplier</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="store"></svg></div></div><div class="stat-val">${outlets.filter(o=>o.status==='active').length}</div><div class="stat-label">Outlet aktif</div></div>
       <div class="stat-card"><div class="stat-top"><div class="stat-ic ${todaysSales?'':'amber'}"><svg data-lucide="receipt"></svg></div></div><div class="stat-val">${todaysSales}</div><div class="stat-label">Porsi terjual hari ini</div></div>
     </div>
 
     ${RBAC.can(CURRENT_USER.role,"purchaseRequests","view") ? `
     <div class="panel" style="margin-bottom:18px;">
-      <div class="panel-head"><h3>Alur Purchase Request</h3><span class="muted" style="font-size:11.3px;">Tap tahap untuk lihat requestnya</span></div>
+      <div class="panel-head"><h3>Alur Pesanan Belanja</h3><span class="muted" style="font-size:11.3px;">Tap tahap untuk lihat pesanannya</span></div>
       <div class="panel-body pad">
         <div class="workflow-pipeline">
           ${["draft","approved","ordered","received","completed"].map((s,i,arr)=>`
@@ -3566,39 +3628,39 @@ async function renderDashboard(container){
             ${i<arr.length-1?`<div class="wf-arrow"><svg data-lucide="chevron-right"></svg></div>`:''}
           `).join("")}
         </div>
-        ${approvedRequests.length ? `<div class="quicklink" id="dashBroadcastLink" style="margin-top:14px; margin-bottom:0;"><svg data-lucide="message-circle"></svg><span>${approvedRequests.length} request Approved siap dikirim ke WhatsApp per kategori</span></div>` : ''}
+        ${approvedRequests.length ? `<div class="quicklink" id="dashBroadcastLink" style="margin-top:14px; margin-bottom:0;"><svg data-lucide="message-circle"></svg><span>${approvedRequests.length} pesanan Disetujui siap dikirim ke WhatsApp per kategori</span></div>` : ''}
       </div>
     </div>` : ''}
 
     <div class="dash-grid">
       <div class="panel">
-        <div class="panel-head"><h3>Recent activity</h3></div>
+        <div class="panel-head"><h3>Aktivitas terbaru</h3></div>
         <div class="panel-body">
           ${recentLogs.length? recentLogs.map(l=>`
             <div class="activity-row">
               <div class="act-dot"><svg data-lucide="${l.action==='deleted'?'trash-2':l.action==='created'?'plus':'pencil'}"></svg></div>
               <div><div class="act-title">${Utils.escapeHtml(l.userName)} ${l.action} ${Utils.escapeHtml((l.module||"").replace(/s$/,''))} <b>${Utils.escapeHtml(l.detail||"")}</b></div>
               <div class="act-meta">${Utils.timeAgo(l.createdAt)}</div></div>
-            </div>`).join("") : `<div class="empty-state"><svg data-lucide="activity"></svg><div class="es-title">No activity yet</div><div class="es-sub">Actions across the app will show up here.</div></div>`}
+            </div>`).join("") : `<div class="empty-state"><svg data-lucide="activity"></svg><div class="es-title">Belum ada aktivitas</div><div class="es-sub">Aktivitas di seluruh aplikasi akan muncul di sini.</div></div>`}
         </div>
       </div>
       <div style="display:flex; flex-direction:column; gap:18px;">
         <div class="panel">
-          <div class="panel-head"><h3>Quick actions</h3></div>
+          <div class="panel-head"><h3>Aksi cepat</h3></div>
           <div class="panel-body pad">
             ${RBAC.can(CURRENT_USER.role,"purchaseRequests","create")?`<div class="quicklink" data-nav="purchase-requests"><svg data-lucide="zap"></svg><span>Pesanan Cepat</span></div>`:""}
             ${RBAC.can(CURRENT_USER.role,"purchaseRequests","view")?`<div class="quicklink" data-nav="goods-receipt"><svg data-lucide="package-check"></svg><span>Cek barang datang</span></div>`:""}
             ${RBAC.can(CURRENT_USER.role,"sales","create")?`<div class="quicklink" data-nav="sales"><svg data-lucide="receipt"></svg><span>Input penjualan hari ini</span></div>`:""}
-            ${RBAC.can(CURRENT_USER.role,"analytics","view")?`<div class="quicklink" data-nav="analytics"><svg data-lucide="bar-chart-3"></svg><span>Lihat Menu Analysis</span></div>`:""}
+            ${RBAC.can(CURRENT_USER.role,"analytics","view")?`<div class="quicklink" data-nav="analytics"><svg data-lucide="bar-chart-3"></svg><span>Lihat Analisis Menu</span></div>`:""}
           </div>
         </div>
         <div class="panel">
-          <div class="panel-head"><h3>Data quality</h3></div>
+          <div class="panel-head"><h3>Kualitas data</h3></div>
           <div class="panel-body pad">
-            ${(missingPrice.length===0 && missingSupplier.length===0 && missingUnit.length===0) ? `<div class="empty-state" style="padding:16px 6px;"><svg data-lucide="check-circle" style="color:var(--primary);opacity:1;"></svg><div class="es-title">All items look complete</div></div>` : `
-              ${missingUnit.length ? `<div class="flag-row"><span class="fn">${missingUnit.length} item belum ada satuan</span><span class="fr">No unit</span></div>` : ""}
-              ${missingPrice.slice(0,3).map(i=>`<div class="flag-row"><span class="fn">${Utils.escapeHtml(i.name)}</span><span class="fr">No price</span></div>`).join("")}
-              ${missingSupplier.slice(0,2).map(i=>`<div class="flag-row"><span class="fn">${Utils.escapeHtml(i.name)}</span><span class="fr">No supplier</span></div>`).join("")}
+            ${(missingPrice.length===0 && missingSupplier.length===0 && missingUnit.length===0) ? `<div class="empty-state" style="padding:16px 6px;"><svg data-lucide="check-circle" style="color:var(--primary);opacity:1;"></svg><div class="es-title">Semua data bahan sudah lengkap</div></div>` : `
+              ${missingUnit.length ? `<div class="flag-row"><span class="fn">${missingUnit.length} item belum ada satuan</span><span class="fr">Tanpa satuan</span></div>` : ""}
+              ${missingPrice.slice(0,3).map(i=>`<div class="flag-row"><span class="fn">${Utils.escapeHtml(i.name)}</span><span class="fr">Tanpa harga</span></div>`).join("")}
+              ${missingSupplier.slice(0,2).map(i=>`<div class="flag-row"><span class="fn">${Utils.escapeHtml(i.name)}</span><span class="fr">Tanpa supplier</span></div>`).join("")}
             `}
           </div>
         </div>
@@ -3627,11 +3689,11 @@ function renderSettings(container, initialTab="profile"){
   dashboardActive = false;
   const settings = LocalStore.getDoc("settings") || { businessName:"Dolan Sawah", currency:"IDR", units:[], theme:"system", logoUrl:"" };
   const tabs = [
-    { id:"profile", label:"Business Profile" }, { id:"appearance", label:"Appearance" },
-    { id:"units", label:"Units & Currency" }, { id:"firebase", label:"Firebase" }, { id:"backup", label:"Backup & Restore" }
+    { id:"profile", label:"Profil Bisnis" }, { id:"appearance", label:"Tampilan" },
+    { id:"units", label:"Satuan & Mata Uang" }, { id:"firebase", label:"Firebase" }, { id:"backup", label:"Backup & Restore" }
   ];
   container.innerHTML = `
-    <div class="page-head"><div><h2>Settings</h2><div class="page-sub">Configure how DSMC looks and connects.</div></div></div>
+    <div class="page-head"><div><h2>Pengaturan</h2><div class="page-sub">Atur tampilan DSMC dan koneksinya.</div></div></div>
     <div class="settings-tabs" id="settingsTabs">${tabs.map(t=>`<div class="settings-tab ${t.id===initialTab?'active':''}" data-tab="${t.id}">${t.label}</div>`).join("")}</div>
     <div id="settingsTabBody"></div>
   `;
@@ -3653,11 +3715,11 @@ function renderSettings(container, initialTab="profile"){
           <label class="field-label">Logo</label>
           <div style="display:flex; align-items:center; gap:14px;">
             ${settings.logoUrl?`<img class="logo-preview" src="${settings.logoUrl}">`:`<div class="logo-preview" style="display:flex;align-items:center;justify-content:center;background:var(--bg-soft);color:var(--text-faint);"><svg data-lucide="image" style="width:22px;height:22px;"></svg></div>`}
-            <div style="flex:1;"><div class="logo-drop" id="logoDrop">Click to upload a logo (stored ${IS_FIREBASE_CONFIGURED?'in Firebase Storage':'on this device'})</div><input type="file" id="logoInput" accept="image/*" class="hidden"></div>
+            <div style="flex:1;"><div class="logo-drop" id="logoDrop">Tap untuk unggah logo (tersimpan ${IS_FIREBASE_CONFIGURED?'di Firebase Storage':'di perangkat ini'})</div><input type="file" id="logoInput" accept="image/*" class="hidden"></div>
           </div>
         </div>
-        <div class="field"><label class="field-label">Business name</label><input class="input" id="stBusinessName" value="${Utils.escapeHtml(settings.businessName)}"></div>
-        <button class="btn btn-primary" id="saveProfileBtn"><svg data-lucide="save" style="width:15px;height:15px;"></svg> Save</button>
+        <div class="field"><label class="field-label">Nama bisnis</label><input class="input" id="stBusinessName" value="${Utils.escapeHtml(settings.businessName)}"></div>
+        <button class="btn btn-primary" id="saveProfileBtn"><svg data-lucide="save" style="width:15px;height:15px;"></svg> Simpan</button>
       </div>`;
     renderIcons(body);
     document.getElementById("logoDrop").addEventListener("click", ()=>document.getElementById("logoInput").click());
@@ -3669,11 +3731,11 @@ function renderSettings(container, initialTab="profile"){
           const sref = fbSdk.ref(fbStorage, path);
           await fbSdk.uploadBytes(sref, file);
           settings.logoUrl = await fbSdk.getDownloadURL(sref);
-          Toast.show("Logo uploaded.", "success");
-        }catch(err){ Toast.show("Upload failed: "+err.message, "error"); return; }
+          Toast.show("Logo berhasil diunggah.", "success");
+        }catch(err){ Toast.show("Gagal mengunggah: "+err.message, "error"); return; }
       } else {
         settings.logoUrl = await new Promise(res=>{ const r = new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); });
-        Toast.show("Logo saved locally.", "success");
+        Toast.show("Logo disimpan di perangkat ini.", "success");
       }
       LocalStore.setDoc("settings", settings);
       paintProfile();
@@ -3682,18 +3744,18 @@ function renderSettings(container, initialTab="profile"){
       settings.businessName = document.getElementById("stBusinessName").value.trim() || "Dolan Sawah";
       LocalStore.setDoc("settings", settings);
       document.querySelector(".sidebar-head .brand").innerHTML = `DSMC<small>${Utils.escapeHtml(settings.businessName)} · Material Control</small>`;
-      Toast.show("Business profile saved.", "success");
+      Toast.show("Profil bisnis disimpan.", "success");
     });
   }
 
   function paintAppearance(){
     body.innerHTML = `
       <div class="settings-section">
-        <label class="field-label">Theme</label>
+        <label class="field-label">Tema</label>
         <div class="theme-options">
-          <div class="theme-opt ${settings.theme==='light'?'active':''}" data-theme-choice="light"><svg data-lucide="sun"></svg><div>Light</div></div>
-          <div class="theme-opt ${settings.theme==='dark'?'active':''}" data-theme-choice="dark"><svg data-lucide="moon"></svg><div>Dark</div></div>
-          <div class="theme-opt ${settings.theme==='system'?'active':''}" data-theme-choice="system"><svg data-lucide="monitor"></svg><div>System</div></div>
+          <div class="theme-opt ${settings.theme==='light'?'active':''}" data-theme-choice="light"><svg data-lucide="sun"></svg><div>Terang</div></div>
+          <div class="theme-opt ${settings.theme==='dark'?'active':''}" data-theme-choice="dark"><svg data-lucide="moon"></svg><div>Gelap</div></div>
+          <div class="theme-opt ${settings.theme==='system'?'active':''}" data-theme-choice="system"><svg data-lucide="monitor"></svg><div>Ikuti Sistem</div></div>
         </div>
       </div>`;
     renderIcons(body);
@@ -3705,11 +3767,11 @@ function renderSettings(container, initialTab="profile"){
   function paintUnits(){
     body.innerHTML = `
       <div class="settings-section">
-        <div class="field"><label class="field-label">Currency symbol</label><input class="input" id="stCurrency" value="${Utils.escapeHtml(settings.currency||'IDR')}" style="max-width:160px;"></div>
-        <label class="field-label">Base units</label>
+        <div class="field"><label class="field-label">Simbol mata uang</label><input class="input" id="stCurrency" value="${Utils.escapeHtml(settings.currency||'IDR')}" style="max-width:160px;"></div>
+        <label class="field-label">Satuan dasar</label>
         <div class="units-list" id="unitsList">${(settings.units||[]).map(u=>`<span class="unit-chip">${Utils.escapeHtml(u)}<button data-unit="${Utils.escapeHtml(u)}"><svg data-lucide="x"></svg></button></span>`).join("")}</div>
-        <div style="display:flex; gap:8px; margin-bottom:16px;"><input class="input" id="newUnitInput" placeholder="e.g. karung" style="max-width:200px;"><button class="btn btn-ghost" id="addUnitBtn"><svg data-lucide="plus" style="width:15px;height:15px;"></svg> Add unit</button></div>
-        <button class="btn btn-primary" id="saveUnitsBtn"><svg data-lucide="save" style="width:15px;height:15px;"></svg> Save</button>
+        <div style="display:flex; gap:8px; margin-bottom:16px;"><input class="input" id="newUnitInput" placeholder="cth. karung" style="max-width:200px;"><button class="btn btn-ghost" id="addUnitBtn"><svg data-lucide="plus" style="width:15px;height:15px;"></svg> Tambah satuan</button></div>
+        <button class="btn btn-primary" id="saveUnitsBtn"><svg data-lucide="save" style="width:15px;height:15px;"></svg> Simpan</button>
       </div>`;
     renderIcons(body);
     document.getElementById("addUnitBtn").addEventListener("click", ()=>{
@@ -3721,7 +3783,7 @@ function renderSettings(container, initialTab="profile"){
     document.getElementById("saveUnitsBtn").addEventListener("click", ()=>{
       settings.currency = document.getElementById("stCurrency").value.trim() || "IDR";
       LocalStore.setDoc("settings", settings);
-      Toast.show("Units & currency saved.", "success");
+      Toast.show("Satuan & mata uang disimpan.", "success");
     });
   }
 
@@ -3731,17 +3793,17 @@ function renderSettings(container, initialTab="profile"){
         <div class="fb-status-card">
           <div class="fb-status-ic ${IS_FIREBASE_CONFIGURED?'on':'off'}"><svg data-lucide="${IS_FIREBASE_CONFIGURED?'cloud':'cloud-off'}"></svg></div>
           <div>
-            <div style="font-weight:700; font-size:13.5px;">${IS_FIREBASE_CONFIGURED?'Connected to Firebase':'Running in local mode'}</div>
-            <div class="muted" style="font-size:12px;">${IS_FIREBASE_CONFIGURED? Utils.escapeHtml(firebaseConfig.projectId) : 'Data is saved to this device only.'}</div>
+            <div style="font-weight:700; font-size:13.5px;">${IS_FIREBASE_CONFIGURED?'Tersambung ke Firebase':'Berjalan dalam mode lokal'}</div>
+            <div class="muted" style="font-size:12px;">${IS_FIREBASE_CONFIGURED? Utils.escapeHtml(firebaseConfig.projectId) : 'Data hanya tersimpan di perangkat ini.'}</div>
           </div>
         </div>
         ${!IS_FIREBASE_CONFIGURED ? `
-          <p class="muted" style="font-size:13px; line-height:1.6; margin-bottom:14px;">To connect Firebase: open <code class="inline">index.html</code>, find the <code class="inline">firebaseConfig</code> object near the top of the script, and paste in your project's keys. Then create these collections in Firestore:</p>
+          <p class="muted" style="font-size:13px; line-height:1.6; margin-bottom:14px;">Untuk menyambungkan Firebase: buka <code class="inline">index.html</code>, cari objek <code class="inline">firebaseConfig</code> di bagian atas script, lalu tempel kunci project-mu. Setelah itu buat koleksi berikut di Firestore:</p>
           <pre class="code-block">items, categories, suppliers, outlets,
 conversions, users, purchaseRequests,
 settings, logs</pre>
-          <p class="muted" style="font-size:12.5px; margin-top:12px;">Everything you've entered locally is kept — once connected, use "Backup & Restore" to push your local data into Firestore.</p>
-        ` : `<p class="muted" style="font-size:13px;">Auth, Firestore, and Storage are all live. Offline persistence is enabled — DSMC keeps working if the connection drops.</p>`}
+          <p class="muted" style="font-size:12.5px; margin-top:12px;">Semua data yang sudah diisi secara lokal tetap aman — setelah tersambung, pakai "Backup & Restore" untuk mengirim data lokal ke Firestore.</p>
+        ` : `<p class="muted" style="font-size:13px;">Auth, Firestore, dan Storage semuanya aktif. Offline persistence sudah menyala — DSMC tetap berjalan walau koneksi terputus.</p>`}
       </div>`;
     renderIcons(body);
   }
@@ -3749,13 +3811,13 @@ settings, logs</pre>
   function paintBackup(){
     body.innerHTML = `
       <div class="settings-section">
-        <h3 style="font-size:14px; margin-bottom:6px;">Export</h3>
-        <p class="muted" style="font-size:12.8px; margin-bottom:14px;">Download every master-data record as a single JSON file.</p>
-        <button class="btn btn-ghost" id="exportBtn" style="margin-bottom:26px;"><svg data-lucide="download" style="width:15px;height:15px;"></svg> Export backup (.json)</button>
-        <h3 style="font-size:14px; margin-bottom:6px;">Restore</h3>
-        <p class="muted" style="font-size:12.8px; margin-bottom:14px;">Upload a previously exported backup file. This merges into existing data by ID.</p>
+        <h3 style="font-size:14px; margin-bottom:6px;">Ekspor</h3>
+        <p class="muted" style="font-size:12.8px; margin-bottom:14px;">Unduh semua data master sebagai satu file JSON.</p>
+        <button class="btn btn-ghost" id="exportBtn" style="margin-bottom:26px;"><svg data-lucide="download" style="width:15px;height:15px;"></svg> Ekspor backup (.json)</button>
+        <h3 style="font-size:14px; margin-bottom:6px;">Pulihkan</h3>
+        <p class="muted" style="font-size:12.8px; margin-bottom:14px;">Unggah file backup yang sudah pernah diekspor. Data akan digabung ke data yang ada berdasarkan ID.</p>
         <input type="file" id="restoreInput" accept="application/json" class="hidden">
-        <button class="btn btn-ghost" id="restoreBtn"><svg data-lucide="upload" style="width:15px;height:15px;"></svg> Restore from file</button>
+        <button class="btn btn-ghost" id="restoreBtn"><svg data-lucide="upload" style="width:15px;height:15px;"></svg> Pulihkan dari file</button>
       </div>`;
     renderIcons(body);
     document.getElementById("exportBtn").addEventListener("click", async ()=>{
@@ -3764,7 +3826,7 @@ settings, logs</pre>
       payload.settings = LocalStore.getDoc("settings");
       payload.exportedAt = new Date().toISOString();
       Utils.downloadFile(`dsmc-backup-${Date.now()}.json`, JSON.stringify(payload, null, 2));
-      Toast.show("Backup downloaded.", "success");
+      Toast.show("Backup berhasil diunduh.", "success");
     });
     document.getElementById("restoreBtn").addEventListener("click", ()=>document.getElementById("restoreInput").click());
     document.getElementById("restoreInput").addEventListener("change", async (e)=>{
@@ -3778,8 +3840,8 @@ settings, logs</pre>
           }
         }
         if (data.settings) LocalStore.setDoc("settings", data.settings);
-        Toast.show("Restore complete.", "success");
-      }catch(err){ Toast.show("Couldn't read that file — is it a DSMC backup?", "error"); }
+        Toast.show("Pemulihan selesai.", "success");
+      }catch(err){ Toast.show("Tidak bisa membaca file ini — apakah ini file backup DSMC?", "error"); }
     });
   }
 
@@ -3838,8 +3900,8 @@ function setupPWA(){
     if (localStorage.getItem("dsmc_install_dismissed")) return;
     const banner = document.getElementById("installBanner");
     banner.classList.remove("hidden");
-    banner.innerHTML = `<svg data-lucide="download"></svg><div class="ib-text"><b>Install DSMC</b>Add it to your home screen for one-tap access.</div>
-      <button class="btn btn-primary btn-sm" id="installNowBtn">Install</button>
+    banner.innerHTML = `<svg data-lucide="download"></svg><div class="ib-text"><b>Pasang DSMC</b>Tambahkan ke layar utama untuk akses sekali tap.</div>
+      <button class="btn btn-primary btn-sm" id="installNowBtn">Pasang</button>
       <button class="btn-icon btn-sm" id="installDismissBtn"><svg data-lucide="x" style="width:13px;height:13px;"></svg></button>`;
     renderIcons(banner);
     document.getElementById("installNowBtn").addEventListener("click", async ()=>{ banner.classList.add("hidden"); deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; });
@@ -3926,13 +3988,13 @@ function showLogin(){
   // silently do nothing.
   const submitBtn = document.getElementById("loginSubmitBtn");
   submitBtn.disabled = false;
-  submitBtn.innerHTML = `<svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Sign in`;
+  submitBtn.innerHTML = `<svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Masuk`;
   document.getElementById("loginForm").reset();
 
   const demoWrap = document.getElementById("localModeUsers");
   if (!IS_FIREBASE_CONFIGURED){
     const users = LocalStore.getAll("users");
-    demoWrap.innerHTML = `<div class="page-sub" style="margin-bottom:10px; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint);">Local demo accounts</div>` +
+    demoWrap.innerHTML = `<div class="page-sub" style="margin-bottom:10px; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint);">Akun demo lokal</div>` +
       users.map(u=>`<div class="demo-user-chip" data-email="${u.email}" data-pass="${u.localPassword}"><span><b>${Utils.escapeHtml(u.name)}</b> · ${Utils.escapeHtml(u.email)}</span><span class="role-pill">${ROLES[u.role]?.label}</span></div>`).join("");
     demoWrap.querySelectorAll(".demo-user-chip").forEach(el=>{
       el.addEventListener("click", ()=>{ document.getElementById("loginEmail").value = el.dataset.email; document.getElementById("loginPassword").value = el.dataset.pass; });
@@ -3957,7 +4019,7 @@ function setupLoginForm(){
     }catch(err){
       document.getElementById("loginErrorText").textContent = err.message || "Couldn't sign in. Please try again.";
       errBox.classList.remove("hidden");
-      btn.disabled = false; btn.innerHTML = `<svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Sign in`;
+      btn.disabled = false; btn.innerHTML = `<svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Masuk`;
       renderIcons(btn);
     }
   });

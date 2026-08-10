@@ -287,6 +287,7 @@ label.field-label{display:block; font-size:12.5px; font-weight:600; color:var(--
 .panel-body.pad{padding:18px 19px;}
 .activity-row{display:flex; align-items:flex-start; gap:11px; padding:11px 9px; border-radius:9px;}
 .activity-row:hover{background:var(--bg-soft);}
+.insight-row{cursor:pointer;}
 .act-dot{width:30px;height:30px;border-radius:9px; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;}
 .act-dot svg{width:14px;height:14px;}
 .act-title{font-size:12.8px; font-weight:600;}
@@ -513,6 +514,7 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
 .qo-qty-input{width:46px; height:34px; text-align:center; border:1px solid var(--border); border-radius:8px; font-size:13px; font-weight:600; font-family:var(--font-mono); background:var(--surface); color:var(--text);}
 .qo-qty-input:focus{border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-ring); outline:none;}
 .qo-qty-input.has-value{border-color:var(--primary); background:var(--primary-soft);}
+.qo-qty-input.suggested{border-color:var(--accent); border-style:dashed; background:var(--accent-soft); color:var(--accent);}
 
 /* Dashboard workflow pipeline */
 .workflow-pipeline{display:flex; align-items:center; overflow-x:auto; gap:2px; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
@@ -706,12 +708,12 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
    conversions, users, purchaseRequests, settings, logs.
    --------------------------------------------------------------------- */
 const firebaseConfig = {
-  apiKey: "AIzaSyBD3Jp0poVbbUHM6HRtaIT4CuIz-oYzzQM",
-  authDomain: "ds-delivery-fd2ff.firebaseapp.com",
-  projectId: "ds-delivery-fd2ff",
-  storageBucket: "ds-delivery-fd2ff.firebasestorage.app",
-  messagingSenderId: "471251844792",
-  appId: "1:471251844792:web:2d1bf0fbfcfa30a87ebe4d"
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
 };
 const IS_FIREBASE_CONFIGURED = !!(firebaseConfig.apiKey && firebaseConfig.projectId);
 
@@ -1204,11 +1206,21 @@ const AuthService = {
   },
   async _loadProfileFromUsers(uid, email){
     const users = await Stores.users.list();
-    let profile = users.find(u => u.id===uid || u.email?.toLowerCase()===email.toLowerCase());
+    const profile = users.find(u => u.id===uid || u.email?.toLowerCase()===email.toLowerCase());
     if (!profile){
-      // first Firebase login with no matching profile doc yet — provision as Manager (the top-tier role) so setup can continue
-      await Stores.users.create({ name: email.split("@")[0], email, role:"manager", outletIds:[] });
-      profile = { id:uid, name:email.split("@")[0], email, role:"manager", outletIds:[] };
+      // No matching profile — do NOT auto-provision as Manager. That fallback only
+      // ever existed for the very first setup login, and left a real hole: a
+      // removed account (Firestore profile deleted, but the underlying Firebase
+      // Auth account still exists — client-side apps can't delete that part)
+      // could log back in and silently get promoted to Manager. Bootstrap the
+      // first Manager account by hand in Firestore/Console instead (see setup
+      // guide); after that, every login must match a real users/{uid} doc.
+      await fbSdk.signOut(fbAuth);
+      throw new Error("Akun ini belum terdaftar di sistem, atau sudah dihapus. Hubungi Manager.");
+    }
+    if (profile.status === "inactive"){
+      await fbSdk.signOut(fbAuth);
+      throw new Error("Akun ini sudah dinonaktifkan. Hubungi Manager.");
     }
     CURRENT_USER = { id:profile.id, name:profile.name, email:profile.email, role:profile.role, outletIds:profile.outletIds||[] };
   },
@@ -1877,6 +1889,104 @@ const PR_STATUS_COLOR = { draft:"grey", approved:"blue", ordered:"amber", receiv
 const PR_NEXT_STATUS = { draft:"approved", approved:"ordered", ordered:"received", received:"completed" };
 const PR_PREV_STATUS = { approved:"draft", ordered:"approved", received:"ordered" };
 
+/* =========================================================================
+   PURCHASE HABIT ENGINE
+   Looks at real order history (Approved and later — Draft alone doesn't
+   count, since a half-filled draft shouldn't skew what "normal" means) to
+   answer two questions:
+     1. For this outlet, what does this item usually get ordered as? —
+        used to pre-fill Pesanan Cepat so Purchasing edits instead of
+        starting from zero.
+     2. Does today's draft look unusually small or large compared to what
+        this outlet normally orders? — used to catch an incomplete order
+        before it goes to a supplier.
+   Both are pure read-only analysis of data that's already being captured;
+   nothing new to fill in.
+   ========================================================================= */
+const PurchaseHabitEngine = {
+  QUALIFYING_STATUSES: ["approved","ordered","received","completed"],
+  WINDOW: 8,
+  MIN_OCCURRENCES: 2,
+  MIN_FREQUENCY: 0.5,
+
+  async computeHabits(){
+    const allRecords = await Stores.purchaseRequests.list();
+    const qualifying = allRecords.filter(r => this.QUALIFYING_STATUSES.includes(r.status));
+    const byOutlet = {};
+    qualifying.forEach(r=>{ (byOutlet[r.outletId] = byOutlet[r.outletId]||[]).push(r); });
+
+    const habits = {};
+    Object.keys(byOutlet).forEach(outletId=>{
+      const orders = byOutlet[outletId].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0, this.WINDOW);
+      const total = orders.length;
+      if (!total) return;
+      const itemStats = {};
+      orders.forEach(r=>{
+        (r.items||[]).forEach(it=>{
+          if (!it.itemId || !it.quantity) return;
+          itemStats[it.itemId] = itemStats[it.itemId] || { sum:0, count:0, unit:it.unit };
+          itemStats[it.itemId].sum += Number(it.quantity)||0;
+          itemStats[it.itemId].count += 1;
+        });
+      });
+      habits[outletId] = {};
+      Object.keys(itemStats).forEach(itemId=>{
+        const s = itemStats[itemId];
+        const frequency = s.count/total;
+        if (s.count >= this.MIN_OCCURRENCES && frequency >= this.MIN_FREQUENCY){
+          habits[outletId][itemId] = { avgQty: Math.round((s.sum/s.count)*10)/10, frequency, occurrences:s.count, totalOrders:total, unit:s.unit };
+        }
+      });
+    });
+    return habits;
+  },
+
+  /* Returns null if the order looks normal (or there's not enough history
+     to judge), or a small object describing the anomaly. */
+  async checkAnomaly(outletId, candidateItems){
+    const allRecords = await Stores.purchaseRequests.list();
+    const qualifying = allRecords.filter(r => r.outletId===outletId && this.QUALIFYING_STATUSES.includes(r.status));
+    if (qualifying.length < 3) return null;
+    const recent = qualifying.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0, this.WINDOW);
+    const avgItemCount = recent.reduce((sum,r)=>sum+(r.items||[]).length,0)/recent.length;
+    if (avgItemCount < 2) return null;
+    const candidateCount = candidateItems.filter(it=>it.quantity>0).length;
+    const ratio = candidateCount/avgItemCount;
+    if (ratio < 0.5) return { type:"low", avgItemCount:Math.round(avgItemCount), candidateCount };
+    if (ratio > 2) return { type:"high", avgItemCount:Math.round(avgItemCount), candidateCount };
+    return null;
+  }
+};
+
+/* =========================================================================
+   INSIGHTS ENGINE
+   Feeds the "Yang Perlu Diperhatikan" dashboard panel. Fase 1 only checks
+   for unusual draft orders — Fase 2/3 (supplier reliability, price and
+   margin alerts) push into this same array once their underlying data
+   has enough history to be trustworthy.
+   ========================================================================= */
+const InsightsEngine = {
+  async computeInsights(){
+    const insights = [];
+    const [allRecords, outlets] = await Promise.all([Stores.purchaseRequests.list(), Stores.outlets.list()]);
+    const drafts = allRecords.filter(r=>r.status==="draft");
+    for (const draft of drafts){
+      const anomaly = await PurchaseHabitEngine.checkAnomaly(draft.outletId, draft.items||[]);
+      if (anomaly){
+        const outlet = outlets.find(o=>o.id===draft.outletId);
+        insights.push({
+          severity: "warning",
+          icon: "alert-triangle",
+          title: `Draft ${outlet?outlet.name:''} ${anomaly.type==='low'?'lebih sedikit':'lebih banyak'} dari biasanya`,
+          detail: `${anomaly.candidateCount} item saat ini — biasanya sekitar ${anomaly.avgItemCount} item untuk outlet ini.`,
+          route: "purchase-requests"
+        });
+      }
+    }
+    return insights;
+  }
+};
+
 class PurchaseRequestModule{
   constructor(){ this.key = "purchaseRequests"; this.state = { statusFilter:null, outletFilter:null, search:"" }; }
   get canCreate(){ return RBAC.can(CURRENT_USER.role, this.key, "create"); }
@@ -2046,9 +2156,11 @@ class PurchaseRequestModule{
     const allRecords = await Stores.purchaseRequests.list();
     const draftByOutlet = {};
     activeOutlets.forEach(o=>{ draftByOutlet[o.id] = allRecords.find(r=>r.outletId===o.id && r.status==="draft") || null; });
+    const habits = await PurchaseHabitEngine.computeHabits();
 
-    // working[itemId][outletId] = qty
+    // working[itemId][outletId] = qty ; suggested[itemId][outletId] = true while still an untouched suggestion
     const working = {};
+    const suggested = {};
     activeOutlets.forEach(o=>{
       const draft = draftByOutlet[o.id];
       if (draft) (draft.items||[]).forEach(it=>{
@@ -2058,6 +2170,21 @@ class PurchaseRequestModule{
     });
 
     const relevantItems = this.items_all.filter(i=>i.status==="active");
+    let suggestionCount = 0;
+    relevantItems.forEach(item=>{
+      activeOutlets.forEach(o=>{
+        if (working[item.id]?.[o.id] !== undefined) return; // already has real data, don't override
+        const habit = habits[o.id]?.[item.id];
+        if (habit){
+          working[item.id] = working[item.id] || {};
+          working[item.id][o.id] = habit.avgQty;
+          suggested[item.id] = suggested[item.id] || {};
+          suggested[item.id][o.id] = true;
+          suggestionCount++;
+        }
+      });
+    });
+
     const byCat = {};
     relevantItems.forEach(i=>{ const key=i.categoryId||"uncategorized"; (byCat[key]=byCat[key]||[]).push(i); });
     const orderedCatKeys = this.categories.map(c=>c.id).filter(id=>byCat[id]);
@@ -2066,6 +2193,7 @@ class PurchaseRequestModule{
       <div class="field">
         <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="qoSearchInput" placeholder="Cari item…" autocomplete="off"></div>
       </div>
+      ${suggestionCount ? `<p class="muted" style="font-size:11.5px; margin:-4px 0 12px;"><span style="display:inline-block; width:9px; height:9px; border-radius:3px; background:var(--accent-soft); border:1px dashed var(--accent); vertical-align:middle; margin-right:5px;"></span>Angka oranye = saran dari kebiasaan pesan — boleh diubah atau dikosongkan.</p>` : ''}
       <div class="qo-summary" id="qoSummary"></div>
       <div id="qoCatGroups">
         ${orderedCatKeys.map(key=>{
@@ -2083,12 +2211,15 @@ class PurchaseRequestModule{
                   <div class="qo-row" data-item-row="${item.id}" data-item-name="${Utils.escapeHtml(item.name.toLowerCase())}">
                     <span class="qo-row-name">${Utils.escapeHtml(item.name)}</span>
                     <div class="qo-outlet-inputs">
-                      ${activeOutlets.map(o=>`
+                      ${activeOutlets.map(o=>{
+                        const val = working[item.id]?.[o.id];
+                        const isSuggested = !!suggested[item.id]?.[o.id];
+                        return `
                         <div class="qo-outlet-col">
                           <span class="qo-outlet-label">${Utils.escapeHtml(o.shortCode||o.name.slice(0,2))}</span>
-                          <input type="number" min="0" class="qo-qty-input ${working[item.id]?.[o.id]?'has-value':''}" data-qo="${item.id}|${o.id}" value="${working[item.id]?.[o.id]??''}">
-                        </div>
-                      `).join("")}
+                          <input type="number" min="0" class="qo-qty-input ${val?(isSuggested?'suggested':'has-value'):''}" data-qo="${item.id}|${o.id}" data-suggested="${isSuggested?'1':'0'}" value="${val??''}">
+                        </div>`;
+                      }).join("")}
                     </div>
                   </div>`).join("")}
               </div>
@@ -2105,7 +2236,8 @@ class PurchaseRequestModule{
           const bar = document.getElementById("qoSummary");
           const counts = activeOutlets.map(o=>{
             const n = Object.values(working).filter(m=>m[o.id]>0).length;
-            return `${Utils.escapeHtml(o.shortCode||o.name)}: ${n} item`;
+            const nSuggested = Object.keys(suggested).filter(itemId=>suggested[itemId]?.[o.id] && working[itemId]?.[o.id]>0).length;
+            return `${Utils.escapeHtml(o.shortCode||o.name)}: ${n} item${nSuggested?` (${nSuggested} saran)`:''}`;
           });
           bar.textContent = counts.join("  ·  ");
         };
@@ -2124,6 +2256,10 @@ class PurchaseRequestModule{
             const val = input.value===""? null : Number(input.value);
             working[itemId] = working[itemId] || {};
             if (val>0) working[itemId][outletId] = val; else delete working[itemId][outletId];
+            // any manual edit turns a suggestion into a confirmed value
+            if (suggested[itemId]) suggested[itemId][outletId] = false;
+            input.dataset.suggested = "0";
+            input.classList.remove("suggested");
             input.classList.toggle("has-value", val>0);
             updateSummary();
           });
@@ -2146,6 +2282,22 @@ class PurchaseRequestModule{
           const btn = document.getElementById("qoSaveBtn");
           btn.disabled = true; btn.innerHTML = `<div class="spinner"></div>`;
           try{
+            // check each outlet with items for an unusually small/large order before committing
+            for (const outlet of activeOutlets){
+              const candidateItems = relevantItems
+                .map(item=>({ quantity: working[item.id]?.[outlet.id] }))
+                .filter(it=>it.quantity>0);
+              if (!candidateItems.length) continue;
+              const anomaly = await PurchaseHabitEngine.checkAnomaly(outlet.id, candidateItems);
+              if (anomaly){
+                const msg = anomaly.type==="low"
+                  ? `Pesanan ${outlet.name} cuma ${anomaly.candidateCount} item, biasanya sekitar ${anomaly.avgItemCount} item. Lanjutkan simpan?`
+                  : `Pesanan ${outlet.name} ada ${anomaly.candidateCount} item, jauh lebih banyak dari biasanya (sekitar ${anomaly.avgItemCount} item). Lanjutkan simpan?`;
+                const ok = await ConfirmDialog.ask({ title:"Jumlah item terlihat tidak biasa", message:msg, confirmLabel:"Lanjutkan", danger:false });
+                if (!ok){ btn.disabled=false; btn.innerHTML=`<svg data-lucide="zap" style="width:15px;height:15px;"></svg> Simpan Semua Pesanan`; renderIcons(btn); return; }
+              }
+            }
+
             let outletsTouched = 0;
             for (const outlet of activeOutlets){
               const items = [];
@@ -3583,8 +3735,8 @@ async function renderPurchasingDashboard(container){
 async function renderDashboard(container){
   dashboardActive = true;
   if (CURRENT_USER.role === "purchasing") return renderPurchasingDashboard(container);
-  const [items, categories, suppliers, outlets, users, logs, requests, sales, menus] = await Promise.all([
-    Stores.items.list(), Stores.categories.list(), Stores.suppliers.list(), Stores.outlets.list(), Stores.users.list(), Stores.logs.list(), Stores.purchaseRequests.list(), Stores.sales.list(), Stores.menus.list()
+  const [items, categories, suppliers, outlets, users, logs, requests, sales, menus, insights] = await Promise.all([
+    Stores.items.list(), Stores.categories.list(), Stores.suppliers.list(), Stores.outlets.list(), Stores.users.list(), Stores.logs.list(), Stores.purchaseRequests.list(), Stores.sales.list(), Stores.menus.list(), InsightsEngine.computeInsights()
   ]);
   const activeItems = items.filter(i=>i.status==="active");
   const missingPrice = items.filter(i=>!i.latestPrice);
@@ -3607,6 +3759,19 @@ async function renderDashboard(container){
         <div class="dash-hero-sub">Begini posisi operasional Dolan Sawah hari ini.</div>
       </div>
     </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-head"><h3>Yang Perlu Diperhatikan</h3></div>
+      <div class="panel-body">
+        ${insights.length ? insights.map(i=>`
+          <div class="activity-row insight-row" data-route="${i.route}">
+            <div class="act-dot" style="background:var(--accent-soft); color:var(--accent);"><svg data-lucide="${i.icon}"></svg></div>
+            <div><div class="act-title">${Utils.escapeHtml(i.title)}</div><div class="act-meta">${Utils.escapeHtml(i.detail)}</div></div>
+          </div>
+        `).join("") : `<div class="empty-state" style="padding:22px 10px;"><svg data-lucide="check-circle" style="color:var(--primary);opacity:1;"></svg><div class="es-title">Semua terlihat normal</div><div class="es-sub">Belum ada yang butuh perhatian khusus hari ini.</div></div>`}
+      </div>
+    </div>
+
     <div class="grid-stats">
       <div class="stat-card"><div class="stat-top"><div class="stat-ic"><svg data-lucide="package"></svg></div></div><div class="stat-val">${activeItems.length}</div><div class="stat-label">Bahan aktif</div></div>
       <div class="stat-card"><div class="stat-top"><div class="stat-ic info"><svg data-lucide="truck"></svg></div></div><div class="stat-val">${suppliers.length}</div><div class="stat-label">Supplier</div></div>
@@ -3669,6 +3834,7 @@ async function renderDashboard(container){
   `;
   renderIcons(container);
   container.querySelectorAll("[data-nav]").forEach(el=> el.addEventListener("click", ()=>Router.navigate(el.dataset.nav)));
+  container.querySelectorAll(".insight-row[data-route]").forEach(el=> el.addEventListener("click", ()=>Router.navigate(el.dataset.route)));
   container.querySelectorAll(".wf-step").forEach(el=>{
     el.addEventListener("click", ()=>{
       purchaseRequestsModule.pendingStatusFilter = el.dataset.status;
@@ -4017,7 +4183,7 @@ function setupLoginForm(){
       await AuthService.login(email, password, remember);
       await boot();
     }catch(err){
-      document.getElementById("loginErrorText").textContent = err.message || "Couldn't sign in. Please try again.";
+      document.getElementById("loginErrorText").textContent = err.message || "Tidak bisa masuk. Coba lagi.";
       errBox.classList.remove("hidden");
       btn.disabled = false; btn.innerHTML = `<svg data-lucide="log-in" style="width:15px;height:15px;"></svg> Masuk`;
       renderIcons(btn);
@@ -4056,7 +4222,17 @@ async function main(){
 
   if (IS_FIREBASE_CONFIGURED && fbAuth){
     fbSdk.onAuthStateChanged(fbAuth, async (user)=>{
-      if (user){ await AuthService._loadProfileFromUsers(user.uid, user.email || ""); await boot(); }
+      if (user){
+        try{
+          await AuthService._loadProfileFromUsers(user.uid, user.email || "");
+          await boot();
+        }catch(err){
+          CURRENT_USER = null;
+          showLogin();
+          document.getElementById("loginErrorText").textContent = err.message || "Tidak bisa masuk.";
+          document.getElementById("loginErrorBox").classList.remove("hidden");
+        }
+      }
       else { CURRENT_USER = null; showLogin(); }
     });
   } else {

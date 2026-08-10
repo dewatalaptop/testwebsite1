@@ -515,6 +515,9 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
 .qo-qty-input:focus{border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-ring); outline:none;}
 .qo-qty-input.has-value{border-color:var(--primary); background:var(--primary-soft);}
 .qo-qty-input.suggested{border-color:var(--accent); border-style:dashed; background:var(--accent-soft); color:var(--accent);}
+.batch-badge-row{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+.batch-badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--primary); background:var(--primary-soft); padding:5px 11px; border-radius:99px; border:1px solid var(--primary-ring);}
+.batch-badge-sm{font-size:10px; padding:2px 8px; margin-left:8px;}
 
 /* Dashboard workflow pipeline */
 .workflow-pipeline{display:flex; align-items:center; overflow-x:auto; gap:2px; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
@@ -1983,7 +1986,93 @@ const InsightsEngine = {
         });
       }
     }
+
+    // Batches that are fully received but still waiting on the next day's
+    // sales entry — the other half of "1 cycle" the person described.
+    const batches = await BatchEngine.computeBatches(allRecords, await Stores.sales.list());
+    const staleBatches = batches.filter(b => b.stage === "awaiting_sales" && b.daysSinceReceived >= 1);
+    staleBatches.forEach(b=>{
+      insights.push({
+        severity: "warning",
+        icon: "receipt",
+        title: `Batch ${b.batchCode} sudah diterima, belum ada penjualan terkait`,
+        detail: `Diterima ${b.daysSinceReceived} hari lalu untuk ${b.outletNames.join(", ")} — jangan lupa input penjualannya.`,
+        route: "sales"
+      });
+    });
     return insights;
+  }
+};
+
+/* =========================================================================
+   BATCH ENGINE
+   Ties "1 cycle" (sore ini order → approve → WhatsApp → terima barang →
+   besok input penjualan) together with one human-readable code, so nobody
+   has to rely on memory or a bare date to know which cycle a receipt or a
+   day's sales belongs to. Nothing new to store separately — a batch is
+   just a shared batchCode string on purchaseRequests (and, once entered,
+   on sales), grouped live rather than kept as its own synced record.
+   ========================================================================= */
+const BatchEngine = {
+  /* A batch stays "open" (same code keeps getting reused by Pesanan Cepat)
+     for as long as every PR carrying that code is still a Draft. The
+     instant one gets approved, the cycle is considered sealed — the next
+     Pesanan Cepat session starts a new code, even the same afternoon. */
+  async resolveBatchCode(draftByOutlet, activeOutlets){
+    for (const o of activeOutlets){
+      const draft = draftByOutlet[o.id];
+      if (draft && draft.batchCode) return draft.batchCode;
+    }
+    return this.generateBatchCode(await Stores.purchaseRequests.list());
+  },
+
+  generateBatchCode(existingRecords){
+    const today = new Date().toISOString().slice(0,10).replace(/-/g,"");
+    const todaysCodes = new Set(existingRecords.map(r=>r.batchCode).filter(c=>c && c.startsWith(`B-${today}`)));
+    if (!todaysCodes.size) return `B-${today}`;
+    let n = 2;
+    while (todaysCodes.has(`B-${today}-${n}`)) n++;
+    return `B-${today}-${n}`;
+  },
+
+  /* Groups purchaseRequests + sales by batchCode and derives one status
+     per batch from the underlying records — never stored, always
+     recomputed, so it can't drift out of sync with the real data. */
+  async computeBatches(allRecords, allSales){
+    const records = allRecords || await Stores.purchaseRequests.list();
+    const sales = allSales || await Stores.sales.list();
+    const outlets = await Stores.outlets.list();
+    const byCode = {};
+    records.filter(r=>r.batchCode).forEach(r=>{
+      (byCode[r.batchCode] = byCode[r.batchCode] || []).push(r);
+    });
+    const salesByCode = {};
+    sales.filter(s=>s.batchCode).forEach(s=>{
+      (salesByCode[s.batchCode] = salesByCode[s.batchCode] || []).push(s);
+    });
+
+    return Object.keys(byCode).sort().reverse().map(batchCode=>{
+      const prs = byCode[batchCode];
+      const outletIds = [...new Set(prs.map(r=>r.outletId))];
+      const outletNames = outletIds.map(id=>outlets.find(o=>o.id===id)?.name || id);
+      const statuses = prs.map(r=>r.status);
+      const linkedSales = salesByCode[batchCode] || [];
+      let stage, label;
+      if (statuses.some(s=>s==="draft")){ stage="draft"; label="Menunggu diproses"; }
+      else if (statuses.some(s=>s==="approved")){ stage="approved"; label="Menunggu dikirim ke supplier"; }
+      else if (statuses.some(s=>s==="ordered")){ stage="ordered"; label="Menunggu barang datang"; }
+      else if (linkedSales.length === 0){ stage="awaiting_sales"; label="Menunggu input penjualan"; }
+      else { stage="done"; label="Selesai"; }
+
+      const receivedAt = Math.max(...prs.map(r=> (r.status==="received"||r.status==="completed") ? (r.updatedAt||0) : 0));
+      const daysSinceReceived = receivedAt>0 ? Math.floor((Date.now()-receivedAt)/86400000) : 0;
+
+      return {
+        batchCode, orderDate: prs[0]?.createdAt ? new Date(prs[0].createdAt).toISOString().slice(0,10) : "",
+        outletIds, outletNames, purchaseRequests: prs, stage, label,
+        hasSales: linkedSales.length>0, daysSinceReceived
+      };
+    });
   }
 };
 
@@ -2020,10 +2109,11 @@ class PurchaseRequestModule{
       <div class="view-toggle" id="prViewToggle">
         <button class="view-toggle-btn ${this.state.view==='category'?'active':''}" data-view="category"><svg data-lucide="layout-grid" style="width:14px;height:14px;"></svg> Per Kategori</button>
         <button class="view-toggle-btn ${this.state.view==='outlet'?'active':''}" data-view="outlet"><svg data-lucide="list" style="width:14px;height:14px;"></svg> Per Outlet</button>
+        <button class="view-toggle-btn ${this.state.view==='batch'?'active':''}" data-view="batch"><svg data-lucide="hash" style="width:14px;height:14px;"></svg> Per Batch</button>
       </div>`}
-      <div class="toolbar" id="prStatusChips"></div>
+      <div class="toolbar" id="prStatusChips" style="display:${this.state.view==='batch'?'none':'flex'};"></div>
       <div class="toolbar" id="prOutletChips" style="display:${!isSimple && this.state.view==='outlet'?'flex':'none'};"></div>
-      <div class="toolbar">
+      <div class="toolbar" style="display:${this.state.view==='batch'?'none':'flex'};">
         <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="prSearchInput" placeholder="Cari pesanan…"></div>
         <span class="result-count" id="prResultCount"></span>
       </div>
@@ -2038,6 +2128,8 @@ class PurchaseRequestModule{
         this.state.view = btn.dataset.view;
         document.querySelectorAll("#prViewToggle .view-toggle-btn").forEach(b=>b.classList.toggle("active", b===btn));
         document.getElementById("prOutletChips").style.display = this.state.view==="outlet" ? "flex" : "none";
+        document.getElementById("prStatusChips").style.display = this.state.view==="batch" ? "none" : "flex";
+        document.getElementById("prSearchInput").closest(".toolbar").style.display = this.state.view==="batch" ? "none" : "flex";
         this.paint();
       });
     });
@@ -2076,6 +2168,7 @@ class PurchaseRequestModule{
 
   paint(){
     if (this.state.view === "category") this.paintCategoryView();
+    else if (this.state.view === "batch") this.paintBatchView();
     else this.paintOutletView();
   }
 
@@ -2101,6 +2194,77 @@ class PurchaseRequestModule{
     });
   }
 
+  /* Oversight view: one card per cycle ("1 batch"), from order through to
+     whether the following day's sales have actually been linked yet —
+     the whole thing the batch code exists to make checkable at a glance. */
+  async paintBatchView(){
+    const wrap = document.getElementById("prCardGrid");
+    const [allSales] = await Promise.all([Stores.sales.list()]);
+    const batches = await BatchEngine.computeBatches(this.records, allSales);
+    document.getElementById("prResultCount").textContent = `${batches.length} batch`;
+    if (!batches.length){
+      wrap.className = "";
+      wrap.innerHTML = `<div class="empty-state"><svg data-lucide="hash"></svg><div class="es-title">Belum ada batch</div><div class="es-sub">Batch otomatis terbentuk begitu "Pesanan Cepat" dipakai.</div></div>`;
+      renderIcons(wrap); return;
+    }
+    const stageColor = { draft:"grey", approved:"blue", ordered:"amber", awaiting_sales:"amber", done:"green" };
+    wrap.className = "pr-card-grid";
+    wrap.innerHTML = batches.map(b=>{
+      const itemCount = b.purchaseRequests.reduce((s,r)=>s+(r.items||[]).length,0);
+      return `
+        <div class="pr-card" data-batch="${Utils.escapeHtml(b.batchCode)}">
+          <div class="pr-card-top">
+            <div><div class="pr-card-outlet mono">${Utils.escapeHtml(b.batchCode)}</div><div class="pr-card-date">${b.orderDate?Utils.formatDate(new Date(b.orderDate).getTime()):''} · ${Utils.escapeHtml(b.outletNames.join(", "))}</div></div>
+            <span class="badge ${stageColor[b.stage]||'grey'}">${Utils.escapeHtml(b.label)}</span>
+          </div>
+          <div class="pr-card-items">${itemCount} item lintas outlet${b.hasSales?' · <span style="color:var(--primary); font-weight:600;">penjualan tercatat</span>':''}</div>
+        </div>`;
+    }).join("");
+    renderIcons(wrap);
+    wrap.querySelectorAll("[data-batch]").forEach(card=>{
+      const batch = batches.find(b=>b.batchCode===card.dataset.batch);
+      card.addEventListener("click", ()=>this.openBatchDetail(batch, allSales));
+    });
+  }
+
+  openBatchDetail(batch, allSales){
+    const linkedSales = allSales.filter(s=>s.batchCode===batch.batchCode);
+    const totalPortions = linkedSales.reduce((s,x)=>s+(Number(x.quantitySold)||0),0);
+    const bodyHtml = `
+      <p class="muted" style="font-size:12.5px; margin-bottom:16px;">1 cycle — dari pesanan sampai penjualan hari berikutnya, dilacak dengan kode ini.</p>
+      <h3 style="font-size:13px; margin-bottom:8px;">Pesanan dalam batch ini</h3>
+      <table class="data-table" style="margin-bottom:18px;">
+        <thead><tr><th>Outlet</th><th>Status</th><th>Item</th></tr></thead>
+        <tbody>
+          ${batch.purchaseRequests.map(r=>{
+            const outlet = this.outlets.find(o=>o.id===r.outletId);
+            return `<tr data-open-pr="${r.id}" style="cursor:pointer;"><td class="cell-primary">${outlet?Utils.escapeHtml(outlet.name):'—'}</td><td><span class="badge ${PR_STATUS_COLOR[r.status]}">${PR_STATUS_LABEL[r.status]}</span></td><td>${(r.items||[]).length}</td></tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+      <h3 style="font-size:13px; margin-bottom:8px;">Penjualan terkait</h3>
+      ${linkedSales.length
+        ? `<p style="font-size:13px;">${totalPortions} porsi tercatat dari ${new Set(linkedSales.map(s=>s.outletId)).size} outlet. <a href="#sales" id="batchToSalesLink" style="color:var(--primary); font-weight:600;">Lihat di halaman Penjualan →</a></p>`
+        : `<p class="muted" style="font-size:13px;">Belum ada penjualan yang dikaitkan ke batch ini. <a href="#sales" id="batchToSalesLink" style="color:var(--primary); font-weight:600;">Input di halaman Penjualan →</a></p>`}
+    `;
+    const footHtml = `<button class="btn btn-ghost" id="batchCloseBtn">Tutup</button>`;
+    Modal.open({
+      title: batch.batchCode, bodyHtml, footHtml, wide:true,
+      onMount:(root)=>{
+        document.getElementById("batchCloseBtn").addEventListener("click", Modal.close);
+        const salesLink = document.getElementById("batchToSalesLink");
+        if (salesLink) salesLink.addEventListener("click", (e)=>{ e.preventDefault(); Modal.close(); Router.navigate("sales"); });
+        root.querySelectorAll("[data-open-pr]").forEach(tr=>{
+          tr.addEventListener("click", ()=>{
+            const rec = this.records.find(r=>r.id===tr.dataset.openPr);
+            Modal.close();
+            if (rec) this.openForm(rec);
+          });
+        });
+      }
+    });
+  }
+
   paintOutletView(){
     const wrap = document.getElementById("prCardGrid");
     const all = this.filtered();
@@ -2119,7 +2283,7 @@ class PurchaseRequestModule{
         <div class="pr-card" data-id="${r.id}">
           <div class="pr-card-top">
             <div>
-              <div class="pr-card-outlet">${outlet? (outlet.shortCode?`${Utils.escapeHtml(outlet.shortCode)} · `:'')+Utils.escapeHtml(outlet.name) : '—'}</div>
+              <div class="pr-card-outlet">${outlet? (outlet.shortCode?`${Utils.escapeHtml(outlet.shortCode)} · `:'')+Utils.escapeHtml(outlet.name) : '—'}${r.batchCode?` <span class="batch-badge batch-badge-sm" style="margin-left:6px;">${Utils.escapeHtml(r.batchCode)}</span>`:''}</div>
               <div class="pr-card-date">${Utils.formatDate(r.createdAt)} · ${Utils.escapeHtml(r.createdByName||'')}</div>
             </div>
             <span class="badge ${PR_STATUS_COLOR[r.status]}">${PR_STATUS_LABEL[r.status]}</span>
@@ -2156,6 +2320,7 @@ class PurchaseRequestModule{
     const allRecords = await Stores.purchaseRequests.list();
     const draftByOutlet = {};
     activeOutlets.forEach(o=>{ draftByOutlet[o.id] = allRecords.find(r=>r.outletId===o.id && r.status==="draft") || null; });
+    const batchCode = await BatchEngine.resolveBatchCode(draftByOutlet, activeOutlets);
     const habits = await PurchaseHabitEngine.computeHabits();
 
     // working[itemId][outletId] = qty ; suggested[itemId][outletId] = true while still an untouched suggestion
@@ -2190,6 +2355,7 @@ class PurchaseRequestModule{
     const orderedCatKeys = this.categories.map(c=>c.id).filter(id=>byCat[id]);
 
     const bodyHtml = `
+      <div class="batch-badge-row"><span class="batch-badge"><svg data-lucide="hash" style="width:12px;height:12px;"></svg>${Utils.escapeHtml(batchCode)}</span><span class="muted" style="font-size:11.3px;">1 cycle — dari sini sampai penjualan besok dilacak dengan kode ini</span></div>
       <div class="field">
         <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="qoSearchInput" placeholder="Cari item…" autocomplete="off"></div>
       </div>
@@ -2230,7 +2396,7 @@ class PurchaseRequestModule{
     const footHtml = `<button class="btn btn-ghost" id="qoCloseBtn">Batal</button><button class="btn btn-primary" id="qoSaveBtn"><svg data-lucide="zap" style="width:15px;height:15px;"></svg> Simpan Semua Pesanan</button>`;
 
     Modal.open({
-      title: "Pesanan Cepat — Semua Outlet", bodyHtml, footHtml, wide:true,
+      title: `Pesanan Cepat · ${batchCode}`, bodyHtml, footHtml, wide:true,
       onMount:(root)=>{
         const updateSummary = ()=>{
           const bar = document.getElementById("qoSummary");
@@ -2313,14 +2479,14 @@ class PurchaseRequestModule{
               }
               outletsTouched++;
               if (existingDraft){
-                await Stores.purchaseRequests.update(existingDraft.id, { items });
+                await Stores.purchaseRequests.update(existingDraft.id, { items, batchCode });
               } else {
-                await Stores.purchaseRequests.create({ outletId:outlet.id, items, notes:"", status:"draft", createdByName:CURRENT_USER.name });
+                await Stores.purchaseRequests.create({ outletId:outlet.id, items, notes:"", status:"draft", createdByName:CURRENT_USER.name, batchCode });
               }
             }
             if (!outletsTouched){ Toast.show("Belum ada jumlah yang diisi.", "error"); btn.disabled=false; btn.innerHTML=`<svg data-lucide="zap" style="width:15px;height:15px;"></svg> Simpan Semua Pesanan`; renderIcons(btn); return; }
-            await Logger.log("created","purchaseRequests", `Pesanan Cepat · ${outletsTouched} outlet`);
-            Toast.show(`Pesanan tersimpan untuk ${outletsTouched} outlet.`, "success");
+            await Logger.log("created","purchaseRequests", `Pesanan Cepat · ${batchCode} · ${outletsTouched} outlet`);
+            Toast.show(`Pesanan ${batchCode} tersimpan untuk ${outletsTouched} outlet.`, "success");
             Modal.close();
             this.records = await Stores.purchaseRequests.list();
             this.paint();
@@ -2389,7 +2555,7 @@ class PurchaseRequestModule{
     `;
 
     Modal.open({
-      title: isEdit ? `Pesanan ${this.outlets.find(o=>o.id===record.outletId)?.name||''}` : "Pesanan Belanja Baru",
+      title: isEdit ? `Pesanan ${this.outlets.find(o=>o.id===record.outletId)?.name||''}${record.batchCode?' · '+record.batchCode:''}` : "Pesanan Belanja Baru",
       bodyHtml, footHtml, wide:true,
       onMount:()=>{
         const updateSummary = ()=>{
@@ -2644,8 +2810,12 @@ class PurchaseRequestModule{
       (r.items||[]).forEach(it=>{
         const key = it.categoryId || "uncategorized";
         const cat = this.categories.find(c=>c.id===key);
-        byCat[key] = byCat[key] || { name: it.categoryName || (cat?cat.name:"Lainnya"), color: cat?cat.color:null, byOutlet:{} };
+        byCat[key] = byCat[key] || { name: it.categoryName || (cat?cat.name:"Lainnya"), color: cat?cat.color:null, byOutlet:{}, batchByOutlet:{} };
         (byCat[key].byOutlet[r.outletId] = byCat[key].byOutlet[r.outletId]||[]).push(it);
+        if (r.batchCode){
+          byCat[key].batchByOutlet[r.outletId] = byCat[key].batchByOutlet[r.outletId] || new Set();
+          byCat[key].batchByOutlet[r.outletId].add(r.batchCode);
+        }
       });
     });
     const orderedKeys = [...this.categories.map(c=>c.id).filter(id=>byCat[id]), ...Object.keys(byCat).filter(k=>!this.categories.some(c=>c.id===k))];
@@ -2686,14 +2856,17 @@ class PurchaseRequestModule{
           <span class="order-card-count">${itemCount} item</span>
         </div>
         <div class="order-card-body">
-          ${this.outlets.filter(o=>bucket.byOutlet[o.id]).map(o=>`
+          ${this.outlets.filter(o=>bucket.byOutlet[o.id]).map(o=>{
+            const batches = bucket.batchByOutlet?.[o.id] ? [...bucket.batchByOutlet[o.id]] : [];
+            return `
             <div class="order-outlet-group">
               <span class="order-outlet-badge">${Utils.escapeHtml(o.shortCode||o.name)}</span>
+              ${batches.length ? `<span class="batch-badge batch-badge-sm">${Utils.escapeHtml(batches.join(", "))}</span>` : ''}
               ${bucket.byOutlet[o.id].map(it=>`
                 <div class="order-item-row"><span>${Utils.escapeHtml(it.name)}</span><span class="order-item-qty">${it.quantity??''}${it.unit?' '+Utils.escapeHtml(it.unit):''}</span></div>
               `).join("")}
-            </div>
-          `).join("")}
+            </div>`;
+          }).join("")}
         </div>
         <div class="order-card-foot">
           <button class="btn btn-primary btn-block" data-copy-cat="${bucket.id}"><svg data-lucide="copy" style="width:14px;height:14px;"></svg> Copy untuk WhatsApp</button>
@@ -2781,7 +2954,7 @@ function openGoodsReceiptForm(record, onDone){
       ? `<button class="btn btn-ghost" id="grCloseBtn">Tutup</button>`
       : `<button class="btn btn-ghost" id="grCloseBtn">Batal</button><button class="btn btn-primary" id="grSaveBtn"><svg data-lucide="package-check" style="width:15px;height:15px;"></svg> Simpan &amp; Tandai Diterima</button>`;
     Modal.open({
-      title: `Terima Barang · ${outlet?outlet.name:''}`, bodyHtml, footHtml, wide:true,
+      title: `Terima Barang · ${outlet?outlet.name:''}${record.batchCode?' · '+record.batchCode:''}`, bodyHtml, footHtml, wide:true,
       onMount:(root)=>{
         document.getElementById("grCloseBtn").addEventListener("click", Modal.close);
         if (!readOnly){
@@ -2856,7 +3029,7 @@ class GoodsReceiptModule{
       return `
         <div class="pr-card" data-id="${r.id}">
           <div class="pr-card-top">
-            <div><div class="pr-card-outlet">${outlet?(outlet.shortCode?outlet.shortCode+' · ':'')+outlet.name:'—'}</div><div class="pr-card-date">${Utils.formatDate(r.createdAt)}</div></div>
+            <div><div class="pr-card-outlet">${outlet?(outlet.shortCode?outlet.shortCode+' · ':'')+outlet.name:'—'}${r.batchCode?` <span class="batch-badge batch-badge-sm" style="margin-left:6px;">${Utils.escapeHtml(r.batchCode)}</span>`:''}</div><div class="pr-card-date">${Utils.formatDate(r.createdAt)}</div></div>
             <span class="badge ${PR_STATUS_COLOR[r.status]}">${PR_STATUS_LABEL[r.status]}</span>
           </div>
           <div class="pr-card-items">${itemCount} item${this.state.statusFilter!=='ordered'&&withDiff.length?` · <span style="color:var(--accent); font-weight:600;">${withDiff.length} beda jumlah</span>`:''}</div>
@@ -3370,7 +3543,10 @@ class SalesModule{
     this.outlets = await Stores.outlets.list();
     this.menus = await Stores.menus.list();
     this.allSales = await Stores.sales.list();
-    this.state = { date: new Date().toISOString().slice(0,10), outletId: this.outlets.find(o=>o.status==="active")?.id || "" };
+    this.allPRs = await Stores.purchaseRequests.list();
+    this.batches = await BatchEngine.computeBatches(this.allPRs, this.allSales);
+    this.state = { date: new Date().toISOString().slice(0,10), outletId: this.outlets.find(o=>o.status==="active")?.id || "", batchCode: "" };
+    this.state.batchCode = this.resolveDefaultBatch();
     container.innerHTML = `
       <div class="page-head">
         <div><h2>Penjualan</h2><div class="page-sub">Input total porsi terjual per menu — biasanya diisi sekali saat closing.</div></div>
@@ -3380,12 +3556,17 @@ class SalesModule{
         <div style="flex:1;"><label class="field-label">Tanggal</label><input type="date" class="input" id="salesDateInput" value="${this.state.date}"></div>
       </div>
       <div class="toolbar" id="salesOutletChips"></div>
+      <div class="field" style="max-width:520px;" id="salesBatchField"></div>
       <div id="salesEntryWrap"></div>
       <h3 style="font-size:14px; margin:26px 0 10px;">Riwayat terbaru</h3>
       <div class="table-wrap" id="salesHistoryWrap"></div>
     `;
     renderIcons(container);
-    document.getElementById("salesDateInput").addEventListener("change", (e)=>{ this.state.date = e.target.value; this.paintEntry(); });
+    document.getElementById("salesDateInput").addEventListener("change", (e)=>{
+      this.state.date = e.target.value;
+      this.state.batchCode = this.resolveDefaultBatch();
+      this.paintBatchField(); this.paintEntry();
+    });
     const importBtn = document.getElementById("salesImportBtn");
     if (importBtn){
       const fileInput = document.getElementById("salesImportFile");
@@ -3397,15 +3578,51 @@ class SalesModule{
       fileInput.addEventListener("change", (e)=>{ const file = e.target.files[0]; if (file) this.handleImportFile(file); });
     }
     this.paintOutletChips();
+    this.paintBatchField();
     this.paintEntry();
     this.paintHistory();
+  }
+
+  /* Smart default: if this date+outlet already has recorded sales, keep
+     whatever batch they were already tagged with (don't second-guess a
+     previous entry). Otherwise, offer the most recent batch for this
+     outlet that's been received but has no sales linked yet — the exact
+     "other half of the cycle" this feature exists for. */
+  resolveDefaultBatch(){
+    const existing = this.allSales.find(s=>s.date===this.state.date && s.outletId===this.state.outletId && s.batchCode);
+    if (existing) return existing.batchCode;
+    const candidate = this.batches.find(b => b.outletIds.includes(this.state.outletId) && b.stage==="awaiting_sales");
+    return candidate?.batchCode || "";
+  }
+
+  candidateBatchesForOutlet(){
+    return this.batches.filter(b => b.outletIds.includes(this.state.outletId) && (b.stage==="awaiting_sales" || b.stage==="done"));
+  }
+
+  paintBatchField(){
+    const wrap = document.getElementById("salesBatchField");
+    const candidates = this.candidateBatchesForOutlet();
+    wrap.innerHTML = `
+      <label class="field-label">Batch terkait</label>
+      <select class="select" id="salesBatchSelect" ${this.canEdit?'':'disabled'}>
+        <option value="">— Tidak terkait batch tertentu —</option>
+        ${candidates.map(b=>`<option value="${b.batchCode}" ${b.batchCode===this.state.batchCode?'selected':''}>${b.batchCode} — ${b.label}${b.stage==='done'?' (sudah ada penjualan)':''}</option>`).join("")}
+      </select>
+      <p class="muted" style="font-size:11px; margin-top:5px;">Pilih siklus belanja yang penjualan hari ini mewakili, supaya tidak tercatat di batch yang salah.</p>
+    `;
+    const sel = document.getElementById("salesBatchSelect");
+    if (sel) sel.addEventListener("change", ()=>{ this.state.batchCode = sel.value; });
   }
 
   paintOutletChips(){
     const wrap = document.getElementById("salesOutletChips");
     const active = this.outlets.filter(o=>o.status==="active");
     wrap.innerHTML = active.map(o=>`<span class="filter-chip ${this.state.outletId===o.id?'active':''}" data-outlet="${o.id}">${Utils.escapeHtml(o.name)}</span>`).join("");
-    wrap.querySelectorAll(".filter-chip").forEach(el=> el.addEventListener("click", ()=>{ this.state.outletId = el.dataset.outlet; this.paintOutletChips(); this.paintEntry(); }));
+    wrap.querySelectorAll(".filter-chip").forEach(el=> el.addEventListener("click", ()=>{
+      this.state.outletId = el.dataset.outlet;
+      this.state.batchCode = this.resolveDefaultBatch();
+      this.paintOutletChips(); this.paintBatchField(); this.paintEntry();
+    }));
   }
 
   paintEntry(){
@@ -3448,12 +3665,13 @@ class SalesModule{
           if (existing) await Stores.sales.remove(existing.id);
           continue;
         }
-        if (existing) await Stores.sales.update(existing.id, { quantitySold: qty });
-        else await Stores.sales.create({ date:this.state.date, outletId:this.state.outletId, menuId, quantitySold: qty });
+        if (existing) await Stores.sales.update(existing.id, { quantitySold: qty, batchCode: this.state.batchCode || null });
+        else await Stores.sales.create({ date:this.state.date, outletId:this.state.outletId, menuId, quantitySold: qty, batchCode: this.state.batchCode || null });
       }
-      await Logger.log("updated", "sales", `${this.state.date} · ${this.outlets.find(o=>o.id===this.state.outletId)?.name||''}`);
-      Toast.show("Penjualan disimpan.", "success");
+      await Logger.log("updated", "sales", `${this.state.date} · ${this.outlets.find(o=>o.id===this.state.outletId)?.name||''}${this.state.batchCode?' · '+this.state.batchCode:''}`);
+      Toast.show(`Penjualan disimpan${this.state.batchCode?' untuk batch '+this.state.batchCode:''}.`, "success");
       this.allSales = await Stores.sales.list();
+      this.batches = await BatchEngine.computeBatches(this.allPRs, this.allSales);
       this.paintEntry();
       this.paintHistory();
     }catch(e){ Toast.show(e.message||"Gagal menyimpan.", "error"); }
@@ -3517,8 +3735,8 @@ class SalesModule{
           for (const r of workingRows){
             if (!r.chosenMenuId || !r.quantity) continue;
             const existing = this.allSales.find(s=>s.date===this.state.date && s.outletId===this.state.outletId && s.menuId===r.chosenMenuId);
-            if (existing) await Stores.sales.update(existing.id, { quantitySold: r.quantity });
-            else await Stores.sales.create({ date:this.state.date, outletId:this.state.outletId, menuId:r.chosenMenuId, quantitySold:r.quantity });
+            if (existing) await Stores.sales.update(existing.id, { quantitySold: r.quantity, batchCode: this.state.batchCode || null });
+            else await Stores.sales.create({ date:this.state.date, outletId:this.state.outletId, menuId:r.chosenMenuId, quantitySold:r.quantity, batchCode: this.state.batchCode || null });
             imported++;
           }
           await Logger.log("created", "sales", `import Excel · ${imported} menu`);
@@ -3537,7 +3755,7 @@ class SalesModule{
     const byDayOutlet = {};
     this.allSales.forEach(s=>{
       const key = s.date+"__"+s.outletId;
-      byDayOutlet[key] = byDayOutlet[key] || { date:s.date, outletId:s.outletId, total:0 };
+      byDayOutlet[key] = byDayOutlet[key] || { date:s.date, outletId:s.outletId, total:0, batchCode:s.batchCode||null };
       byDayOutlet[key].total += Number(s.quantitySold)||0;
     });
     const rows = Object.values(byDayOutlet).sort((a,b)=> b.date.localeCompare(a.date)).slice(0,20);
@@ -3547,17 +3765,18 @@ class SalesModule{
     }
     wrap.innerHTML = `
       <table class="data-table">
-        <thead><tr><th>Tanggal</th><th>Outlet</th><th>Total porsi</th></tr></thead>
+        <thead><tr><th>Tanggal</th><th>Outlet</th><th>Batch</th><th>Total porsi</th></tr></thead>
         <tbody>${rows.map(r=>{
           const outlet = this.outlets.find(o=>o.id===r.outletId);
-          return `<tr data-date="${r.date}" data-outlet="${r.outletId}" style="cursor:pointer;"><td>${Utils.formatDate(new Date(r.date).getTime())}</td><td>${outlet?Utils.escapeHtml(outlet.name):'—'}</td><td class="cell-primary">${r.total}</td></tr>`;
+          return `<tr data-date="${r.date}" data-outlet="${r.outletId}" style="cursor:pointer;"><td>${Utils.formatDate(new Date(r.date).getTime())}</td><td>${outlet?Utils.escapeHtml(outlet.name):'—'}</td><td>${r.batchCode?`<span class="batch-badge batch-badge-sm">${Utils.escapeHtml(r.batchCode)}</span>`:'<span class="muted">—</span>'}</td><td class="cell-primary">${r.total}</td></tr>`;
         }).join("")}</tbody>
       </table>`;
     wrap.querySelectorAll("tr[data-date]").forEach(tr=>{
       tr.addEventListener("click", ()=>{
         this.state.date = tr.dataset.date; this.state.outletId = tr.dataset.outlet;
         document.getElementById("salesDateInput").value = this.state.date;
-        this.paintOutletChips(); this.paintEntry();
+        this.state.batchCode = this.resolveDefaultBatch();
+        this.paintOutletChips(); this.paintBatchField(); this.paintEntry();
         window.scrollTo({top:0, behavior:"smooth"});
       });
     });

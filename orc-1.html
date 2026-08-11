@@ -964,6 +964,26 @@ class DataStore{
     const arr = LocalStore.getAll(this.name).filter(item => item.id!==id);
     LocalStore.saveAll(this.name, arr);
   }
+  /* Writes a record at a SPECIFIC id, creating or overwriting in one
+     network call (setDoc + merge) instead of the update-then-create dance
+     create()/update() use for normal UI saves. This is what Restore uses:
+     a backup file's items/categories/etc reference each other by exact id
+     (an item's categoryId, a conversion's itemId), and create() deliberately
+     can't honor a chosen id (see its own comment) — a plain create() would
+     silently break every cross-reference in a restored file. */
+  async upsert(id, data){
+    const { id: _incomingId, ...cleanData } = data;
+    const payload = { ...cleanData, updatedAt: Date.now() };
+    if (IS_FIREBASE_CONFIGURED && fbDb){
+      try{ await fbSdk.setDoc(fbSdk.doc(fbDb, this.name, id), payload, { merge: true }); }
+      catch(e){ console.warn("Firestore upsert() failed, saving locally only:", e); }
+    }
+    const arr = LocalStore.getAll(this.name);
+    const idx = arr.findIndex(item => item.id === id);
+    if (idx >= 0) arr[idx] = { ...arr[idx], ...payload };
+    else arr.unshift({ id, createdAt: data.createdAt || Date.now(), ...payload });
+    LocalStore.saveAll(this.name, arr);
+  }
 }
 
 const Stores = {
@@ -4211,6 +4231,7 @@ settings, logs</pre>
         <p class="muted" style="font-size:12.8px; margin-bottom:14px;">Unggah file backup yang sudah pernah diekspor. Data akan digabung ke data yang ada berdasarkan ID.</p>
         <input type="file" id="restoreInput" accept="application/json" class="hidden">
         <button class="btn btn-ghost" id="restoreBtn"><svg data-lucide="upload" style="width:15px;height:15px;"></svg> Pulihkan dari file</button>
+        <div id="restoreProgress" class="muted" style="font-size:12px; margin-top:10px;"></div>
       </div>`;
     renderIcons(body);
     document.getElementById("exportBtn").addEventListener("click", async ()=>{
@@ -4224,17 +4245,40 @@ settings, logs</pre>
     document.getElementById("restoreBtn").addEventListener("click", ()=>document.getElementById("restoreInput").click());
     document.getElementById("restoreInput").addEventListener("change", async (e)=>{
       const file = e.target.files[0]; if (!file) return;
+      const btn = document.getElementById("restoreBtn");
+      const progress = document.getElementById("restoreProgress");
+      const originalBtnHtml = btn.innerHTML;
+      btn.disabled = true;
       try{
         const text = await file.text();
         const data = JSON.parse(text);
-        for (const key of Object.keys(Stores)){
-          if (Array.isArray(data[key])){
-            for (const record of data[key]){ await Stores[key].update(record.id, record).catch(()=> Stores[key].create(record)); }
+        const keysToRestore = Object.keys(Stores).filter(k => Array.isArray(data[k]) && data[k].length);
+        const total = keysToRestore.reduce((sum,k)=> sum + data[k].length, 0);
+        if (!total){ Toast.show("File ini tidak berisi data yang bisa dipulihkan.", "error"); return; }
+        let done = 0;
+        const updateProgress = ()=>{
+          btn.innerHTML = `<div class="spinner"></div> Memulihkan…`;
+          progress.textContent = `${done} / ${total} data dipulihkan${IS_FIREBASE_CONFIGURED?' — bisa makan waktu untuk data yang banyak':''}`;
+        };
+        updateProgress();
+        for (const key of keysToRestore){
+          for (const record of data[key]){
+            if (!record.id){ done++; updateProgress(); continue; } // can't upsert without an id to key on
+            await Stores[key].upsert(record.id, record);
+            done++;
+            updateProgress();
           }
         }
         if (data.settings) LocalStore.setDoc("settings", data.settings);
-        Toast.show("Pemulihan selesai.", "success");
-      }catch(err){ Toast.show("Tidak bisa membaca file ini — apakah ini file backup DSMC?", "error"); }
+        progress.textContent = "";
+        Toast.show(`Pemulihan selesai — ${done} data dipulihkan.`, "success");
+      }catch(err){
+        console.error("Restore failed:", err);
+        Toast.show("Tidak bisa membaca file ini — apakah ini file backup DSMC?", "error");
+        progress.textContent = "";
+      } finally {
+        btn.disabled = false; btn.innerHTML = originalBtnHtml; renderIcons(btn);
+      }
     });
   }
 

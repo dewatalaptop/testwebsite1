@@ -3373,11 +3373,12 @@ class RecipesModule{
                   const row = this.learning.find(l=>l.itemId===id && l.menuId===menu.id);
                   const eff = row ? RecipeLearningEngine.effectiveUsage(row) : null;
                   const conf = row?.confidence || 0;
+                  const isManual = row && row.manualOverride!==null && row.manualOverride!==undefined;
                   const confBadge = !row || eff===null||eff===undefined ? `<span class="badge grey">Belum cukup data</span>`
+                    : isManual ? `<span class="badge blue">Manual</span>`
                     : conf>=0.6 ? `<span class="badge green">Tinggi</span>`
                     : conf>=0.3 ? `<span class="badge amber">Sedang</span>`
                     : `<span class="badge red">Rendah</span>`;
-                  const isManual = row && row.manualOverride!==null && row.manualOverride!==undefined;
                   return `
                     <tr data-item="${id}">
                       <td class="cell-primary">${Utils.escapeHtml(item?.name||id)}${isManual?'<div class="cell-sub">Manual</div>':row?.sampleDays?`<div class="cell-sub">${row.sampleDays} hari data</div>`:''}</td>

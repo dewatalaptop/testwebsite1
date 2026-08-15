@@ -503,15 +503,28 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
 /* Quick order grid (fast multi-outlet entry) */
 .qo-summary{position:sticky; top:calc(var(--topbar-h) + 8px); z-index:5; display:flex; gap:10px; flex-wrap:wrap; background:var(--primary-soft); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:16px; font-size:12.5px; font-weight:600; color:var(--primary);}
 .qo-cat-group{border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:10px; overflow:hidden;}
-.qo-cat-group.open .pr-cat-chevron{transform:rotate(180deg);}
-.qo-cat-head{display:flex; align-items:center; gap:9px; padding:12px 14px; cursor:pointer; background:var(--bg-soft); font-size:13px; font-weight:700;}
+.qo-cat-group.hidden{display:none;}
+.qo-section-title{display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:.03em; margin:4px 0 8px;}
+#qoUsualItems{border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:18px;}
+#qoUsualItems .qo-row{border-top:1px solid var(--border);}
+#qoUsualItems .qo-row:first-child{border-top:none;}
+.qo-more-toggle{display:flex; align-items:center; gap:8px; padding:12px 14px; border:1px dashed var(--border-strong); border-radius:var(--radius-md); font-size:13px; font-weight:700; color:var(--text-muted); cursor:pointer; margin-bottom:12px; transition:all .15s var(--ease);}
+.qo-more-toggle:hover{border-color:var(--primary); color:var(--primary);}
+.qo-more-toggle .pr-cat-chevron{margin-left:auto;}
+.qo-more-toggle.open .pr-cat-chevron{transform:rotate(180deg);}
+.qo-more-toggle.open{color:var(--primary); border-color:var(--primary); border-style:solid;}
+/* Category dividers inside "Tambah bahan lain" are plain labels now, not
+   tap targets — everything underneath is always visible. One fewer layer
+   of taps between opening the sheet and actually being able to type a
+   quantity. Search narrows things down instead. */
+.qo-cat-divider{position:sticky; top:0; z-index:1; display:flex; align-items:center; gap:9px; padding:10px 14px; background:var(--bg-soft); border-bottom:1px solid var(--border); font-size:12.5px; font-weight:700;}
 .qo-cat-count{margin-left:auto; font-size:11px; color:var(--text-faint); font-weight:600;}
-.qo-row{display:flex; align-items:center; gap:10px; padding:10px 14px; border-top:1px solid var(--border);}
-.qo-row-name{flex:1; font-size:13px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.qo-outlet-inputs{display:flex; gap:6px; flex-shrink:0;}
+.qo-row{display:flex; align-items:center; gap:10px; padding:11px 14px; border-top:1px solid var(--border);}
+.qo-row-name{flex:1; font-size:13.5px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.qo-outlet-inputs{display:flex; gap:7px; flex-shrink:0;}
 .qo-outlet-col{display:flex; flex-direction:column; align-items:center; gap:3px;}
 .qo-outlet-label{font-size:9.5px; font-weight:700; color:var(--text-faint); text-transform:uppercase;}
-.qo-qty-input{width:46px; height:34px; text-align:center; border:1px solid var(--border); border-radius:8px; font-size:13px; font-weight:600; font-family:var(--font-mono); background:var(--surface); color:var(--text);}
+.qo-qty-input{width:56px; height:42px; text-align:center; border:1.5px solid var(--border); border-radius:10px; font-size:15px; font-weight:700; font-family:var(--font-mono); background:var(--surface); color:var(--text);}
 .qo-qty-input:focus{border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-ring); outline:none;}
 .qo-qty-input.has-value{border-color:var(--primary); background:var(--primary-soft);}
 .qo-qty-input.suggested{border-color:var(--accent); border-style:dashed; background:var(--accent-soft); color:var(--accent);}
@@ -577,6 +590,27 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
 }
 .sidebar-scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:39;}
 .sidebar-scrim.show{display:block;}
+/* Priority checklist (Analisis Menu) */
+.priority-list{list-style:none; margin:0; padding:0;}
+.priority-list li{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px dashed var(--border);}
+.priority-list li:last-child{border-bottom:none;}
+.priority-rank{flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--primary-soft); color:var(--primary); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;}
+.priority-name{flex:1; font-size:13.3px; font-weight:600;}
+
+/* Print — used by the Analisis Menu "Cetak / Simpan PDF" button */
+.print-only{display:none;}
+.report-print-head{margin-bottom:20px;}
+.report-print-head h1{font-size:20px; margin-bottom:2px;}
+.report-print-head h2{font-size:15px; font-weight:500; color:var(--text-muted); margin-bottom:6px;}
+.report-print-head p{font-size:12px; color:var(--text-muted);}
+@media print{
+  .no-print, .sidebar, .topbar, #installBanner, #toastRoot, #modalRoot{ display:none !important; }
+  .print-only{ display:block !important; }
+  #mainContent{ margin:0 !important; padding:0 !important; }
+  body{ background:#fff !important; }
+  .panel, .stat-card{ box-shadow:none !important; border:1px solid #ccc !important; break-inside:avoid; }
+  .data-table th{ background:#f0f0f0 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
 </style>
 </head>
 <body>
@@ -2382,6 +2416,35 @@ class PurchaseRequestModule{
     relevantItems.forEach(i=>{ const key=i.categoryId||"uncategorized"; (byCat[key]=byCat[key]||[]).push(i); });
     const orderedCatKeys = this.categories.map(c=>c.id).filter(id=>byCat[id]);
 
+    // Split into "what's usually ordered" (has an existing value or a habit
+    // suggestion right now) vs "everything else" — the daily routine should
+    // be the first thing Purchasing sees, not buried at the bottom of the
+    // full catalog every single time.
+    const usualItems = relevantItems.filter(item => working[item.id] && Object.keys(working[item.id]).length);
+    const usualItemIds = new Set(usualItems.map(i=>i.id));
+    const otherByCat = {};
+    orderedCatKeys.forEach(key=>{
+      const rest = byCat[key].filter(i=>!usualItemIds.has(i.id));
+      if (rest.length) otherByCat[key] = rest;
+    });
+    const otherCatKeys = orderedCatKeys.filter(key=>otherByCat[key]);
+
+    const qtyRowHtml = (item) => `
+      <div class="qo-row" data-item-row="${item.id}" data-item-name="${Utils.escapeHtml(item.name.toLowerCase())}">
+        <span class="qo-row-name">${Utils.escapeHtml(item.name)}</span>
+        <div class="qo-outlet-inputs">
+          ${activeOutlets.map(o=>{
+            const val = working[item.id]?.[o.id];
+            const isSuggested = !!suggested[item.id]?.[o.id];
+            return `
+            <div class="qo-outlet-col">
+              <span class="qo-outlet-label">${Utils.escapeHtml(o.shortCode||o.name.slice(0,2))}</span>
+              <input type="number" inputmode="decimal" min="0" class="qo-qty-input ${val?(isSuggested?'suggested':'has-value'):''}" data-qo="${item.id}|${o.id}" data-suggested="${isSuggested?'1':'0'}" value="${val??''}">
+            </div>`;
+          }).join("")}
+        </div>
+      </div>`;
+
     const bodyHtml = `
       <div class="batch-badge-row"><span class="batch-badge"><svg data-lucide="hash" style="width:12px;height:12px;"></svg>${Utils.escapeHtml(batchCode)}</span><span class="muted" style="font-size:11.3px;">1 cycle — dari sini sampai penjualan besok dilacak dengan kode ini</span></div>
       <div class="field">
@@ -2389,37 +2452,34 @@ class PurchaseRequestModule{
       </div>
       ${suggestionCount ? `<p class="muted" style="font-size:11.5px; margin:-4px 0 12px;"><span style="display:inline-block; width:9px; height:9px; border-radius:3px; background:var(--accent-soft); border:1px dashed var(--accent); vertical-align:middle; margin-right:5px;"></span>Angka oranye = saran dari kebiasaan pesan — boleh diubah atau dikosongkan.</p>` : ''}
       <div class="qo-summary" id="qoSummary"></div>
-      <div id="qoCatGroups">
-        ${orderedCatKeys.map(key=>{
+
+      <div id="qoUsualSection">
+        <h3 class="qo-section-title"><svg data-lucide="star" style="width:14px;height:14px;"></svg> Biasa Dipesan</h3>
+        ${usualItems.length ? `<div id="qoUsualItems">${usualItems.map(qtyRowHtml).join("")}</div>` : `<p class="muted" style="font-size:12.5px; padding:6px 0 4px;">Belum ada riwayat pesanan — mulai dengan menambah bahan di bawah.</p>`}
+      </div>
+
+      <div class="qo-more-toggle" id="qoMoreToggle">
+        <svg data-lucide="plus-circle" style="width:16px;height:16px;"></svg>
+        <span>Tambah bahan lain</span>
+        <svg class="pr-cat-chevron" data-lucide="chevron-down"></svg>
+      </div>
+      <div id="qoCatGroups" class="${usualItems.length ? 'hidden' : ''}">
+        ${otherCatKeys.map(key=>{
           const cat = this.categories.find(c=>c.id===key);
           return `
             <div class="qo-cat-group" data-catgroup="${key}">
-              <div class="qo-cat-head" data-toggle="${key}">
+              <div class="qo-cat-divider">
                 <span class="color-dot" style="background:${cat.color}"></span>
                 <span>${Utils.escapeHtml(cat.name)}</span>
-                <span class="qo-cat-count">${byCat[key].length} item</span>
-                <svg class="pr-cat-chevron" data-lucide="chevron-down"></svg>
+                <span class="qo-cat-count">${otherByCat[key].length} item</span>
               </div>
-              <div class="qo-cat-items hidden" data-items="${key}">
-                ${byCat[key].map(item=>`
-                  <div class="qo-row" data-item-row="${item.id}" data-item-name="${Utils.escapeHtml(item.name.toLowerCase())}">
-                    <span class="qo-row-name">${Utils.escapeHtml(item.name)}</span>
-                    <div class="qo-outlet-inputs">
-                      ${activeOutlets.map(o=>{
-                        const val = working[item.id]?.[o.id];
-                        const isSuggested = !!suggested[item.id]?.[o.id];
-                        return `
-                        <div class="qo-outlet-col">
-                          <span class="qo-outlet-label">${Utils.escapeHtml(o.shortCode||o.name.slice(0,2))}</span>
-                          <input type="number" min="0" class="qo-qty-input ${val?(isSuggested?'suggested':'has-value'):''}" data-qo="${item.id}|${o.id}" data-suggested="${isSuggested?'1':'0'}" value="${val??''}">
-                        </div>`;
-                      }).join("")}
-                    </div>
-                  </div>`).join("")}
+              <div class="qo-cat-items" data-items="${key}">
+                ${otherByCat[key].map(qtyRowHtml).join("")}
               </div>
             </div>`;
         }).join("")}
       </div>
+      ${otherCatKeys.length ? `<button type="button" class="btn btn-ghost btn-sm" id="qoScrollTopBtn" style="width:100%; margin-top:6px;"><svg data-lucide="arrow-up" style="width:14px;height:14px;"></svg> Kembali ke atas</button>` : ''}
     `;
     const footHtml = `<button class="btn btn-ghost" id="qoCloseBtn">Batal</button><button class="btn btn-primary" id="qoSaveBtn"><svg data-lucide="zap" style="width:15px;height:15px;"></svg> Simpan Semua Pesanan</button>`;
 
@@ -2437,13 +2497,16 @@ class PurchaseRequestModule{
         };
         updateSummary();
 
-        root.querySelectorAll("[data-toggle]").forEach(head=>{
-          head.addEventListener("click", ()=>{
-            const group = head.closest(".qo-cat-group");
-            group.classList.toggle("open");
-            group.querySelector(".qo-cat-items").classList.toggle("hidden");
-          });
+        const moreToggle = document.getElementById("qoMoreToggle");
+        const catGroups = document.getElementById("qoCatGroups");
+        if (!usualItems.length) moreToggle.classList.add("open");
+        moreToggle.addEventListener("click", ()=>{
+          moreToggle.classList.toggle("open");
+          catGroups.classList.toggle("hidden");
         });
+        const scrollTopBtn = document.getElementById("qoScrollTopBtn");
+        if (scrollTopBtn) scrollTopBtn.addEventListener("click", ()=>{ root.querySelector(".modal-body")?.scrollTo({top:0, behavior:"smooth"}); });
+
         root.querySelectorAll("[data-qo]").forEach(input=>{
           input.addEventListener("input", ()=>{
             const [itemId, outletId] = input.dataset.qo.split("|");
@@ -2458,18 +2521,29 @@ class PurchaseRequestModule{
             updateSummary();
           });
         });
-        document.getElementById("qoSearchInput").addEventListener("input", Utils.debounce((e)=>{
+        const searchInput = document.getElementById("qoSearchInput");
+        searchInput.addEventListener("input", Utils.debounce((e)=>{
           const q = e.target.value.trim().toLowerCase();
           root.querySelectorAll("[data-item-row]").forEach(row=>{
             row.classList.toggle("hidden", q && !row.dataset.itemName.includes(q));
           });
+          // a category group (in either section) with zero matches just disappears entirely while searching
           root.querySelectorAll(".qo-cat-group").forEach(group=>{
-            const items = group.querySelector(".qo-cat-items");
-            const anyVisible = [...items.querySelectorAll("[data-item-row]")].some(r=>!r.classList.contains("hidden"));
-            if (q){ items.classList.toggle("hidden", !anyVisible); group.classList.toggle("open", anyVisible); }
-            else if (!group.classList.contains("open")){ items.classList.add("hidden"); }
+            const anyVisible = [...group.querySelectorAll("[data-item-row]")].some(r=>!r.classList.contains("hidden"));
+            group.classList.toggle("hidden", !!q && !anyVisible);
           });
+          const usualSection = document.getElementById("qoUsualSection");
+          if (usualSection){
+            const anyUsualVisible = [...usualSection.querySelectorAll("[data-item-row]")].some(r=>!r.classList.contains("hidden"));
+            usualSection.classList.toggle("hidden", !!q && !anyUsualVisible);
+          }
+          // searching should surface matches inside the collapsed "Tambah bahan lain" section too
+          if (q){ moreToggle.classList.add("open"); catGroups.classList.remove("hidden"); }
+          else if (usualItems.length){ moreToggle.classList.remove("open"); catGroups.classList.add("hidden"); }
         }, 150));
+        // Keyboard's already the fastest path for someone who knows exactly
+        // what they need — put the cursor there the instant the sheet opens.
+        setTimeout(()=>searchInput.focus(), 250);
 
         document.getElementById("qoCloseBtn").addEventListener("click", Modal.close);
         document.getElementById("qoSaveBtn").addEventListener("click", async ()=>{
@@ -3816,13 +3890,34 @@ const salesModule = new SalesModule();
 /* =========================================================================
    MENU ANALYSIS — top sellers, estimated cost per portion, rough waste
    ========================================================================= */
+let analyticsDateState = { preset: "30hari", from: null, to: null };
+
+function analyticsResolveRange(){
+  const today = new Date();
+  const toStr = today.toISOString().slice(0,10);
+  if (analyticsDateState.preset === "semua") return { from:null, to:null };
+  if (analyticsDateState.preset === "custom") return { from: analyticsDateState.from, to: analyticsDateState.to };
+  const days = analyticsDateState.preset === "7hari" ? 7 : 30;
+  const fromDate = new Date(today); fromDate.setDate(fromDate.getDate() - (days-1));
+  const fromStr = fromDate.toISOString().slice(0,10);
+  return { from: fromStr, to: toStr };
+}
+
 async function renderAnalytics(container){
-  const [menus, items, sales, learning, purchaseRequests] = await Promise.all([
-    Stores.menus.list(), Stores.items.list(), Stores.sales.list(), Stores.recipeLearning.list(), Stores.purchaseRequests.list()
+  const [menus, items, sales, learning, purchaseRequests, settings] = await Promise.all([
+    Stores.menus.list(), Stores.items.list(), Stores.sales.list(), Stores.recipeLearning.list(), Stores.purchaseRequests.list(),
+    Promise.resolve(LocalStore.getDoc("settings"))
   ]);
 
+  const { from, to } = analyticsResolveRange();
+  const inRange = (dateStr) => (!from || dateStr>=from) && (!to || dateStr<=to);
+  const salesInRange = sales.filter(s => inRange(s.date));
+  const toTs = to ? new Date(to+"T23:59:59").getTime() : Infinity;
+  const fromTs = from ? new Date(from+"T00:00:00").getTime() : -Infinity;
+  const prsInRange = purchaseRequests.filter(r => r.status==="completed" && r.updatedAt>=fromTs && r.updatedAt<=toTs);
+
   const portionsByMenu = {};
-  sales.forEach(s=>{ portionsByMenu[s.menuId] = (portionsByMenu[s.menuId]||0) + (Number(s.quantitySold)||0); });
+  salesInRange.forEach(s=>{ portionsByMenu[s.menuId] = (portionsByMenu[s.menuId]||0) + (Number(s.quantitySold)||0); });
   const topMenus = menus
     .map(m=>({ menu:m, portions: portionsByMenu[m.id]||0 }))
     .filter(x=>x.portions>0)
@@ -3840,8 +3935,31 @@ async function renderAnalytics(container){
     return { cost, knownCount, totalCount };
   }
 
+  const wasteRows = computeWasteRows(learning, items, prsInRange, salesInRange);
+  const rankedRows = wasteRows.filter(r=>r.allKnown).sort((a,b)=> Math.abs(b.diff) - Math.abs(a.diff));
+  const priorityRows = rankedRows.slice(0, 5).filter(r=>Math.abs(r.diff) > 0.001);
+
+  const rangeLabel = !from && !to ? "Semua waktu" : `${from ? Utils.formatDate(new Date(from).getTime()) : '…'} – ${to ? Utils.formatDate(new Date(to).getTime()) : '…'}`;
+  const businessName = settings?.businessName || "Dolan Sawah";
+
   container.innerHTML = `
-    <div class="page-head"><div><h2>Analisis Menu</h2><div class="page-sub">Menu terlaris, estimasi biaya per porsi, dan perkiraan bahan terbuang — dihitung dari data Penjualan &amp; Pesanan Belanja.</div></div></div>
+    <div class="page-head no-print">
+      <div><h2>Analisis Menu</h2><div class="page-sub">Menu terlaris, estimasi biaya per porsi, dan perkiraan bahan terbuang — dihitung dari data Penjualan &amp; Pesanan Belanja.</div></div>
+      <div class="page-actions"><button class="btn btn-ghost" id="analyticsPrintBtn"><svg data-lucide="printer"></svg> Cetak / Simpan PDF</button></div>
+    </div>
+
+    <div class="print-only report-print-head">
+      <h1>${Utils.escapeHtml(businessName)}</h1>
+      <h2>Laporan Analisis Menu</h2>
+      <p>Periode: ${rangeLabel} · Dicetak ${Utils.formatDate(Date.now())}</p>
+    </div>
+
+    <div class="toolbar no-print" id="analyticsRangeChips"></div>
+    <div class="field no-print" id="analyticsCustomRange" style="display:${analyticsDateState.preset==='custom'?'flex':'none'}; gap:10px; max-width:420px; margin-bottom:18px;">
+      <div style="flex:1;"><label class="field-label">Dari</label><input type="date" class="input" id="analyticsFromInput" value="${analyticsDateState.from||''}"></div>
+      <div style="flex:1;"><label class="field-label">Sampai</label><input type="date" class="input" id="analyticsToInput" value="${analyticsDateState.to||''}"></div>
+    </div>
+    <p class="muted report-range-label" style="font-size:12px; margin:-8px 0 18px;">Menampilkan data periode: <b>${rangeLabel}</b></p>
 
     <div class="panel" style="margin-bottom:18px;">
       <div class="panel-head"><h3>Menu terlaris</h3></div>
@@ -3851,7 +3969,7 @@ async function renderAnalytics(container){
             <div style="display:flex; justify-content:space-between; font-size:12.8px; margin-bottom:4px;"><span style="font-weight:600;">${Utils.escapeHtml(x.menu.name)}</span><span class="muted">${x.portions} porsi</span></div>
             <div style="background:var(--bg-soft); border-radius:99px; height:8px; overflow:hidden;"><div style="width:${Math.round(x.portions/maxPortions*100)}%; height:100%; background:var(--primary); border-radius:99px;"></div></div>
           </div>
-        `).join("") : `<div class="empty-state"><svg data-lucide="receipt"></svg><div class="es-title">Belum ada data penjualan</div><div class="es-sub">Isi Penjualan dulu supaya analisis ini bisa jalan.</div></div>`}
+        `).join("") : `<div class="empty-state"><svg data-lucide="receipt"></svg><div class="es-title">Belum ada data penjualan di periode ini</div><div class="es-sub">Coba perluas rentang tanggal, atau isi Penjualan dulu.</div></div>`}
       </div>
     </div>
 
@@ -3878,25 +3996,59 @@ async function renderAnalytics(container){
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-head"><h3>Perkiraan bahan terbuang</h3></div>
+    <div class="panel" style="margin-bottom:18px;">
+      <div class="panel-head"><h3>Prioritas pengecekan</h3></div>
       <div class="panel-body pad">
-        <p class="muted" style="font-size:12px; margin-bottom:14px;">Perkiraan kasar: bahan yang masuk (Pesanan Belanja berstatus Selesai) dikurangi perkiraan bahan yang benar-benar terpakai (dari Resep × Penjualan). Tanpa Stock Opname rutin, angka ini belum memperhitungkan sisa stok — anggap sebagai sinyal awal, bukan angka final.</p>
-        ${renderWasteTable(learning, items, purchaseRequests, sales)}
+        <p class="muted" style="font-size:12px; margin-bottom:14px;">Bahan dengan selisih pembelian-vs-kebutuhan-teoritis terbesar di periode ini, diurutkan — cek ini duluan.</p>
+        ${priorityRows.length ? `
+          <ol class="priority-list">
+            ${priorityRows.map((r,i)=>{
+              const unit = r.item?.purchaseUnit||'';
+              return `<li><span class="priority-rank">${i+1}</span><span class="priority-name">${Utils.escapeHtml(r.item?.name||'')}</span><span class="badge ${Math.abs(r.diff)>r.supplied*0.2?'red':r.diff>0?'amber':'green'}">${r.diff>0?'+':''}${r.diff.toFixed(2)} ${unit}</span></li>`;
+            }).join("")}
+          </ol>
+        ` : `<div class="empty-state" style="padding:18px 6px;"><svg data-lucide="check-circle" style="color:var(--primary);opacity:1;"></svg><div class="es-title">Tidak ada selisih berarti di periode ini</div></div>`}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Perkiraan bahan terbuang — semua bahan</h3></div>
+      <div class="panel-body pad">
+        <p class="muted" style="font-size:12px; margin-bottom:14px;">Perkiraan kasar untuk periode di atas: bahan yang masuk (Pesanan Belanja berstatus Selesai) dikurangi perkiraan bahan yang benar-benar terpakai (dari Resep × Penjualan). Tanpa Stock Opname rutin, angka ini belum memperhitungkan sisa stok — anggap sebagai sinyal awal, bukan angka final.</p>
+        ${renderWasteTable(wasteRows)}
       </div>
     </div>
   `;
   renderIcons(container);
+
+  const chips = [{k:"7hari",l:"7 hari terakhir"},{k:"30hari",l:"30 hari terakhir"},{k:"custom",l:"Rentang khusus"},{k:"semua",l:"Semua waktu"}];
+  document.getElementById("analyticsRangeChips").innerHTML = chips.map(c=>`<span class="filter-chip ${analyticsDateState.preset===c.k?'active':''}" data-preset="${c.k}">${c.l}</span>`).join("");
+  document.querySelectorAll("#analyticsRangeChips .filter-chip").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      analyticsDateState.preset = el.dataset.preset;
+      if (el.dataset.preset==="custom" && !analyticsDateState.from){
+        const t = new Date(); const f = new Date(t); f.setDate(f.getDate()-6);
+        analyticsDateState.from = f.toISOString().slice(0,10);
+        analyticsDateState.to = t.toISOString().slice(0,10);
+      }
+      renderAnalytics(container);
+    });
+  });
+  const fromInput = document.getElementById("analyticsFromInput");
+  const toInput = document.getElementById("analyticsToInput");
+  if (fromInput) fromInput.addEventListener("change", ()=>{ analyticsDateState.from = fromInput.value; renderAnalytics(container); });
+  if (toInput) toInput.addEventListener("change", ()=>{ analyticsDateState.to = toInput.value; renderAnalytics(container); });
+  document.getElementById("analyticsPrintBtn").addEventListener("click", ()=>window.print());
 }
 
-function renderWasteTable(learning, items, purchaseRequests, sales){
+function computeWasteRows(learning, items, purchaseRequestsInRange, salesInRange){
   const salesByMenu = {};
-  sales.forEach(s=>{ (salesByMenu[s.menuId] = salesByMenu[s.menuId]||[]).push(s); });
+  salesInRange.forEach(s=>{ (salesByMenu[s.menuId] = salesByMenu[s.menuId]||[]).push(s); });
 
   const itemIds = [...new Set(learning.map(l=>l.itemId))];
-  const rows = itemIds.map(itemId=>{
+  return itemIds.map(itemId=>{
     const item = items.find(i=>i.id===itemId);
-    const supplied = purchaseRequests.filter(r=>r.status==="completed")
+    const supplied = purchaseRequestsInRange
       .flatMap(r=>r.items||[]).filter(it=>it.itemId===itemId)
       .reduce((sum,it)=>{ const qty = (it.receivedQty!==null && it.receivedQty!==undefined) ? it.receivedQty : it.quantity; return sum+(Number(qty)||0); }, 0);
     const relevantRows = learning.filter(l=>l.itemId===itemId);
@@ -3907,23 +4059,23 @@ function renderWasteTable(learning, items, purchaseRequests, sales){
       const portions = (salesByMenu[l.menuId]||[]).reduce((s,x)=>s+(Number(x.quantitySold)||0),0);
       consumed += usage*portions;
     });
-    return { item, supplied, consumed, allKnown };
+    return { item, supplied, consumed, allKnown, diff: supplied-consumed };
   }).filter(r=>r.supplied>0);
+}
 
-  if (!rows.length) return `<div class="empty-state"><svg data-lucide="inbox"></svg><div class="es-title">Belum ada data yang cukup</div></div>`;
-
+function renderWasteTable(rows){
+  if (!rows.length) return `<div class="empty-state"><svg data-lucide="inbox"></svg><div class="es-title">Belum ada data yang cukup di periode ini</div></div>`;
   return `
     <table class="data-table">
       <thead><tr><th>Bahan</th><th>Masuk (Pesanan Selesai)</th><th>Estimasi terpakai</th><th>Estimasi sisa/terbuang</th></tr></thead>
       <tbody>
         ${rows.map(r=>{
-          const diff = r.supplied - r.consumed;
           const unit = r.item?.purchaseUnit||'';
           return `<tr>
             <td class="cell-primary">${Utils.escapeHtml(r.item?.name||r.item)}</td>
             <td>${r.supplied.toFixed(2)} ${unit}</td>
             <td>${r.allKnown? r.consumed.toFixed(2)+' '+unit : '<span class="badge amber">Sebagian belum ada estimasi</span>'}</td>
-            <td>${r.allKnown? `<span class="badge ${diff>r.supplied*0.2?'red':diff>0?'amber':'green'}">${diff.toFixed(2)} ${unit}</span>` : '<span class="muted">—</span>'}</td>
+            <td>${r.allKnown? `<span class="badge ${Math.abs(r.diff)>r.supplied*0.2?'red':r.diff>0?'amber':'green'}">${r.diff>0?'+':''}${r.diff.toFixed(2)} ${unit}</span>` : '<span class="muted">—</span>'}</td>
           </tr>`;
         }).join("")}
       </tbody>

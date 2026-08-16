@@ -519,15 +519,18 @@ pre.code-block{background:var(--bg-soft); border:1px solid var(--border); border
    quantity. Search narrows things down instead. */
 .qo-cat-divider{position:sticky; top:0; z-index:1; display:flex; align-items:center; gap:9px; padding:10px 14px; background:var(--bg-soft); border-bottom:1px solid var(--border); font-size:12.5px; font-weight:700;}
 .qo-cat-count{margin-left:auto; font-size:11px; color:var(--text-faint); font-weight:600;}
-.qo-row{display:flex; align-items:center; gap:10px; padding:11px 14px; border-top:1px solid var(--border);}
-.qo-row-name{flex:1; font-size:13.5px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.qo-outlet-inputs{display:flex; gap:7px; flex-shrink:0;}
-.qo-outlet-col{display:flex; flex-direction:column; align-items:center; gap:3px;}
-.qo-outlet-label{font-size:9.5px; font-weight:700; color:var(--text-faint); text-transform:uppercase;}
-.qo-qty-input{width:56px; height:42px; text-align:center; border:1.5px solid var(--border); border-radius:10px; font-size:15px; font-weight:700; font-family:var(--font-mono); background:var(--surface); color:var(--text);}
+.qo-row{display:flex; align-items:center; gap:12px; padding:11px 14px; border-top:1px solid var(--border);}
+.qo-row-name{flex:1; font-size:14px; font-weight:500; min-width:0;}
+.qo-qty-input{width:78px; height:44px; text-align:center; border:1.5px solid var(--border); border-radius:10px; font-size:16px; font-weight:700; font-family:var(--font-mono); background:var(--surface); color:var(--text); flex-shrink:0;}
 .qo-qty-input:focus{border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-ring); outline:none;}
 .qo-qty-input.has-value{border-color:var(--primary); background:var(--primary-soft);}
 .qo-qty-input.suggested{border-color:var(--accent); border-style:dashed; background:var(--accent-soft); color:var(--accent);}
+.qo-outlet-tabs{display:flex; background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-md); padding:4px; margin-bottom:14px; gap:3px;}
+.qo-outlet-tab{flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 6px; border-radius:8px; border:none; background:transparent; font-size:12.5px; font-weight:700; color:var(--text-muted); cursor:pointer; transition:all .15s var(--ease); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.qo-outlet-tab.active{background:var(--surface); color:var(--primary); box-shadow:var(--shadow-sm);}
+.qo-outlet-tab-count{font-size:10.5px; font-weight:800; background:var(--primary); color:#fff; border-radius:99px; padding:1px 6px; min-width:16px;}
+.qo-outlet-tab:not(.active) .qo-outlet-tab-count{background:var(--text-faint);}
+.qo-outlet-tab-count:empty{display:none;}
 .batch-badge-row{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
 .batch-badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--primary); background:var(--primary-soft); padding:5px 11px; border-radius:99px; border:1px solid var(--primary-ring);}
 .batch-badge-sm{font-size:10px; padding:2px 8px; margin-left:8px;}
@@ -2372,10 +2375,16 @@ class PurchaseRequestModule{
     }).join("")}</div>`;
   }
 
-  /* Fast multi-outlet entry: browse items once, fill quantities for
-     whichever outlets need them, save everything in one action. Pre-loads
-     whatever's already in each outlet's current Draft so re-opening this
-     continues where you left off rather than starting over. */
+  /* Fast multi-outlet entry: browse items once per outlet, fill quantities,
+     save everything in one action. Pre-loads whatever's already in each
+     outlet's current Draft so re-opening this continues where you left
+     off rather than starting over.
+     One outlet is shown at a time (a tab), not three columns per row —
+     a 150-row list with three mostly-empty boxes on every line was the
+     single biggest source of confusion in the old layout. The underlying
+     data model is unchanged: switching tabs never loses what's already
+     filled in for the other outlets, and Save still commits all of them
+     together in one batch. */
   async openQuickOrder(){
     const activeOutlets = this.outlets.filter(o=>o.status==="active");
     if (!activeOutlets.length){ Toast.show("Belum ada outlet aktif.", "error"); return; }
@@ -2397,7 +2406,6 @@ class PurchaseRequestModule{
     });
 
     const relevantItems = this.items_all.filter(i=>i.status==="active");
-    let suggestionCount = 0;
     relevantItems.forEach(item=>{
       activeOutlets.forEach(o=>{
         if (working[item.id]?.[o.id] !== undefined) return; // already has real data, don't override
@@ -2407,7 +2415,6 @@ class PurchaseRequestModule{
           working[item.id][o.id] = habit.avgQty;
           suggested[item.id] = suggested[item.id] || {};
           suggested[item.id][o.id] = true;
-          suggestionCount++;
         }
       });
     });
@@ -2416,130 +2423,156 @@ class PurchaseRequestModule{
     relevantItems.forEach(i=>{ const key=i.categoryId||"uncategorized"; (byCat[key]=byCat[key]||[]).push(i); });
     const orderedCatKeys = this.categories.map(c=>c.id).filter(id=>byCat[id]);
 
-    // Split into "what's usually ordered" (has an existing value or a habit
-    // suggestion right now) vs "everything else" — the daily routine should
-    // be the first thing Purchasing sees, not buried at the bottom of the
-    // full catalog every single time.
-    const usualItems = relevantItems.filter(item => working[item.id] && Object.keys(working[item.id]).length);
-    const usualItemIds = new Set(usualItems.map(i=>i.id));
-    const otherByCat = {};
-    orderedCatKeys.forEach(key=>{
-      const rest = byCat[key].filter(i=>!usualItemIds.has(i.id));
-      if (rest.length) otherByCat[key] = rest;
-    });
-    const otherCatKeys = orderedCatKeys.filter(key=>otherByCat[key]);
-
-    const qtyRowHtml = (item) => `
+    const singleRowHtml = (item, outletId) => {
+      const val = working[item.id]?.[outletId];
+      const isSuggested = !!suggested[item.id]?.[outletId];
+      return `
       <div class="qo-row" data-item-row="${item.id}" data-item-name="${Utils.escapeHtml(item.name.toLowerCase())}">
         <span class="qo-row-name">${Utils.escapeHtml(item.name)}</span>
-        <div class="qo-outlet-inputs">
-          ${activeOutlets.map(o=>{
-            const val = working[item.id]?.[o.id];
-            const isSuggested = !!suggested[item.id]?.[o.id];
+        <input type="number" inputmode="decimal" min="0" class="qo-qty-input ${val?(isSuggested?'suggested':'has-value'):''}" data-qo="${item.id}|${outletId}" data-suggested="${isSuggested?'1':'0'}" value="${val??''}" placeholder="0">
+      </div>`;
+    };
+
+    // Everything below is scoped to ONE outlet at a time and rebuilt
+    // whenever the tab changes — "usual" items and their order can
+    // genuinely differ per outlet since habits are learned per outlet.
+    const rowsHtmlForOutlet = (outletId) => {
+      const usualItems = relevantItems.filter(item => working[item.id]?.[outletId] !== undefined);
+      const usualIds = new Set(usualItems.map(i=>i.id));
+      const otherByCat = {};
+      orderedCatKeys.forEach(key=>{
+        const rest = byCat[key].filter(i=>!usualIds.has(i.id));
+        if (rest.length) otherByCat[key] = rest;
+      });
+      const otherCatKeys = orderedCatKeys.filter(key=>otherByCat[key]);
+      return `
+        <div id="qoUsualSection">
+          <h3 class="qo-section-title"><svg data-lucide="star" style="width:14px;height:14px;"></svg> Biasa Dipesan</h3>
+          ${usualItems.length ? `<div id="qoUsualItems">${usualItems.map(i=>singleRowHtml(i,outletId)).join("")}</div>` : `<p class="muted" style="font-size:12.5px; padding:6px 0 4px;">Belum ada riwayat pesanan untuk outlet ini — mulai dengan menambah bahan di bawah.</p>`}
+        </div>
+        <div class="qo-more-toggle ${usualItems.length?'':'open'}" id="qoMoreToggle">
+          <svg data-lucide="plus-circle" style="width:16px;height:16px;"></svg>
+          <span>Tambah bahan lain</span>
+          <svg class="pr-cat-chevron" data-lucide="chevron-down"></svg>
+        </div>
+        <div id="qoCatGroups" class="${usualItems.length ? 'hidden' : ''}">
+          ${otherCatKeys.map(key=>{
+            const cat = this.categories.find(c=>c.id===key);
             return `
-            <div class="qo-outlet-col">
-              <span class="qo-outlet-label">${Utils.escapeHtml(o.shortCode||o.name.slice(0,2))}</span>
-              <input type="number" inputmode="decimal" min="0" class="qo-qty-input ${val?(isSuggested?'suggested':'has-value'):''}" data-qo="${item.id}|${o.id}" data-suggested="${isSuggested?'1':'0'}" value="${val??''}">
-            </div>`;
+              <div class="qo-cat-group" data-catgroup="${key}">
+                <div class="qo-cat-divider">
+                  <span class="color-dot" style="background:${cat.color}"></span>
+                  <span>${Utils.escapeHtml(cat.name)}</span>
+                  <span class="qo-cat-count">${otherByCat[key].length} item</span>
+                </div>
+                <div class="qo-cat-items" data-items="${key}">
+                  ${otherByCat[key].map(i=>singleRowHtml(i,outletId)).join("")}
+                </div>
+              </div>`;
           }).join("")}
         </div>
-      </div>`;
+        ${otherCatKeys.length ? `<button type="button" class="btn btn-ghost btn-sm" id="qoScrollTopBtn" style="width:100%; margin-top:6px;"><svg data-lucide="arrow-up" style="width:14px;height:14px;"></svg> Kembali ke atas</button>` : ''}
+      `;
+    };
 
     const bodyHtml = `
       <div class="batch-badge-row"><span class="batch-badge"><svg data-lucide="hash" style="width:12px;height:12px;"></svg>${Utils.escapeHtml(batchCode)}</span><span class="muted" style="font-size:11.3px;">1 cycle — dari sini sampai penjualan besok dilacak dengan kode ini</span></div>
+
+      <div class="qo-outlet-tabs" id="qoOutletTabs">
+        ${activeOutlets.map((o,i)=>`<button type="button" class="qo-outlet-tab ${i===0?'active':''}" data-outlet-tab="${o.id}">${Utils.escapeHtml(o.name)}<span class="qo-outlet-tab-count" data-count-for="${o.id}"></span></button>`).join("")}
+      </div>
+
       <div class="field">
         <div class="input-icon-wrap"><svg data-lucide="search"></svg><input class="input" id="qoSearchInput" placeholder="Cari item…" autocomplete="off"></div>
       </div>
-      ${suggestionCount ? `<p class="muted" style="font-size:11.5px; margin:-4px 0 12px;"><span style="display:inline-block; width:9px; height:9px; border-radius:3px; background:var(--accent-soft); border:1px dashed var(--accent); vertical-align:middle; margin-right:5px;"></span>Angka oranye = saran dari kebiasaan pesan — boleh diubah atau dikosongkan.</p>` : ''}
+      <p class="muted" style="font-size:11.5px; margin:-4px 0 12px;"><span style="display:inline-block; width:9px; height:9px; border-radius:3px; background:var(--accent-soft); border:1px dashed var(--accent); vertical-align:middle; margin-right:5px;"></span>Angka oranye = saran dari kebiasaan pesan — boleh diubah atau dikosongkan.</p>
       <div class="qo-summary" id="qoSummary"></div>
 
-      <div id="qoUsualSection">
-        <h3 class="qo-section-title"><svg data-lucide="star" style="width:14px;height:14px;"></svg> Biasa Dipesan</h3>
-        ${usualItems.length ? `<div id="qoUsualItems">${usualItems.map(qtyRowHtml).join("")}</div>` : `<p class="muted" style="font-size:12.5px; padding:6px 0 4px;">Belum ada riwayat pesanan — mulai dengan menambah bahan di bawah.</p>`}
-      </div>
-
-      <div class="qo-more-toggle" id="qoMoreToggle">
-        <svg data-lucide="plus-circle" style="width:16px;height:16px;"></svg>
-        <span>Tambah bahan lain</span>
-        <svg class="pr-cat-chevron" data-lucide="chevron-down"></svg>
-      </div>
-      <div id="qoCatGroups" class="${usualItems.length ? 'hidden' : ''}">
-        ${otherCatKeys.map(key=>{
-          const cat = this.categories.find(c=>c.id===key);
-          return `
-            <div class="qo-cat-group" data-catgroup="${key}">
-              <div class="qo-cat-divider">
-                <span class="color-dot" style="background:${cat.color}"></span>
-                <span>${Utils.escapeHtml(cat.name)}</span>
-                <span class="qo-cat-count">${otherByCat[key].length} item</span>
-              </div>
-              <div class="qo-cat-items" data-items="${key}">
-                ${otherByCat[key].map(qtyRowHtml).join("")}
-              </div>
-            </div>`;
-        }).join("")}
-      </div>
-      ${otherCatKeys.length ? `<button type="button" class="btn btn-ghost btn-sm" id="qoScrollTopBtn" style="width:100%; margin-top:6px;"><svg data-lucide="arrow-up" style="width:14px;height:14px;"></svg> Kembali ke atas</button>` : ''}
+      <div id="qoRowsContainer">${rowsHtmlForOutlet(activeOutlets[0].id)}</div>
     `;
     const footHtml = `<button class="btn btn-ghost" id="qoCloseBtn">Batal</button><button class="btn btn-primary" id="qoSaveBtn"><svg data-lucide="zap" style="width:15px;height:15px;"></svg> Simpan Semua Pesanan</button>`;
 
     Modal.open({
       title: `Pesanan Cepat · ${batchCode}`, bodyHtml, footHtml, wide:true,
       onMount:(root)=>{
+        let currentOutletId = activeOutlets[0].id;
+        let currentQuery = "";
+
         const updateSummary = ()=>{
           const bar = document.getElementById("qoSummary");
           const counts = activeOutlets.map(o=>{
             const n = Object.values(working).filter(m=>m[o.id]>0).length;
             const nSuggested = Object.keys(suggested).filter(itemId=>suggested[itemId]?.[o.id] && working[itemId]?.[o.id]>0).length;
+            const countEl = root.querySelector(`[data-count-for="${o.id}"]`);
+            if (countEl) countEl.textContent = n>0 ? n : "";
             return `${Utils.escapeHtml(o.shortCode||o.name)}: ${n} item${nSuggested?` (${nSuggested} saran)`:''}`;
           });
           bar.textContent = counts.join("  ·  ");
         };
-        updateSummary();
 
-        const moreToggle = document.getElementById("qoMoreToggle");
-        const catGroups = document.getElementById("qoCatGroups");
-        if (!usualItems.length) moreToggle.classList.add("open");
-        moreToggle.addEventListener("click", ()=>{
-          moreToggle.classList.toggle("open");
-          catGroups.classList.toggle("hidden");
-        });
-        const scrollTopBtn = document.getElementById("qoScrollTopBtn");
-        if (scrollTopBtn) scrollTopBtn.addEventListener("click", ()=>{ root.querySelector(".modal-body")?.scrollTo({top:0, behavior:"smooth"}); });
-
-        root.querySelectorAll("[data-qo]").forEach(input=>{
-          input.addEventListener("input", ()=>{
-            const [itemId, outletId] = input.dataset.qo.split("|");
-            const val = input.value===""? null : Number(input.value);
-            working[itemId] = working[itemId] || {};
-            if (val>0) working[itemId][outletId] = val; else delete working[itemId][outletId];
-            // any manual edit turns a suggestion into a confirmed value
-            if (suggested[itemId]) suggested[itemId][outletId] = false;
-            input.dataset.suggested = "0";
-            input.classList.remove("suggested");
-            input.classList.toggle("has-value", val>0);
-            updateSummary();
-          });
-        });
-        const searchInput = document.getElementById("qoSearchInput");
-        searchInput.addEventListener("input", Utils.debounce((e)=>{
-          const q = e.target.value.trim().toLowerCase();
+        const applySearchFilter = ()=>{
+          const q = currentQuery;
           root.querySelectorAll("[data-item-row]").forEach(row=>{
-            row.classList.toggle("hidden", q && !row.dataset.itemName.includes(q));
+            row.classList.toggle("hidden", !!q && !row.dataset.itemName.includes(q));
           });
-          // a category group (in either section) with zero matches just disappears entirely while searching
           root.querySelectorAll(".qo-cat-group").forEach(group=>{
             const anyVisible = [...group.querySelectorAll("[data-item-row]")].some(r=>!r.classList.contains("hidden"));
             group.classList.toggle("hidden", !!q && !anyVisible);
           });
           const usualSection = document.getElementById("qoUsualSection");
+          const moreToggle = document.getElementById("qoMoreToggle");
+          const catGroups = document.getElementById("qoCatGroups");
           if (usualSection){
             const anyUsualVisible = [...usualSection.querySelectorAll("[data-item-row]")].some(r=>!r.classList.contains("hidden"));
             usualSection.classList.toggle("hidden", !!q && !anyUsualVisible);
           }
-          // searching should surface matches inside the collapsed "Tambah bahan lain" section too
-          if (q){ moreToggle.classList.add("open"); catGroups.classList.remove("hidden"); }
-          else if (usualItems.length){ moreToggle.classList.remove("open"); catGroups.classList.add("hidden"); }
+          if (q){ moreToggle?.classList.add("open"); catGroups?.classList.remove("hidden"); }
+        };
+
+        const attachRowListeners = ()=>{
+          root.querySelectorAll("[data-qo]").forEach(input=>{
+            input.addEventListener("input", ()=>{
+              const [itemId, outletId] = input.dataset.qo.split("|");
+              const val = input.value===""? null : Number(input.value);
+              working[itemId] = working[itemId] || {};
+              if (val>0) working[itemId][outletId] = val; else delete working[itemId][outletId];
+              if (suggested[itemId]) suggested[itemId][outletId] = false;
+              input.dataset.suggested = "0";
+              input.classList.remove("suggested");
+              input.classList.toggle("has-value", val>0);
+              updateSummary();
+            });
+          });
+          const moreToggle = document.getElementById("qoMoreToggle");
+          const catGroups = document.getElementById("qoCatGroups");
+          moreToggle?.addEventListener("click", ()=>{
+            moreToggle.classList.toggle("open");
+            catGroups.classList.toggle("hidden");
+          });
+          const scrollTopBtn = document.getElementById("qoScrollTopBtn");
+          scrollTopBtn?.addEventListener("click", ()=>{ root.querySelector(".modal-body")?.scrollTo({top:0, behavior:"smooth"}); });
+        };
+
+        const paintOutlet = (outletId)=>{
+          currentOutletId = outletId;
+          root.querySelectorAll(".qo-outlet-tab").forEach(t=> t.classList.toggle("active", t.dataset.outletTab===outletId));
+          document.getElementById("qoRowsContainer").innerHTML = rowsHtmlForOutlet(outletId);
+          renderIcons(document.getElementById("qoRowsContainer"));
+          attachRowListeners();
+          applySearchFilter();
+        };
+
+        updateSummary();
+        attachRowListeners();
+
+        root.querySelectorAll("[data-outlet-tab]").forEach(tab=>{
+          tab.addEventListener("click", ()=>paintOutlet(tab.dataset.outletTab));
+        });
+
+        const searchInput = document.getElementById("qoSearchInput");
+        searchInput.addEventListener("input", Utils.debounce((e)=>{
+          currentQuery = e.target.value.trim().toLowerCase();
+          applySearchFilter();
         }, 150));
         // Keyboard's already the fastest path for someone who knows exactly
         // what they need — put the cursor there the instant the sheet opens.

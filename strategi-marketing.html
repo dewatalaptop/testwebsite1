@@ -1,439 +1,962 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Next Chapter: Resto Dolan Sawah</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/9e3a39e943.js" crossorigin="anonymous"></script>
-    
-    <style>
-        :root {
-            --primary-font: 'Poppins', sans-serif;
-            --text-light: #F5F5F5;
-            --text-dark: #2c3e50;
-            --accent-color: #e67e22;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>90 Komentar - Dolan Sawah & Sawah Senja</title>
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: var(--primary-font);
-            background-color: #111;
-            color: var(--text-light);
-            overflow: hidden;
-            height: 100%;
-            width: 100%;
-        }
+<style>
+:root {
+  --bg: #f5f7f5;
+  --card: #ffffff;
+  --text: #202520;
+  --muted: #687068;
+  --accent: #2f6b45;
+  --accent-light: #e9f3ec;
+}
 
-        .presentation-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
+* {
+  box-sizing: border-box;
+}
 
-        .slide {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 5vw;
-            box-sizing: border-box;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.8s ease-in-out, visibility 0.8s;
-        }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
 
-        .slide.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .slide-content {
-            position: relative;
-            z-index: 2;
-            max-width: 900px;
-        }
-        
-        .slide.title-slide {
-            background-color: #ffffff;
-            color: var(--text-dark);
-        }
-        
-        .slide.dark-bg {
-            background-color: #000;
-        }
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px 14px 50px;
+}
 
-        .hero-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 25vw;
-            color: rgba(255, 255, 255, 0.05);
-            z-index: 1;
-        }
+header {
+  background: linear-gradient(135deg, #285c3d, #4d8060);
+  color: white;
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
 
-        .slide.title-slide .hero-icon {
-             color: rgba(0, 0, 0, 0.05);
-        }
+header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
 
-        h1 {
-            font-size: 4.5vw;
-            margin: 0;
-            font-weight: 700;
-            line-height: 1.2;
-        }
+header p {
+  margin: 0;
+  opacity: .92;
+  line-height: 1.5;
+}
 
-        h2 {
-            font-size: 2.5vw;
-            margin: 10px 0;
-            font-weight: 300;
-            color: #bdc3c7;
-        }
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
 
-        p {
-            font-size: 1.5vw;
-            font-weight: 300;
-        }
-        
-        .accent-text {
-            color: var(--accent-color);
-            font-weight: 700;
-        }
+.toolbar button {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 15px;
+  background: white;
+  color: #202520;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
 
-        .logo {
-            width: 150px;
-            margin-bottom: 20px;
-            filter: invert(1); /* Untuk logo placeholder di slide gelap */
-        }
-        .slide.title-slide .logo {
-            filter: none;
-        }
-        
-        .icon-grid {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 40px;
-            width: 100%;
-            gap: 20px;
-        }
-        
-        .icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 1.2vw;
-        }
-        
-        .icon-item i {
-            font-size: 4vw;
-            margin-bottom: 15px;
-            color: var(--accent-color);
-        }
-        
-        .timeline {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 50px;
-            gap: 20px;
-        }
+.toolbar button:hover {
+  background: var(--accent-light);
+}
 
-        .timeline-item {
-            width: 22%;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            border-top: 3px solid var(--accent-color);
-        }
+.comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
 
-        .timeline-item h3 { font-size: 1.5vw; margin-top: 0; }
-        .timeline-item p { font-size: 1vw; margin-bottom: 0; }
+.comment {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
 
-        /* Navigation Buttons */
-        .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 1000;
-            background-color: rgba(0, 0, 0, 0.3);
-            color: white;
-            border: none;
-            padding: 15px;
-            cursor: pointer;
-            font-size: 25px;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.3s ease;
-        }
+.number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13px;
+}
 
-        .nav-btn:hover {
-            background-color: var(--accent-color);
-        }
+.comment-text {
+  line-height: 1.5;
+  font-size: 15px;
+}
 
-        #prev-btn { left: 20px; }
-        #next-btn { right: 20px; }
+.copy-btn {
+  border: 0;
+  border-radius: 9px;
+  background: var(--accent);
+  color: white;
+  padding: 9px 13px;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 65px;
+}
 
+.copy-btn:hover {
+  opacity: .9;
+}
 
-        @media (max-width: 768px) {
-            h1 { font-size: 8vw; }
-            h2 { font-size: 5vw; }
-            p { font-size: 3.5vw; }
-            .icon-item i { font-size: 8vw; }
-            .icon-item { font-size: 3vw; }
-            .timeline { flex-direction: column; }
-            .timeline-item { width: 90%; }
-            .timeline-item h3 { font-size: 5vw; }
-            .timeline-item p { font-size: 3vw; }
-            .nav-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-            }
-            #prev-btn { left: 10px; }
-            #next-btn { right: 10px; }
-        }
-    </style>
+.copy-btn.copied {
+  background: #555;
+}
+
+@media (max-width: 600px) {
+
+  header h1 {
+    font-size: 24px;
+  }
+
+  .comment {
+    grid-template-columns: 32px 1fr;
+  }
+
+  .copy-btn {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .comment-text {
+    font-size: 14px;
+  }
+}
+</style>
 </head>
+
 <body>
 
-    <div class="presentation-container">
-        
-        <button id="prev-btn" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-        <button id="next-btn" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+<div class="container">
 
-        <div class="slide title-slide active">
-            <div class="slide-content">
-                <img src="https://res.cloudinary.com/dn60ib3ur/image/upload/v1756709574/IMG_5896_ysadhf.jpg" alt="Resto Dolan Sawah Logo" class="logo">
-                <h1>The Next Chapter</h1>
-                <h2>Merevolusi Pengalaman, Bukan Sekadar Makanan.</h2>
-                <p>Strategi Marketing 1 Bulan ke Depan</p>
-            </div>
-        </div>
+<header>
+  <h1>90 Komentar Rekomendasi</h1>
+  <p>
+    Dolan Sawah &amp; Sawah Senja · Untuk Om Anang Hermansyah
+  </p>
+</header>
 
-        <div class="slide dark-bg">
-            <div class="hero-icon"><i class="fas fa-utensils"></i></div>
-            <div class="slide-content">
-                <h1>Kita punya ini.</h1>
-                <h2>Tempat yang indah. Makanan yang lezat. Parkiran yang luas.</h2>
-            </div>
-        </div>
+<div class="toolbar">
+  <button onclick="copyAll()">
+    📋 Copy Semua
+  </button>
 
-        <div class="slide dark-bg">
-            <div class="slide-content">
-                <h1 style="font-size: 6vw;">Tapi...</h1>
-                <h2>Apakah kita hanya sebuah <span class="accent-text">restoran</span>?</h2>
-            </div>
-        </div>
+  <button onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    ↑ Ke Atas
+  </button>
+</div>
 
-        <div class="slide dark-bg">
-            <div class="hero-icon"><i class="fas fa-camera"></i></div>
-            <div class="slide-content">
-                <h1>Tamu datang untuk <span class="accent-text">makan</span>.</h1>
-                <h2>Mereka pulang dengan perut kenyang.<br>Bagaimana jika mereka bisa pulang dengan <span class="accent-text">kenangan tak terlupakan</span>?</h2>
-            </div>
-        </div>
+<ol class="comment-list">
 
-        <div class="slide dark-bg">
-            <div class="slide-content">
-                <h1 style="font-size: 8vw; color: var(--accent-color);">78%</h1>
-                <h2>Milenial lebih memilih menghabiskan uang untuk <span class="accent-text">pengalaman</span> daripada barang.</h2>
-                <p>(Sumber: Eventbrite)</p>
-            </div>
-        </div>
+<li class="comment">
+<span class="number">1</span>
+<span class="comment-text" id="comment1">
+Om Anang Hermansyah, kalau lagi cari rekomendasi kuliner Salatiga, coba mampir ke Dolan Sawah sama Sawah Senja 🙏
+</span>
+<button class="copy-btn" onclick="copyComment('comment1', this)">Copy</button>
+</li>
 
-        <div class="slide dark-bg">
-            <div class="slide-content">
-                <h1>Saatnya Berubah.</h1>
-                <h2>Dari <span style="text-decoration: line-through;">Tempat Makan</span> menjadi <span class="accent-text">Tujuan Petualangan</span>.</h2>
-            </div>
-        </div>
+<li class="comment">
+<span class="number">2</span>
+<span class="comment-text" id="comment2">
+Om Anang Hermansyah wajib coba Dolan Sawah dan Sawah Senja kalau ada waktu main ke Salatiga.
+</span>
+<button class="copy-btn" onclick="copyComment('comment2', this)">Copy</button>
+</li>
 
-        <div class="slide dark-bg">
-            <div class="hero-icon"><i class="fas fa-users-cog"></i></div>
-            <div class="slide-content">
-                <h1>Kekuatan terbesar kita?</h1>
-                <h2>Bukan di dapur. <span class="accent-text">Tapi mereka</span>.</h2>
-                <p>Tim Konten Kreator kita.</p>
-            </div>
-        </div>
+<li class="comment">
+<span class="number">3</span>
+<span class="comment-text" id="comment3">
+Kalau boleh kasih rekomendasi ke Om Anang, Dolan Sawah dan Sawah Senja menarik buat dicoba.
+</span>
+<button class="copy-btn" onclick="copyComment('comment3', this)">Copy</button>
+</li>
 
-        <div class="slide dark-bg">
-            <div class="slide-content">
-                <h1>Revolusi Dimulai.</h1>
-                <div class="icon-grid" style="align-items: center; gap: 30px;">
-                    <div class="icon-item">
-                        <h2 style="font-size: 2vw; margin-bottom: 0;">Dari:</h2>
-                        <p style="margin-top: 5px;">Tukang Posting</p>
-                    </div>
-                    <div><i class="fas fa-arrow-right" style="font-size: 5vw;"></i></div>
-                    <div class="icon-item">
-                        <h2 style="font-size: 2vw; color: var(--accent-color); margin-bottom: 0;">Menjadi:</h2>
-                        <p style="font-size: 1.5vw; color: var(--accent-color); font-weight: 700; margin-top: 5px;">Arsitek Pengalaman Digital</p>
-                    </div>
-                </div>
-                <h2>Misi mereka bukan lagi mengisi feed, tapi <span class="accent-text">menciptakan keinginan</span>.</h2>
-            </div>
-        </div>
+<li class="comment">
+<span class="number">4</span>
+<span class="comment-text" id="comment4">
+Om Anang, coba masukin Dolan Sawah dan Sawah Senja ke list review berikutnya 😁
+</span>
+<button class="copy-btn" onclick="copyComment('comment4', this)">Copy</button>
+</li>
 
-        <div class="slide dark-bg">
-            <div class="slide-content">
-                <h1>Dan untuk itu...<br>Kita punya dua hal baru.</h1>
-            </div>
-        </div>
+<li class="comment">
+<span class="number">5</span>
+<span class="comment-text" id="comment5">
+Buat Om Anang, saya rekomendasiin Dolan Sawah dan Sawah Senja. Konsep tempatnya menarik.
+</span>
+<button class="copy-btn" onclick="copyComment('comment5', this)">Copy</button>
+</li>
 
-        <div class="slide dark-bg">
-            <div class="hero-icon"><i class="fas fa-jeep"></i></div>
-            <div class="slide-content">
-                <h1 style="font-size: 6vw;">Jeep Adventure</h1>
-                <div class="icon-grid">
-                    <div class="icon-item">
-                        <i class="fas fa-tachometer-alt"></i><span>Adrenalin</span>
-                    </div>
-                    <div class="icon-item">
-                        <i class="fas fa-mountain"></i><span>Pemandangan</span>
-                    </div>
-                    <div class="icon-item">
-                        <i class="fas fa-camera-retro"></i><span>Instagrammable</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="slide dark-bg">
-             <div class="hero-icon"><i class="fas fa-users"></i></div>
-            <div class="slide-content">
-                <h1 style="font-size: 6vw;">Outbound Experience</h1>
-                <div class="icon-grid">
-                    <div class="icon-item">
-                        <i class="fas fa-sitemap"></i><span>Kolaborasi</span>
-                    </div>
-                    <div class="icon-item">
-                        <i class="fas fa-puzzle-piece"></i><span>Problem Solving</span>
-                    </div>
-                    <div class="icon-item">
-                        <i class="fas fa-laugh-beam"></i><span>Keseruan</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+<li class="comment">
+<span class="number">6</span>
+<span class="comment-text" id="comment6">
+Om Anang, kalau kebetulan ke Salatiga, jangan lupa mampir Dolan Sawah dan Sawah Senja.
+</span>
+<button class="copy-btn" onclick="copyComment('comment6', this)">Copy</button>
+</li>
 
-        <div class="slide dark-bg">
-            <div class="slide-content">
-                <h1>Misi 1 Bulan:</h1>
-                <h2>Operasi <span class="accent-text">"Go Beyond The Plate"</span></h2>
-                <p>Bagaimana tim konten kita akan meluncurkan ini?</p>
-            </div>
-        </div>
-        
-        <div class="slide dark-bg">
-            <div class="slide-content" style="max-width: 1200px;">
-                <h1>The Launch Roadmap</h1>
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <h3>MINGGU 1: TEASE</h3>
-                        <p><i class="fas fa-eye-slash"></i> Ciptakan Misteri. Rilis video sinematik 15 detik. Fokus pada suara dan emosi. Gunakan caption bertanya.</p>
-                    </div>
-                    <div class="timeline-item">
-                        <h3>MINGGU 2: REVEAL</h3>
-                        <p><i class="fas fa-bullhorn"></i> Pengumuman Besar. Rilis video utama. Ajak 1-2 influencer lokal. Sesi Instagram perkenalan paket.</p>
-                    </div>
-                    <div class="timeline-item">
-                        <h3>MINGGU 3: ENGAGE</h3>
-                        <p><i class="fas fa-users-cog"></i> Ajak Berinteraksi. Buat kontes UGC. Buat filter Instagram Story khusus Dolan Sawah Adventure.</p>
-                    </div>
-                    <div class="timeline-item">
-                        <h3>MINGGU 4: CONVERT</h3>
-                        <p><i class="fas fa-ticket-alt"></i> Dorong Pemesanan. Tawarkan "Early Bird Promo". Tampilkan testimoni video. Jelas Call-to-Action.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="slide dark-bg">
-            <div class="slide-content">
-                <h1>Bagaimana Kita Tahu Kita Menang?</h1>
-                <h2>Ini bukan lagi soal <span style="text-decoration: line-through;">Likes & Followers</span>.</h2>
-                <div class="icon-grid">
-                    <div class="icon-item">
-                        <i class="fas fa-chart-line"></i><span>Booking Rate</span>
-                    </div>
-                    <div class="icon-item">
-                        <i class="fas fa-share-alt"></i><span>User Generated Content (UGC)</span>
-                    </div>
-                    <div class="icon-item">
-                        <i class="fas fa-star"></i><span>Testimoni & Review</span>
-                    </div>
-                </div>
-                 <h2>Tujuan kita adalah <span class="accent-text">pemesanan</span> dan <span class="accent-text">cerita pelanggan</span>.</h2>
-            </div>
-        </div>
-        
-        <div class="slide dark-bg">
-            <div class="hero-icon"><i class="fas fa-rocket"></i></div>
-             <div class="slide-content">
-                <h1>Kita bukan lagi hanya Resto Dolan Sawah.</h1>
-                <h2>Kita adalah awal dari setiap <span class="accent-text">petualangan hebat</span>.</h2>
-            </div>
-        </div>
-        
-        <div class="slide title-slide">
-            <div class="slide-content">
-                 <img src="https://via.placeholder.com/150x80/2c3e50/ffffff?text=Dolan+Sawah" alt="Resto Dolan Sawah Logo" class="logo">
-                <h1>Terima Kasih</h1>
-                <h2>Ada Pertanyaan?</h2>
-            </div>
-        </div>
+<li class="comment">
+<span class="number">7</span>
+<span class="comment-text" id="comment7">
+Kayaknya seru kalau Om Anang review Dolan Sawah dan Sawah Senja 🙏
+</span>
+<button class="copy-btn" onclick="copyComment('comment7', this)">Copy</button>
+</li>
 
-    </div>
+<li class="comment">
+<span class="number">8</span>
+<span class="comment-text" id="comment8">
+Om Anang, ada Dolan Sawah sama Sawah Senja nih yang menurut saya menarik buat dieksplor.
+</span>
+<button class="copy-btn" onclick="copyComment('comment8', this)">Copy</button>
+</li>
 
-    <script>
-        const slides = document.querySelectorAll('.slide');
-        const nextBtn = document.getElementById('next-btn');
-        const prevBtn = document.getElementById('prev-btn');
-        let currentSlide = 0;
+<li class="comment">
+<span class="number">9</span>
+<span class="comment-text" id="comment9">
+Kalau Om Anang lagi cari tempat kuliner lokal, Dolan Sawah dan Sawah Senja boleh dicoba.
+</span>
+<button class="copy-btn" onclick="copyComment('comment9', this)">Copy</button>
+</li>
 
-        function showSlide(index) {
-            slides.forEach((slide, i) => {
-                slide.classList.toggle('active', i === index);
-            });
-        }
+<li class="comment">
+<span class="number">10</span>
+<span class="comment-text" id="comment10">
+Saya titip rekomendasi buat Om Anang: Dolan Sawah dan Sawah Senja 😊
+</span>
+<button class="copy-btn" onclick="copyComment('comment10', this)">Copy</button>
+</li>
 
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            showSlide(currentSlide);
-        }
+<li class="comment">
+<span class="number">11</span>
+<span class="comment-text" id="comment11">
+Om Anang Hermansyah, kalau sudah di Salatiga coba mampir ke Sawah Senja. Sunset-nya bagus banget. Sekalian lanjut ke Dolan Sawah, kulinernya banyak pilihan dan spot fotonya juga bagus.
+</span>
+<button class="copy-btn" onclick="copyComment('comment11', this)">Copy</button>
+</li>
 
-        function prevSlide() {
-            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-            showSlide(currentSlide);
-        }
-        
-        // Event Listeners
-        nextBtn.addEventListener('click', nextSlide);
-        prevBtn.addEventListener('click', prevSlide);
+<li class="comment">
+<span class="number">12</span>
+<span class="comment-text" id="comment12">
+Om Anang, coba Sawah Senja sama Dolan Sawah. Sawah Senja paling enak buat menikmati sunset, sedangkan Dolan Sawah pilihan makanannya beragam dan banyak spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment12', this)">Copy</button>
+</li>
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                nextSlide();
-            } else if (e.key === 'ArrowLeft') {
-                prevSlide();
-            }
-        });
+<li class="comment">
+<span class="number">13</span>
+<span class="comment-text" id="comment13">
+Kalau Om Anang Hermansyah masih eksplor Salatiga, saya rekomendasikan Sawah Senja dan Dolan Sawah. Sunset di Sawah Senja bagus, sementara Dolan Sawah enak buat kulineran sekaligus foto-foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment13', this)">Copy</button>
+</li>
 
-        // Initialize first slide
-        showSlide(currentSlide);
-    </script>
+<li class="comment">
+<span class="number">14</span>
+<span class="comment-text" id="comment14">
+Om Anang, kalau mau cari sunset bagus di Salatiga, Sawah Senja patut dicoba. Untuk kuliner dan foto-foto, sekalian mampir Dolan Sawah.
+</span>
+<button class="copy-btn" onclick="copyComment('comment14', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">15</span>
+<span class="comment-text" id="comment15">
+Om Anang Hermansyah, jangan pulang dulu sebelum coba Sawah Senja. Sunset-nya salah satu yang paling saya suka. Setelah itu bisa lanjut Dolan Sawah, pilihan kulinernya banyak dan tempat fotonya juga menarik.
+</span>
+<button class="copy-btn" onclick="copyComment('comment15', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">16</span>
+<span class="comment-text" id="comment16">
+Om Anang, kalau mau cari tempat makan sambil menikmati suasana sawah, coba Dolan Sawah dan Sawah Senja. Datang sore biar sekalian dapat sunset.
+</span>
+<button class="copy-btn" onclick="copyComment('comment16', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">17</span>
+<span class="comment-text" id="comment17">
+Om Anang Hermansyah, cobain sunset di Sawah Senja. Kalau belum puas, lanjut Dolan Sawah karena pilihan kulinernya banyak banget.
+</span>
+<button class="copy-btn" onclick="copyComment('comment17', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">18</span>
+<span class="comment-text" id="comment18">
+Kalau Om Anang suka foto-foto, coba Dolan Sawah. Sebelum itu bisa menikmati sunset di Sawah Senja.
+</span>
+<button class="copy-btn" onclick="copyComment('comment18', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">19</span>
+<span class="comment-text" id="comment19">
+Om Anang, Sawah Senja jangan dilewatkan kalau sedang di Salatiga. Sunset-nya worth it. Dolan Sawah juga wajib kalau mau eksplor kuliner.
+</span>
+<button class="copy-btn" onclick="copyComment('comment19', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">20</span>
+<span class="comment-text" id="comment20">
+Om Anang Hermansyah, Sawah Senja cocok banget untuk menikmati sunset. Kalau mau cari kuliner yang lebih beragam dan spot foto, Dolan Sawah juga jangan dilewatkan.
+</span>
+<button class="copy-btn" onclick="copyComment('comment20', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">21</span>
+<span class="comment-text" id="comment21">
+Om Anang, kalau suka tempat makan dengan suasana outdoor, coba Dolan Sawah dan Sawah Senja.
+</span>
+<button class="copy-btn" onclick="copyComment('comment21', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">22</span>
+<span class="comment-text" id="comment22">
+Om Anang Hermansyah, semoga sempat mampir ke Sawah Senja dan Dolan Sawah. Dua tempat ini punya suasana yang berbeda.
+</span>
+<button class="copy-btn" onclick="copyComment('comment22', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">23</span>
+<span class="comment-text" id="comment23">
+Om Anang, Sawah Senja pas banget kalau datang menjelang sore, terus Dolan Sawah bisa sekalian buat kulineran.
+</span>
+<button class="copy-btn" onclick="copyComment('comment23', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">24</span>
+<span class="comment-text" id="comment24">
+Om Anang Hermansyah, jangan cuma cari makan, coba sekalian cari sunset di Sawah Senja. Habis itu Dolan Sawah, banyak yang bisa dieksplor.
+</span>
+<button class="copy-btn" onclick="copyComment('comment24', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">25</span>
+<span class="comment-text" id="comment25">
+Om Anang, kalau suka foto-foto, Dolan Sawah lumayan banget. Banyak sudut yang enak buat ambil foto, apalagi kalau datang bareng keluarga.
+</span>
+<button class="copy-btn" onclick="copyComment('comment25', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">26</span>
+<span class="comment-text" id="comment26">
+Om Anang Hermansyah, Sawah Senja itu enaknya datang jangan terlalu malam. Kejar sunset-nya, Om. Cakep kalau cuacanya mendukung.
+</span>
+<button class="copy-btn" onclick="copyComment('comment26', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">27</span>
+<span class="comment-text" id="comment27">
+Om Anang, saya kasih rekomendasi dua tempat sekalian: Sawah Senja buat menikmati sore, Dolan Sawah buat makan dan foto-foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment27', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">28</span>
+<span class="comment-text" id="comment28">
+Om Anang Hermansyah, kalau mau cari suasana yang beda dari resto biasa, coba Dolan Sawah. Sekalian mampir Sawah Senja pas sore.
+</span>
+<button class="copy-btn" onclick="copyComment('comment28', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">29</span>
+<span class="comment-text" id="comment29">
+Om, kalau sudah di Salatiga coba cari waktu ke Sawah Senja. Duduk santai sambil nunggu sunset juga sudah enak banget.
+</span>
+<button class="copy-btn" onclick="copyComment('comment29', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">30</span>
+<span class="comment-text" id="comment30">
+Om Anang, Dolan Sawah menarik buat yang datang bukan cuma mau makan. Banyak spot yang bisa dieksplor dan pilihan makanannya juga lumayan lengkap.
+</span>
+<button class="copy-btn" onclick="copyComment('comment30', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">31</span>
+<span class="comment-text" id="comment31">
+Om Anang Hermansyah, kayaknya seru kalau bikin konten sunset di Sawah Senja. Setelah itu lanjut kulineran di Dolan Sawah 😁
+</span>
+<button class="copy-btn" onclick="copyComment('comment31', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">32</span>
+<span class="comment-text" id="comment32">
+Om, Sawah Senja cocok banget buat agenda sore. Kalau sudah selesai menikmati sunset, Dolan Sawah bisa jadi tujuan berikutnya.
+</span>
+<button class="copy-btn" onclick="copyComment('comment32', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">33</span>
+<span class="comment-text" id="comment33">
+Om Anang Hermansyah, kalau suka suasana sawah dan sunset, saya rasa Sawah Senja bakal cocok. Dolan Sawah juga jangan lupa.
+</span>
+<button class="copy-btn" onclick="copyComment('comment33', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">34</span>
+<span class="comment-text" id="comment34">
+Om Anang, coba deh datang ke Sawah Senja saat matahari mulai turun. Suasananya beda banget dibanding datang siang.
+</span>
+<button class="copy-btn" onclick="copyComment('comment34', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">35</span>
+<span class="comment-text" id="comment35">
+Kalau Om Anang Hermansyah sedang di Salatiga, coba mampir ke Sawah Senja dan Dolan Sawah. Dua-duanya punya pengalaman yang berbeda tapi sama-sama menarik.
+</span>
+<button class="copy-btn" onclick="copyComment('comment35', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">36</span>
+<span class="comment-text" id="comment36">
+Om Anang, menurut saya Sawah Senja paling pas didatangi sore hari. Sunset-nya cantik. Dolan Sawah juga menarik karena pilihan kulinernya beragam dan banyak spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment36', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">37</span>
+<span class="comment-text" id="comment37">
+Om Anang Hermansyah, cobain Dolan Sawah setelah menikmati sunset di Sawah Senja. Bisa sekalian eksplor berbagai pilihan kulinernya.
+</span>
+<button class="copy-btn" onclick="copyComment('comment37', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">38</span>
+<span class="comment-text" id="comment38">
+Kalau Om Anang suka suasana sunset, Sawah Senja cocok. Kalau suka kuliner dan foto-foto, Dolan Sawah juga jangan dilewatkan.
+</span>
+<button class="copy-btn" onclick="copyComment('comment38', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">39</span>
+<span class="comment-text" id="comment39">
+Om Anang, Sawah Senja dan Dolan Sawah bisa jadi satu paket kunjungan yang menarik: sunset, kuliner, dan foto-foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment39', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">40</span>
+<span class="comment-text" id="comment40">
+Om Anang Hermansyah, sempatkan datang sore ke Sawah Senja. Setelah sunset lanjut Dolan Sawah, banyak pilihan makanan dan spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment40', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">41</span>
+<span class="comment-text" id="comment41">
+Om Anang Hermansyah, kalau masih sempat jalan-jalan di Salatiga, coba deh sore-sore ke Sawah Senja. Sunset-nya enak banget buat dinikmati.
+</span>
+<button class="copy-btn" onclick="copyComment('comment41', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">42</span>
+<span class="comment-text" id="comment42">
+Om Anang, ada rekomendasi nih. Sawah Senja pas banget kalau datang menjelang sore, terus Dolan Sawah bisa sekalian buat kulineran.
+</span>
+<button class="copy-btn" onclick="copyComment('comment42', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">43</span>
+<span class="comment-text" id="comment43">
+Om Anang Hermansyah, jangan cuma cari makan, coba sekalian cari sunset di Sawah Senja. Habis itu Dolan Sawah, banyak yang bisa dieksplor.
+</span>
+<button class="copy-btn" onclick="copyComment('comment43', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">44</span>
+<span class="comment-text" id="comment44">
+Om Anang, kalau suka foto-foto, Dolan Sawah lumayan banget. Banyak sudut yang enak buat ambil foto, apalagi kalau datang bareng keluarga.
+</span>
+<button class="copy-btn" onclick="copyComment('comment44', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">45</span>
+<span class="comment-text" id="comment45">
+Om Anang Hermansyah, Sawah Senja itu enaknya datang jangan terlalu malam. Kejar sunset-nya, Om. Cakep kalau cuacanya mendukung.
+</span>
+<button class="copy-btn" onclick="copyComment('comment45', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">46</span>
+<span class="comment-text" id="comment46">
+Om Anang, saya kasih rekomendasi dua tempat sekalian: Sawah Senja buat menikmati sore, Dolan Sawah buat makan dan foto-foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment46', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">47</span>
+<span class="comment-text" id="comment47">
+Om Anang Hermansyah, kalau mau cari suasana yang beda dari resto biasa, coba Dolan Sawah. Sekalian mampir Sawah Senja pas sore.
+</span>
+<button class="copy-btn" onclick="copyComment('comment47', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">48</span>
+<span class="comment-text" id="comment48">
+Om, kalau sudah di Salatiga coba cari waktu ke Sawah Senja. Duduk santai sambil nunggu sunset juga sudah enak banget.
+</span>
+<button class="copy-btn" onclick="copyComment('comment48', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">49</span>
+<span class="comment-text" id="comment49">
+Om Anang, Dolan Sawah menarik buat yang datang bukan cuma mau makan. Banyak spot yang bisa dieksplor dan pilihan makanannya juga lumayan lengkap.
+</span>
+<button class="copy-btn" onclick="copyComment('comment49', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">50</span>
+<span class="comment-text" id="comment50">
+Om Anang Hermansyah, kayaknya seru kalau bikin konten sunset di Sawah Senja. Setelah itu lanjut kulineran di Dolan Sawah 😁
+</span>
+<button class="copy-btn" onclick="copyComment('comment50', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">51</span>
+<span class="comment-text" id="comment51">
+Om, Sawah Senja cocok banget buat agenda sore. Kalau sudah selesai menikmati sunset, Dolan Sawah bisa jadi tujuan berikutnya.
+</span>
+<button class="copy-btn" onclick="copyComment('comment51', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">52</span>
+<span class="comment-text" id="comment52">
+Om Anang Hermansyah, kalau suka suasana sawah dan sunset, saya rasa Sawah Senja bakal cocok. Dolan Sawah juga jangan lupa.
+</span>
+<button class="copy-btn" onclick="copyComment('comment52', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">53</span>
+<span class="comment-text" id="comment53">
+Om Anang, coba deh datang ke Sawah Senja saat matahari mulai turun. Suasananya beda banget dibanding datang siang.
+</span>
+<button class="copy-btn" onclick="copyComment('comment53', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">54</span>
+<span class="comment-text" id="comment54">
+Kalau Om Anang Hermansyah sedang di Salatiga, coba mampir ke Sawah Senja dan Dolan Sawah. Dua-duanya punya pengalaman yang berbeda tapi sama-sama menarik.
+</span>
+<button class="copy-btn" onclick="copyComment('comment54', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">55</span>
+<span class="comment-text" id="comment55">
+Om Anang, menurut saya Sawah Senja paling pas didatangi sore hari. Sunset-nya cantik. Dolan Sawah juga menarik karena pilihan kulinernya beragam dan banyak spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment55', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">56</span>
+<span class="comment-text" id="comment56">
+Om Anang Hermansyah, cobain Dolan Sawah setelah menikmati sunset di Sawah Senja. Bisa sekalian eksplor berbagai pilihan kulinernya.
+</span>
+<button class="copy-btn" onclick="copyComment('comment56', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">57</span>
+<span class="comment-text" id="comment57">
+Kalau Om Anang suka suasana sunset, Sawah Senja cocok. Kalau suka kuliner dan foto-foto, Dolan Sawah juga jangan dilewatkan.
+</span>
+<button class="copy-btn" onclick="copyComment('comment57', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">58</span>
+<span class="comment-text" id="comment58">
+Om Anang, Sawah Senja dan Dolan Sawah bisa jadi satu paket kunjungan yang menarik: sunset, kuliner, dan foto-foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment58', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">59</span>
+<span class="comment-text" id="comment59">
+Om Anang Hermansyah, sempatkan datang sore ke Sawah Senja. Setelah sunset lanjut Dolan Sawah, banyak pilihan makanan dan spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment59', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">60</span>
+<span class="comment-text" id="comment60">
+Om Anang, saya rekomendasikan Sawah Senja untuk sunset dan Dolan Sawah untuk kuliner serta foto-foto. Lengkap.
+</span>
+<button class="copy-btn" onclick="copyComment('comment60', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">61</span>
+<span class="comment-text" id="comment61">
+Om Anang Hermansyah, kalau mau cari tempat yang enak buat konten, Sawah Senja dan Dolan Sawah menarik banget. Sunset-nya dapat, makanan dan spot foto juga banyak.
+</span>
+<button class="copy-btn" onclick="copyComment('comment61', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">62</span>
+<span class="comment-text" id="comment62">
+Om Anang, Sawah Senja bagus banget kalau datang menjelang matahari tenggelam. Dolan Sawah juga punya banyak pilihan makanan dan spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment62', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">63</span>
+<span class="comment-text" id="comment63">
+Saya rasa Om Anang bakal suka Sawah Senja, terutama saat sunset. Kalau mau lanjut kulineran, Dolan Sawah juga wajib masuk daftar.
+</span>
+<button class="copy-btn" onclick="copyComment('comment63', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">64</span>
+<span class="comment-text" id="comment64">
+Om Anang Hermansyah, cobain Dolan Sawah dan Sawah Senja selama di Salatiga. Dua tempat ini punya daya tarik masing-masing.
+</span>
+<button class="copy-btn" onclick="copyComment('comment64', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">65</span>
+<span class="comment-text" id="comment65">
+Om, kalau suka suasana sunset, Sawah Senja cocok. Kalau mau kuliner dan foto-foto, Dolan Sawah juga enak buat dieksplor.
+</span>
+<button class="copy-btn" onclick="copyComment('comment65', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">66</span>
+<span class="comment-text" id="comment66">
+Om Anang, kalau datang ke Sawah Senja jangan terlalu buru-buru pulang sebelum mataharinya tenggelam 😄
+</span>
+<button class="copy-btn" onclick="copyComment('comment66', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">67</span>
+<span class="comment-text" id="comment67">
+Om Anang Hermansyah, Dolan Sawah cocok juga buat bawa keluarga. Selain makan, ada banyak area yang bisa dinikmati dan difoto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment67', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">68</span>
+<span class="comment-text" id="comment68">
+Om, kalau lagi cari lokasi foto yang tidak terlalu formal, coba lihat Dolan Sawah. Suasana sawahnya bisa jadi background yang bagus.
+</span>
+<button class="copy-btn" onclick="copyComment('comment68', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">69</span>
+<span class="comment-text" id="comment69">
+Om Anang, Sawah Senja menurut saya lebih maksimal kalau datang sore. Golden hour-nya yang paling menarik.
+</span>
+<button class="copy-btn" onclick="copyComment('comment69', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">70</span>
+<span class="comment-text" id="comment70">
+Om Anang Hermansyah, kalau mau bikin satu konten kuliner sekaligus sunset, Sawah Senja dan Dolan Sawah bisa jadi pilihan yang menarik.
+</span>
+<button class="copy-btn" onclick="copyComment('comment70', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">71</span>
+<span class="comment-text" id="comment71">
+Om, Dolan Sawah ini enak buat datang tanpa buru-buru. Bisa pilih makanan, keliling, terus cari spot foto yang cocok.
+</span>
+<button class="copy-btn" onclick="copyComment('comment71', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">72</span>
+<span class="comment-text" id="comment72">
+Om Anang, kalau belum pernah coba Sawah Senja, saya sarankan datang menjelang sunset. Waktunya jangan terlalu siang, Om 😄
+</span>
+<button class="copy-btn" onclick="copyComment('comment72', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">73</span>
+<span class="comment-text" id="comment73">
+Om Anang Hermansyah, untuk suasana sore saya pilih Sawah Senja. Untuk pilihan kuliner dan spot foto, lanjut Dolan Sawah.
+</span>
+<button class="copy-btn" onclick="copyComment('comment73', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">74</span>
+<span class="comment-text" id="comment74">
+Om, kalau kebetulan sedang cari tempat buat menikmati sunset di Salatiga, coba cek Sawah Senja.
+</span>
+<button class="copy-btn" onclick="copyComment('comment74', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">75</span>
+<span class="comment-text" id="comment75">
+Om Anang, Dolan Sawah bisa jadi tempat yang seru kalau mau kulineran sambil cari foto. Banyak sudut yang bisa dieksplor.
+</span>
+<button class="copy-btn" onclick="copyComment('comment75', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">76</span>
+<span class="comment-text" id="comment76">
+Om Anang Hermansyah, dua tempat ini cocok banget kalau mau bikin agenda santai: sore di Sawah Senja, lanjut makan di Dolan Sawah.
+</span>
+<button class="copy-btn" onclick="copyComment('comment76', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">77</span>
+<span class="comment-text" id="comment77">
+Om, kalau nanti mampir Sawah Senja, semoga dapat cuaca cerah. Kalau sunset-nya keluar, bagus banget buat foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment77', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">78</span>
+<span class="comment-text" id="comment78">
+Om Anang, saya rekomendasikan Dolan Sawah kalau mau cari tempat makan yang pilihannya tidak cuma satu-dua menu.
+</span>
+<button class="copy-btn" onclick="copyComment('comment78', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">79</span>
+<span class="comment-text" id="comment79">
+Om Anang Hermansyah, coba sempatkan Dolan Sawah dan Sawah Senja selama di Salatiga. Bisa dapat kuliner, suasana sawah, sunset, sekaligus spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment79', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">80</span>
+<span class="comment-text" id="comment80">
+Om Anang, kalau masih ada waktu di Salatiga, dua tempat ini boleh banget dicoba. Sawah Senja buat menikmati sunset, Dolan Sawah buat kulineran dan cari foto bagus 🙏
+</span>
+<button class="copy-btn" onclick="copyComment('comment80', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">81</span>
+<span class="comment-text" id="comment81">
+Om Anang Hermansyah, kalau mau menikmati suasana Salatiga dari sisi yang lebih santai, coba Sawah Senja lalu mampir Dolan Sawah.
+</span>
+<button class="copy-btn" onclick="copyComment('comment81', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">82</span>
+<span class="comment-text" id="comment82">
+Om Anang, Sawah Senja enak buat menunggu matahari turun, sementara Dolan Sawah bisa sekalian jadi tempat makan dan foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment82', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">83</span>
+<span class="comment-text" id="comment83">
+Om Anang Hermansyah, kalau sore masih kosong, coba arahkan perjalanan ke Sawah Senja. Setelah itu Dolan Sawah juga menarik untuk disinggahi.
+</span>
+<button class="copy-btn" onclick="copyComment('comment83', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">84</span>
+<span class="comment-text" id="comment84">
+Om, kalau ingin cari pengalaman kuliner sekaligus suasana yang fotogenik, Sawah Senja dan Dolan Sawah bisa dicoba.
+</span>
+<button class="copy-btn" onclick="copyComment('comment84', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">85</span>
+<span class="comment-text" id="comment85">
+Om Anang, salah satu kombinasi yang menurut saya menarik di Salatiga: menikmati sunset di Sawah Senja, lalu eksplor kuliner di Dolan Sawah.
+</span>
+<button class="copy-btn" onclick="copyComment('comment85', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">86</span>
+<span class="comment-text" id="comment86">
+Om Anang Hermansyah, Sawah Senja cocok untuk menikmati momen sunset, sedangkan Dolan Sawah punya banyak pilihan kuliner dan spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment86', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">87</span>
+<span class="comment-text" id="comment87">
+Om, kalau sedang keliling Salatiga dan kebetulan sore, coba sempatkan Sawah Senja. Dolan Sawah juga bisa sekalian dimasukkan ke rute.
+</span>
+<button class="copy-btn" onclick="copyComment('comment87', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">88</span>
+<span class="comment-text" id="comment88">
+Om Anang, kalau suka mengabadikan momen sunset, Sawah Senja layak dicoba. Untuk foto dan kuliner yang lebih beragam, lanjut ke Dolan Sawah.
+</span>
+<button class="copy-btn" onclick="copyComment('comment88', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">89</span>
+<span class="comment-text" id="comment89">
+Om Anang Hermansyah, dua tempat yang saya rekomendasikan untuk dieksplor selama di Salatiga: Sawah Senja saat sore dan Dolan Sawah untuk kuliner serta spot foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment89', this)">Copy</button>
+</li>
+
+<li class="comment">
+<span class="number">90</span>
+<span class="comment-text" id="comment90">
+Om Anang, kalau masih sempat di Salatiga, coba Sawah Senja untuk menikmati sunset lalu lanjut Dolan Sawah buat kulineran dan foto-foto.
+</span>
+<button class="copy-btn" onclick="copyComment('comment90', this)">Copy</button>
+</li>
+
+</ol>
+
+</div>
+
+<script>
+
+function copyComment(id, button) {
+
+  const text = document.getElementById(id).innerText.trim();
+
+  navigator.clipboard.writeText(text).then(function() {
+
+    const originalText = button.innerText;
+
+    button.innerText = "Copied!";
+    button.classList.add("copied");
+
+    setTimeout(function() {
+
+      button.innerText = originalText;
+      button.classList.remove("copied");
+
+    }, 1200);
+
+  }).catch(function() {
+
+    alert("Gagal menyalin. Silakan coba lagi.");
+
+  });
+
+}
+
+
+function copyAll() {
+
+  const comments = document.querySelectorAll(".comment-text");
+
+  let text = "";
+
+  comments.forEach(function(comment, index) {
+
+    text += comment.innerText.trim();
+
+    if (index < comments.length - 1) {
+      text += "\n\n";
+    }
+
+  });
+
+  navigator.clipboard.writeText(text).then(function() {
+
+    alert("Semua komentar berhasil disalin.");
+
+  }).catch(function() {
+
+    alert("Gagal menyalin semua komentar.");
+
+  });
+
+}
+
+</script>
+
 </body>
 </html>

@@ -340,6 +340,42 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .story-delete-btn{background:rgba(229,57,53,0.8);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .story-delete-btn svg{width:15px;height:15px;color:white}
 @media(max-width:390px){.msg-col{max-width:82%}.sticker-grid,.admin-sticker-grid{grid-template-columns:repeat(3,1fr)}}
+/* ── WHATSAPP IMPORT VIEWER (tampilan mirip WhatsApp asli) ── */
+.wa-date-sep{display:flex;justify-content:center;margin:10px 0}
+.wa-date-sep span{background:#E1F2FA;color:#54656F;font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;box-shadow:0 1px 1px rgba(0,0,0,0.08)}
+.wa-pill-row{display:flex;justify-content:center;margin:8px 0}
+.wa-pill{background:#FEF9D7;color:#4b4b30;font-size:12px;font-weight:500;text-align:center;padding:6px 12px;border-radius:8px;box-shadow:0 1px 1px rgba(0,0,0,0.08);max-width:85%;line-height:1.4}
+.wa-row{display:flex;margin:2px 0;padding:0 2px}
+.wa-row.me{justify-content:flex-end}
+.wa-row.other{justify-content:flex-start}
+.wa-bubble{position:relative;max-width:78%;padding:6px 8px 8px 9px;border-radius:8px;box-shadow:0 1px 0.5px rgba(0,0,0,0.13);font-size:14.2px;line-height:1.35;color:#111b21;word-break:break-word}
+.wa-row.me .wa-bubble{background:#DCF8C6;border-top-right-radius:0}
+.wa-row.other .wa-bubble{background:#FFFFFF;border-top-left-radius:0}
+.wa-row.me .wa-bubble::after{content:"";position:absolute;top:0;right:-7px;width:0;height:0;border-style:solid;border-width:0 0 10px 10px;border-color:transparent transparent transparent #DCF8C6}
+.wa-row.other .wa-bubble::after{content:"";position:absolute;top:0;left:-7px;width:0;height:0;border-style:solid;border-width:10px 10px 0 0;border-color:#FFFFFF transparent transparent transparent}
+.wa-name-label{font-size:12.5px;font-weight:700;margin-bottom:2px;display:block}
+.wa-text{white-space:pre-wrap}
+.wa-text a{color:#039be5;text-decoration:underline;word-break:break-all}
+.wa-meta{display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-top:2px;float:right;margin-left:8px;transform:translateY(4px)}
+.wa-time{font-size:11px;color:#667781}
+.wa-ticks svg{width:16px;height:11px;color:#53bdeb}
+.wa-media-card{display:flex;align-items:center;gap:10px;padding:4px 2px}
+.wa-media-icon{width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.wa-media-info b{font-size:14px;display:block}
+.wa-media-info span{font-size:12px;color:#667781;font-style:italic}
+.wa-location-card{display:flex;align-items:center;gap:10px;padding:2px}
+.wa-location-icon{width:38px;height:38px;border-radius:50%;background:rgba(0,128,105,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:#008069}
+.wa-location-info b{font-size:13.5px;display:block}
+.wa-location-info a{font-size:12px;color:#039be5;text-decoration:underline}
+.wa-deleted{display:flex;align-items:center;gap:6px;font-size:13.5px;color:#8696a0;font-style:italic}
+.wa-deleted svg{width:15px;height:15px;flex-shrink:0}
+.wa-participant-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-main);color:var(--text-primary);transition:all 0.15s}
+.wa-participant-btn.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+.wa-list-item-row{display:flex;align-items:center;gap:10px}
+.wa-list-item-icon{width:38px;height:38px;border-radius:50%;background:#075E54;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wa-list-item-icon svg{width:19px;height:19px;fill:#fff}
+.wa-delete-mini{background:none;border:none;color:#c62828;padding:6px;cursor:pointer;display:flex;flex-shrink:0}
+.wa-delete-mini svg{width:16px;height:16px}
 /* ── EKSPOR PDF (cetak) ── */
 #print-export-root{display:none}
 @media print{
@@ -414,6 +450,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       </button>
       <button class="hdr-btn" onclick="openHistory()" title="Riwayat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </button>
+      <button class="hdr-btn" onclick="openWaList()" title="Impor WhatsApp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
       </button>
       <button class="hdr-btn" onclick="openTheme()" title="Tema">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
@@ -497,6 +536,59 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       <span class="readonly-badge">&#x1F4D6; Hanya baca</span>
       <button class="media-action-btn sel" onclick="exportHistoryToPdf()">&#x2B07;&#xFE0F; Ekspor PDF</button>
     </div>
+  </div>
+</div>
+<!-- WHATSAPP IMPORT: LIST SHEET -->
+<div class="overlay hidden" id="overlay-wa-list" onclick="closeWaList()"></div>
+<div class="bottom-sheet bottom-sheet-tall hidden" id="sheet-wa-list">
+  <div class="sheet-handle"></div>
+  <div class="sticker-header">
+    <h3 class="sheet-title">Riwayat WhatsApp &#x1F4AC;</h3>
+    <button class="sticker-upload-btn" onclick="openWaPasteModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tempel Chat
+    </button>
+  </div>
+  <div class="history-list" id="wa-list"></div>
+  <p class="sticker-empty hidden" id="wa-list-empty">Belum ada chat WhatsApp yang diimpor.<br>Tap "Tempel Chat" untuk menambahkan.</p>
+</div>
+<!-- WHATSAPP IMPORT: PASTE MODAL -->
+<div class="full-modal hidden" id="modal-wa-paste" onclick="waPasteModalOutside(event)">
+  <div class="full-modal-card" style="max-width:420px;text-align:left">
+    <div id="wa-paste-step1">
+      <div class="profile-modal-name" style="text-align:left;margin-bottom:4px">Tempel Chat WhatsApp</div>
+      <div class="profile-modal-sub" style="text-align:left;margin-bottom:14px">Buka chat WhatsApp &#x2192; pilih pesan (atau ekspor chat) &#x2192; Salin &#x2192; tempel di sini.</div>
+      <textarea id="wa-paste-textarea" placeholder="[19/08/26, 10.53.30] Ryan: Halo sayang..." style="width:100%;min-height:180px;padding:12px 14px;border:1.5px solid var(--border);border-radius:14px;font-family:var(--font-main);font-size:13px;color:var(--text-primary);background:var(--surface2);outline:none;resize:vertical;line-height:1.5"></textarea>
+      <button class="profile-save-btn" onclick="processWaPaste()">Proses Chat</button>
+      <span class="profile-close-link" onclick="closeWaPasteModal()">Batal</span>
+    </div>
+    <div id="wa-paste-step2" class="hidden">
+      <div class="profile-modal-name" style="text-align:left;margin-bottom:4px">Konfirmasi Impor</div>
+      <div class="profile-modal-sub" style="text-align:left;margin-bottom:14px" id="wa-paste-summary">Ditemukan 0 pesan.</div>
+      <div class="profile-field">
+        <label>Siapa kamu di percakapan ini?</label>
+        <div id="wa-participant-picker" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px"></div>
+      </div>
+      <div class="profile-field"><label>Judul Riwayat</label><input id="wa-title-input" type="text" placeholder="Chat WhatsApp" maxlength="60"/></div>
+      <button class="profile-save-btn" id="wa-save-btn" onclick="saveWaImport()" disabled style="opacity:0.5">Simpan Riwayat</button>
+      <span class="profile-close-link" onclick="closeWaPasteModal()">Batal</span>
+    </div>
+  </div>
+</div>
+<!-- WHATSAPP STYLE VIEWER (full screen, tampilan mirip WhatsApp) -->
+<div class="admin-panel hidden" id="wa-viewer" style="background:#ECE5DD">
+  <div class="admin-header" style="background:#075E54;border-bottom:none">
+    <button class="admin-close-btn" onclick="closeWaViewer()" style="color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:2px">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>
+    </div>
+    <h2 id="wa-viewer-title" style="color:#fff;font-size:15px">Kontak</h2>
+    <button class="admin-close-btn" onclick="deleteWaImport()" style="color:#fff" title="Hapus riwayat ini">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+    </button>
+  </div>
+  <div id="wa-viewer-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px 18px;background-image:linear-gradient(rgba(255,255,255,0.35),rgba(255,255,255,0.35)),url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22><rect width=%2280%22 height=%2280%22 fill=%22%23ECE5DD%22/></svg>')"></div>
+  <div style="padding:8px 14px;padding-bottom:max(8px,env(safe-area-inset-bottom));text-align:center;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0">
+    <span class="readonly-badge">&#x1F4D6; Hanya baca &#8226; Diimpor dari WhatsApp</span>
   </div>
 </div>
 <!-- PROFILE MODAL -->
@@ -638,7 +730,7 @@ const DEFAULT_CFG={user1:{id:"user1",name:"Ryan",avatar:"\u{1F324}\uFE0F",pin:"1
 // lalu tempel di sini agar fitur "Backup ke Google Drive" (Admin Panel > Lainnya) bisa dipakai.
 const GOOGLE_DRIVE_CLIENT_ID="PASTE_YOUR_GOOGLE_OAUTH_CLIENT_ID_HERE.apps.googleusercontent.com";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,doc,addDoc,onSnapshot,query,orderBy,serverTimestamp,getDocs,updateDoc,setDoc,getDoc,deleteDoc,runTransaction,getCountFromServer}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,doc,addDoc,onSnapshot,query,orderBy,serverTimestamp,getDocs,updateDoc,setDoc,getDoc,deleteDoc,runTransaction,getCountFromServer,writeBatch,Timestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import{getStorage,ref as sRef,uploadBytes,getDownloadURL,deleteObject}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
@@ -742,7 +834,7 @@ function loginAs(uid){
   startIdleDetection(); // mulai deteksi idle
   startPresence(); // mulai kirim status online
 }
-window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}if(pinnedMsgUnsub){pinnedMsgUnsub();pinnedMsgUnsub=null;}_currentPinned=null;setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');stopIdleDetection();stopStoryRefresh();stopPresence();if(isLocked){isLocked=false;el('lock-overlay').classList.add('hidden');}localStorage.removeItem('cc-user');};
+window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}if(pinnedMsgUnsub){pinnedMsgUnsub();pinnedMsgUnsub=null;}_currentPinned=null;setConnected(true);toggleSheet('wa-list',false);el('modal-wa-paste')?.classList.add('hidden');el('wa-viewer')?.classList.add('hidden');if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');stopIdleDetection();stopStoryRefresh();stopPresence();if(isLocked){isLocked=false;el('lock-overlay').classList.add('hidden');}localStorage.removeItem('cc-user');};
 // ── PRESENCE (status online / terakhir dilihat) — menggantikan label statis "Online berdua" ──
 let presenceInterval=null,onlineStatusInterval=null,_partnerLastActive=null;
 async function updatePresence(){
@@ -1317,7 +1409,7 @@ function showMsgActionSheet(msgId,data,bubble,isMe){
   document.body.appendChild(overlay);
   if(data.type==='text'&&data.content){const prev=document.createElement('div');prev.className='action-sheet-preview';prev.textContent=data.content;sheet.appendChild(prev);}
   const quickRx=document.createElement('div');quickRx.style.cssText='display:flex;gap:6px;justify-content:center;margin-bottom:12px';
-  ['\u2764\uFE0F','\uD83D\uDE02','\uD83D\uDE2E','\uD83D\uDE22','\uD83D\uDC4D','\uD83D\uDD25'].forEach(emoji=>{
+  ['\u2764\uFE0F','\uD83D\uDE02','\uD83E\uDD29','\uD83D\uDE2E','\uD83D\uDC4D','\uD83D\uDD25'].forEach(emoji=>{
     const btn=document.createElement('button');
     btn.style.cssText='font-size:26px;background:var(--surface2);border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;transition:transform 0.15s';
     btn.textContent=emoji;
@@ -2181,6 +2273,323 @@ window.exportHistoryToPdf=async()=>{
     setTimeout(()=>window.print(),300); // beri waktu gambar termuat
   }catch(e){console.error('exportHistoryToPdf error:',e);showToast('Gagal menyiapkan ekspor');}
 };
+
+// ══════════════════════════════════════════════════════════════════
+// ── IMPOR CHAT WHATSAPP ──
+// Fitur: tempel teks hasil salin/ekspor WhatsApp -> diparse -> disimpan
+// sebagai "Riwayat WhatsApp" -> ditampilkan dalam tampilan mirip WhatsApp asli.
+// ══════════════════════════════════════════════════════════════════
+function waStripInvisible(str){return String(str||'').replace(/[\u200e\u200f\u202a-\u202e\ufeff]/g,'');}
+const WA_LINE_BRACKET=/^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),\s*(\d{1,2}[.:]\d{2}(?:[.:]\d{2})?(?:\s?[APap][Mm])?)\]\s(.*)$/;
+const WA_LINE_DASH=/^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s*(\d{1,2}[.:]\d{2}(?:[.:]\d{2})?(?:\s?[APap][Mm])?)\s-\s(.*)$/;
+
+function waParseDateTime(dateStr,timeStr){
+  const dParts=dateStr.split('/').map(n=>parseInt(n,10));
+  let day=dParts[0],month=dParts[1],year=dParts[2];
+  if(isNaN(day)||isNaN(month)||isNaN(year))return null;
+  if(year<100)year+=(year<70?2000:1900);
+  const ampmMatch=/([APap][Mm])\s*$/.exec(timeStr);
+  const cleanTime=timeStr.replace(/\s*[APap][Mm]\s*$/,'');
+  const tParts=cleanTime.split(/[.:]/).map(n=>parseInt(n,10));
+  let hour=tParts[0]||0,minute=tParts[1]||0,second=tParts[2]||0;
+  if(ampmMatch){
+    const isPM=/p/i.test(ampmMatch[1]);
+    if(isPM&&hour<12)hour+=12;
+    if(!isPM&&hour===12)hour=0;
+  }
+  const d=new Date(year,month-1,day,hour,minute,second);
+  return isNaN(d.getTime())?null:d;
+}
+function waClassify(text){
+  const t=text.trim();
+  const mediaMap=[
+    [/(gambar|foto|image)\s*(tidak disertakan|omitted)\s*$/i,'image'],
+    [/video\s*(tidak disertakan|omitted)\s*$/i,'video'],
+    [/(audio|pesan suara|voice note)\s*(tidak disertakan|omitted)\s*$/i,'audio'],
+    [/dokumen\s*(tidak disertakan|omitted)\s*$/i,'document'],
+    [/(stiker|sticker)\s*(tidak disertakan|omitted)\s*$/i,'sticker'],
+    [/gif\s*(tidak disertakan|omitted)\s*$/i,'gif'],
+    [/<?media\s*(tidak disertakan|omitted)>?\s*$/i,'generic']
+  ];
+  for(const[re,kind]of mediaMap){
+    const mm=re.exec(t);
+    if(mm)return{type:'media',kind,caption:t.slice(0,mm.index).trim()||null};
+  }
+  if(/anda menghapus pesan ini/i.test(t)||/pesan ini (telah )?dihapus/i.test(t)||/you deleted this message/i.test(t)||/this message was deleted/i.test(t))return{type:'deleted'};
+  if(/enkripsi secara end-to-end/i.test(t)||/end-to-end encrypted/i.test(t))return{type:'system'};
+  if(/^lokasi\s*:/i.test(t)||/^location\s*:/i.test(t)||/maps\.google\.com/i.test(t)||/maps\.app\.goo\.gl/i.test(t))return{type:'location'};
+  if(/(panggilan (suara|video)|voice call|video call)/i.test(t)&&/(tidak terjawab|berakhir|missed|ended)/i.test(t))return{type:'call'};
+  return{type:'text'};
+}
+function parseWhatsAppExport(raw){
+  const cleaned=waStripInvisible(String(raw||'').replace(/\r\n?/g,'\n'));
+  const lines=cleaned.split('\n');
+  const messages=[];
+  let current=null;
+  for(const line of lines){
+    let m=WA_LINE_BRACKET.exec(line);
+    let rest,dateStr,timeStr;
+    if(m){dateStr=m[1];timeStr=m[2];rest=m[3];}
+    else{m=WA_LINE_DASH.exec(line);if(m){dateStr=m[1];timeStr=m[2];rest=m[3];}}
+    if(m){
+      if(current)messages.push(current);
+      let sender=null,content=rest;
+      const idx=rest.indexOf(': ');
+      if(idx>-1&&idx<60){sender=rest.slice(0,idx).trim();content=rest.slice(idx+2);}
+      current={sender,content,timestamp:waParseDateTime(dateStr,timeStr)};
+    }else if(current){
+      current.content+='\n'+line;
+    }
+  }
+  if(current)messages.push(current);
+  messages.forEach(msg=>{const c=waClassify(msg.content);msg.type=c.type;msg.mediaKind=c.kind||null;msg.caption=c.caption||null;});
+  const seen=new Set(),participants=[];
+  messages.forEach(m=>{if(m.sender&&!seen.has(m.sender)){seen.add(m.sender);participants.push(m.sender);}});
+  return{messages,participants};
+}
+
+let _waParsed=null,_waSelectedMe=null,_waCurrentImportId=null;
+
+window.openWaList=async()=>{toggleSheet('wa-list',true);await loadWaImportsList();};
+window.closeWaList=()=>toggleSheet('wa-list',false);
+
+async function loadWaImportsList(){
+  const list=el('wa-list'),empty=el('wa-list-empty');
+  list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px">Memuat...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'rooms',APP_CONFIG.roomId,'waImports'),orderBy('createdAt','desc')));
+    list.innerHTML='';
+    if(snap.empty){empty.classList.remove('hidden');return;}
+    empty.classList.add('hidden');
+    snap.forEach(docSnap=>{
+      const d=docSnap.data();
+      const item=document.createElement('div');item.className='history-item';
+      item.innerHTML='<div class="history-item-left" style="display:flex;align-items:center;gap:10px"><div class="wa-list-item-icon"><svg viewBox="0 0 24 24"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg></div><div><h4></h4><p></p></div></div><div style="display:flex;align-items:center;gap:6px"><span class="history-item-badge"></span><button class="wa-delete-mini" title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button></div>';
+      item.querySelector('h4').textContent=d.title||'Chat WhatsApp';
+      item.querySelector('p').textContent=(d.firstDate&&d.lastDate)?(d.firstDate+' \u2013 '+d.lastDate):'';
+      item.querySelector('.history-item-badge').textContent=(d.messageCount||0)+' pesan';
+      item.onclick=e=>{if(e.target.closest('.wa-delete-mini'))return;closeWaList();setTimeout(()=>openWaViewer(docSnap.id,d),200);};
+      item.querySelector('.wa-delete-mini').onclick=async e=>{
+        e.stopPropagation();
+        if(!confirm('Hapus riwayat "'+(d.title||'Chat WhatsApp')+'"? Tidak bisa dibatalkan.'))return;
+        await deleteWaImportById(docSnap.id);
+        loadWaImportsList();
+      };
+      list.appendChild(item);
+    });
+  }catch(e){
+    console.error('loadWaImportsList error:',e);
+    list.innerHTML='<p style="color:#e74c3c;text-align:center;padding:20px;font-size:13px">Gagal memuat riwayat WhatsApp.<br><small>'+e.message+'</small></p>';
+  }
+}
+
+window.openWaPasteModal=()=>{
+  el('wa-paste-textarea').value='';
+  el('wa-paste-step1').classList.remove('hidden');
+  el('wa-paste-step2').classList.add('hidden');
+  _waParsed=null;_waSelectedMe=null;
+  el('modal-wa-paste').classList.remove('hidden');
+  setTimeout(()=>el('wa-paste-textarea').focus(),50);
+};
+window.closeWaPasteModal=()=>{el('modal-wa-paste').classList.add('hidden');};
+window.waPasteModalOutside=e=>{if(e.target===el('modal-wa-paste'))closeWaPasteModal();};
+
+window.processWaPaste=()=>{
+  const raw=el('wa-paste-textarea').value;
+  if(!raw||!raw.trim()){showToast('Tempel dulu teks chat-nya');return;}
+  const parsed=parseWhatsAppExport(raw);
+  if(!parsed.messages.length){showToast('Format tidak dikenali. Pastikan ini hasil salin/ekspor dari WhatsApp.',3500);return;}
+  _waParsed=parsed;_waSelectedMe=null;
+  const withTs=parsed.messages.filter(m=>m.timestamp);
+  const first=withTs[0]?.timestamp,last=withTs[withTs.length-1]?.timestamp;
+  const fmtShort=d=>d?d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
+  el('wa-paste-summary').textContent='Ditemukan '+parsed.messages.length+' pesan'+(first&&last?(' dari '+fmtShort(first)+' s/d '+fmtShort(last)):'')+'.';
+  const picker=el('wa-participant-picker');picker.innerHTML='';
+  if(!parsed.participants.length){
+    picker.innerHTML='<span style="font-size:12px;color:var(--text-secondary)">Nama pengirim tidak terdeteksi.</span>';
+  }else{
+    parsed.participants.forEach(name=>{
+      const btn=document.createElement('button');btn.type='button';btn.className='wa-participant-btn';btn.textContent=name;
+      btn.onclick=()=>{
+        _waSelectedMe=name;
+        picker.querySelectorAll('.wa-participant-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        const saveBtn=el('wa-save-btn');saveBtn.disabled=false;saveBtn.style.opacity='1';
+      };
+      picker.appendChild(btn);
+    });
+  }
+  const defTitle='Chat WhatsApp'+(first?(' '+fmtShort(first)+((last&&fmtShort(first)!==fmtShort(last))?(' - '+fmtShort(last)):'')):'');
+  el('wa-title-input').value=defTitle;
+  el('wa-save-btn').disabled=true;el('wa-save-btn').style.opacity='0.5';
+  el('wa-paste-step1').classList.add('hidden');
+  el('wa-paste-step2').classList.remove('hidden');
+};
+
+window.saveWaImport=async()=>{
+  if(!_waParsed||!currentUser)return;
+  if(_waParsed.participants.length&&!_waSelectedMe){showToast('Pilih dulu siapa kamu di percakapan ini');return;}
+  const title=el('wa-title-input').value.trim()||'Chat WhatsApp';
+  const saveBtn=el('wa-save-btn');saveBtn.disabled=true;const origLabel=saveBtn.textContent;saveBtn.textContent='Menyimpan...';
+  const prog=showProgress('Menyimpan chat WhatsApp...');
+  try{
+    const importRef=doc(collection(db,'rooms',APP_CONFIG.roomId,'waImports'));
+    const msgs=_waParsed.messages;
+    const withTs=msgs.filter(m=>m.timestamp);
+    const fmtShort=d=>d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    const firstDate=withTs.length?fmtShort(withTs[0].timestamp):'';
+    const lastDate=withTs.length?fmtShort(withTs[withTs.length-1].timestamp):'';
+    const CHUNK=400;
+    for(let i=0;i<msgs.length;i+=CHUNK){
+      prog.setText('Menyimpan pesan '+Math.min(i+CHUNK,msgs.length)+' / '+msgs.length+'...');
+      const batch=writeBatch(db);
+      msgs.slice(i,i+CHUNK).forEach((m,j)=>{
+        const mRef=doc(collection(db,'rooms',APP_CONFIG.roomId,'waImports',importRef.id,'messages'));
+        batch.set(mRef,{
+          seq:i+j,
+          sender:m.sender||null,
+          content:m.content||'',
+          type:m.type,
+          mediaKind:m.mediaKind||null,
+          caption:m.caption||null,
+          timestamp:m.timestamp?Timestamp.fromDate(m.timestamp):null
+        });
+      });
+      await batch.commit();
+    }
+    await setDoc(importRef,{
+      title,createdAt:serverTimestamp(),createdBy:currentUser.id,
+      meName:_waSelectedMe||null,participants:_waParsed.participants,
+      messageCount:msgs.length,firstDate,lastDate
+    });
+    prog.remove();
+    closeWaPasteModal();
+    showToast('Riwayat WhatsApp disimpan \u2713');
+    _waParsed=null;_waSelectedMe=null;
+    if(!el('sheet-wa-list').classList.contains('hidden'))await loadWaImportsList();
+  }catch(e){
+    prog.remove();
+    console.error('saveWaImport error:',e);
+    showToast('Gagal menyimpan: '+(e?.message||'error'));
+  }finally{
+    saveBtn.disabled=false;saveBtn.textContent=origLabel;
+  }
+};
+
+const WA_MEDIA_ICON={image:'\uD83D\uDDBC\uFE0F',video:'\uD83C\uDFA5',audio:'\uD83C\uDFA4',document:'\uD83D\uDCC4',sticker:'\uD83C\uDFF7\uFE0F',gif:'\uD83C\uDFAC',generic:'\uD83D\uDCCE'};
+const WA_MEDIA_LABEL={image:'Foto',video:'Video',audio:'Pesan Suara',document:'Dokumen',sticker:'Stiker',gif:'GIF',generic:'Media'};
+const WA_NAME_COLORS=['#e542a3','#ff7043','#7c4dff','#00897b','#5e72e4','#c2185b','#00acc1','#8d6e63'];
+function waColorForName(name){let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))>>>0;return WA_NAME_COLORS[h%WA_NAME_COLORS.length];}
+function waLinkify(escaped){return escaped.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');}
+function waFormatText(text){return String(text||'').split('\n').map(line=>waLinkify(escapeHtml(line))).join('<br>');}
+function waFormatTime(date){return date?date.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'';}
+
+function renderWaMessage(m,container,meName,showNameLabel){
+  const isMe=!!meName&&m.sender===meName;
+  const ts=m.timestamp?.toDate?m.timestamp.toDate():null;
+  if(m.type==='system'||m.type==='call'){
+    const row=document.createElement('div');row.className='wa-pill-row';
+    const pill=document.createElement('div');pill.className='wa-pill';
+    pill.textContent=(m.type==='call'?'\uD83D\uDCDE ':'\uD83D\uDD12 ')+(m.content||'').trim();
+    row.appendChild(pill);container.appendChild(row);return;
+  }
+  const row=document.createElement('div');row.className='wa-row '+(isMe?'me':'other');
+  const bubble=document.createElement('div');bubble.className='wa-bubble';
+  if(showNameLabel&&!isMe&&m.sender){
+    const nameEl=document.createElement('span');nameEl.className='wa-name-label';
+    nameEl.style.color=waColorForName(m.sender);nameEl.textContent=m.sender;
+    bubble.appendChild(nameEl);
+  }
+  const body=document.createElement('div');
+  if(m.type==='deleted'){
+    body.className='wa-deleted';
+    body.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg><span>'+(isMe?'Anda menghapus pesan ini':'Pesan ini dihapus')+'</span>';
+  }else if(m.type==='media'){
+    const kind=m.mediaKind||'generic';
+    let mediaHtml='<div class="wa-media-card"><div class="wa-media-icon">'+(WA_MEDIA_ICON[kind]||WA_MEDIA_ICON.generic)+'</div><div class="wa-media-info"><b>'+(WA_MEDIA_LABEL[kind]||WA_MEDIA_LABEL.generic)+'</b><span>Tidak disertakan saat ekspor</span></div></div>';
+    if(m.caption)mediaHtml+='<div class="wa-text" style="margin-top:4px">'+waFormatText(m.caption)+'</div>';
+    body.innerHTML=mediaHtml;
+  }else if(m.type==='location'){
+    const urlMatch=/(https?:\/\/\S+)/.exec(m.content||'');
+    const url=urlMatch?urlMatch[1]:null;
+    const coordMatch=/(-?\d{1,3}\.\d+),\s*(-?\d{1,3}\.\d+)/.exec(m.content||'');
+    body.className='wa-location-card';
+    body.innerHTML='<div class="wa-location-icon">\uD83D\uDCCD</div><div class="wa-location-info"><b>Lokasi dibagikan</b>'+(coordMatch?('<div style="font-size:11px;color:#667781">'+coordMatch[1]+', '+coordMatch[2]+'</div>'):'')+(url?('<a href="'+escapeHtml(url)+'" target="_blank" rel="noopener">Buka di Peta</a>'):'')+'</div>';
+  }else{
+    body.className='wa-text';
+    body.innerHTML=waFormatText(m.content);
+  }
+  bubble.appendChild(body);
+  const meta=document.createElement('span');meta.className='wa-meta';
+  const timeSpan=document.createElement('span');timeSpan.className='wa-time';timeSpan.textContent=waFormatTime(ts);
+  meta.appendChild(timeSpan);
+  if(isMe&&m.type!=='deleted'){
+    const ticks=document.createElement('span');ticks.className='wa-ticks';
+    ticks.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 7 10 15 6 11"/><polyline points="22 7 14 15 10 11"/></svg>';
+    meta.appendChild(ticks);
+  }
+  bubble.appendChild(meta);
+  row.appendChild(bubble);
+  container.appendChild(row);
+}
+
+window.openWaViewer=async(importId,meta)=>{
+  _waCurrentImportId=importId;
+  const others=(meta.participants||[]).filter(p=>p!==meta.meName);
+  el('wa-viewer-title').textContent=others.length?others.join(', '):(meta.title||'Kontak');
+  const body=el('wa-viewer-body');
+  body.innerHTML='<div style="text-align:center;padding:30px;color:#667781;font-size:13px">\u23F3 Memuat...</div>';
+  el('wa-viewer').classList.remove('hidden');
+  try{
+    const snap=await getDocs(query(collection(db,'rooms',APP_CONFIG.roomId,'waImports',importId,'messages'),orderBy('seq','asc')));
+    body.innerHTML='';
+    const showNameLabel=(meta.participants||[]).length>2;
+    let lastDateKey=null;
+    snap.forEach(docSnap=>{
+      const m=docSnap.data();
+      const ts=m.timestamp?.toDate?m.timestamp.toDate():null;
+      const dateKey=ts?ts.toDateString():null;
+      if(dateKey&&dateKey!==lastDateKey){
+        lastDateKey=dateKey;
+        const sep=document.createElement('div');sep.className='wa-date-sep';
+        const span=document.createElement('span');span.textContent=ts.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+        sep.appendChild(span);body.appendChild(sep);
+      }
+      renderWaMessage(m,body,meta.meName,showNameLabel);
+    });
+    if(!snap.size)body.innerHTML='<div style="text-align:center;padding:30px;color:#667781;font-size:13px">Tidak ada pesan.</div>';
+    setTimeout(()=>{body.scrollTop=body.scrollHeight;},60);
+  }catch(e){
+    console.error('openWaViewer error:',e);
+    body.innerHTML='<div style="text-align:center;padding:30px;color:#c62828;font-size:13px">Gagal memuat chat.<br><small>'+e.message+'</small></div>';
+  }
+};
+window.closeWaViewer=()=>{el('wa-viewer').classList.add('hidden');_waCurrentImportId=null;};
+
+async function deleteWaImportById(importId){
+  try{
+    const msgsSnap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'waImports',importId,'messages'));
+    const docs=msgsSnap.docs;
+    for(let i=0;i<docs.length;i+=400){
+      const batch=writeBatch(db);
+      docs.slice(i,i+400).forEach(d=>batch.delete(d.ref));
+      await batch.commit();
+    }
+    await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'waImports',importId));
+    showToast('Riwayat dihapus');
+  }catch(e){
+    console.error('deleteWaImportById error:',e);
+    showToast('Gagal menghapus riwayat');
+  }
+}
+window.deleteWaImport=async()=>{
+  if(!_waCurrentImportId)return;
+  if(!confirm('Hapus riwayat WhatsApp ini? Tidak bisa dibatalkan.'))return;
+  const id=_waCurrentImportId;
+  closeWaViewer();
+  await deleteWaImportById(id);
+};
+
 // PROFILE
 function renderTypingAvatar(){
   if(!otherUser)return;

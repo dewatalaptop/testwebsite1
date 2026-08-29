@@ -1,0 +1,64 @@
+// storage.rules — CalmChat (bocilku.html)
+//
+// CARA PAKAI: tempel isi file ini di Firebase Console -> project
+// "chatbot-dolan-sawah-v2" -> Build -> Storage -> Rules -> Publish.
+//
+// Sama seperti firestore.rules: tanpa Firebase Authentication, rules ini
+// tidak bisa membuktikan siapa yang upload/hapus. Yang bisa dicegah:
+// tipe file salah, ukuran file kelewat besar (membengkakkan biaya), dan
+// akses ke path di luar yang dipakai app ini.
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /photos/{roomId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 8 * 1024 * 1024
+          && request.resource.contentType.matches('image/.*');
+      allow delete: if true;
+    }
+
+    match /videos/{roomId}/{fileName} {
+      allow read: if true;
+      // hasil kompresi ffmpeg.wasm biasanya jauh di bawah ini
+      allow write: if request.resource.size < 60 * 1024 * 1024
+          && request.resource.contentType.matches('video/.*');
+      allow delete: if true;
+    }
+
+    match /voices/{roomId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 20 * 1024 * 1024
+          && request.resource.contentType.matches('audio/.*');
+      allow delete: if true;
+    }
+
+    match /stickers/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 5 * 1024 * 1024
+          && request.resource.contentType.matches('image/.*');
+      allow delete: if true;
+    }
+
+    match /profiles/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 5 * 1024 * 1024
+          && request.resource.contentType.matches('image/.*');
+      allow delete: if true;
+    }
+
+    match /stories/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 55 * 1024 * 1024
+          && (request.resource.contentType.matches('image/.*')
+              || request.resource.contentType.matches('video/.*'));
+      allow delete: if true;
+    }
+
+    // Tutup semua path lain secara default.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

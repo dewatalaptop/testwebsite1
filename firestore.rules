@@ -1,0 +1,106 @@
+// firestore.rules — CalmChat (bocilku.html)
+//
+// CARA PAKAI: file ini TIDAK otomatis aktif. Buka Firebase Console ->
+// project "chatbot-dolan-sawah-v2" -> Build -> Firestore Database -> Rules,
+// lalu tempel seluruh isi file ini menggantikan rules yang ada, klik Publish.
+//
+// PENTING — batasan jujur:
+// Aplikasi ini TIDAK memakai Firebase Authentication (PIN hanya dicek di
+// browser). Rules di bawah TIDAK BISA membuktikan siapa yang benar-benar
+// mengirim request, karena tidak ada request.auth yang bisa dipercaya.
+// Jadi rules ini TIDAK mencegah seseorang yang membaca kode sumber untuk:
+//   - membaca isi pesan / pinHash lewat Firestore SDK langsung
+//   - menyamar sebagai user1/user2 saat menulis pesan
+// Yang BISA dicegah oleh rules ini:
+//   - scanner otomatis yang mencari database Firebase "terbuka" (allow
+//     read, write: if true) dan menghapus/mengisi sampah ke semua koleksi
+//   - dokumen dengan bentuk/field acak yang bisa merusak tampilan app
+//   - payload raksasa yang membengkakkan biaya Firestore
+//   - akses ke koleksi lain di luar yang dipakai app ini
+// Untuk proteksi sungguhan per-user, perlu Firebase Authentication +
+// verifikasi PIN di server (Cloud Function) — perubahan arsitektur lebih
+// besar, bukan sekadar ganti rules.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidUser(id) {
+      return id == 'user1' || id == 'user2';
+    }
+
+    match /rooms/{roomId}/dates/{dateId} {
+      allow get, list: if true; // dipakai utk riwayat chat & migrasi
+      allow create, update: if request.resource.data.keys()
+            .hasOnly(['date','created','migratedAt'])
+          && request.resource.data.date is string
+          && request.resource.data.date.size() <= 10;
+      allow delete: if false;
+
+      match /messages/{msgId} {
+        allow get, list: if true;
+        allow create: if isValidUser(request.resource.data.senderId)
+            && request.resource.data.senderName is string
+            && request.resource.data.senderName.size() <= 30
+            && request.resource.data.type in ['text','photo','video','voice','sticker']
+            && request.resource.data.content is string
+            && request.resource.data.content.size() <= 4096
+            && request.resource.data.keys().hasOnly([
+                 'senderId','senderName','type','content','timestamp',
+                 'reactions','replyTo','replyPreview','duration',
+                 'storagePath','mimeType','isGif'
+               ]);
+        // Hanya field ini yang boleh berubah lewat update (edit/reaksi/read)
+        allow update: if request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['content','edited','editedAt','reactions','readBy']);
+        allow delete: if isValidUser(resource.data.senderId);
+      }
+    }
+
+    match /rooms/{roomId}/typing/{uid} {
+      allow get, list: if true;
+      allow write: if isValidUser(uid)
+          && request.resource.data.keys().hasOnly(['typing','ts'])
+          && request.resource.data.typing is bool;
+    }
+
+    match /rooms/{roomId}/stories/{storyId} {
+      allow get, list: if true;
+      allow create: if isValidUser(request.resource.data.authorId)
+          && request.resource.data.keys().hasOnly([
+               'authorId','authorName','mediaUrl','storagePath','caption',
+               'createdAt','expiresAt'
+             ]);
+      allow update: if false;
+      allow delete: if isValidUser(resource.data.authorId);
+    }
+
+    // pinHash tersimpan di sini — lihat catatan di atas, field ini TETAP
+    // bisa dibaca siapa pun yang punya firebaseConfig (app butuh baca ini
+    // untuk verifikasi PIN di sisi klien). PIN 4 digit tetap rentan brute
+    // force offline oleh siapa pun yang mendapat hash ini.
+    match /profiles/{uid} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if isValidUser(uid)
+          && request.resource.data.keys().hasOnly([
+               'name','pinHash','photoURL','updatedAt','resetBy'
+             ]);
+    }
+
+    match /stickers/{stickerId} {
+      allow get, list: if true;
+      allow create: if isValidUser(request.resource.data.uploaderId)
+          && request.resource.data.keys().hasOnly([
+               'url','storagePath','uploaderId','uploaderName','isGif','createdAt'
+             ]);
+      allow update: if false;
+      allow delete: if true; // uploader & admin hapus stiker (dicek di app)
+    }
+
+    // Tutup semua path lain secara default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

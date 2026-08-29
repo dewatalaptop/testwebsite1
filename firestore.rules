@@ -25,6 +25,17 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ── Koleksi APLIKASI LAIN di project Firebase yang sama — JANGAN DIHAPUS.
+    // Project ini dipakai bersama oleh chatbot lain (mis. reservasi) yang
+    // memakai koleksi berikut. Baris ini mengembalikan akses seperti semula
+    // (rules versi sebelum CalmChat menambahkan aturan di bawah).
+    match /knowledgeBase/{docId} {
+      allow read, write: if true;
+    }
+    match /unanswered_queries/{docId} {
+      allow read, write: if true;
+    }
+
     function isValidUser(id) {
       return id == 'user1' || id == 'user2';
     }

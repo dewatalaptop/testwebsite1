@@ -36,7 +36,6 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .user-btn{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(255,255,255,0.9);border:2px solid transparent;border-radius:18px;padding:16px 18px;cursor:pointer;transition:all 0.2s;min-width:110px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
 .user-btn:hover,.user-btn.selected{border-color:#2186d4;transform:translateY(-2px);box-shadow:0 6px 20px rgba(33,134,212,0.2)}
 .user-btn-photo-wrap{position:relative;cursor:pointer}
-.change-hint{position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;color:white}
 .user-btn-name{font-weight:700;font-size:13px;color:#333}
 .pin-section{margin-top:20px;animation:slideUp 0.3s ease}
 @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -155,8 +154,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .sticker-item:hover{border-color:var(--accent);transform:scale(1.06)}
 .sticker-item:active{transform:scale(0.94);background:var(--bg2)}
 .sticker-item img{width:100%;height:100%;object-fit:contain;padding:6px;image-rendering:auto}
-.sticker-delete{position:absolute;top:3px;right:3px;background:rgba(220,53,69,0.85);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center;font-family:var(--font-main)}
-.sticker-item:hover .sticker-delete{display:flex}
+.sticker-delete{position:absolute;top:3px;right:3px;background:rgba(220,53,69,0.85);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font-main)}
 .sticker-empty{color:var(--text-secondary);font-size:13px;text-align:center;padding:20px 0}
 .history-list{display:flex;flex-direction:column;gap:8px}
 .history-item{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:13px 15px;cursor:pointer;transition:all 0.2s}
@@ -180,7 +178,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .profile-av-big{width:88px;height:88px;border-radius:50%;overflow:hidden;margin:0 auto 8px;border:3px solid var(--accent);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:42px;cursor:pointer;position:relative}
 .profile-av-big img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .av-edit-hint{position:absolute;inset:0;background:rgba(0,0,0,0.35);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;opacity:0;transition:opacity 0.2s}
-.profile-av-big:hover .av-edit-hint{opacity:1}
+.profile-av-big:hover .av-edit-hint,.profile-av-big:active .av-edit-hint{opacity:1}
 .profile-modal-name{font-size:18px;font-weight:800;color:var(--text-primary);text-align:center;margin-bottom:2px}
 .profile-modal-sub{font-size:12px;color:var(--text-secondary);text-align:center;margin-bottom:20px}
 .profile-field{margin-bottom:14px}
@@ -605,7 +603,7 @@ const DEFAULT_CFG={user1:{id:"user1",name:"Ryan",avatar:"\u{1F324}\uFE0F",pin:"1
 // lalu tempel di sini agar fitur "Backup ke Google Drive" (Admin Panel > Lainnya) bisa dipakai.
 const GOOGLE_DRIVE_CLIENT_ID="PASTE_YOUR_GOOGLE_OAUTH_CLIENT_ID_HERE.apps.googleusercontent.com";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,doc,addDoc,onSnapshot,query,orderBy,serverTimestamp,getDocs,updateDoc,setDoc,getDoc,deleteDoc,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,doc,addDoc,onSnapshot,query,orderBy,serverTimestamp,getDocs,updateDoc,setDoc,getDoc,deleteDoc,runTransaction,getCountFromServer}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import{getStorage,ref as sRef,uploadBytes,getDownloadURL,deleteObject}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
@@ -1244,6 +1242,10 @@ function renderEmojiCats(){
 }
 function renderEmojiGrid(emojis){
   const grid=el('emoji-grid');grid.innerHTML='';
+  if(!emojis.length){
+    grid.innerHTML='<p style="grid-column:1/-1;text-align:center;color:var(--text-secondary);font-size:13px;padding:20px 0">Emoji tidak ditemukan</p>';
+    return;
+  }
   emojis.forEach(emoji=>{
     const cell=document.createElement('button');cell.className='emoji-cell';cell.textContent=emoji;
     cell.onclick=()=>{const dt=_emojiTargetDate;closeEmojiPicker();if(_emojiTarget)addReaction(emoji,_emojiTarget,dt);};
@@ -1252,10 +1254,11 @@ function renderEmojiGrid(emojis){
 }
 window.filterEmoji=q=>{
   if(!q.trim()){renderEmojiGrid(EMOJI_CATS[0].emojis);return;}
-  const all=EMOJI_CATS.flatMap(cat=>cat.emojis);
+  // Pencarian cocok dengan nama kategori (mis. "hati", "hewan", "makanan").
+  // Kalau tidak ketemu, tampilkan "tidak ditemukan" — jangan tampilkan
+  // daftar emoji acak yang tidak relevan dengan kata kuncinya.
   const matchedCat=EMOJI_CATS.filter(cat=>cat.name.toLowerCase().includes(q.toLowerCase()));
-  if(matchedCat.length)renderEmojiGrid(matchedCat.flatMap(cat=>cat.emojis));
-  else renderEmojiGrid(all.slice(0,160));
+  renderEmojiGrid(matchedCat.length?matchedCat.flatMap(cat=>cat.emojis):[]);
 };
 
 // addReaction — terima msgId dan dateId langsung (dipanggil dari action sheet/emoji picker)
@@ -1681,6 +1684,11 @@ function startEditMessage(msgId,data,bubble){
     }catch(e){showToast('Gagal edit pesan');bubble.innerHTML='';bubble.textContent=original;bubble.style.padding='';}
   };
   cancel.onclick=()=>{bubble.innerHTML='';bubble.textContent=original;bubble.style.padding='';};
+  // Enter = simpan (konsisten dengan input pesan utama), Shift+Enter = baris baru, Esc = batal
+  ta.onkeydown=e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();save.onclick();}
+    else if(e.key==='Escape'){e.preventDefault();cancel.onclick();}
+  };
   wrap.appendChild(ta);wrap.appendChild(save);wrap.appendChild(cancel);
   bubble.appendChild(wrap);
   ta.focus();ta.selectionStart=ta.selectionEnd=ta.value.length;
@@ -1805,8 +1813,10 @@ window.uploadStickers=async event=>{
 // HISTORY
 window.openHistory=async()=>{const list=el('history-list'),empty=el('history-empty');list.innerHTML="";const realToday=getTodayStr();try{const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const past=snap.docs.map(d=>d.id).sort().reverse();
   if(!past.length){empty.classList.remove('hidden');el('migrate-banner').classList.remove('hidden');}else{empty.classList.add('hidden');
-  // Ambil semua message count paralel (bukan satu per satu)
-  const results=await Promise.all(past.map(d=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages')).then(ms=>({d,count:ms.size}))));
+  // Hitung jumlah pesan pakai aggregation query (getCountFromServer) — tidak
+  // perlu download isi semua pesan hanya untuk menghitungnya, jauh lebih
+  // hemat baca Firestore & lebih cepat saat riwayat sudah menumpuk banyak.
+  const results=await Promise.all(past.map(d=>getCountFromServer(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages')).then(s=>({d,count:s.data().count}))));
   results.forEach(({d,count})=>{
     const item=document.createElement('div');item.className='history-item';
     item.innerHTML='<div class="history-item-left"><h4>'+formatDate(d)+'</h4><p>'+d+'</p></div><div style="display:flex;align-items:center;gap:8px"><span class="history-item-badge">'+count+' pesan</span><span style="color:var(--text-secondary);font-size:18px">\u203A</span></div>';

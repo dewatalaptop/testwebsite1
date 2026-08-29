@@ -4,6 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <title>CalmChat</title>
+<script>
+// Terapkan tema tersimpan SEBELUM body dirender, supaya tidak ada kedipan
+// tema terang sesaat sebelum pindah ke tema tersimpan (mis. "Malam").
+try{var _t=localStorage.getItem('cc-theme');if(_t&&_t!=='default')document.documentElement.setAttribute('data-theme',_t);}catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -955,7 +960,17 @@ function buildVoicePlayer(url,duration){
   },{passive:false});
   wrap.appendChild(btn);wrap.appendChild(ww);wrap.appendChild(dur);return wrap;
 }
-function openLightbox(url){const lb=document.createElement('div');lb.className='photo-lightbox';const img=document.createElement('img');img.src=url;const c=document.createElement('button');c.className='photo-lightbox-close';c.textContent='\u2715';c.onclick=()=>lb.remove();lb.onclick=e=>{if(e.target===lb)lb.remove();};lb.appendChild(img);lb.appendChild(c);document.body.appendChild(lb);}
+function openLightbox(url){
+  const lb=document.createElement('div');lb.className='photo-lightbox';
+  const img=document.createElement('img');img.src=url;
+  const c=document.createElement('button');c.className='photo-lightbox-close';c.textContent='\u2715';
+  const onKey=e=>{if(e.key==='Escape')close();};
+  const close=()=>{lb.remove();document.removeEventListener('keydown',onKey);};
+  c.onclick=close;
+  lb.onclick=e=>{if(e.target===lb)close();};
+  document.addEventListener('keydown',onKey);
+  lb.appendChild(img);lb.appendChild(c);document.body.appendChild(lb);
+}
 let _sending=false;
 let _dateRegistered=false; // flag: sudah daftar tanggal hari ini?
 async function ensureDateRegistered(dateStr){

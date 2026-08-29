@@ -488,6 +488,16 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   </div>
 </div>
 <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="uploadProfilePhoto(event)"/>
+<input type="file" id="story-file-input" accept="image/*,video/*" style="display:none" onchange="handleStoryFileSelected(event)"/>
+<!-- STORY CAPTION MODAL -->
+<div class="full-modal hidden" id="story-caption-modal" onclick="storyCaptionModalOutside(event)">
+  <div class="full-modal-card" style="max-width:320px">
+    <div class="profile-modal-name" style="margin-bottom:14px">Tambah Story</div>
+    <div class="profile-field"><label>Caption (opsional)</label><input id="story-caption-input" type="text" placeholder="Tulis sesuatu..." maxlength="120"/></div>
+    <button class="profile-save-btn" onclick="submitStoryUpload()">Posting</button>
+    <span class="profile-close-link" onclick="cancelStoryUpload()">Batal</span>
+  </div>
+</div>
 <!-- ADMIN PIN ENTRY -->
 <div class="pin-admin-modal hidden" id="pin-admin-modal">
   <div class="pin-admin-card">
@@ -1131,9 +1141,10 @@ function makeActionBtn(svgStr,label,danger){
   const btn=document.createElement('button');btn.className='action-sheet-btn'+(danger?' danger':'');
   btn.innerHTML=svgStr+'<span>'+label+'</span>';return btn;
 }
+const REPLY_TYPE_LABELS={photo:'Foto',video:'Video',voice:'Pesan Suara',sticker:'Stiker'};
 function startReply(msgId,data){
   const inp=el('msg-input');
-  const preview=data.type==='text'?'"'+data.content.slice(0,40)+(data.content.length>40?'\u2026':'')+' "':'['+data.type+']';
+  const preview=data.type==='text'?'"'+data.content.slice(0,40)+(data.content.length>40?'\u2026':'')+' "':'['+(REPLY_TYPE_LABELS[data.type]||data.type)+']';
   inp.dataset.replyTo=msgId;inp.dataset.replyPreview=preview;
   let replyBar=el('reply-bar');
   if(!replyBar){replyBar=document.createElement('div');replyBar.id='reply-bar';
@@ -1244,8 +1255,9 @@ async function loadStories(){
     renderStoryBar();
   }catch(e){console.warn('loadStories:',e);}
 }
-// Refresh story realtime (polling 30 detik jika partner post story)
-function startStoryRefresh(){if(unsubStories)clearInterval(unsubStories);unsubStories=setInterval(loadStories,30000);}
+// Refresh story realtime (polling 30 detik jika partner post story).
+// Dilewati saat story viewer sedang terbuka agar tidak mengganggu tampilan yang aktif.
+function startStoryRefresh(){if(unsubStories)clearInterval(unsubStories);unsubStories=setInterval(()=>{if(el('story-viewer').classList.contains('hidden'))loadStories();},30000);}
 function stopStoryRefresh(){if(unsubStories){clearInterval(unsubStories);unsubStories=null;}}
 function renderStoryBar(){
   const bar=el('story-bar');if(!bar||!currentUser)return;
@@ -1283,13 +1295,38 @@ function renderStorySlide(){
   if(s.createdAt?.toMillis){const mins=Math.floor((Date.now()-s.createdAt.toMillis())/60000);el('story-header-time').textContent=mins<1?'Baru saja':mins<60?(mins+'m lalu'):(Math.floor(mins/60)+'j lalu');}
   const content=el('story-content');
   content.querySelectorAll('img,video').forEach(e=>e.remove());
-  const img=document.createElement('img');img.src=s.mediaUrl;img.style.cssText='max-width:100%;max-height:100%;object-fit:contain';
-  content.insertBefore(img,content.firstChild);
+  const isVideo=s.mediaType==='video';
+  let mediaEl;
+  if(isVideo){
+    mediaEl=document.createElement('video');
+    mediaEl.src=s.mediaUrl;mediaEl.autoplay=true;mediaEl.playsInline=true;mediaEl.controls=false;
+    mediaEl.style.cssText='max-width:100%;max-height:100%;object-fit:contain';
+    mediaEl.onended=()=>storyNavNext();
+  }else{
+    mediaEl=document.createElement('img');mediaEl.src=s.mediaUrl;
+    mediaEl.style.cssText='max-width:100%;max-height:100%;object-fit:contain';
+  }
+  content.insertBefore(mediaEl,content.firstChild);
   el('story-caption').textContent=s.caption||'';
   el('story-caption').classList.toggle('hidden',!s.caption);
   el('story-delete-btn').classList.toggle('hidden',s.authorId!==currentUser?.id);
   renderStoryProgress();
-  startStoryTimer();
+  // Video: progress bar & lanjut-otomatis mengikuti durasi asli video (via onended di atas).
+  // Foto: pakai timer tetap 5 detik.
+  if(isVideo)startStoryTimerForVideo(mediaEl);
+  else startStoryTimer();
+}
+function startStoryTimerForVideo(videoEl){
+  clearTimeout(storyTimer);
+  const seg=el('story-progress-bar').children[storyIndex];
+  if(!seg)return;
+  const fill=seg.querySelector('.story-progress-fill');
+  fill.style.transition='none';fill.style.width='0%';
+  videoEl.ontimeupdate=()=>{
+    if(videoEl.duration&&isFinite(videoEl.duration)&&videoEl.duration>0){
+      fill.style.width=(videoEl.currentTime/videoEl.duration*100)+'%';
+    }
+  };
 }
 function renderStoryProgress(){
   const bar=el('story-progress-bar');bar.innerHTML='';
@@ -1330,21 +1367,49 @@ window.sendStoryReply=async()=>{
   try{await ensureDateRegistered(todayDateStr);await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'text',content:'\u21A9 Story: '+text,timestamp:serverTimestamp(),reactions:{}});closeStoryViewer();showToast('Balasan terkirim \u2713');}
   catch(e){showToast('Gagal kirim balasan');}
 };
-async function handleStoryUpload(event){
-  const file=event.target.files[0];event.target.value='';if(!file||!currentUser)return;
-  const caption=prompt('Caption story (opsional):','')||'';
+// Pilih file -> tampilkan modal caption (bukan prompt() bawaan browser, yang
+// tidak konsisten dengan tampilan app dan kadang diblokir di webview mobile).
+let _pendingStoryFile=null;
+window.handleStoryFileSelected=event=>{
+  const file=event.target.files[0];event.target.value='';
+  if(!file||!currentUser)return;
+  if(!file.type.startsWith('image/')&&!file.type.startsWith('video/')){showToast('Pilih foto atau video');return;}
   if(file.size>50*1024*1024){showToast('File terlalu besar (maks 50MB)');return;}
-  const prog=showProgress('Mengupload story...');
+  _pendingStoryFile=file;
+  el('story-caption-input').value='';
+  el('story-caption-modal').classList.remove('hidden');
+  setTimeout(()=>el('story-caption-input').focus(),50);
+};
+window.cancelStoryUpload=()=>{_pendingStoryFile=null;el('story-caption-modal').classList.add('hidden');};
+window.storyCaptionModalOutside=e=>{if(e.target===el('story-caption-modal'))cancelStoryUpload();};
+window.submitStoryUpload=async()=>{
+  const file=_pendingStoryFile;if(!file||!currentUser)return;
+  const caption=el('story-caption-input').value.trim();
+  el('story-caption-modal').classList.add('hidden');
+  _pendingStoryFile=null;
+  await postStory(file,caption);
+};
+async function postStory(file,caption){
+  const isVideo=file.type.startsWith('video/');
+  const prog=showProgress(isVideo?'Mengompresi video...':'Mengupload story...');
   try{
-    let uploadFile=file;
-    if(file.type.startsWith('image/')&&!file.type.includes('gif'))uploadFile=await compressImage(file,1080,0.82);
-    const path='stories/'+currentUser.id+'/'+Date.now()+'_'+file.name;
-    await uploadBytes(sRef(storage,path),uploadFile);
+    let uploadFile=file,ext='jpg',contentType=undefined;
+    if(isVideo){
+      uploadFile=await compressVideo(file,prog);
+      ext='mp4';contentType='video/mp4';
+      prog.setText('Mengunggah story...');
+    }else if(!file.type.includes('gif')){
+      uploadFile=await compressImage(file,1080,0.82);
+    }else{
+      ext='gif';
+    }
+    const path='stories/'+currentUser.id+'/'+Date.now()+'_story.'+ext;
+    await uploadBytes(sRef(storage,path),uploadFile,contentType?{contentType}:undefined);
     const mediaUrl=await getDownloadURL(sRef(storage,path));
     const expires=new Date(Date.now()+STORY_DURATION);
-    await addDoc(collection(db,'rooms',APP_CONFIG.roomId,'stories'),{authorId:currentUser.id,authorName:currentUser.name,mediaUrl,storagePath:path,caption,createdAt:serverTimestamp(),expiresAt:expires});
+    await addDoc(collection(db,'rooms',APP_CONFIG.roomId,'stories'),{authorId:currentUser.id,authorName:currentUser.name,mediaUrl,mediaType:isVideo?'video':'image',storagePath:path,caption,createdAt:serverTimestamp(),expiresAt:expires});
     await loadStories();showToast('Story diposting! \uD83C\uDF1F');
-  }catch(e){showToast('Gagal upload story');}
+  }catch(e){console.error('postStory error:',e);showToast('Gagal upload story');}
   finally{prog.remove();}
 }
 // ── IDLE LOCK ────────────────────────────────────────
@@ -2021,16 +2086,21 @@ async function getAllStickerMedia(){
   const snap=await getDocs(collection(db,'stickers'));
   return snap.docs.map(d=>({...d.data(),msgId:d.id,dateId:'stickers',type:'sticker'}));
 }
+// Story otomatis terhapus 24 jam setelah diposting — backup duluan sebelum hilang.
+async function getAllStoryMedia(){
+  const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'stories'));
+  return snap.docs.map(d=>({...d.data(),content:d.data().mediaUrl,msgId:d.id,dateId:'stories',type:'story'}));
+}
 window.backupAllMediaToDrive=async()=>{
   if(!currentUser?.isAdmin)return;
   if(!gdriveAccessToken){showToast('Hubungkan Google Drive dulu');return;}
   const prog=showProgress('Menyiapkan backup...');
   try{
     const folderId=await ensureDriveFolder();
-    const[photos,videos,voices,stickers]=await Promise.all([
-      getAllMedia('photo'),getAllMedia('video'),getAllMedia('voice'),getAllStickerMedia()
+    const[photos,videos,voices,stickers,stories]=await Promise.all([
+      getAllMedia('photo'),getAllMedia('video'),getAllMedia('voice'),getAllStickerMedia(),getAllStoryMedia()
     ]);
-    const all=[...photos,...videos,...voices,...stickers];
+    const all=[...photos,...videos,...voices,...stickers,...stories];
     const backedUp=new Set(JSON.parse(localStorage.getItem('cc-drive-backed-up')||'[]'));
     const todo=all.filter(item=>item.storagePath&&!backedUp.has(item.storagePath));
     if(!todo.length){prog.remove();showToast('Semua media sudah pernah di-backup \u2713');return;}
@@ -2070,7 +2140,7 @@ function renderAdminAccount(body){
 
   const title=document.createElement('div');title.className='admin-section-title';title.textContent='Backup Media ke Google Drive';body.appendChild(title);
   const driveNote=document.createElement('div');driveNote.className='drive-note';
-  driveNote.textContent='Backup semua foto, video, suara, dan stiker ke folder "CalmChat Backup" di Google Drive kamu. File yang sudah pernah di-backup otomatis dilewati.';
+  driveNote.textContent='Backup semua foto, video, suara, stiker, dan story (story otomatis terhapus 24 jam, jadi backup dulu sebelum hilang) ke folder "CalmChat Backup" di Google Drive kamu. File yang sudah pernah di-backup otomatis dilewati.';
   body.appendChild(driveNote);
   const status=document.createElement('p');status.style.cssText='font-size:12px;color:var(--text-secondary);margin-bottom:10px';
   status.textContent=gdriveAccessToken?'\u2713 Terhubung ke Google Drive':'Belum terhubung ke Google Drive';
@@ -2101,7 +2171,14 @@ function init(){
     if(document.hidden){
       clearTimeout(storyTimer); // pause story saat background
     } else if(!isLocked&&currentUser&&storyItems.length&&!el('story-viewer').classList.contains('hidden')){
-      startStoryTimer(); // resume story timer
+      // resume story timer — video lanjutkan playback-nya, foto pakai timer tetap
+      const curStory=storyItems[storyIndex];
+      if(curStory&&curStory.mediaType==='video'){
+        const v=el('story-content').querySelector('video');
+        if(v)v.play().catch(()=>{});
+      }else{
+        startStoryTimer();
+      }
     }
     if(document.hidden && currentUser && !isLocked){
       // Reset timer ke 30 detik saat background (lebih cepat dari 5 menit)

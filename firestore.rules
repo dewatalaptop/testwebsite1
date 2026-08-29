@@ -79,7 +79,7 @@ service cloud.firestore {
       allow get, list: if true;
       allow create: if isValidUser(request.resource.data.authorId)
           && request.resource.data.keys().hasOnly([
-               'authorId','authorName','mediaUrl','storagePath','caption',
+               'authorId','authorName','mediaUrl','mediaType','storagePath','caption',
                'createdAt','expiresAt'
              ]);
       allow update: if false;

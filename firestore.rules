@@ -40,6 +40,12 @@ service cloud.firestore {
       return id == 'user1' || id == 'user2';
     }
 
+    // Dokumen room itu sendiri — dipakai untuk pesan yang disematkan (pin)
+    match /rooms/{roomId} {
+      allow get: if true;
+      allow write: if request.resource.data.keys().hasOnly(['pinnedMessage']);
+    }
+
     match /rooms/{roomId}/dates/{dateId} {
       allow get, list: if true; // dipakai utk riwayat chat & migrasi
       allow create, update: if request.resource.data.keys()
@@ -81,6 +87,19 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly([
                'authorId','authorName','mediaUrl','mediaType','storagePath','caption',
                'createdAt','expiresAt'
+             ]);
+      // Hanya field viewedBy (status "dilihat") yang boleh diubah setelah dibuat
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['viewedBy']);
+      allow delete: if isValidUser(resource.data.authorId);
+    }
+
+    // Story yang disimpan permanen (highlight) — tidak ikut expire/terhapus otomatis
+    match /rooms/{roomId}/highlights/{highlightId} {
+      allow get, list: if true;
+      allow create: if isValidUser(request.resource.data.authorId)
+          && request.resource.data.keys().hasOnly([
+               'authorId','authorName','mediaUrl','mediaType','storagePath','caption','createdAt'
              ]);
       allow update: if false;
       allow delete: if isValidUser(resource.data.authorId);

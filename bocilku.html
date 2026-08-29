@@ -7,7 +7,12 @@
 <script>
 // Terapkan tema tersimpan SEBELUM body dirender, supaya tidak ada kedipan
 // tema terang sesaat sebelum pindah ke tema tersimpan (mis. "Malam").
-try{var _t=localStorage.getItem('cc-theme');if(_t&&_t!=='default')document.documentElement.setAttribute('data-theme',_t);}catch(e){}
+try{
+  var _t=localStorage.getItem('cc-theme');
+  var _eff=_t;
+  if(_t==='auto')_eff=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'night':'default';
+  if(_eff&&_eff!=='default')document.documentElement.setAttribute('data-theme',_eff);
+}catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -69,6 +74,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .hdr-btn:hover{background:var(--border);color:var(--accent)}
 .date-banner{text-align:center;padding:7px 16px;flex-shrink:0}
 .date-banner span{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 13px;font-size:11px;font-weight:600;color:var(--text-secondary);display:inline-block}
+.pinned-banner{display:flex;align-items:center;gap:8px;background:var(--surface2);border-bottom:1px solid var(--border);padding:8px 14px;cursor:pointer;flex-shrink:0}
+.pinned-banner-label{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:0.4px}
+.pinned-banner-text{font-size:12px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .messages-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 0;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
 .messages-area::-webkit-scrollbar{width:3px}
 .messages-area::-webkit-scrollbar-thumb{background:var(--accent2);border-radius:10px}
@@ -301,6 +309,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .story-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0}
 .story-ring{width:54px;height:54px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);position:relative;flex-shrink:0}
 .story-ring.seen{background:var(--border)}
+.story-ring.highlight{background:linear-gradient(135deg,#f7c948,#f2a900)}
 .story-ring.add{background:var(--surface2);border:2px dashed var(--border)}
 .story-av{width:100%;height:100%;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--surface)}
 .story-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
@@ -331,6 +340,19 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .story-delete-btn{background:rgba(229,57,53,0.8);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .story-delete-btn svg{width:15px;height:15px;color:white}
 @media(max-width:390px){.msg-col{max-width:82%}.sticker-grid,.admin-sticker-grid{grid-template-columns:repeat(3,1fr)}}
+/* ── EKSPOR PDF (cetak) ── */
+#print-export-root{display:none}
+@media print{
+  body>*:not(#print-export-root){display:none!important}
+  #print-export-root{display:block!important;padding:24px;font-family:var(--font-main);color:#222;background:#fff}
+  .print-header{text-align:center;margin-bottom:24px}
+  .print-header h1{font-size:22px;margin-bottom:4px}
+  .print-header p{font-size:13px;color:#555}
+  .print-msg{margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eee;break-inside:avoid}
+  .print-msg-head{display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:4px}
+  .print-msg p{font-size:14px;line-height:1.5}
+  .print-msg img{max-width:220px;border-radius:8px;display:block;margin-top:4px}
+}
 </style>
 </head>
 <body>
@@ -403,6 +425,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   </header>
   <!-- STORY BAR -->
   <div class="story-bar" id="story-bar"></div>
+  <div id="pinned-banner" class="pinned-banner hidden"></div>
   <div class="date-banner"><span id="date-banner-text">Hari ini</span></div>
   <div class="messages-area" id="messages-area">
     <div class="messages-inner" id="messages-inner"></div>
@@ -470,7 +493,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       <h3 id="modal-history-date">Tanggal</h3>
     </div>
     <div class="modal-messages" id="modal-messages"></div>
-    <div class="modal-footer"><span class="readonly-badge">&#x1F4D6; Hanya baca</span></div>
+    <div class="modal-footer" style="display:flex;align-items:center;justify-content:center;gap:10px">
+      <span class="readonly-badge">&#x1F4D6; Hanya baca</span>
+      <button class="media-action-btn sel" onclick="exportHistoryToPdf()">&#x2B07;&#xFE0F; Ekspor PDF</button>
+    </div>
   </div>
 </div>
 <!-- PROFILE MODAL -->
@@ -548,6 +574,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <div class="story-header-info">
       <div class="story-header-name" id="story-header-name">Ryan</div>
       <div class="story-header-time" id="story-header-time">Baru saja</div>
+      <div class="story-header-time hidden" id="story-header-seen"></div>
     </div>
     <button class="story-close" onclick="closeStoryViewer()">✕</button>
   </div>
@@ -559,6 +586,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <input id="story-reply-input" class="story-reply-input" placeholder="Balas story..." onkeydown="if(event.key==='Enter')sendStoryReply()"/>
     <button class="story-reply-btn" onclick="sendStoryReply()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+    <button class="story-delete-btn hidden" id="story-highlight-btn" onclick="saveStoryToHighlight()" style="background:rgba(247,201,72,0.9)" title="Simpan ke Highlight">
+      <svg viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
     </button>
     <button class="story-delete-btn hidden" id="story-delete-btn" onclick="deleteCurrentStory()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
@@ -644,7 +674,7 @@ let profileModalTarget=null,adminPinBuf="",adminTab="photos",selectedMedia=new S
 let unsubTyping=null;
 let unsubPartnerProfile=null; // dipindah ke atas agar logout bisa akses
 function setConnected(ok){const b=el('conn-banner');if(b)b.classList.toggle('hidden',ok);}
-const THEMES=[{id:"default",name:"Langit",emoji:"\u2601\uFE0F",bg:"#eef5fc",accent:"#2186d4"},{id:"sky",name:"Biru",emoji:"\u{1F324}\uFE0F",bg:"#dff0fb",accent:"#0288d1"},{id:"mint",name:"Mint",emoji:"\u{1F33F}",bg:"#e8f5f0",accent:"#00897b"},{id:"slate",name:"Slate",emoji:"\u{1FAA8}",bg:"#edf1f7",accent:"#546e8a"},{id:"lavender",name:"Lavender",emoji:"\u{1FAB3}",bg:"#f0eef8",accent:"#6767b8"},{id:"cloud",name:"Mendung",emoji:"\u{1F32B}\uFE0F",bg:"#f4f7fa",accent:"#4a8fb8"},{id:"night",name:"Malam",emoji:"\u{1F319}",bg:"#111825",accent:"#4a8fe0"},{id:"warm",name:"Hangat",emoji:"\u{1F343}",bg:"#f5f0e8",accent:"#6a8e68"}];
+const THEMES=[{id:"auto",name:"Ikuti Sistem",emoji:"\u{1F317}",bg:"linear-gradient(135deg,#eef5fc 50%,#111825 50%)",accent:"#7a92a8"},{id:"default",name:"Langit",emoji:"\u2601\uFE0F",bg:"#eef5fc",accent:"#2186d4"},{id:"sky",name:"Biru",emoji:"\u{1F324}\uFE0F",bg:"#dff0fb",accent:"#0288d1"},{id:"mint",name:"Mint",emoji:"\u{1F33F}",bg:"#e8f5f0",accent:"#00897b"},{id:"slate",name:"Slate",emoji:"\u{1FAA8}",bg:"#edf1f7",accent:"#546e8a"},{id:"lavender",name:"Lavender",emoji:"\u{1FAB3}",bg:"#f0eef8",accent:"#6767b8"},{id:"cloud",name:"Mendung",emoji:"\u{1F32B}\uFE0F",bg:"#f4f7fa",accent:"#4a8fb8"},{id:"night",name:"Malam",emoji:"\u{1F319}",bg:"#111825",accent:"#4a8fe0"},{id:"warm",name:"Hangat",emoji:"\u{1F343}",bg:"#f5f0e8",accent:"#6a8e68"}];
 function getTodayStr(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function formatDate(s){const[y,m,d]=s.split("-");const date=new Date(y,m-1,d),today=new Date();today.setHours(0,0,0,0);const yest=new Date(today);yest.setDate(today.getDate()-1);if(date.toDateString()===today.toDateString())return"Hari ini";if(date.toDateString()===yest.toDateString())return"Kemarin";return date.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
 function formatTime(ts){if(!ts)return"";const d=ts.toDate?ts.toDate():new Date(ts);return d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});}
@@ -706,13 +736,13 @@ function loginAs(uid){
   el('admin-badge').textContent='\u{1F6E1}\uFE0F '+currentUser.name;
   _dateRegistered=false; // reset agar tanggal baru terdaftar
   renderHeaderAvatars();applyTheme(currentTheme);
-  try{startChat();loadStickers();loadPartnerProfile();ensureDateRegistered();loadStories();startStoryRefresh();}catch(e){console.error('Firebase init error:',e);setConnected(false);}
+  try{startChat();loadStickers();loadPartnerProfile();ensureDateRegistered();loadStories();startStoryRefresh();loadHighlights();watchPinnedMessage();checkTodayMemory();}catch(e){console.error('Firebase init error:',e);setConnected(false);}
   localStorage.setItem('cc-user',uid);
   pinBuffer='';pendingUserId=null;
   startIdleDetection(); // mulai deteksi idle
   startPresence(); // mulai kirim status online
 }
-window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');stopIdleDetection();stopStoryRefresh();stopPresence();if(isLocked){isLocked=false;el('lock-overlay').classList.add('hidden');}localStorage.removeItem('cc-user');};
+window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}if(pinnedMsgUnsub){pinnedMsgUnsub();pinnedMsgUnsub=null;}_currentPinned=null;setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');stopIdleDetection();stopStoryRefresh();stopPresence();if(isLocked){isLocked=false;el('lock-overlay').classList.add('hidden');}localStorage.removeItem('cc-user');};
 // ── PRESENCE (status online / terakhir dilihat) — menggantikan label statis "Online berdua" ──
 let presenceInterval=null,onlineStatusInterval=null,_partnerLastActive=null;
 async function updatePresence(){
@@ -743,6 +773,72 @@ function renderOnlineStatus(){
 }
 // CHAT
 const msgCol=()=>collection(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages');
+// ── PESAN DISEMATKAN (pin) — satu slot pin per room, disimpan di dokumen rooms/{roomId} ──
+let pinnedMsgUnsub=null,_currentPinned=null;
+function watchPinnedMessage(){
+  if(pinnedMsgUnsub)pinnedMsgUnsub();
+  pinnedMsgUnsub=onSnapshot(doc(db,'rooms',APP_CONFIG.roomId),snap=>{
+    _currentPinned=snap.data()?.pinnedMessage||null;
+    renderPinnedBanner(_currentPinned);
+  },err=>console.warn('watchPinnedMessage:',err));
+}
+function renderPinnedBanner(pin){
+  const bar=el('pinned-banner');if(!bar)return;
+  if(!pin){bar.classList.add('hidden');bar.innerHTML='';return;}
+  bar.classList.remove('hidden');
+  bar.innerHTML='<span style="font-size:14px">\u{1F4CC}</span><div style="flex:1;min-width:0;overflow:hidden"><div class="pinned-banner-label">Pesan disematkan</div><div class="pinned-banner-text"></div></div>';
+  bar.querySelector('.pinned-banner-text').textContent=pin.preview||'';
+  const closeBtn=document.createElement('button');closeBtn.textContent='✕';closeBtn.style.cssText='background:none;border:none;color:var(--text-secondary);font-size:14px;cursor:pointer;padding:4px;flex-shrink:0';
+  closeBtn.onclick=e=>{e.stopPropagation();unpinMessage();};
+  bar.appendChild(closeBtn);
+  bar.onclick=()=>{
+    if(pin.dateId===todayDateStr){
+      const row=document.querySelector('[data-id="'+pin.msgId+'"]');
+      if(row)row.scrollIntoView({behavior:'smooth',block:'center'});
+    }else{openHistoryView(pin.dateId);}
+  };
+}
+async function pinMessage(msgId,dateId,data){
+  const preview=data.type==='text'?data.content.slice(0,60):'['+(REPLY_TYPE_LABELS[data.type]||data.type)+']';
+  try{
+    await setDoc(doc(db,'rooms',APP_CONFIG.roomId),{pinnedMessage:{msgId,dateId,senderId:data.senderId,preview}},{merge:true});
+    showToast('Pesan disematkan \u{1F4CC}');
+  }catch(e){showToast('Gagal menyematkan pesan');}
+}
+window.unpinMessage=async()=>{
+  try{await setDoc(doc(db,'rooms',APP_CONFIG.roomId),{pinnedMessage:null},{merge:true});showToast('Sematan dilepas');}catch(e){showToast('Gagal melepas sematan');}
+};
+// ── KENANGAN HARI INI: cari obrolan di tanggal yang sama tahun/bulan/minggu lalu ──
+// Dicek sekali per hari (di-cache di localStorage) supaya tidak query berulang tiap buka app.
+async function checkTodayMemory(){
+  const cacheKey='cc-memory-checked-'+getTodayStr();
+  if(localStorage.getItem(cacheKey))return;
+  localStorage.setItem(cacheKey,'1');
+  const now=new Date();
+  const candidates=[365,730,30,7].map(days=>{
+    const d=new Date(now);d.setDate(now.getDate()-days);
+    return{days,dateStr:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+  });
+  for(const c of candidates){
+    try{
+      const snap=await getCountFromServer(collection(db,'rooms',APP_CONFIG.roomId,'dates',c.dateStr,'messages'));
+      if(snap.data().count>0){showMemoryBanner(c.dateStr,c.days);return;}
+    }catch(e){}
+  }
+}
+function showMemoryBanner(dateStr,daysAgo){
+  if(el('memory-banner'))return;
+  const label=daysAgo>=365?Math.round(daysAgo/365)+' tahun lalu':daysAgo>=30?Math.round(daysAgo/30)+' bulan lalu':daysAgo+' hari lalu';
+  const banner=document.createElement('div');banner.id='memory-banner';
+  banner.style.cssText='margin:8px 12px 0;background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:var(--shadow);animation:slideUp 0.3s ease;flex-shrink:0';
+  banner.innerHTML='<span style="font-size:22px">\u{1F4F8}</span><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:13px">Kenangan '+label+'</div><div style="font-size:11px;opacity:0.9">Lihat obrolan kalian di hari ini, '+label+'</div></div><span style="font-size:18px">›</span>';
+  banner.onclick=()=>{banner.remove();openHistoryView(dateStr);};
+  const closeBtn=document.createElement('span');closeBtn.textContent='✕';closeBtn.style.cssText='opacity:0.85;padding:4px;flex-shrink:0';
+  closeBtn.onclick=e=>{e.stopPropagation();banner.remove();};
+  banner.appendChild(closeBtn);
+  const storyBar=el('story-bar');
+  if(storyBar)storyBar.insertAdjacentElement('afterend',banner);
+}
 function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));unsubMessages=onSnapshot(q,snap=>{
     let scrolledByMe=false;
     snap.docChanges().forEach(ch=>{
@@ -857,8 +953,44 @@ function renderMessage(id,data,readOnly=false,container=null){
   // Avatar klik = lihat foto profil
   if(!isMe)av.onclick=e=>{e.stopPropagation();openProfileViewer(data.senderId);};
   row.appendChild(av);row.appendChild(col);target.appendChild(row);
+  if(!readOnly)attachSwipeToReply(row,id,data);
   // Mark as read: jika pesan dari partner, tandai sudah dibaca
   if(!isMe&&!readOnly&&currentUser)markAsRead(id,data);
+}
+// Swipe bubble ke samping (>60px) untuk membalas — gestur ala WhatsApp/Telegram.
+// Diputuskan horizontal-vs-vertikal di awal drag supaya tidak mengganggu scroll.
+function attachSwipeToReply(row,msgId,data){
+  row.style.position='relative';
+  const hint=document.createElement('div');
+  hint.textContent='↩';
+  hint.style.cssText='position:absolute;top:50%;transform:translateY(-50%);font-size:16px;color:var(--accent);opacity:0;pointer-events:none;transition:opacity 0.1s;'+(row.classList.contains('me')?'left:8px':'right:8px');
+  row.appendChild(hint);
+  const threshold=60;
+  let startX=0,startY=0,dx=0,dragging=false,decided=false,isHorizontal=false;
+  row.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    dx=0;dragging=true;decided=false;isHorizontal=false;
+  },{passive:true});
+  row.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    const x=e.touches[0].clientX,y=e.touches[0].clientY;
+    const ddx=x-startX,ddy=y-startY;
+    if(!decided){if(Math.abs(ddx)>8||Math.abs(ddy)>8){decided=true;isHorizontal=Math.abs(ddx)>Math.abs(ddy);}}
+    if(!isHorizontal)return;
+    e.preventDefault();
+    dx=Math.max(-90,Math.min(90,ddx));
+    row.style.transition='none';row.style.transform='translateX('+dx+'px)';
+    hint.style.opacity=String(Math.min(1,Math.abs(dx)/threshold));
+  },{passive:false});
+  const end=()=>{
+    if(!dragging)return;dragging=false;
+    row.style.transition='transform 0.2s ease';row.style.transform='';
+    hint.style.opacity='0';
+    if(isHorizontal&&Math.abs(dx)>threshold){startReply(msgId,data);if(navigator.vibrate)navigator.vibrate(15);}
+  };
+  row.addEventListener('touchend',end,{passive:true});
+  row.addEventListener('touchcancel',end,{passive:true});
 }
 function buildVoicePlayer(url,duration){
   const wrap=document.createElement('div');wrap.className='voice-player';
@@ -1190,6 +1322,10 @@ function showMsgActionSheet(msgId,data,bubble,isMe){
   replyB.onclick=()=>{overlay.remove();sheet.remove();startReply(msgId,data);};row.appendChild(replyB);
   if(data.type==='text'){const copyB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>','Salin',false);copyB.onclick=()=>{overlay.remove();sheet.remove();navigator.clipboard?.writeText(data.content).then(()=>showToast('Disalin \u2713')).catch(()=>{});};row.appendChild(copyB);}
   if(data.type==='photo'||data.type==='video'){const saveB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>','Simpan',false);saveB.onclick=()=>{overlay.remove();sheet.remove();window.open(data.content,'_blank');};row.appendChild(saveB);}
+  const isPinned=_currentPinned&&_currentPinned.msgId===msgId;
+  const pinB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a1 1 0 001-1V4a1 1 0 00-1-1H8a1 1 0 00-1 1v1a1 1 0 001 1h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg>',isPinned?'Lepas':'Sematkan',false);
+  pinB.onclick=()=>{overlay.remove();sheet.remove();if(isPinned)unpinMessage();else pinMessage(msgId,data._dateId||todayDateStr,data);};
+  row.appendChild(pinB);
   if(isMe){const delB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>','Hapus',true);delB.onclick=()=>{overlay.remove();sheet.remove();deleteMessage(msgId,data,data._dateId||todayDateStr);};row.appendChild(delB);}
   sheet.appendChild(row);
   document.body.appendChild(sheet);
@@ -1345,7 +1481,13 @@ function openStoryViewer(index){
   el('story-viewer').classList.remove('hidden');
   const seen=JSON.parse(localStorage.getItem('cc-seen-stories')||'[]');
   if(storyItems[index]&&!seen.includes(storyItems[index].id)){seen.push(storyItems[index].id);localStorage.setItem('cc-seen-stories',JSON.stringify(seen));}
+  if(storyItems[index])markStorySeen(storyItems[index]);
   renderStorySlide();
+}
+// Catat "dilihat pukul..." di Firestore — hanya untuk story milik partner, bukan story sendiri
+async function markStorySeen(s){
+  if(!currentUser||s.authorId===currentUser.id)return;
+  try{await updateDoc(doc(db,'rooms',APP_CONFIG.roomId,'stories',s.id),{['viewedBy.'+currentUser.id]:serverTimestamp()});}catch(e){}
 }
 function renderStorySlide(){
   if(!storyItems[storyIndex]){closeStoryViewer();return;}
@@ -1355,6 +1497,15 @@ function renderStorySlide(){
   el('story-header-name').textContent=cfg.name||'Partner';
   el('story-header-av').innerHTML=ph?'<img src="'+ph+'">':'<span style="font-size:20px">'+(cfg.avatar||'\u2601\uFE0F')+'</span>';
   if(s.createdAt?.toMillis){const mins=Math.floor((Date.now()-s.createdAt.toMillis())/60000);el('story-header-time').textContent=mins<1?'Baru saja':mins<60?(mins+'m lalu'):(Math.floor(mins/60)+'j lalu');}
+  const seenEl=el('story-header-seen');
+  if(s.authorId===currentUser?.id&&otherUser&&s.viewedBy&&s.viewedBy[otherUser.id]){
+    const vt=s.viewedBy[otherUser.id];
+    const d=vt?.toDate?vt.toDate():null;
+    seenEl.textContent=d?('Dilihat '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})):'Sudah dilihat';
+    seenEl.classList.remove('hidden');
+  }else{
+    seenEl.classList.add('hidden');
+  }
   const content=el('story-content');
   content.querySelectorAll('img,video').forEach(e=>e.remove());
   const isVideo=s.mediaType==='video';
@@ -1372,6 +1523,7 @@ function renderStorySlide(){
   el('story-caption').textContent=s.caption||'';
   el('story-caption').classList.toggle('hidden',!s.caption);
   el('story-delete-btn').classList.toggle('hidden',s.authorId!==currentUser?.id);
+  el('story-highlight-btn').classList.toggle('hidden',s.authorId!==currentUser?.id);
   renderStoryProgress();
   // Video: progress bar & lanjut-otomatis mengikuti durasi asli video (via onended di atas).
   // Foto: pakai timer tetap 5 detik.
@@ -1423,6 +1575,92 @@ window.deleteCurrentStory=async()=>{
     showToast('Story dihapus');
   }catch(e){showToast('Gagal hapus story');}
 };
+// ── STORY HIGHLIGHT: simpan story favorit permanen (tidak ikut kehapus 24 jam) ──
+// File media di-copy ke path storage sendiri supaya tidak ikut terhapus saat
+// story asalnya expired & dibersihkan otomatis oleh loadStories().
+let highlightItems=[];
+async function loadHighlights(){
+  try{
+    const snap=await getDocs(query(collection(db,'rooms',APP_CONFIG.roomId,'highlights'),orderBy('createdAt','desc')));
+    highlightItems=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderHighlightBar();
+  }catch(e){console.warn('loadHighlights:',e);}
+}
+function renderHighlightBar(){
+  let bar=el('highlight-bar');
+  if(!highlightItems.length){if(bar)bar.classList.add('hidden');return;}
+  if(!bar){
+    bar=document.createElement('div');bar.id='highlight-bar';bar.className='story-bar';
+    el('story-bar').insertAdjacentElement('afterend',bar);
+  }
+  bar.classList.remove('hidden');bar.innerHTML='';
+  highlightItems.forEach((h,i)=>{
+    const ph=profilePhotos[h.authorId];
+    const item=document.createElement('div');item.className='story-item';
+    item.innerHTML='<div class="story-ring highlight"><div class="story-av">'+(h.mediaType==='video'?'\u{1F3AC}':(ph?'<img src="'+ph+'">':'⭐'))+'</div></div><span class="story-name">'+(h.caption?h.caption.slice(0,10):'Highlight')+'</span>';
+    item.onclick=()=>openHighlightViewer(i);
+    bar.appendChild(item);
+  });
+}
+window.saveStoryToHighlight=async()=>{
+  const s=storyItems[storyIndex];if(!s||s.authorId!==currentUser?.id)return;
+  const prog=showProgress('Menyimpan ke Highlight...');
+  try{
+    const blob=await(await fetch(s.mediaUrl)).blob();
+    const ext=s.mediaType==='video'?'mp4':((s.storagePath||'').split('.').pop()||'jpg');
+    const path='highlights/'+currentUser.id+'/'+Date.now()+'_highlight.'+ext;
+    await uploadBytes(sRef(storage,path),blob);
+    const mediaUrl=await getDownloadURL(sRef(storage,path));
+    await addDoc(collection(db,'rooms',APP_CONFIG.roomId,'highlights'),{
+      authorId:currentUser.id,authorName:currentUser.name,mediaUrl,mediaType:s.mediaType||'image',
+      storagePath:path,caption:s.caption||'',createdAt:serverTimestamp()
+    });
+    await loadHighlights();
+    showToast('Disimpan ke Highlight ⭐');
+  }catch(e){console.error('saveStoryToHighlight error:',e);showToast('Gagal simpan ke highlight');}
+  finally{prog.remove();}
+};
+let highlightIndex=0;
+function openHighlightViewer(index){highlightIndex=index;renderHighlightSlide();}
+function renderHighlightSlide(){
+  const h=highlightItems[highlightIndex];if(!h)return;
+  document.querySelectorAll('.photo-lightbox').forEach(e=>e.remove());
+  const lb=document.createElement('div');lb.className='photo-lightbox';
+  let mediaEl;
+  if(h.mediaType==='video'){mediaEl=document.createElement('video');mediaEl.src=h.mediaUrl;mediaEl.controls=true;mediaEl.autoplay=true;mediaEl.playsInline=true;}
+  else{mediaEl=document.createElement('img');mediaEl.src=h.mediaUrl;}
+  mediaEl.style.cssText='max-width:94vw;max-height:80vh;object-fit:contain;border-radius:10px';
+  lb.appendChild(mediaEl);
+  if(h.caption){const cap=document.createElement('div');cap.textContent=h.caption;cap.style.cssText='position:absolute;bottom:70px;left:0;right:0;text-align:center;color:white;font-size:14px;padding:0 20px';lb.appendChild(cap);}
+  const onKey=e=>{if(e.key==='Escape')close();if(e.key==='ArrowRight')nav(1);if(e.key==='ArrowLeft')nav(-1);};
+  const close=()=>{lb.remove();document.removeEventListener('keydown',onKey);};
+  const c=document.createElement('button');c.className='photo-lightbox-close';c.textContent='✕';c.onclick=close;
+  lb.onclick=e=>{if(e.target===lb)close();};
+  document.addEventListener('keydown',onKey);
+  lb.appendChild(c);
+  if(h.authorId===currentUser?.id){
+    const del=document.createElement('button');del.className='photo-lightbox-close';del.style.cssText='left:16px;right:auto';del.innerHTML='\u{1F5D1}️';
+    del.onclick=async e=>{
+      e.stopPropagation();
+      if(!confirm('Hapus highlight ini?'))return;
+      try{
+        if(h.storagePath)await deleteObject(sRef(storage,h.storagePath)).catch(()=>{});
+        await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'highlights',h.id));
+        highlightItems.splice(highlightIndex,1);
+        close();renderHighlightBar();
+        showToast('Highlight dihapus');
+      }catch(err){showToast('Gagal hapus highlight');}
+    };
+    lb.appendChild(del);
+  }
+  function nav(dir){const ni=highlightIndex+dir;if(ni<0||ni>=highlightItems.length)return;close();highlightIndex=ni;renderHighlightSlide();}
+  if(highlightItems.length>1){
+    const prevZone=document.createElement('div');prevZone.style.cssText='position:absolute;left:0;top:0;bottom:0;width:30%;cursor:pointer';prevZone.onclick=e=>{e.stopPropagation();nav(-1);};
+    const nextZone=document.createElement('div');nextZone.style.cssText='position:absolute;right:0;top:0;bottom:0;width:30%;cursor:pointer';nextZone.onclick=e=>{e.stopPropagation();nav(1);};
+    lb.appendChild(prevZone);lb.appendChild(nextZone);
+  }
+  document.body.appendChild(lb);
+}
 window.sendStoryReply=async()=>{
   const inp=el('story-reply-input');const text=inp.value.trim();if(!text||!currentUser)return;
   inp.value='';
@@ -1745,7 +1983,19 @@ function watchReadStatus(){
 window.showReactionPicker=(msgId,bubble,dateId)=>{openEmojiPicker(msgId,dateId);};
 function updateReactionsUI(row,reactions){const div=row.querySelector('.msg-reactions');if(!div)return;const groups={};Object.values(reactions).forEach(r=>{groups[r.emoji]=(groups[r.emoji]||0)+1;});div.innerHTML="";Object.entries(groups).forEach(([emoji,count])=>{const s=document.createElement('span');s.className='msg-reaction';s.textContent=emoji+(count>1?' '+count:'');div.appendChild(s);});}
 // THEMES
-function applyTheme(id){currentTheme=id;document.body.setAttribute('data-theme',id==='default'?'':id);localStorage.setItem('cc-theme',id);renderThemeGrid();}
+let _systemThemeMedia=null;
+function applyTheme(id){
+  currentTheme=id;
+  localStorage.setItem('cc-theme',id);
+  const effective=id==='auto'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'night':'default'):id;
+  document.body.setAttribute('data-theme',effective==='default'?'':effective);
+  document.documentElement.setAttribute('data-theme',effective==='default'?'':effective);
+  if(id==='auto'&&!_systemThemeMedia&&window.matchMedia){
+    _systemThemeMedia=window.matchMedia('(prefers-color-scheme: dark)');
+    _systemThemeMedia.addEventListener('change',()=>{if(currentTheme==='auto')applyTheme('auto');});
+  }
+  renderThemeGrid();
+}
 function renderThemeGrid(){const grid=el('theme-grid');grid.innerHTML="";THEMES.forEach(t=>{const c=document.createElement('div');c.className='theme-card'+(currentTheme===t.id?' active':'');c.style.background=t.bg;c.style.color=t.accent;c.innerHTML='<div class="theme-preview">'+t.emoji+'</div><div class="theme-name" style="color:'+t.accent+'">'+t.name+'</div><div class="theme-check">\u2713</div>';c.onclick=()=>{applyTheme(t.id);closeTheme();showToast('Tema "'+t.name+'" aktif');};grid.appendChild(c);});}
 window.openTheme=()=>{renderThemeGrid();toggleSheet('theme',true);};window.closeTheme=()=>toggleSheet('theme',false);
 // STICKERS
@@ -1840,7 +2090,9 @@ window.openHistory=async()=>{const list=el('history-list'),empty=el('history-emp
     list.appendChild(item);
   });}}catch(e){console.error('openHistory error:',e);list.innerHTML='<p style="color:#e74c3c;text-align:center;padding:20px;font-size:13px">Gagal memuat riwayat.<br><small>'+e.message+'</small></p>';}toggleSheet('history',true);};
 window.closeHistory=()=>toggleSheet('history',false);
+let _currentHistoryDate=null;
 async function openHistoryView(dateStr){
+  _currentHistoryDate=dateStr;
   const msgContainer=el('modal-messages');
   el('modal-history-date').textContent=formatDate(dateStr);
   msgContainer.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-secondary);font-size:13px">⏳ Memuat...</div>';
@@ -1871,6 +2123,39 @@ async function openHistoryView(dateStr){
   }
 }
 window.closeHistoryView=e=>{if(e&&e.target!==el('modal-history-view'))return;el('modal-history-view').classList.add('hidden');el('modal-messages').innerHTML='';};  window.closeHistoryViewDirect=()=>{el('modal-history-view').classList.add('hidden');el('modal-messages').innerHTML='';};
+// ── EKSPOR CHAT KE PDF ── pakai window.print() bawaan browser (Simpan sbg PDF),
+// tanpa dependensi eksternal. Suara/video ditandai label karena tidak bisa
+// ditampilkan di dokumen cetak/PDF statis.
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+window.exportHistoryToPdf=async()=>{
+  const dateStr=_currentHistoryDate;if(!dateStr)return;
+  showToast('Menyiapkan ekspor...');
+  try{
+    const snap=await getDocs(query(collection(db,'rooms',APP_CONFIG.roomId,'dates',dateStr,'messages'),orderBy('timestamp','asc')));
+    if(snap.empty){showToast('Tidak ada pesan untuk diekspor');return;}
+    let root=el('print-export-root');
+    if(!root){root=document.createElement('div');root.id='print-export-root';document.body.appendChild(root);}
+    root.innerHTML='';
+    const header=document.createElement('div');header.className='print-header';
+    header.innerHTML='<h1>CalmChat ☁️</h1><p>'+escapeHtml(APP_CONFIG.user1.name+' & '+APP_CONFIG.user2.name)+'</p><p>'+escapeHtml(formatDate(dateStr))+'</p>';
+    root.appendChild(header);
+    snap.docs.forEach(docSnap=>{
+      const m=docSnap.data();
+      const who=APP_CONFIG[m.senderId]?.name||m.senderName||'?';
+      const time=formatTime(m.timestamp);
+      const row=document.createElement('div');row.className='print-msg';
+      let contentHtml='';
+      if(m.type==='text')contentHtml='<p>'+escapeHtml(m.content||'')+'</p>';
+      else if(m.type==='photo')contentHtml='<img src="'+m.content+'">';
+      else if(m.type==='sticker')contentHtml='<img src="'+m.content+'" style="width:80px;height:80px">';
+      else if(m.type==='voice')contentHtml='<p><em>[Pesan suara — '+fmtDur(m.duration||0)+']</em></p>';
+      else if(m.type==='video')contentHtml='<p><em>[Video]</em></p>';
+      row.innerHTML='<div class="print-msg-head"><b>'+escapeHtml(who)+'</b><span>'+time+'</span></div>'+contentHtml;
+      root.appendChild(row);
+    });
+    setTimeout(()=>window.print(),300); // beri waktu gambar termuat
+  }catch(e){console.error('exportHistoryToPdf error:',e);showToast('Gagal menyiapkan ekspor');}
+};
 // PROFILE
 function renderTypingAvatar(){
   if(!otherUser)return;
@@ -2177,16 +2462,20 @@ async function getAllStoryMedia(){
   const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'stories'));
   return snap.docs.map(d=>({...d.data(),content:d.data().mediaUrl,msgId:d.id,dateId:'stories',type:'story'}));
 }
+async function getAllHighlightMedia(){
+  const snap=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'highlights'));
+  return snap.docs.map(d=>({...d.data(),content:d.data().mediaUrl,msgId:d.id,dateId:'highlights',type:'highlight'}));
+}
 window.backupAllMediaToDrive=async()=>{
   if(!currentUser?.isAdmin)return;
   if(!gdriveAccessToken){showToast('Hubungkan Google Drive dulu');return;}
   const prog=showProgress('Menyiapkan backup...');
   try{
     const folderId=await ensureDriveFolder();
-    const[photos,videos,voices,stickers,stories]=await Promise.all([
-      getAllMedia('photo'),getAllMedia('video'),getAllMedia('voice'),getAllStickerMedia(),getAllStoryMedia()
+    const[photos,videos,voices,stickers,stories,highlights]=await Promise.all([
+      getAllMedia('photo'),getAllMedia('video'),getAllMedia('voice'),getAllStickerMedia(),getAllStoryMedia(),getAllHighlightMedia()
     ]);
-    const all=[...photos,...videos,...voices,...stickers,...stories];
+    const all=[...photos,...videos,...voices,...stickers,...stories,...highlights];
     const backedUp=new Set(JSON.parse(localStorage.getItem('cc-drive-backed-up')||'[]'));
     const todo=all.filter(item=>item.storagePath&&!backedUp.has(item.storagePath));
     if(!todo.length){prog.remove();showToast('Semua media sudah pernah di-backup \u2713');return;}

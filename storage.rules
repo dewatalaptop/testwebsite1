@@ -56,6 +56,14 @@ service firebase.storage {
       allow delete: if true;
     }
 
+    match /highlights/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 60 * 1024 * 1024
+          && (request.resource.contentType.matches('image/.*')
+              || request.resource.contentType.matches('video/.*'));
+      allow delete: if true;
+    }
+
     // Tutup semua path lain secara default.
     match /{allPaths=**} {
       allow read, write: if false;

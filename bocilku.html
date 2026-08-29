@@ -996,6 +996,15 @@ async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers
 window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const compressed=await compressImage(file,800,0.55);prog.setText('Mengunggah...');await ensureDateRegistered(todayDateStr);const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),compressed);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
 function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej('fail');},'image/jpeg',quality);};img.onerror=rej;img.src=url;});}
 // ── VIDEO: kompresi via ffmpeg.wasm (dimuat lazy, hanya saat pertama kali kirim video) ──
+function getVideoDuration(file){
+  return new Promise(res=>{
+    const url=URL.createObjectURL(file);
+    const v=document.createElement('video');v.preload='metadata';
+    v.onloadedmetadata=()=>{URL.revokeObjectURL(url);res(isFinite(v.duration)?v.duration:0);};
+    v.onerror=()=>{URL.revokeObjectURL(url);res(0);};
+    v.src=url;
+  });
+}
 let _ffmpegInstance=null;
 async function blobUrlFromRemote(url,mimeType){
   const buf=await(await fetch(url)).arrayBuffer();
@@ -1033,6 +1042,8 @@ window.sendVideo=async event=>{
   if(!file||!currentUser)return;
   if(!file.type.startsWith('video/')){showToast('File harus berupa video');return;}
   if(file.size>500*1024*1024){showToast('Video terlalu besar (maks 500MB)');return;}
+  const dur=await getVideoDuration(file);
+  if(dur>120)showToast('Video lebih dari 2 menit — hanya 2 menit pertama yang dikirim',3500);
   const prog=showProgress('Menyiapkan kompresi video...');
   try{
     const compressed=await compressVideo(file,prog);
@@ -1424,6 +1435,10 @@ window.submitStoryUpload=async()=>{
 };
 async function postStory(file,caption){
   const isVideo=file.type.startsWith('video/');
+  if(isVideo){
+    const dur=await getVideoDuration(file);
+    if(dur>120)showToast('Video lebih dari 2 menit — hanya 2 menit pertama yang dipost',3500);
+  }
   const prog=showProgress(isVideo?'Mengompresi video...':'Mengupload story...');
   try{
     let uploadFile=file,ext='jpg',contentType=undefined;

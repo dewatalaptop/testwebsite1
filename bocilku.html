@@ -6,6 +6,7 @@
 <title>CalmChat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#eef5fc;--bg2:#ddeaf7;--surface:#fff;--surface2:#f2f8fd;--bubble-me:linear-gradient(135deg,#4ea8e8,#2186d4);--bubble-other:#fff;--bubble-me-text:#fff;--bubble-other-text:#2c3e50;--accent:#2186d4;--accent2:#7ec8f5;--header-bg:rgba(255,255,255,0.88);--input-bg:rgba(255,255,255,0.96);--text-primary:#1e2d3d;--text-secondary:#7a92a8;--border:rgba(33,134,212,0.14);--shadow:0 4px 24px rgba(33,134,212,0.10);--radius-bubble:18px;--font-main:'Nunito',sans-serif;--transition:0.25s cubic-bezier(.4,0,.2,1)}
@@ -86,6 +87,8 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .msg-bubble.is-sticker img{width:120px;height:120px;object-fit:contain;border-radius:12px;image-rendering:auto}
 .msg-bubble.is-photo{background:transparent!important;border:none!important;box-shadow:none!important;padding:0}
 .msg-bubble.is-photo img{max-width:220px;max-height:260px;object-fit:cover;border-radius:16px;display:block;box-shadow:0 3px 14px rgba(0,0,0,0.18)}
+.msg-bubble.is-video{background:transparent!important;border:none!important;box-shadow:none!important;padding:0}
+.msg-bubble.is-video video{max-width:240px;max-height:280px;border-radius:16px;display:block;background:#000;box-shadow:0 3px 14px rgba(0,0,0,0.18)}
 .msg-row.me .msg-bubble.is-voice{background:var(--bubble-me);color:var(--bubble-me-text);border-bottom-right-radius:6px}
 .msg-row.other .msg-bubble.is-voice{background:var(--bubble-other);border:1px solid var(--border);border-bottom-left-radius:6px}
 .voice-player{display:flex;align-items:center;gap:10px;min-width:170px}
@@ -192,8 +195,9 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .admin-badge{background:var(--accent);color:white;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700}
 .admin-close-btn{background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:8px;border-radius:12px;display:flex}
 .admin-close-btn svg{width:20px;height:20px}
-.admin-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
-.admin-tab{flex:1;padding:12px 6px;text-align:center;font-size:12px;font-weight:700;color:var(--text-secondary);border:none;background:none;cursor:pointer;font-family:var(--font-main);border-bottom:2.5px solid transparent;transition:all 0.2s}
+.admin-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);overflow-x:auto;scrollbar-width:none}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tab{flex:1;padding:10px 4px;text-align:center;font-size:11px;font-weight:700;color:var(--text-secondary);border:none;background:none;cursor:pointer;font-family:var(--font-main);border-bottom:2.5px solid transparent;transition:all 0.2s;white-space:nowrap}
 .admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .admin-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
 .admin-section-title{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
@@ -359,7 +363,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
         <button class="pin-key" onclick="pinClear()">&#x232B;</button><button class="pin-key" onclick="pinInput('0')">0</button><button class="pin-key" onclick="cancelLogin()">&#x2715;</button>
       </div>
       <p id="pin-error" class="pin-error hidden">PIN salah, coba lagi</p>
-      <p id="pin-reset-hint" class="hidden" style="font-size:11px;color:#aaa;margin-top:8px;cursor:pointer;text-decoration:underline" onclick="resetPinFallback()">Lupa PIN? Reset ke default</p>
+      <p id="pin-reset-hint" class="hidden" style="font-size:11px;color:#aaa;margin-top:8px">Lupa PIN? Minta pasangan (admin) reset lewat Admin Panel.</p>
     </div>
   </div>
 </div>
@@ -412,6 +416,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
     </button>
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="sendPhoto(event)"/>
+    <button class="input-btn" onclick="document.getElementById('video-input').click()" title="Video">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    </button>
+    <input type="file" id="video-input" accept="video/*" style="display:none" onchange="sendVideo(event)"/>
     <div class="input-wrap">
       <textarea id="msg-input" class="msg-input" placeholder="Tulis sesuatu..." rows="1" oninput="onTyping(this)" onkeydown="onInputKeydown(event)"></textarea>
     </div>
@@ -505,8 +513,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   </div>
   <div class="admin-tabs">
     <button class="admin-tab active" onclick="switchAdminTab('photos')">&#x1F4F7; Foto</button>
+    <button class="admin-tab" onclick="switchAdminTab('videos')">&#x1F3AC; Video</button>
     <button class="admin-tab" onclick="switchAdminTab('voices')">&#x1F399; Suara</button>
     <button class="admin-tab" onclick="switchAdminTab('stickers')">&#x1F5BC; Stiker</button>
+    <button class="admin-tab" onclick="switchAdminTab('account')">&#x2699;&#xFE0F; Lainnya</button>
   </div>
   <div class="admin-body" id="admin-body"></div>
 </div>
@@ -581,8 +591,11 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 const firebaseConfig={apiKey:"AIzaSyDkSAxnbKHUbc4T-jQg6xVUiHyd4i0XiP0",authDomain:"chatbot-dolan-sawah-v2.firebaseapp.com",projectId:"chatbot-dolan-sawah-v2",storageBucket:"chatbot-dolan-sawah-v2.firebasestorage.app",messagingSenderId:"337869888557",appId:"1:337869888557:web:4416d6f89d8089c7096ca4"};
 // user1 = ADMIN
 const DEFAULT_CFG={user1:{id:"user1",name:"Ryan",avatar:"\u{1F324}\uFE0F",pin:"1234",isAdmin:true},user2:{id:"user2",name:"Anna",avatar:"\u{1F33F}",pin:"5678",isAdmin:false},roomId:"our-private-room"};
+// Buat OAuth Client ID (Web application) di https://console.cloud.google.com/apis/credentials
+// lalu tempel di sini agar fitur "Backup ke Google Drive" (Admin Panel > Lainnya) bisa dipakai.
+const GOOGLE_DRIVE_CLIENT_ID="PASTE_YOUR_GOOGLE_OAUTH_CLIENT_ID_HERE.apps.googleusercontent.com";
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,doc,addDoc,onSnapshot,query,orderBy,serverTimestamp,getDocs,updateDoc,setDoc,getDoc,deleteDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,doc,addDoc,onSnapshot,query,orderBy,serverTimestamp,getDocs,updateDoc,setDoc,getDoc,deleteDoc,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import{getStorage,ref as sRef,uploadBytes,getDownloadURL,deleteObject}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
@@ -746,6 +759,7 @@ function renderMessage(id,data,readOnly=false,container=null){
   const bubble=document.createElement('div');bubble.className='msg-bubble';
   if(data.type==='sticker'){bubble.classList.add('is-sticker');const img=document.createElement('img');img.src=data.content;img.loading='lazy';bubble.appendChild(img);if(data.isGif||data.content?.toLowerCase().includes('.gif'))img.style.imageRendering='auto';}
   else if(data.type==='photo'){bubble.classList.add('is-photo');const img=document.createElement('img');img.src=data.content;img.loading='lazy';img.onclick=()=>openLightbox(data.content);bubble.appendChild(img);}
+  else if(data.type==='video'){bubble.classList.add('is-video');const vid=document.createElement('video');vid.src=data.content;vid.controls=true;vid.playsInline=true;vid.preload='metadata';bubble.appendChild(vid);}
   else if(data.type==='voice'){
     bubble.classList.add('is-voice');
     const safeDur=(data.duration&&isFinite(data.duration)&&!isNaN(data.duration)&&data.duration>0)?data.duration:0;
@@ -763,14 +777,14 @@ function renderMessage(id,data,readOnly=false,container=null){
   }
   if(!readOnly){
     // TAP TUNGGAL = buka action sheet (bukan long-press)
-    if(data.type!=='voice'&&data.type!=='photo'){
+    if(data.type!=='voice'&&data.type!=='photo'&&data.type!=='video'){
       bubble.addEventListener('click',e=>{
         e.stopPropagation();
         showMsgActionSheet(id,data,bubble,isMe);
       });
     }
-    // Foto: tap = lightbox, tap & hold baru action
-    if(data.type==='photo'){
+    // Foto/Video: tap = lihat/putar, tap & hold baru action
+    if(data.type==='photo'||data.type==='video'){
       let pressTimer;
       bubble.addEventListener('touchstart',()=>{pressTimer=setTimeout(()=>showMsgActionSheet(id,data,bubble,isMe),600);},{passive:true});
       bubble.addEventListener('touchend',()=>clearTimeout(pressTimer));
@@ -921,6 +935,7 @@ async function ensureDateRegistered(dateStr){
 window.sendMessage=async()=>{
   const inp=el('msg-input'),text=inp.value.trim();
   if(!text||!currentUser||_sending)return;
+  if(text.length>4000){showToast('Pesan terlalu panjang (maks 4000 karakter)');return;}
   _sending=true;
   const replyTo=inp.dataset.replyTo||null;
   const replyPreview=inp.dataset.replyPreview||null;
@@ -938,6 +953,58 @@ window.sendMessage=async()=>{
 async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await ensureDateRegistered(todayDateStr);await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
 window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const compressed=await compressImage(file,800,0.55);prog.setText('Mengunggah...');await ensureDateRegistered(todayDateStr);const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),compressed);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
 function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej('fail');},'image/jpeg',quality);};img.onerror=rej;img.src=url;});}
+// ── VIDEO: kompresi via ffmpeg.wasm (dimuat lazy, hanya saat pertama kali kirim video) ──
+let _ffmpegInstance=null;
+async function blobUrlFromRemote(url,mimeType){
+  const buf=await(await fetch(url)).arrayBuffer();
+  return URL.createObjectURL(new Blob([buf],{type:mimeType}));
+}
+async function getFFmpeg(onProgress){
+  if(_ffmpegInstance)return _ffmpegInstance;
+  const{FFmpeg}=await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js');
+  const ffmpeg=new FFmpeg();
+  if(onProgress)ffmpeg.on('progress',({progress})=>onProgress(Math.max(0,Math.min(1,progress))));
+  const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm';
+  await ffmpeg.load({
+    coreURL:await blobUrlFromRemote(base+'/ffmpeg-core.js','text/javascript'),
+    wasmURL:await blobUrlFromRemote(base+'/ffmpeg-core.wasm','application/wasm')
+  });
+  _ffmpegInstance=ffmpeg;
+  return ffmpeg;
+}
+// Kompres video: skala maks 640px, H.264 CRF30, audio AAC 96kbps, dipotong maks 2 menit.
+async function compressVideo(file,prog){
+  const ffmpeg=await getFFmpeg(p=>prog?.setText&&prog.setText('Mengompresi video... '+Math.round(p*100)+'%'));
+  const stamp=Date.now();
+  const inExt=(file.name.match(/\.\w+$/)||['.mp4'])[0];
+  const inName='in_'+stamp+inExt;
+  const outName='out_'+stamp+'.mp4';
+  await ffmpeg.writeFile(inName,new Uint8Array(await file.arrayBuffer()));
+  await ffmpeg.exec(['-i',inName,'-vf',"scale='min(640,iw)':-2","-c:v","libx264","-preset","veryfast","-crf","30","-c:a","aac","-b:a","96k","-movflags","+faststart","-t","120",outName]);
+  const data=await ffmpeg.readFile(outName);
+  await ffmpeg.deleteFile(inName).catch(()=>{});
+  await ffmpeg.deleteFile(outName).catch(()=>{});
+  return new Blob([data.buffer],{type:'video/mp4'});
+}
+window.sendVideo=async event=>{
+  const file=event.target.files[0];event.target.value="";
+  if(!file||!currentUser)return;
+  if(!file.type.startsWith('video/')){showToast('File harus berupa video');return;}
+  if(file.size>500*1024*1024){showToast('Video terlalu besar (maks 500MB)');return;}
+  const prog=showProgress('Menyiapkan kompresi video...');
+  try{
+    const compressed=await compressVideo(file,prog);
+    prog.setText('Mengunggah video...');
+    await ensureDateRegistered(todayDateStr);
+    const path='videos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.mp4';
+    await uploadBytes(sRef(storage,path),compressed,{contentType:'video/mp4'});
+    const url=await getDownloadURL(sRef(storage,path));
+    await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'video',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});
+  }catch(e){
+    console.error('sendVideo error:',e);
+    showToast('Gagal kirim video: '+(e?.message||'error kompresi'));
+  }finally{prog.remove();}
+};
 window.toggleRecord=async()=>{if(!isRecording)await startRecord();else await stopRecord();};
 async function startRecord(){
   if(typeof MediaRecorder==='undefined'){
@@ -1055,7 +1122,7 @@ function showMsgActionSheet(msgId,data,bubble,isMe){
   const replyB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/></svg>','Balas',false);
   replyB.onclick=()=>{overlay.remove();sheet.remove();startReply(msgId,data);};row.appendChild(replyB);
   if(data.type==='text'){const copyB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>','Salin',false);copyB.onclick=()=>{overlay.remove();sheet.remove();navigator.clipboard?.writeText(data.content).then(()=>showToast('Disalin \u2713')).catch(()=>{});};row.appendChild(copyB);}
-  if(data.type==='photo'){const saveB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>','Simpan',false);saveB.onclick=()=>{overlay.remove();sheet.remove();window.open(data.content,'_blank');};row.appendChild(saveB);}
+  if(data.type==='photo'||data.type==='video'){const saveB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>','Simpan',false);saveB.onclick=()=>{overlay.remove();sheet.remove();window.open(data.content,'_blank');};row.appendChild(saveB);}
   if(isMe){const delB=makeActionBtn('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>','Hapus',true);delB.onclick=()=>{overlay.remove();sheet.remove();deleteMessage(msgId,data,data._dateId||todayDateStr);};row.appendChild(delB);}
   sheet.appendChild(row);
   document.body.appendChild(sheet);
@@ -1072,7 +1139,14 @@ function startReply(msgId,data){
   if(!replyBar){replyBar=document.createElement('div');replyBar.id='reply-bar';
     replyBar.style.cssText='background:var(--surface2);border-left:3px solid var(--accent);padding:6px 12px;font-size:12px;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;flex-shrink:0';
     el('input-bar').parentNode.insertBefore(replyBar,el('input-bar'));}
-  replyBar.innerHTML='<span>\u21A9 '+preview+'</span><button onclick="cancelReply()" style="background:none;border:none;color:var(--text-secondary);font-size:16px;cursor:pointer">\u2715</button>';
+  // Dibangun via textContent (bukan innerHTML) \u2014 data.content berasal dari pesan partner,
+  // tidak boleh diinterpretasi sebagai HTML (cegah stored XSS).
+  replyBar.innerHTML='';
+  const replySpan=document.createElement('span');replySpan.textContent='\u21A9 '+preview;
+  const replyCloseBtn=document.createElement('button');replyCloseBtn.textContent='\u2715';
+  replyCloseBtn.style.cssText='background:none;border:none;color:var(--text-secondary);font-size:16px;cursor:pointer';
+  replyCloseBtn.onclick=()=>cancelReply();
+  replyBar.appendChild(replySpan);replyBar.appendChild(replyCloseBtn);
   inp.focus();
 }
 window.cancelReply=()=>{const inp=el('msg-input');delete inp.dataset.replyTo;delete inp.dataset.replyPreview;const bar=el('reply-bar');if(bar)bar.remove();};
@@ -1137,11 +1211,14 @@ window.addReaction=async(emoji,msgIdParam,dateIdParam)=>{
   const targetDate=dateIdParam||todayDateStr;
   try{
     const mRef=doc(db,'rooms',APP_CONFIG.roomId,'dates',targetDate,'messages',msgId);
-    const snap=await getDoc(mRef);
-    const rx=snap.data()?.reactions||{};
-    const key=emoji+'_'+currentUser.id;
-    if(rx[key])delete rx[key];else rx[key]={emoji,userId:currentUser.id,ts:Date.now()};
-    await updateDoc(mRef,{reactions:rx});
+    // Transaction — cegah reaksi hilang tertimpa jika kedua user menekan hampir bersamaan
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(mRef);
+      const rx=snap.data()?.reactions||{};
+      const key=emoji+'_'+currentUser.id;
+      if(rx[key])delete rx[key];else rx[key]={emoji,userId:currentUser.id,ts:Date.now()};
+      tx.update(mRef,{reactions:rx});
+    });
   }catch(e){console.error('addReaction error:',e);showToast('Gagal memberi reaksi');}
   reactionTarget=null;
 };
@@ -1660,21 +1737,18 @@ window.closeHistoryView=e=>{if(e&&e.target!==el('modal-history-view'))return;el(
 function renderHeaderAvatars(){if(!currentUser||!otherUser)return;const wMe=el('hdr-wrap-me'),wOther=el('hdr-wrap-other');if(wMe){wMe.innerHTML='';const ph=profilePhotos[currentUser.id];if(ph){wMe.innerHTML='<img src="'+ph+'">';}else{wMe.innerHTML='<span>'+currentUser.avatar+'</span>';}}if(wOther){wOther.innerHTML='';const ph=profilePhotos[otherUser.id];if(ph){wOther.innerHTML='<img src="'+ph+'">';}else{wOther.innerHTML='<span>'+otherUser.avatar+'</span>';}}}
 function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el('login-av'+(i+1));if(!wrap)return;const photo=profilePhotos[uid];if(photo){wrap.style.cssText='font-size:0;width:60px;height:60px;border-radius:50%;overflow:hidden;margin:0 auto 4px;border:2.5px solid #2186d4;';wrap.innerHTML='<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">';}else{wrap.style.cssText='font-size:42px;';wrap.textContent=APP_CONFIG[uid]?.avatar||'\u{1F464}';}});}
 window.openMyProfile=()=>{if(currentUser)openProfileModal(currentUser.id);};
-window.openProfileModal=uid=>{
-  if(!uid)uid=currentUser?.id||'user1';
+window.openProfileModal=()=>{
   // Wajib sudah login untuk edit profil
   if(!currentUser){showToast('Login dulu untuk edit profil');return;}
-  // Hanya bisa edit profil sendiri (kecuali admin)
-  if(uid!==currentUser.id&&!currentUser.isAdmin){
-    showToast('Kamu hanya bisa edit profil sendiri');return;
-  }
+  // Hanya bisa edit profil sendiri — termasuk admin. PIN partner tidak bisa
+  // diubah dari sini oleh siapa pun (lihat resetPartnerPin di Admin Panel untuk recovery).
+  const uid=currentUser.id;
   profileModalTarget=uid;const cfg=APP_CONFIG[uid],photo=profilePhotos[uid];
   const avBig=el('profile-av-big');
   if(photo){avBig.innerHTML='<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><div class="av-edit-hint">\u{1F4F7}</div>';}
   else{avBig.innerHTML='<span>'+cfg?.avatar+'</span><div class="av-edit-hint">\u{1F4F7}</div>';}
   el('profile-modal-name').textContent=cfg?.name||'Pengguna';
-  const isSelf = !currentUser || uid===currentUser.id;
-  el('profile-modal-sub').textContent=isSelf?'Tap foto untuk ganti • Isi field yang ingin diubah':'Profil '+cfg?.name+(currentUser?.isAdmin?' — edit sebagai admin':'');
+  el('profile-modal-sub').textContent='Tap foto untuk ganti • Isi field yang ingin diubah';
   el('profile-name-input').value=cfg?.name||'';
   el('profile-pin-input').value='';
   if(el('profile-current-pin-input'))el('profile-current-pin-input').value='';
@@ -1813,19 +1887,38 @@ async function checkAdminPin(){
 }
 async function openAdmin(){selectedMedia=new Set();el('admin-panel').classList.remove('hidden');document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',i===0));adminTab='photos';await renderAdminTab();}
 window.closeAdmin=()=>{el('admin-panel').classList.add('hidden');selectedMedia=new Set();};
-window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',['photos','voices','stickers'][i]===tab));await renderAdminTab();};
-async function renderAdminTab(){const body=el('admin-body');body.innerHTML='<div class="admin-empty">\u23F3 Memuat...</div>';if(adminTab==='photos')await renderAdminPhotos(body);else if(adminTab==='voices')await renderAdminVoices(body);else renderAdminStickers(body);}
+const ADMIN_TAB_ORDER=['photos','videos','voices','stickers','account'];
+window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',ADMIN_TAB_ORDER[i]===tab));await renderAdminTab();};
+async function renderAdminTab(){const body=el('admin-body');body.innerHTML='<div class="admin-empty">\u23F3 Memuat...</div>';if(adminTab==='photos')await renderAdminPhotos(body);else if(adminTab==='videos')await renderAdminVideos(body);else if(adminTab==='voices')await renderAdminVoices(body);else if(adminTab==='stickers')renderAdminStickers(body);else if(adminTab==='account')renderAdminAccount(body);}
 async function getAllMedia(type){const allDates=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const results=await Promise.all(allDates.docs.map(dd=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dd.id,'messages')).then(msgs=>({dd,msgs}))));let items=[];results.forEach(({dd,msgs})=>msgs.docs.forEach(m=>{if(m.data().type===type)items.push({...m.data(),msgId:m.id,dateId:dd.id});}));return items;}
 async function renderAdminPhotos(body){
   const items=await getAllMedia('photo');
   if(!items.length){body.innerHTML='<div class="admin-empty">\u{1F4F7} Belum ada foto yang dikirim</div>';return;}
   body.innerHTML='';
-  const note=document.createElement('div');note.className='drive-note';note.innerHTML='\u{1F4A1} Pilih foto lalu <b>Buka di Drive</b> untuk backup, atau <b>Hapus</b> untuk bebaskan storage. <a href="https://drive.google.com" target="_blank">Buka Google Drive \u2197</a>';body.appendChild(note);
+  const note=document.createElement('div');note.className='drive-note';note.innerHTML='\u{1F4A1} Pilih foto lalu <b>Hapus</b> untuk bebaskan storage. Untuk backup ke Google Drive, buka tab <b>Lainnya</b>.';body.appendChild(note);
   const actions=document.createElement('div');actions.className='media-actions';
-  actions.innerHTML='<button class="media-action-btn sel" onclick="toggleSelectAll(\'photo-item\')">Pilih Semua</button><button class="media-action-btn drive" onclick="saveSelectedToDrive()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 19h20L12 2z"/></svg> Buka di Drive</button><button class="media-action-btn danger" onclick="deleteSelectedMedia()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> Hapus Dipilih</button>';
+  actions.innerHTML='<button class="media-action-btn sel" onclick="toggleSelectAll(\'photo-item\')">Pilih Semua</button><button class="media-action-btn danger" onclick="deleteSelectedMedia()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> Hapus Dipilih</button>';
   body.appendChild(actions);
   const grid=document.createElement('div');grid.className='media-grid';
   items.forEach((item,i)=>{const div=document.createElement('div');div.className='media-item';div.dataset.idx=i;div.dataset.url=item.content;div.dataset.path=item.storagePath||'';div.dataset.msgId=item.msgId;div.dataset.dateId=item.dateId;div.dataset.type='photo-item';div.innerHTML='<img src="'+item.content+'" loading="lazy"><div class="media-check"></div>';div.querySelector('img').onclick=()=>openLightbox(item.content);div.querySelector('.media-check').onclick=e=>{e.stopPropagation();toggleMediaSelect(div);};grid.appendChild(div);});
+  body.appendChild(grid);
+}
+async function renderAdminVideos(body){
+  const items=await getAllMedia('video');
+  if(!items.length){body.innerHTML='<div class="admin-empty">\u{1F3AC} Belum ada video yang dikirim</div>';return;}
+  body.innerHTML='';
+  const note=document.createElement('div');note.className='drive-note';note.innerHTML='\u{1F4A1} Pilih video lalu <b>Hapus</b> untuk bebaskan storage. Untuk backup ke Google Drive, buka tab <b>Lainnya</b>.';body.appendChild(note);
+  const actions=document.createElement('div');actions.className='media-actions';
+  actions.innerHTML='<button class="media-action-btn sel" onclick="toggleSelectAll(\'video-item\')">Pilih Semua</button><button class="media-action-btn danger" onclick="deleteSelectedMedia()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> Hapus Dipilih</button>';
+  body.appendChild(actions);
+  const grid=document.createElement('div');grid.className='media-grid';
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='media-item';div.dataset.idx=i;div.dataset.url=item.content;div.dataset.path=item.storagePath||'';div.dataset.msgId=item.msgId;div.dataset.dateId=item.dateId;div.dataset.type='video-item';
+    div.innerHTML='<video src="'+item.content+'" muted preload="metadata" style="width:100%;height:100%;object-fit:cover"></video><div class="media-check"></div>';
+    div.querySelector('video').onclick=e=>{e.stopPropagation();window.open(item.content,'_blank');};
+    div.querySelector('.media-check').onclick=e=>{e.stopPropagation();toggleMediaSelect(div);};
+    grid.appendChild(div);
+  });
   body.appendChild(grid);
 }
 async function renderAdminVoices(body){
@@ -1852,25 +1945,149 @@ function renderAdminStickers(body){
 function toggleMediaSelect(div){const key=div.dataset.idx+'_'+div.dataset.type;if(selectedMedia.has(key)){selectedMedia.delete(key);div.classList.remove('selected');}else{selectedMedia.add(key);div.classList.add('selected');}const mc=div.querySelector('.media-check,.v-check');if(mc)mc.textContent=div.classList.contains('selected')?'\u2713':'';}
 window.toggleSelectAll=type=>{const items=document.querySelectorAll('[data-type="'+type+'"]');const allSel=[...items].every(d=>d.classList.contains('selected'));selectedMedia=new Set();items.forEach(d=>{const key=d.dataset.idx+'_'+type;if(!allSel){d.classList.add('selected');selectedMedia.add(key);}else{d.classList.remove('selected');}const mc=d.querySelector('.media-check,.v-check');if(mc)mc.textContent=d.classList.contains('selected')?'\u2713':'';});};
 window.deleteSelectedMedia=async()=>{const items=document.querySelectorAll('.media-item.selected,.voice-admin-item.selected');if(!items.length){showToast('Pilih media dulu');return;}if(!confirm('Hapus '+items.length+' item? Tidak bisa dibatalkan.'))return;const prog=showProgress('Menghapus '+items.length+' item...');let count=0;for(const div of items){try{if(div.dataset.path)await deleteObject(sRef(storage,div.dataset.path)).catch(()=>{});if(div.dataset.msgId&&div.dataset.dateId)await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',div.dataset.dateId,'messages',div.dataset.msgId)).catch(()=>{});count++;}catch(e){}}prog.remove();showToast(count+' item dihapus \u2713');selectedMedia=new Set();await renderAdminTab();};
-window.saveSelectedToDrive=()=>{const items=document.querySelectorAll('.media-item.selected');if(!items.length){showToast('Pilih foto dulu');return;}const urls=[...items].map(d=>d.dataset.url);showToast('Membuka '+urls.length+' foto...',3000);urls.forEach((url,i)=>setTimeout(()=>window.open(url,'_blank'),i*500));setTimeout(()=>showToast('Tap & hold foto \u2192 Simpan Gambar, lalu upload ke Drive \u{1F4C2}',5000),urls.length*500+500);};
+// \u2500\u2500 ADMIN: RESET PIN PARTNER (menggantikan reset-PIN publik yang lama) \u2500\u2500
+// Hanya bisa dipicu dari dalam Admin Panel, yang sudah mensyaratkan PIN admin.
+// PIN baru dibuat acak (bukan default tetap) dan hanya ditulis ke Firestore milik
+// partner \u2014 perangkat admin tidak menyimpan PIN partner secara lokal.
+async function resetPartnerPin(){
+  if(!currentUser?.isAdmin||!otherUser)return;
+  if(!confirm('Buat PIN baru untuk '+otherUser.name+'? PIN lamanya langsung tidak berlaku.'))return;
+  const newPin=String(Math.floor(1000+Math.random()*9000));
+  try{
+    const pinHash=await sha256(newPin);
+    await setDoc(doc(db,'profiles',otherUser.id),{pinHash,updatedAt:serverTimestamp(),resetBy:currentUser.id},{merge:true});
+    const disp=el('admin-reset-result');
+    if(disp){disp.textContent='PIN baru untuk '+otherUser.name+': '+newPin+' \u2014 catat sekarang, tidak akan tampil lagi.';disp.classList.remove('hidden');}
+    showToast('PIN '+otherUser.name+' berhasil direset',4000);
+  }catch(e){console.error('resetPartnerPin error:',e);showToast('Gagal reset PIN');}
+}
+// \u2500\u2500 ADMIN: BACKUP MEDIA KE GOOGLE DRIVE \u2500\u2500
+let gdriveAccessToken=null;
+let gdriveTokenClient=null;
+let _driveFolderId=localStorage.getItem('cc-drive-folder-id')||null;
+function initGoogleDrive(){
+  if(gdriveTokenClient||typeof google==='undefined'||!google.accounts)return;
+  gdriveTokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GOOGLE_DRIVE_CLIENT_ID,
+    scope:'https://www.googleapis.com/auth/drive.file',
+    callback:resp=>{
+      if(resp.error){showToast('Gagal hubungkan Google Drive');return;}
+      gdriveAccessToken=resp.access_token;
+      showToast('Terhubung ke Google Drive \u2713');
+      if(adminTab==='account')renderAdminAccount(el('admin-body'));
+    }
+  });
+}
+window.connectGoogleDrive=()=>{
+  if(!GOOGLE_DRIVE_CLIENT_ID||GOOGLE_DRIVE_CLIENT_ID.includes('PASTE_YOUR')){showToast('Google Client ID belum diatur di kode (lihat komentar dekat firebaseConfig)');return;}
+  initGoogleDrive();
+  if(!gdriveTokenClient){showToast('Google Sign-In belum siap, coba lagi sebentar');return;}
+  gdriveTokenClient.requestAccessToken({prompt:gdriveAccessToken?'':'consent'});
+};
+async function ensureDriveFolder(){
+  if(_driveFolderId)return _driveFolderId;
+  const q=encodeURIComponent("name='CalmChat Backup' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+  const searchRes=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,name)',{headers:{Authorization:'Bearer '+gdriveAccessToken}});
+  const searchData=await searchRes.json();
+  if(searchData.files&&searchData.files.length){_driveFolderId=searchData.files[0].id;}
+  else{
+    const createRes=await fetch('https://www.googleapis.com/drive/v3/files',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+gdriveAccessToken,'Content-Type':'application/json'},
+      body:JSON.stringify({name:'CalmChat Backup',mimeType:'application/vnd.google-apps.folder'})
+    });
+    const createData=await createRes.json();
+    _driveFolderId=createData.id;
+  }
+  localStorage.setItem('cc-drive-folder-id',_driveFolderId);
+  return _driveFolderId;
+}
+async function uploadBlobToDrive(blob,filename,folderId){
+  const metadata={name:filename,parents:[folderId]};
+  const boundary='ccboundary'+Date.now();
+  const metaPart='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+'\r\n';
+  const closeDelim='\r\n--'+boundary+'--';
+  const mediaHeader='--'+boundary+'\r\nContent-Type: '+(blob.type||'application/octet-stream')+'\r\n\r\n';
+  const body=new Blob([metaPart,mediaHeader,blob,closeDelim]);
+  const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+gdriveAccessToken,'Content-Type':'multipart/related; boundary='+boundary},
+    body
+  });
+  if(!res.ok)throw new Error('upload gagal ('+res.status+')');
+  return res.json();
+}
+async function getAllStickerMedia(){
+  const snap=await getDocs(collection(db,'stickers'));
+  return snap.docs.map(d=>({...d.data(),msgId:d.id,dateId:'stickers',type:'sticker'}));
+}
+window.backupAllMediaToDrive=async()=>{
+  if(!currentUser?.isAdmin)return;
+  if(!gdriveAccessToken){showToast('Hubungkan Google Drive dulu');return;}
+  const prog=showProgress('Menyiapkan backup...');
+  try{
+    const folderId=await ensureDriveFolder();
+    const[photos,videos,voices,stickers]=await Promise.all([
+      getAllMedia('photo'),getAllMedia('video'),getAllMedia('voice'),getAllStickerMedia()
+    ]);
+    const all=[...photos,...videos,...voices,...stickers];
+    const backedUp=new Set(JSON.parse(localStorage.getItem('cc-drive-backed-up')||'[]'));
+    const todo=all.filter(item=>item.storagePath&&!backedUp.has(item.storagePath));
+    if(!todo.length){prog.remove();showToast('Semua media sudah pernah di-backup \u2713');return;}
+    let done=0,failed=0;
+    for(const item of todo){
+      prog.setText('Backup '+(done+failed+1)+'/'+todo.length+'...');
+      try{
+        const blob=await(await fetch(item.content)).blob();
+        const ext=(item.storagePath.split('.').pop()||'dat');
+        const name=(item.type||'file')+'_'+(item.dateId||'')+'_'+(item.msgId||Date.now())+'.'+ext;
+        await uploadBlobToDrive(blob,name,folderId);
+        backedUp.add(item.storagePath);
+        localStorage.setItem('cc-drive-backed-up',JSON.stringify([...backedUp]));
+        done++;
+      }catch(e){console.warn('backup item failed:',e);failed++;}
+    }
+    prog.remove();
+    showToast('Backup selesai: '+done+' berhasil'+(failed?', '+failed+' gagal':''),5000);
+  }catch(e){
+    prog.remove();
+    console.error('backupAllMediaToDrive error:',e);
+    showToast('Backup gagal: '+(e?.message||'error'));
+  }
+};
+function renderAdminAccount(body){
+  body.innerHTML='';
+  const pinCard=document.createElement('div');pinCard.className='drive-note';
+  pinCard.innerHTML='<b>\u{1F511} Reset PIN '+(otherUser?.name||'Partner')+'</b><br>Buat PIN acak baru untuk partner jika ia lupa PIN. PIN lama langsung tidak berlaku, dan hanya kamu (admin) yang bisa memicu ini.';
+  body.appendChild(pinCard);
+  const resetBtn=document.createElement('button');resetBtn.className='media-action-btn danger';resetBtn.style.marginBottom='10px';
+  resetBtn.textContent='Reset PIN '+(otherUser?.name||'Partner');
+  resetBtn.onclick=resetPartnerPin;
+  body.appendChild(resetBtn);
+  const resultP=document.createElement('p');resultP.id='admin-reset-result';resultP.className='hidden';
+  resultP.style.cssText='font-size:13px;font-weight:700;color:var(--accent);margin-bottom:20px;padding:10px;background:var(--surface2);border-radius:12px';
+  body.appendChild(resultP);
+
+  const title=document.createElement('div');title.className='admin-section-title';title.textContent='Backup Media ke Google Drive';body.appendChild(title);
+  const driveNote=document.createElement('div');driveNote.className='drive-note';
+  driveNote.textContent='Backup semua foto, video, suara, dan stiker ke folder "CalmChat Backup" di Google Drive kamu. File yang sudah pernah di-backup otomatis dilewati.';
+  body.appendChild(driveNote);
+  const status=document.createElement('p');status.style.cssText='font-size:12px;color:var(--text-secondary);margin-bottom:10px';
+  status.textContent=gdriveAccessToken?'\u2713 Terhubung ke Google Drive':'Belum terhubung ke Google Drive';
+  body.appendChild(status);
+  const connectBtn=document.createElement('button');connectBtn.className='media-action-btn sel';connectBtn.style.marginRight='8px';connectBtn.style.marginBottom='10px';
+  connectBtn.textContent=gdriveAccessToken?'Sambungkan Ulang':'Hubungkan Google Drive';
+  connectBtn.onclick=connectGoogleDrive;
+  body.appendChild(connectBtn);
+  const backupBtn=document.createElement('button');backupBtn.className='media-action-btn drive';backupBtn.style.marginBottom='10px';
+  backupBtn.textContent='Backup Semua Sekarang';
+  backupBtn.onclick=backupAllMediaToDrive;
+  body.appendChild(backupBtn);
+}
 // PROGRESS HELPER
 function showProgress(text){const d=document.createElement('div');d.className='upload-progress';d.innerHTML='<div class="upload-spinner"></div><span>'+text+'</span>';document.body.appendChild(d);d.setText=t=>{d.querySelector('span').textContent=t;};d.remove=()=>{if(d.parentNode)d.parentNode.removeChild(d);};return d;}
 function toggleSheet(name,open){el('overlay-'+name).classList.toggle('hidden',!open);el('sheet-'+name).classList.toggle('hidden',!open);}
 // INIT
-function resetPinFallback(){
-  if(!pendingUserId)return;
-  const uname=APP_CONFIG[pendingUserId]?.name||pendingUserId;
-  const defPin=DEFAULT_CFG[pendingUserId]?.pin||'1234';
-  if(!confirm('Reset PIN '+uname+'? PIN akan kembali ke '+defPin+'.'))return;
-  localStorage.removeItem('cc-cfg');
-  APP_CONFIG=JSON.parse(JSON.stringify(DEFAULT_CFG));
-  // Hapus _pinHash agar checkPin tidak pakai hash lama
-  delete APP_CONFIG.user1._pinHash;
-  delete APP_CONFIG.user2._pinHash;
-  saveCfg();
-  cancelLogin();
-  showToast('PIN direset. Ryan=1234, Anna=5678');
-}
 function init(){
   el('name-user1').textContent=APP_CONFIG.user1.name;el('name-user2').textContent=APP_CONFIG.user2.name;
   renderLoginAvatars();applyTheme(currentTheme);

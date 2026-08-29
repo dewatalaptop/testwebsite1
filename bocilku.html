@@ -58,7 +58,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .hdr-av-wrap.me{bottom:0;right:0;width:26px;height:26px;font-size:13px}
 .hdr-av-wrap img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .header-info h2{font-size:15px;font-weight:800;color:var(--text-primary)}
-.header-status{font-size:10px;color:#4caf50;font-weight:600}
+.header-status{font-size:10px;color:var(--text-secondary);font-weight:600}
 .header-right{display:flex;gap:4px}
 .hdr-btn{background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:8px;border-radius:12px;transition:all 0.2s;display:flex}
 .hdr-btn svg{width:20px;height:20px}
@@ -377,7 +377,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
       </div>
       <div class="header-info">
         <h2 id="header-room-title">CalmChat</h2>
-        <p class="header-status">&#x25CF; Online berdua</p>
+        <p class="header-status">Memuat status...</p>
       </div>
     </div>
     <div class="header-right">
@@ -404,7 +404,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   <div class="messages-area" id="messages-area">
     <div class="messages-inner" id="messages-inner"></div>
     <div id="typing-indicator" class="typing-indicator hidden">
-      <span id="typing-avatar" style="font-size:18px">&#x1F33F;</span>
+      <div id="typing-avatar" style="width:22px;height:22px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--surface2);flex-shrink:0"><span>&#x1F33F;</span></div>
       <div class="typing-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>
     </div>
   </div>
@@ -697,7 +697,7 @@ function loginAs(uid){
   todayDateStr=getTodayStr();
   el('screen-login').className='screen hidden';el('screen-chat').className='screen active';
   el('header-room-title').textContent="CalmChat \u2601\uFE0F";
-  el('typing-avatar').textContent=otherUser.avatar;
+  renderTypingAvatar();
   el('date-banner-text').textContent=formatDate(todayDateStr);
   el('btn-admin').style.display=currentUser.isAdmin?'flex':'none';
   el('admin-badge').textContent='\u{1F6E1}\uFE0F '+currentUser.name;
@@ -707,13 +707,43 @@ function loginAs(uid){
   localStorage.setItem('cc-user',uid);
   pinBuffer='';pendingUserId=null;
   startIdleDetection(); // mulai deteksi idle
+  startPresence(); // mulai kirim status online
 }
-window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');stopIdleDetection();stopStoryRefresh();if(isLocked){isLocked=false;el('lock-overlay').classList.add('hidden');}localStorage.removeItem('cc-user');};
+window.logout=()=>{if(unsubMessages)unsubMessages();if(unsubTyping){unsubTyping();unsubTyping=null;}if(unsubPartnerProfile){unsubPartnerProfile();unsubPartnerProfile=null;}setConnected(true);if(isRecording){el('record-btn').classList.remove('recording');isRecording=false;if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}if(mediaRecorder){mediaRecorder.stream?.getTracks().forEach(t=>t.stop());mediaRecorder=null;}audioChunks=[];}currentUser=null;otherUser=null;el('messages-inner').innerHTML="";el('screen-chat').className='screen hidden';el('screen-login').className='screen active';el('pin-section').classList.add('hidden');el('select-user1').classList.remove('selected');el('select-user2').classList.remove('selected');stopIdleDetection();stopStoryRefresh();stopPresence();if(isLocked){isLocked=false;el('lock-overlay').classList.add('hidden');}localStorage.removeItem('cc-user');};
+// ── PRESENCE (status online / terakhir dilihat) — menggantikan label statis "Online berdua" ──
+let presenceInterval=null,onlineStatusInterval=null,_partnerLastActive=null;
+async function updatePresence(){
+  if(!currentUser)return;
+  try{await setDoc(doc(db,'profiles',currentUser.id),{lastActive:serverTimestamp()},{merge:true});}catch(e){}
+}
+function startPresence(){
+  updatePresence();
+  clearInterval(presenceInterval);
+  presenceInterval=setInterval(updatePresence,25000);
+}
+function stopPresence(){
+  if(presenceInterval){clearInterval(presenceInterval);presenceInterval=null;}
+  if(onlineStatusInterval){clearInterval(onlineStatusInterval);onlineStatusInterval=null;}
+}
+function renderOnlineStatus(){
+  const statusEl=document.querySelector('.header-status');
+  if(!statusEl)return;
+  if(!_partnerLastActive||!_partnerLastActive.toMillis){statusEl.textContent='Status tidak diketahui';statusEl.style.color='var(--text-secondary)';return;}
+  const diffSec=(Date.now()-_partnerLastActive.toMillis())/1000;
+  if(diffSec<45){statusEl.textContent='● Online';statusEl.style.color='#4caf50';return;}
+  const mins=Math.floor(diffSec/60);
+  let label;
+  if(mins<60)label='Terakhir dilihat '+mins+' menit lalu';
+  else if(mins<1440)label='Terakhir dilihat '+Math.floor(mins/60)+' jam lalu';
+  else label='Terakhir dilihat '+Math.floor(mins/1440)+' hari lalu';
+  statusEl.textContent=label;statusEl.style.color='var(--text-secondary)';
+}
 // CHAT
 const msgCol=()=>collection(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages');
 function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));unsubMessages=onSnapshot(q,snap=>{
+    let scrolledByMe=false;
     snap.docChanges().forEach(ch=>{
-      if(ch.type==='added')renderMessage(ch.doc.id,ch.doc.data());
+      if(ch.type==='added'){renderMessage(ch.doc.id,ch.doc.data());if(ch.doc.data().senderId===currentUser?.id)scrolledByMe=true;}
       if(ch.type==='modified'){
         const row=document.querySelector('[data-id="'+ch.doc.id+'"]');
         if(row){
@@ -739,7 +769,9 @@ function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').inner
       }
       if(ch.type==='removed'){const row=document.querySelector('[data-id="'+ch.doc.id+'"]');if(row)row.remove();}
     });
-    scrollToBottom();
+    // Jangan paksa scroll ke bawah kalau user sedang scroll ke atas membaca
+    // chat lama — kecuali pesan itu baru saja dikirim sendiri.
+    scrollToBottom(scrolledByMe);
     setConnected(true);
     startChat._retries=0;
   },err=>{
@@ -1093,7 +1125,8 @@ function getAudioDur(blob){
     a.src=url;a.load();
   });
 }
-function scrollToBottom(){setTimeout(()=>{el('messages-area').scrollTop=9e9;},50);}
+function isNearBottom(){const area=el('messages-area');if(!area)return true;return area.scrollHeight-area.scrollTop-area.clientHeight<150;}
+function scrollToBottom(force){if(!force&&!isNearBottom())return;setTimeout(()=>{el('messages-area').scrollTop=9e9;},50);}
 async function setTypingStatus(val){if(!currentUser)return;try{await setDoc(doc(db,'rooms',APP_CONFIG.roomId,'typing',currentUser.id),{typing:val,ts:serverTimestamp()});}catch(e){}}
 function watchTyping(){if(!otherUser)return;if(unsubTyping)unsubTyping(); // cleanup listener lama
 unsubTyping=onSnapshot(doc(db,'rooms',APP_CONFIG.roomId,'typing',otherUser.id),snap=>{el('typing-indicator').classList.toggle('hidden',!(snap.exists()&&snap.data().typing));if(snap.exists()&&snap.data().typing)scrollToBottom();setConnected(true);},err=>{console.warn('typing listener error:',err);});}
@@ -1799,6 +1832,14 @@ async function openHistoryView(dateStr){
 }
 window.closeHistoryView=e=>{if(e&&e.target!==el('modal-history-view'))return;el('modal-history-view').classList.add('hidden');el('modal-messages').innerHTML='';};  window.closeHistoryViewDirect=()=>{el('modal-history-view').classList.add('hidden');el('modal-messages').innerHTML='';};
 // PROFILE
+function renderTypingAvatar(){
+  if(!otherUser)return;
+  const wrap=el('typing-avatar');if(!wrap)return;
+  const ph=profilePhotos[otherUser.id];
+  wrap.innerHTML=ph
+    ?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+    :'<span>'+otherUser.avatar+'</span>';
+}
 function renderHeaderAvatars(){if(!currentUser||!otherUser)return;const wMe=el('hdr-wrap-me'),wOther=el('hdr-wrap-other');if(wMe){wMe.innerHTML='';const ph=profilePhotos[currentUser.id];if(ph){wMe.innerHTML='<img src="'+ph+'">';}else{wMe.innerHTML='<span>'+currentUser.avatar+'</span>';}}if(wOther){wOther.innerHTML='';const ph=profilePhotos[otherUser.id];if(ph){wOther.innerHTML='<img src="'+ph+'">';}else{wOther.innerHTML='<span>'+otherUser.avatar+'</span>';}}}
 function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el('login-av'+(i+1));if(!wrap)return;const photo=profilePhotos[uid];if(photo){wrap.style.cssText='font-size:0;width:60px;height:60px;border-radius:50%;overflow:hidden;margin:0 auto 4px;border:2.5px solid #2186d4;';wrap.innerHTML='<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">';}else{wrap.style.cssText='font-size:42px;';wrap.textContent=APP_CONFIG[uid]?.avatar||'\u{1F464}';}});}
 window.openMyProfile=()=>{if(currentUser)openProfileModal(currentUser.id);};
@@ -1908,9 +1949,14 @@ function loadPartnerProfile(){
     // TIDAK sync pinHash partner — PIN orang lain tidak boleh ada di device ini
     if(changed){
       renderHeaderAvatars();
+      renderTypingAvatar();
       // Refresh semua avatar bubble yang sudah ter-render
       refreshBubbleAvatars();
     }
+    _partnerLastActive=snap.data().lastActive||null;
+    renderOnlineStatus();
+    clearInterval(onlineStatusInterval);
+    onlineStatusInterval=setInterval(renderOnlineStatus,30000); // update teks "X menit lalu"
   },err=>{console.warn('loadPartnerProfile error:',err);});
 }
 function refreshBubbleAvatars(){
@@ -2155,7 +2201,19 @@ function renderAdminAccount(body){
   body.appendChild(backupBtn);
 }
 // PROGRESS HELPER
-function showProgress(text){const d=document.createElement('div');d.className='upload-progress';d.innerHTML='<div class="upload-spinner"></div><span>'+text+'</span>';document.body.appendChild(d);d.setText=t=>{d.querySelector('span').textContent=t;};d.remove=()=>{if(d.parentNode)d.parentNode.removeChild(d);};return d;}
+// Beberapa progress bisa aktif bersamaan (mis. kirim foto lalu langsung kirim
+// video sebelum yang pertama selesai) — ditumpuk vertikal, bukan saling timpa.
+let _activeProgressCount=0;
+function showProgress(text){
+  const d=document.createElement('div');d.className='upload-progress';
+  d.style.bottom=(90+_activeProgressCount*54)+'px';
+  _activeProgressCount++;
+  d.innerHTML='<div class="upload-spinner"></div><span>'+text+'</span>';
+  document.body.appendChild(d);
+  d.setText=t=>{d.querySelector('span').textContent=t;};
+  d.remove=()=>{if(d.parentNode){d.parentNode.removeChild(d);_activeProgressCount=Math.max(0,_activeProgressCount-1);}};
+  return d;
+}
 function toggleSheet(name,open){el('overlay-'+name).classList.toggle('hidden',!open);el('sheet-'+name).classList.toggle('hidden',!open);}
 // INIT
 function init(){

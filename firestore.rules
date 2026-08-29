@@ -95,7 +95,7 @@ service cloud.firestore {
       allow list: if false;
       allow write: if isValidUser(uid)
           && request.resource.data.keys().hasOnly([
-               'name','pinHash','photoURL','updatedAt','resetBy'
+               'name','pinHash','photoURL','updatedAt','resetBy','lastActive'
              ]);
     }
 

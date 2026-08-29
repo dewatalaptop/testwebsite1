@@ -1187,20 +1187,37 @@ window.sendVideo=async event=>{
   if(!file||!currentUser)return;
   if(!file.type.startsWith('video/')){showToast('File harus berupa video');return;}
   if(file.size>500*1024*1024){showToast('Video terlalu besar (maks 500MB)');return;}
-  const dur=await getVideoDuration(file);
+  const dur=await getVideoDuration(file).catch(()=>0);
   if(dur>120)showToast('Video lebih dari 2 menit — hanya 2 menit pertama yang dikirim',3500);
   const prog=showProgress('Menyiapkan kompresi video...');
   try{
-    const compressed=await compressVideo(file,prog);
+    let uploadBlob,ext,contentType;
+    try{
+      uploadBlob=await compressVideo(file,prog);
+      ext='mp4';contentType='video/mp4';
+    }catch(compressErr){
+      // Kompresi gagal (mis. ffmpeg.wasm tidak didukung browser ini, terutama
+      // Safari/iOS yang punya batasan Worker/WASM lebih ketat) — jangan gagal
+      // total, kirim video aslinya saja selama ukurannya masih wajar.
+      console.warn('compressVideo gagal, fallback kirim video asli:',compressErr);
+      if(file.size>140*1024*1024){
+        showToast('Kompresi video gagal & file terlalu besar untuk dikirim tanpa kompresi (maks 140MB)');
+        return;
+      }
+      showToast('Kompresi tidak didukung di browser ini — mengirim video asli',3500);
+      uploadBlob=file;contentType=file.type||'video/mp4';
+      ext=(file.name.match(/\.\w+$/)||['.mp4'])[0].replace('.','');
+      prog.setText('Mengunggah video...');
+    }
     prog.setText('Mengunggah video...');
     await ensureDateRegistered(todayDateStr);
-    const path='videos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.mp4';
-    await uploadBytes(sRef(storage,path),compressed,{contentType:'video/mp4'});
+    const path='videos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.'+ext;
+    await uploadBytes(sRef(storage,path),uploadBlob,{contentType});
     const url=await getDownloadURL(sRef(storage,path));
     await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'video',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});
   }catch(e){
     console.error('sendVideo error:',e);
-    showToast('Gagal kirim video: '+(e?.message||'error kompresi'));
+    showToast('Gagal kirim video: '+(e?.message||'error'));
   }finally{prog.remove();}
 };
 window.toggleRecord=async()=>{if(!isRecording)await startRecord();else await stopRecord();};
@@ -1692,15 +1709,23 @@ window.submitStoryUpload=async()=>{
 async function postStory(file,caption){
   const isVideo=file.type.startsWith('video/');
   if(isVideo){
-    const dur=await getVideoDuration(file);
+    const dur=await getVideoDuration(file).catch(()=>0);
     if(dur>120)showToast('Video lebih dari 2 menit — hanya 2 menit pertama yang dipost',3500);
   }
   const prog=showProgress(isVideo?'Mengompresi video...':'Mengupload story...');
   try{
     let uploadFile=file,ext='jpg',contentType=undefined;
     if(isVideo){
-      uploadFile=await compressVideo(file,prog);
-      ext='mp4';contentType='video/mp4';
+      try{
+        uploadFile=await compressVideo(file,prog);
+        ext='mp4';contentType='video/mp4';
+      }catch(compressErr){
+        console.warn('compressVideo gagal, fallback post video asli:',compressErr);
+        if(file.size>140*1024*1024){showToast('Kompresi gagal & file terlalu besar tanpa kompresi (maks 140MB)');return;}
+        showToast('Kompresi tidak didukung di browser ini — post video asli',3500);
+        uploadFile=file;contentType=file.type||'video/mp4';
+        ext=(file.name.match(/\.\w+$/)||['.mp4'])[0].replace('.','');
+      }
       prog.setText('Mengunggah story...');
     }else if(!file.type.includes('gif')){
       uploadFile=await compressImage(file,1080,0.82);

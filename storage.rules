@@ -21,8 +21,10 @@ service firebase.storage {
 
     match /videos/{roomId}/{fileName} {
       allow read: if true;
-      // hasil kompresi ffmpeg.wasm biasanya jauh di bawah ini
-      allow write: if request.resource.size < 60 * 1024 * 1024
+      // Hasil kompresi ffmpeg.wasm biasanya jauh di bawah ini. Batas dinaikkan
+      // ke 150MB karena ada jalur cadangan: kalau kompresi gagal di browser
+      // (mis. Safari/iOS), video asli (belum dikompresi) tetap dikirim.
+      allow write: if request.resource.size < 150 * 1024 * 1024
           && request.resource.contentType.matches('video/.*');
       allow delete: if true;
     }
@@ -50,7 +52,7 @@ service firebase.storage {
 
     match /stories/{uid}/{fileName} {
       allow read: if true;
-      allow write: if request.resource.size < 55 * 1024 * 1024
+      allow write: if request.resource.size < 150 * 1024 * 1024
           && (request.resource.contentType.matches('image/.*')
               || request.resource.contentType.matches('video/.*'));
       allow delete: if true;
@@ -58,7 +60,7 @@ service firebase.storage {
 
     match /highlights/{uid}/{fileName} {
       allow read: if true;
-      allow write: if request.resource.size < 60 * 1024 * 1024
+      allow write: if request.resource.size < 150 * 1024 * 1024
           && (request.resource.contentType.matches('image/.*')
               || request.resource.contentType.matches('video/.*'));
       allow delete: if true;

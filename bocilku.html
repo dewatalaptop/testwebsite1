@@ -557,7 +557,11 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
     <div id="wa-paste-step1">
       <div class="profile-modal-name" style="text-align:left;margin-bottom:4px">Tempel Chat WhatsApp</div>
       <div class="profile-modal-sub" style="text-align:left;margin-bottom:14px">Buka chat WhatsApp &#x2192; pilih pesan (atau ekspor chat) &#x2192; Salin &#x2192; tempel di sini.</div>
+      <button type="button" class="sticker-upload-btn" style="margin-bottom:10px" onclick="waPasteFromClipboard()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/></svg> Tempel dari Clipboard
+      </button>
       <textarea id="wa-paste-textarea" placeholder="[19/08/26, 10.53.30] Ryan: Halo sayang..." style="width:100%;min-height:180px;padding:12px 14px;border:1.5px solid var(--border);border-radius:14px;font-family:var(--font-main);font-size:13px;color:var(--text-primary);background:var(--surface2);outline:none;resize:vertical;line-height:1.5"></textarea>
+      <div class="profile-modal-sub" style="text-align:left;margin-top:6px;font-size:11px">Kalau tombol di atas tidak berhasil, tekan &amp; tahan kotak teks lalu pilih "Tempel".</div>
       <button class="profile-save-btn" onclick="processWaPaste()">Proses Chat</button>
       <span class="profile-close-link" onclick="closeWaPasteModal()">Batal</span>
     </div>
@@ -2389,7 +2393,23 @@ window.openWaPasteModal=()=>{
   el('wa-paste-step2').classList.add('hidden');
   _waParsed=null;_waSelectedMe=null;
   el('modal-wa-paste').classList.remove('hidden');
-  setTimeout(()=>el('wa-paste-textarea').focus(),50);
+};
+window.waPasteFromClipboard=async()=>{
+  try{
+    if(!navigator.clipboard||!navigator.clipboard.readText){
+      showToast('Browser tidak mendukung tombol ini. Tekan & tahan kotak teks, lalu pilih Tempel.',3500);
+      el('wa-paste-textarea').focus();
+      return;
+    }
+    const text=await navigator.clipboard.readText();
+    if(!text||!text.trim()){showToast('Clipboard kosong. Salin dulu chat-nya di WhatsApp.',3000);return;}
+    el('wa-paste-textarea').value=text;
+    showToast('Berhasil ditempel dari clipboard \u2713');
+  }catch(e){
+    console.error('waPasteFromClipboard error:',e);
+    showToast('Tidak bisa akses clipboard. Tekan & tahan kotak teks, lalu pilih Tempel.',3500);
+    el('wa-paste-textarea').focus();
+  }
 };
 window.closeWaPasteModal=()=>{el('modal-wa-paste').classList.add('hidden');};
 window.waPasteModalOutside=e=>{if(e.target===el('modal-wa-paste'))closeWaPasteModal();};

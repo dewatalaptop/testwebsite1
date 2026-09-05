@@ -762,11 +762,13 @@ let APP_CONFIG=loadConfig();
 let currentUser=null,otherUser=null,todayDateStr=getTodayStr(),unsubMessages=null;
 let currentTheme=localStorage.getItem("cc-theme")||"default";
 let allStickers=[],stickerTab="all",reactionTarget=null;
+let _stickersLoaded=false; // hindari fetch ulang seluruh koleksi stiker tiap sheet dibuka
 let pinBuffer="",pendingUserId=null,typingTimeout=null;
 let mediaRecorder=null,audioChunks=[],isRecording=false;
 let activeAudio=null,activePlayBtn=null,activeFill=null;
 let profilePhotos=JSON.parse(localStorage.getItem('cc-profiles')||'{}');
 let profileModalTarget=null,adminPinBuf="",adminTab="photos",selectedMedia=new Set();
+let _adminMediaCache={}; // cache hasil getAllMedia per tipe supaya Admin Panel tidak scan ulang semua histori tiap dibuka
 let unsubTyping=null;
 let unsubPartnerProfile=null; // dipindah ke atas agar logout bisa akses
 function setConnected(ok){const b=el('conn-banner');if(b)b.classList.toggle('hidden',ok);}
@@ -1234,7 +1236,7 @@ window.sendMessage=async()=>{
   finally{_sending=false;}
 };
 async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await ensureDateRegistered(todayDateStr);await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
-window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const compressed=await compressImage(file,800,0.55);prog.setText('Mengunggah...');await ensureDateRegistered(todayDateStr);const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),compressed);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
+window.sendPhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!currentUser)return;const prog=showProgress('Mengompresi foto...');try{const compressed=await compressImage(file,800,0.55);prog.setText('Mengunggah...');await ensureDateRegistered(todayDateStr);const path='photos/'+APP_CONFIG.roomId+'/'+Date.now()+'_'+currentUser.id+'.jpg';await uploadBytes(sRef(storage,path),compressed);const url=await getDownloadURL(sRef(storage,path));await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'photo',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});_adminMediaCache.photo=null;}catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}};
 function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej('fail');},'image/jpeg',quality);};img.onerror=rej;img.src=url;});}
 // ── VIDEO: kompresi via ffmpeg.wasm (dimuat lazy, hanya saat pertama kali kirim video) ──
 function getVideoDuration(file){
@@ -1311,6 +1313,7 @@ window.sendVideo=async event=>{
     await uploadBytes(sRef(storage,path),uploadBlob,{contentType});
     const url=await getDownloadURL(sRef(storage,path));
     await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'video',content:url,storagePath:path,timestamp:serverTimestamp(),reactions:{}});
+    _adminMediaCache.video=null;
   }catch(e){
     console.error('sendVideo error:',e);
     showToast('Gagal kirim video: '+(e?.message||'error'));
@@ -1373,6 +1376,7 @@ async function stopRecord(){
           type:'voice',content:url,duration:dur,storagePath:path,mimeType:mime,
           timestamp:serverTimestamp(),reactions:{}
         });
+        _adminMediaCache.voice=null;
       }catch(e){console.error('voice upload:',e);showToast('Gagal kirim suara');}
       finally{prog.remove();res();}
     };
@@ -1839,12 +1843,17 @@ async function postStory(file,caption){
 }
 // ── IDLE LOCK ────────────────────────────────────────
 const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 menit
+const IDLE_RESET_THROTTLE = 1000; // jangan proses reset lebih sering dari ini — hemat kerja saat scroll/gerak mouse di HP
 let idleTimer = null;
 let lockPinBuf = "";
 let isLocked = false;
+let _lastIdleReset = 0;
 
 function resetIdleTimer(){
   if(!currentUser || isLocked)return;
+  const now = Date.now();
+  if(now - _lastIdleReset < IDLE_RESET_THROTTLE)return;
+  _lastIdleReset = now;
   clearTimeout(idleTimer);
   idleTimer = setTimeout(lockScreen, IDLE_TIMEOUT);
 }
@@ -1916,12 +1925,19 @@ async function checkLockPin(){
   }
 }
 
+const IDLE_EVENTS = ['touchstart','touchend','mousedown','mousemove','keydown','scroll','click'];
+let _idleListenersAttached = false;
 function startIdleDetection(){
-  // Daftarkan semua event yang dianggap "aktivitas"
-  const events = ['touchstart','touchend','mousedown','mousemove','keydown','scroll','click'];
-  events.forEach(evt =>
-    document.addEventListener(evt, resetIdleTimer, {passive:true})
-  );
+  // Daftarkan listener aktivitas HANYA SEKALI seumur halaman. Sebelumnya listener
+  // ini dipasang ulang setiap login tanpa pernah dilepas saat logout, sehingga
+  // menumpuk tiap ganti akun/relogin — makin lama dipakai, makin banyak listener
+  // duplikat aktif di setiap gerakan mouse/scroll/tap, dan makin lag.
+  if(!_idleListenersAttached){
+    IDLE_EVENTS.forEach(evt =>
+      document.addEventListener(evt, resetIdleTimer, {passive:true})
+    );
+    _idleListenersAttached = true;
+  }
   resetIdleTimer();
 }
 
@@ -2074,6 +2090,7 @@ async function deleteMessage(msgId,data,dateId){
   try{
     if(data.storagePath)await deleteObject(sRef(storage,data.storagePath)).catch(()=>{});
     await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',targetDate,'messages',msgId));
+    if(['photo','video','voice'].includes(data.type))_adminMediaCache[data.type]=null;
     showToast('Pesan dihapus');
   }catch(e){showToast('Gagal hapus pesan');}
 }
@@ -2120,8 +2137,8 @@ function applyTheme(id){
 function renderThemeGrid(){const grid=el('theme-grid');grid.innerHTML="";THEMES.forEach(t=>{const c=document.createElement('div');c.className='theme-card'+(currentTheme===t.id?' active':'');c.style.background=t.bg;c.style.color=t.accent;c.innerHTML='<div class="theme-preview">'+t.emoji+'</div><div class="theme-name" style="color:'+t.accent+'">'+t.name+'</div><div class="theme-check">\u2713</div>';c.onclick=()=>{applyTheme(t.id);closeTheme();showToast('Tema "'+t.name+'" aktif');};grid.appendChild(c);});}
 window.openTheme=()=>{renderThemeGrid();toggleSheet('theme',true);};window.closeTheme=()=>toggleSheet('theme',false);
 // STICKERS
-async function loadStickers(){try{const snap=await getDocs(collection(db,'stickers'));allStickers=snap.docs.map(d=>({id:d.id,...d.data()}));renderStickerGrid();}catch(e){}}
-window.openStickers=async()=>{toggleSheet('sticker',true);try{const snap=await getDocs(collection(db,'stickers'));allStickers=snap.docs.map(d=>({id:d.id,...d.data()}));}catch(e){}renderStickerGrid();};window.closeStickers=()=>toggleSheet('sticker',false);
+async function loadStickers(){if(_stickersLoaded)return;try{const snap=await getDocs(collection(db,'stickers'));allStickers=snap.docs.map(d=>({id:d.id,...d.data()}));_stickersLoaded=true;renderStickerGrid();}catch(e){}}
+window.openStickers=async()=>{toggleSheet('sticker',true);if(!_stickersLoaded){try{const snap=await getDocs(collection(db,'stickers'));allStickers=snap.docs.map(d=>({id:d.id,...d.data()}));_stickersLoaded=true;}catch(e){}}renderStickerGrid();};window.closeStickers=()=>toggleSheet('sticker',false);
 window.switchStickerTab=tab=>{stickerTab=tab;document.querySelectorAll('.sticker-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));renderStickerGrid();};
 function renderStickerGrid(container,adminDelete){
   const grid=container||el('sticker-grid'),empty=el('sticker-empty');
@@ -2780,7 +2797,20 @@ window.closeAdmin=()=>{el('admin-panel').classList.add('hidden');selectedMedia=n
 const ADMIN_TAB_ORDER=['photos','videos','voices','stickers','account'];
 window.switchAdminTab=async tab=>{adminTab=tab;selectedMedia=new Set();document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('active',ADMIN_TAB_ORDER[i]===tab));await renderAdminTab();};
 async function renderAdminTab(){const body=el('admin-body');body.innerHTML='<div class="admin-empty">\u23F3 Memuat...</div>';if(adminTab==='photos')await renderAdminPhotos(body);else if(adminTab==='videos')await renderAdminVideos(body);else if(adminTab==='voices')await renderAdminVoices(body);else if(adminTab==='stickers')renderAdminStickers(body);else if(adminTab==='account')renderAdminAccount(body);}
-async function getAllMedia(type){const allDates=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));const results=await Promise.all(allDates.docs.map(dd=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dd.id,'messages')).then(msgs=>({dd,msgs}))));let items=[];results.forEach(({dd,msgs})=>msgs.docs.forEach(m=>{if(m.data().type===type)items.push({...m.data(),msgId:m.id,dateId:dd.id});}));return items;}
+async function getAllMedia(type){
+  // Cache per tipe media selama sesi berjalan — sebelumnya fungsi ini scan ULANG
+  // semua tanggal + semua pesan setiap kali tab Admin dibuka/diganti, yang bikin
+  // Admin Panel terasa berat/lag begitu histori chat sudah menumpuk. Cache
+  // di-reset otomatis begitu ada media baru dikirim/dihapus (lihat pemanggil
+  // "_adminMediaCache" di sendPhoto/sendVideo/stopRecord/deleteMessage/deleteSelectedMedia).
+  if(_adminMediaCache[type])return _adminMediaCache[type];
+  const allDates=await getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates'));
+  const results=await Promise.all(allDates.docs.map(dd=>getDocs(collection(db,'rooms',APP_CONFIG.roomId,'dates',dd.id,'messages')).then(msgs=>({dd,msgs}))));
+  let items=[];
+  results.forEach(({dd,msgs})=>msgs.docs.forEach(m=>{if(m.data().type===type)items.push({...m.data(),msgId:m.id,dateId:dd.id});}));
+  _adminMediaCache[type]=items;
+  return items;
+}
 async function renderAdminPhotos(body){
   const items=await getAllMedia('photo');
   if(!items.length){body.innerHTML='<div class="admin-empty">\u{1F4F7} Belum ada foto yang dikirim</div>';return;}
@@ -2834,7 +2864,7 @@ function renderAdminStickers(body){
 }
 function toggleMediaSelect(div){const key=div.dataset.idx+'_'+div.dataset.type;if(selectedMedia.has(key)){selectedMedia.delete(key);div.classList.remove('selected');}else{selectedMedia.add(key);div.classList.add('selected');}const mc=div.querySelector('.media-check,.v-check');if(mc)mc.textContent=div.classList.contains('selected')?'\u2713':'';}
 window.toggleSelectAll=type=>{const items=document.querySelectorAll('[data-type="'+type+'"]');const allSel=[...items].every(d=>d.classList.contains('selected'));selectedMedia=new Set();items.forEach(d=>{const key=d.dataset.idx+'_'+type;if(!allSel){d.classList.add('selected');selectedMedia.add(key);}else{d.classList.remove('selected');}const mc=d.querySelector('.media-check,.v-check');if(mc)mc.textContent=d.classList.contains('selected')?'\u2713':'';});};
-window.deleteSelectedMedia=async()=>{const items=document.querySelectorAll('.media-item.selected,.voice-admin-item.selected');if(!items.length){showToast('Pilih media dulu');return;}if(!confirm('Hapus '+items.length+' item? Tidak bisa dibatalkan.'))return;const prog=showProgress('Menghapus '+items.length+' item...');let count=0;for(const div of items){try{if(div.dataset.path)await deleteObject(sRef(storage,div.dataset.path)).catch(()=>{});if(div.dataset.msgId&&div.dataset.dateId)await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',div.dataset.dateId,'messages',div.dataset.msgId)).catch(()=>{});count++;}catch(e){}}prog.remove();showToast(count+' item dihapus \u2713');selectedMedia=new Set();await renderAdminTab();};
+window.deleteSelectedMedia=async()=>{const items=document.querySelectorAll('.media-item.selected,.voice-admin-item.selected');if(!items.length){showToast('Pilih media dulu');return;}if(!confirm('Hapus '+items.length+' item? Tidak bisa dibatalkan.'))return;const prog=showProgress('Menghapus '+items.length+' item...');let count=0;for(const div of items){try{if(div.dataset.path)await deleteObject(sRef(storage,div.dataset.path)).catch(()=>{});if(div.dataset.msgId&&div.dataset.dateId)await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',div.dataset.dateId,'messages',div.dataset.msgId)).catch(()=>{});count++;}catch(e){}}prog.remove();showToast(count+' item dihapus \u2713');selectedMedia=new Set();_adminMediaCache={};await renderAdminTab();};
 // \u2500\u2500 ADMIN: RESET PIN PARTNER (menggantikan reset-PIN publik yang lama) \u2500\u2500
 // Hanya bisa dipicu dari dalam Admin Panel, yang sudah mensyaratkan PIN admin.
 // PIN baru dibuat acak (bukan default tetap) dan hanya ditulis ke Firestore milik

@@ -769,6 +769,10 @@ let activeAudio=null,activePlayBtn=null,activeFill=null;
 let profilePhotos=JSON.parse(localStorage.getItem('cc-profiles')||'{}');
 let profileModalTarget=null,adminPinBuf="",adminTab="photos",selectedMedia=new Set();
 let _adminMediaCache={}; // cache hasil getAllMedia per tipe supaya Admin Panel tidak scan ulang semua histori tiap dibuka
+let _historyCountCache={}; // cache jumlah pesan per tanggal LAMA (bukan hari ini) — tanggal yang sudah lewat jumlah
+// pesannya tidak berubah lagi, jadi aman disimpan seumur sesi. Sebelumnya openHistory() selalu memanggil
+// getCountFromServer untuk SEMUA tanggal setiap kali sheet Riwayat dibuka — makin lama app dipakai (makin
+// banyak hari histori), makin banyak request paralel yang harus ditunggu setiap buka Riwayat, dan makin lag.
 let unsubTyping=null;
 let unsubPartnerProfile=null; // dipindah ke atas agar logout bisa akses
 function setConnected(ok){const b=el('conn-banner');if(b)b.classList.toggle('hidden',ok);}
@@ -937,8 +941,28 @@ function showMemoryBanner(dateStr,daysAgo){
   const storyBar=el('story-bar');
   if(storyBar)storyBar.insertAdjacentElement('afterend',banner);
 }
-function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));unsubMessages=onSnapshot(q,snap=>{
+function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').innerHTML="";const q=query(msgCol(),orderBy('timestamp','asc'));
+  // Sync pertama saat chat dibuka bisa berisi ratusan pesan (hari yang ramai). Sebelumnya tiap pesan
+  // di-appendChild satu-satu ke DOM live (reflow tiap pesan) + animasi masuk berjalan bersamaan untuk
+  // SEMUA pesan itu — makin ramai obrolan hari itu, makin nge-jank saat membuka chat. Sekarang batch
+  // pesan awal ke DocumentFragment (1x reflow) dan skip animasi masuk untuk batch awal itu.
+  let firstSnapshot=true;
+  unsubMessages=onSnapshot(q,snap=>{
     let scrolledByMe=false;
+    if(firstSnapshot){
+      firstSnapshot=false;
+      const frag=document.createDocumentFragment();
+      const pendingReads=[];
+      snap.docChanges().forEach(ch=>{
+        if(ch.type==='added'){renderMessage(ch.doc.id,ch.doc.data(),false,frag,true,pendingReads);if(ch.doc.data().senderId===currentUser?.id)scrolledByMe=true;}
+      });
+      el('messages-inner').appendChild(frag);
+      markMessagesReadBatch(pendingReads);
+      scrollToBottom(scrolledByMe);
+      setConnected(true);
+      startChat._retries=0;
+      return;
+    }
     snap.docChanges().forEach(ch=>{
       if(ch.type==='added'){renderMessage(ch.doc.id,ch.doc.data());if(ch.doc.data().senderId===currentUser?.id)scrolledByMe=true;}
       if(ch.type==='modified'){
@@ -982,7 +1006,7 @@ function startChat(){if(unsubMessages)unsubMessages();el('messages-inner').inner
   });
   watchTyping(); // dipanggil sekali saja, bukan di dalam onSnapshot
 }
-function renderMessage(id,data,readOnly=false,container=null){
+function renderMessage(id,data,readOnly=false,container=null,noAnim=false,deferRead=null){
   data._dateId=data._dateId||todayDateStr;
   const target=container||el('messages-inner');
   // Resolve identitas — aman untuk history view (currentUser bisa null jika dibuka dari login screen)
@@ -990,6 +1014,7 @@ function renderMessage(id,data,readOnly=false,container=null){
   const knownId=currentUser?.id;
   const isMe=!!knownId&&data.senderId===knownId;
   const row=document.createElement('div');row.className='msg-row '+(isMe?'me':'other');row.dataset.id=id;row.dataset.dateId=todayDateStr;
+  if(noAnim)row.style.animation='none';
   const senderCfg=APP_CONFIG[data.senderId]||{};
   const av=document.createElement('div');av.className='msg-av';
   if(!isMe){av.dataset.uid=data.senderId;const ph=profilePhotos[data.senderId];if(ph){av.innerHTML='<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';}else{av.textContent=senderCfg.avatar||otherUser?.avatar||'\u{1F33F}';}}else{av.style.display='none';}
@@ -1052,8 +1077,30 @@ function renderMessage(id,data,readOnly=false,container=null){
   if(!isMe)av.onclick=e=>{e.stopPropagation();openProfileViewer(data.senderId);};
   row.appendChild(av);row.appendChild(col);target.appendChild(row);
   if(!readOnly)attachSwipeToReply(row,id,data);
-  // Mark as read: jika pesan dari partner, tandai sudah dibaca
-  if(!isMe&&!readOnly&&currentUser)markAsRead(id,data);
+  // Mark as read: jika pesan dari partner, tandai sudah dibaca.
+  // Saat batch render awal (deferRead diisi array), jangan updateDoc satu-satu di sini —
+  // biar caller kumpulkan lalu commit sekali via writeBatch (lihat markMessagesReadBatch).
+  if(!isMe&&!readOnly&&currentUser){
+    if(Array.isArray(deferRead))deferRead.push({id,data});
+    else markAsRead(id,data);
+  }
+}
+async function markMessagesReadBatch(items){
+  // Sebelumnya tiap pesan belum dibaca memicu updateDoc terpisah saat chat pertama kali dibuka —
+  // kalau partner kirim banyak pesan sementara kita offline, itu jadi puluhan write Firestore
+  // sekaligus + memicu balik puluhan event 'modified' yang masing-masing menyentuh DOM lagi.
+  // Gabung jadi satu writeBatch (maks 450 op per batch, dipecah kalau lebih).
+  if(!items||!items.length||!currentUser)return;
+  const unread=items.filter(({data})=>!(data.readBy&&data.readBy[currentUser.id]));
+  if(!unread.length)return;
+  for(let i=0;i<unread.length;i+=450){
+    const chunk=unread.slice(i,i+450);
+    try{
+      const batch=writeBatch(db);
+      chunk.forEach(({id})=>batch.update(doc(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages',id),{['readBy.'+currentUser.id]:true}));
+      await batch.commit();
+    }catch(e){}
+  }
 }
 // Swipe bubble ke samping (>60px) untuk membalas — gestur ala WhatsApp/Telegram.
 // Diputuskan horizontal-vs-vertikal di awal drag supaya tidak mengganggu scroll.
@@ -2091,6 +2138,7 @@ async function deleteMessage(msgId,data,dateId){
     if(data.storagePath)await deleteObject(sRef(storage,data.storagePath)).catch(()=>{});
     await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',targetDate,'messages',msgId));
     if(['photo','video','voice'].includes(data.type))_adminMediaCache[data.type]=null;
+    delete _historyCountCache[targetDate];
     showToast('Pesan dihapus');
   }catch(e){showToast('Gagal hapus pesan');}
 }
@@ -2219,7 +2267,15 @@ window.openHistory=async()=>{const list=el('history-list'),empty=el('history-emp
   // Hitung jumlah pesan pakai aggregation query (getCountFromServer) — tidak
   // perlu download isi semua pesan hanya untuk menghitungnya, jauh lebih
   // hemat baca Firestore & lebih cepat saat riwayat sudah menumpuk banyak.
-  const results=await Promise.all(past.map(d=>getCountFromServer(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages')).then(s=>({d,count:s.data().count}))));
+  // Tanggal LAMA (bukan hari ini) di-cache karena jumlahnya immutable — hanya
+  // tanggal hari ini yang selalu di-fetch ulang karena masih terus bertambah.
+  const results=await Promise.all(past.map(async d=>{
+    if(d!==realToday&&_historyCountCache[d]!==undefined)return{d,count:_historyCountCache[d]};
+    const s=await getCountFromServer(collection(db,'rooms',APP_CONFIG.roomId,'dates',d,'messages'));
+    const count=s.data().count;
+    if(d!==realToday)_historyCountCache[d]=count;
+    return{d,count};
+  }));
   results.forEach(({d,count})=>{
     const item=document.createElement('div');item.className='history-item';
     item.innerHTML='<div class="history-item-left"><h4>'+formatDate(d)+'</h4><p>'+d+'</p></div><div style="display:flex;align-items:center;gap:8px"><span class="history-item-badge">'+count+' pesan</span><span style="color:var(--text-secondary);font-size:18px">\u203A</span></div>';
@@ -2246,7 +2302,9 @@ async function openHistoryView(dateStr){
       msgContainer.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-secondary);font-size:13px">Tidak ada pesan di tanggal ini.</div>';
       return;
     }
-    snap.docs.forEach(docSnap=>{const dd=docSnap.data();dd._dateId=dateStr;renderMessage(docSnap.id,dd,true,msgContainer);});
+    const frag=document.createDocumentFragment();
+    snap.docs.forEach(docSnap=>{const dd=docSnap.data();dd._dateId=dateStr;renderMessage(docSnap.id,dd,true,frag,true);});
+    msgContainer.appendChild(frag);
     // Jika ini hari ini, tampilkan note di bawah
     if(dateStr===getTodayStr()){
       const note=document.createElement('div');
@@ -2582,6 +2640,9 @@ window.openWaViewer=async(importId,meta)=>{
     body.innerHTML='';
     const showNameLabel=(meta.participants||[]).length>2;
     let lastDateKey=null;
+    // Import WA bisa berisi ribuan pesan histori — render ke fragment lepas dulu (1x reflow)
+    // alih-alih appendChild langsung ke body yang sudah live di layar per pesan.
+    const frag=document.createDocumentFragment();
     snap.forEach(docSnap=>{
       const m=docSnap.data();
       const ts=m.timestamp?.toDate?m.timestamp.toDate():null;
@@ -2590,10 +2651,11 @@ window.openWaViewer=async(importId,meta)=>{
         lastDateKey=dateKey;
         const sep=document.createElement('div');sep.className='wa-date-sep';
         const span=document.createElement('span');span.textContent=ts.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-        sep.appendChild(span);body.appendChild(sep);
+        sep.appendChild(span);frag.appendChild(sep);
       }
-      renderWaMessage(m,body,meta.meName,showNameLabel);
+      renderWaMessage(m,frag,meta.meName,showNameLabel);
     });
+    body.appendChild(frag);
     if(!snap.size)body.innerHTML='<div style="text-align:center;padding:30px;color:#667781;font-size:13px">Tidak ada pesan.</div>';
     setTimeout(()=>{body.scrollTop=body.scrollHeight;},60);
   }catch(e){
@@ -2864,7 +2926,7 @@ function renderAdminStickers(body){
 }
 function toggleMediaSelect(div){const key=div.dataset.idx+'_'+div.dataset.type;if(selectedMedia.has(key)){selectedMedia.delete(key);div.classList.remove('selected');}else{selectedMedia.add(key);div.classList.add('selected');}const mc=div.querySelector('.media-check,.v-check');if(mc)mc.textContent=div.classList.contains('selected')?'\u2713':'';}
 window.toggleSelectAll=type=>{const items=document.querySelectorAll('[data-type="'+type+'"]');const allSel=[...items].every(d=>d.classList.contains('selected'));selectedMedia=new Set();items.forEach(d=>{const key=d.dataset.idx+'_'+type;if(!allSel){d.classList.add('selected');selectedMedia.add(key);}else{d.classList.remove('selected');}const mc=d.querySelector('.media-check,.v-check');if(mc)mc.textContent=d.classList.contains('selected')?'\u2713':'';});};
-window.deleteSelectedMedia=async()=>{const items=document.querySelectorAll('.media-item.selected,.voice-admin-item.selected');if(!items.length){showToast('Pilih media dulu');return;}if(!confirm('Hapus '+items.length+' item? Tidak bisa dibatalkan.'))return;const prog=showProgress('Menghapus '+items.length+' item...');let count=0;for(const div of items){try{if(div.dataset.path)await deleteObject(sRef(storage,div.dataset.path)).catch(()=>{});if(div.dataset.msgId&&div.dataset.dateId)await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',div.dataset.dateId,'messages',div.dataset.msgId)).catch(()=>{});count++;}catch(e){}}prog.remove();showToast(count+' item dihapus \u2713');selectedMedia=new Set();_adminMediaCache={};await renderAdminTab();};
+window.deleteSelectedMedia=async()=>{const items=document.querySelectorAll('.media-item.selected,.voice-admin-item.selected');if(!items.length){showToast('Pilih media dulu');return;}if(!confirm('Hapus '+items.length+' item? Tidak bisa dibatalkan.'))return;const prog=showProgress('Menghapus '+items.length+' item...');let count=0;for(const div of items){try{if(div.dataset.path)await deleteObject(sRef(storage,div.dataset.path)).catch(()=>{});if(div.dataset.msgId&&div.dataset.dateId){await deleteDoc(doc(db,'rooms',APP_CONFIG.roomId,'dates',div.dataset.dateId,'messages',div.dataset.msgId)).catch(()=>{});delete _historyCountCache[div.dataset.dateId];}count++;}catch(e){}}prog.remove();showToast(count+' item dihapus \u2713');selectedMedia=new Set();_adminMediaCache={};await renderAdminTab();};
 // \u2500\u2500 ADMIN: RESET PIN PARTNER (menggantikan reset-PIN publik yang lama) \u2500\u2500
 // Hanya bisa dipicu dari dalam Admin Panel, yang sudah mensyaratkan PIN admin.
 // PIN baru dibuat acak (bukan default tetap) dan hanya ditulis ke Firestore milik

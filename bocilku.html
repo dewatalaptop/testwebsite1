@@ -1321,6 +1321,8 @@ async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers
 window.sendPhoto=async event=>{
   const file=event.target.files[0];event.target.value="";
   if(!file||!currentUser)return;
+  if(!file.type.startsWith('image/')){showToast('File harus berupa foto');return;}
+  if(file.size>40*1024*1024){showToast('Foto terlalu besar (maks 40MB)');return;}
   const prog=showProgress('Mengompresi foto...');
   try{
     const compressed=await compressImage(file,800,0.55);
@@ -1328,7 +1330,7 @@ window.sendPhoto=async event=>{
     // kedua ini murah karena sumbernya sudah kecil. Dipakai di bubble chat, grid Admin, dan
     // preview riwayat, supaya yang dimuat sehari-hari adalah file kecil, bukan foto ukuran penuh.
     let thumbBlob=null;
-    try{thumbBlob=await compressImage(compressed,320,0.6);}catch(e){}
+    try{thumbBlob=await compressImage(compressed,320,0.6);}catch(e){console.warn('thumbnail gagal:',e);}
     prog.setText('Mengunggah...');
     await ensureDateRegistered(todayDateStr);
     const stamp=Date.now();
@@ -1342,13 +1344,16 @@ window.sendPhoto=async event=>{
         await uploadBytes(sRef(storage,thumbPath),thumbBlob);
         msgData.thumbUrl=await getDownloadURL(sRef(storage,thumbPath));
         msgData.thumbPath=thumbPath;
-      }catch(e){/* thumbnail gagal — pesan tetap terkirim pakai foto penuh */}
+      }catch(e){console.warn('thumbnail upload gagal (pesan tetap terkirim pakai foto penuh):',e);}
     }
     await addDoc(msgCol(),msgData);
     _adminMediaCache.photo=null;
-  }catch(e){showToast('Gagal kirim foto');}finally{prog.remove();}
+  }catch(e){
+    console.error('sendPhoto error:',e);
+    showToast('Gagal kirim foto: '+(e?.code||e?.message||'error'));
+  }finally{prog.remove();}
 };
-function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej('fail');},'image/jpeg',quality);};img.onerror=rej;img.src=url;});}
+function compressImage(file,maxPx,quality){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let{width:w,height:h}=img;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(blob=>{if(blob)res(blob);else rej(new Error('canvas toBlob gagal (format tidak didukung)'));},'image/jpeg',quality);};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('Gagal memuat gambar (format tidak didukung atau file rusak)'));};img.src=url;});}
 // Ambil 1 frame video (dekat awal) sebagai thumbnail JPEG 320px — dipakai untuk poster
 // bubble video di chat & grid Admin, supaya tidak perlu stream/decode video hanya untuk
 // menampilkan pratinjaunya. Best-effort: kalau browser tidak bisa decode (mis. beberapa

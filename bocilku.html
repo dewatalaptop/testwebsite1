@@ -467,7 +467,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 <div id="screen-chat" class="screen hidden">
   <header class="chat-header">
     <div class="header-left">
-      <div class="header-avatars" onclick="openMyProfile()" oncontextmenu="event.preventDefault();currentUser&&openProfileViewer(currentUser.id)">
+      <div class="header-avatars" onclick="openMyProfile()" oncontextmenu="event.preventDefault();viewMyProfilePhoto()">
         <div class="hdr-av-wrap other" id="hdr-wrap-other"><span>&#x1F33F;</span></div>
         <div class="hdr-av-wrap me" id="hdr-wrap-me"><span>&#x1F324;&#xFE0F;</span></div>
       </div>
@@ -818,6 +818,7 @@ function formatTime(ts){if(!ts)return"";const d=ts.toDate?ts.toDate():new Date(t
 function fmtDur(sec){if(!sec||!isFinite(sec)||isNaN(sec)||sec<0)return'0:00';sec=Math.floor(sec);return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');}
 function showToast(msg,ms=2400){const t=el('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(showToast._t);showToast._t=setTimeout(()=>t.classList.add('hidden'),ms);}
 const el=id=>document.getElementById(id);
+window.el=el; // dibutuhkan agar onclick="el(...)" di atribut HTML inline (bukan listener JS) bisa berfungsi — atribut inline berjalan di scope global, bukan scope module ini
 function saveCfg(){localStorage.setItem('cc-cfg',JSON.stringify(APP_CONFIG));}
 function saveProfiles(){localStorage.setItem('cc-profiles',JSON.stringify(profilePhotos));}
 // LOGIN
@@ -1299,6 +1300,14 @@ async function ensureDateRegistered(dateStr){
     if(!dateStr)_dateRegistered=true;
   }catch(e){console.warn('ensureDateRegistered:',e);}
 }
+// Kalender Riwayat (_histDateCounts) dimuat sekali per sesi lewat loadHistoryDateCounts().
+// Tanpa ini, kalau kamu buka Riwayat lalu kirim pesan baru hari ini tanpa reload
+// halaman, jumlah pesan hari ini di kalender akan terlihat basi (kurang) sampai
+// reload. deleteMessage() sudah mengurangi hitungan saat hapus; ini pasangannya
+// untuk menambah hitungan saat kirim berhasil.
+function bumpTodayHistCount(){
+  if(_histDateCounts)_histDateCounts[todayDateStr]=(_histDateCounts[todayDateStr]||0)+1;
+}
 window.sendMessage=async()=>{
   const inp=el('msg-input'),text=inp.value.trim();
   if(!text||!currentUser||_sending)return;
@@ -1313,11 +1322,12 @@ window.sendMessage=async()=>{
     if(replyTo){msgData.replyTo=replyTo;msgData.replyPreview=replyPreview;}
     await ensureDateRegistered(todayDateStr);
     await addDoc(msgCol(),msgData);
+    bumpTodayHistCount();
     setTypingStatus(false);
   }catch(e){showToast('Gagal mengirim');inp.value=text;}
   finally{_sending=false;}
 };
-async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await ensureDateRegistered(todayDateStr);await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});}catch(e){showToast('Gagal kirim stiker');}}
+async function sendSticker(url,isGif=false){if(!currentUser)return;closeStickers();const s=allStickers.find(x=>x.url===url);const gif=isGif||(s?.isGif)||url.toLowerCase().includes('.gif');try{await ensureDateRegistered(todayDateStr);await addDoc(msgCol(),{senderId:currentUser.id,senderName:currentUser.name,type:'sticker',content:url,isGif:gif,timestamp:serverTimestamp(),reactions:{}});bumpTodayHistCount();}catch(e){showToast('Gagal kirim stiker');}}
 window.sendPhoto=async event=>{
   const file=event.target.files[0];event.target.value="";
   if(!file||!currentUser)return;
@@ -1347,6 +1357,7 @@ window.sendPhoto=async event=>{
       }catch(e){console.warn('thumbnail upload gagal (pesan tetap terkirim pakai foto penuh):',e);}
     }
     await addDoc(msgCol(),msgData);
+    bumpTodayHistCount();
     _adminMediaCache.photo=null;
   }catch(e){
     console.error('sendPhoto error:',e);
@@ -1465,6 +1476,7 @@ window.sendVideo=async event=>{
       msgData.thumbPath=thumbPath;
     }catch(e){console.warn('captureVideoPoster gagal (video tetap terkirim tanpa thumbnail):',e);}
     await addDoc(msgCol(),msgData);
+    bumpTodayHistCount();
     _adminMediaCache.video=null;
   }catch(e){
     console.error('sendVideo error:',e);
@@ -1528,6 +1540,7 @@ async function stopRecord(){
           type:'voice',content:url,duration:dur,storagePath:path,mimeType:mime,
           timestamp:serverTimestamp(),reactions:{}
         });
+        bumpTodayHistCount();
         _adminMediaCache.voice=null;
       }catch(e){console.error('voice upload:',e);showToast('Gagal kirim suara');}
       finally{prog.remove();res();}
@@ -1740,7 +1753,8 @@ function renderStoryBar(){
     const cfg=APP_CONFIG[s.authorId]||{};
     const ph=profilePhotos[s.authorId];
     const item=document.createElement('div');item.className='story-item';
-    item.innerHTML='<div class="story-ring'+(isSeen?' seen':'')+'"><div class="story-av">'+(ph?'<img src="'+ph+'">':(cfg.avatar||'\uD83D\uDC64'))+'</div></div><span class="story-name">'+(cfg.name||'Partner')+'</span>';
+    item.innerHTML='<div class="story-ring'+(isSeen?' seen':'')+'"><div class="story-av">'+(ph?'<img src="'+ph+'">':(cfg.avatar||'\uD83D\uDC64'))+'</div></div>';
+    const storyNameSpan=document.createElement('span');storyNameSpan.className='story-name';storyNameSpan.textContent=cfg.name||'Partner';item.appendChild(storyNameSpan);
     item.onclick=()=>openStoryViewer(storyItems.indexOf(s));
     bar.appendChild(item);
   });
@@ -1866,7 +1880,8 @@ function renderHighlightBar(){
   highlightItems.forEach((h,i)=>{
     const ph=profilePhotos[h.authorId];
     const item=document.createElement('div');item.className='story-item';
-    item.innerHTML='<div class="story-ring highlight"><div class="story-av">'+(h.mediaType==='video'?'\u{1F3AC}':(ph?'<img src="'+ph+'">':'⭐'))+'</div></div><span class="story-name">'+(h.caption?h.caption.slice(0,10):'Highlight')+'</span>';
+    item.innerHTML='<div class="story-ring highlight"><div class="story-av">'+(h.mediaType==='video'?'\u{1F3AC}':(ph?'<img src="'+ph+'">':'⭐'))+'</div></div>';
+    const highlightNameSpan=document.createElement('span');highlightNameSpan.className='story-name';highlightNameSpan.textContent=h.caption?h.caption.slice(0,10):'Highlight';item.appendChild(highlightNameSpan);
     item.onclick=()=>openHighlightViewer(i);
     bar.appendChild(item);
   });
@@ -2163,43 +2178,6 @@ async function markAsRead(msgId,data,dateId){
   }catch(e){}
 }
 
-window.showMsgActions=(msgId,data,bubble,isMe)=>{
-  // Tutup menu yang sudah ada
-  document.querySelectorAll('.msg-actions-menu').forEach(m=>m.remove());
-  const menu=document.createElement('div');menu.className='msg-actions-menu';
-  const rect=bubble.getBoundingClientRect();
-  // Posisi menu di atas atau bawah bubble
-  const top=rect.top>160?rect.top-10:rect.bottom+6;
-  const left=isMe?Math.max(8,rect.right-160):Math.min(rect.left,window.innerWidth-168);
-  menu.style.cssText='top:'+top+'px;left:'+left+'px;transform:translateY(-100%)';
-  if(rect.top<=160)menu.style.transform='translateY(0)';
-
-  // Tombol Edit (hanya teks)
-  if(data.type==='text'){
-    const editBtn=document.createElement('button');editBtn.className='msg-action-item';
-    editBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Pesan';
-    editBtn.onclick=()=>{menu.remove();startEditMessage(msgId,data,bubble);};
-    menu.appendChild(editBtn);
-  }
-  // Tombol Hapus
-  const delBtn=document.createElement('button');delBtn.className='msg-action-item danger';
-  delBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg> Hapus Pesan';
-  delBtn.onclick=()=>{menu.remove();deleteMessage(msgId,data);};
-  menu.appendChild(delBtn);
-  // Tombol Reaksi
-  const rxBtn=document.createElement('button');rxBtn.className='msg-action-item';
-  rxBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg> Tambah Reaksi';
-  rxBtn.onclick=()=>{menu.remove();showReactionPicker(msgId,bubble);};
-  menu.appendChild(rxBtn);
-
-  document.body.appendChild(menu);
-  // Tutup saat klik di luar
-  setTimeout(()=>{
-    const close=e=>{if(!menu.contains(e.target)){menu.remove();document.removeEventListener('click',close);}};
-    document.addEventListener('click',close);
-  },50);
-};
-
 function startEditMessage(msgId,data,bubble){
   // Ganti bubble jadi textarea edit
   const original=bubble.textContent;
@@ -2251,29 +2229,29 @@ async function deleteMessage(msgId,data,dateId){
 }
 
 // ── PROFILE VIEWER ──────────────────────────
+// Dipanggil dari atribut oncontextmenu inline di header (klik-kanan/tekan-lama avatar
+// sendiri) — dibungkus fungsi terpisah karena atribut HTML inline tidak bisa melihat
+// variabel currentUser yang berada di scope module ini.
+window.viewMyProfilePhoto=()=>{if(currentUser)openProfileViewer(currentUser.id);};
 window.openProfileViewer=uid=>{
   const cfg=APP_CONFIG[uid]||{};
   const photo=profilePhotos[uid];
   const viewer=document.createElement('div');viewer.className='profile-viewer';
-  let content='';
-  if(photo){content='<img class="profile-viewer-img" src="'+photo+'" alt="'+cfg.name+'">';}
-  else{content='<div class="profile-viewer-emoji">'+cfg.avatar+'</div>';}
-  viewer.innerHTML=content+'<div class="profile-viewer-name">'+(cfg.name||'Pengguna')+'</div>';
+  if(photo){
+    const pvImg=document.createElement('img');pvImg.className='profile-viewer-img';pvImg.src=photo;pvImg.alt=cfg.name||'';
+    viewer.appendChild(pvImg);
+  }else{
+    const pvEmoji=document.createElement('div');pvEmoji.className='profile-viewer-emoji';pvEmoji.textContent=cfg.avatar||'';
+    viewer.appendChild(pvEmoji);
+  }
+  const pvName=document.createElement('div');pvName.className='profile-viewer-name';pvName.textContent=cfg.name||'Pengguna';
+  viewer.appendChild(pvName);
   const pvc=document.createElement('button');pvc.className='profile-viewer-close';pvc.textContent='✕';pvc.onclick=()=>viewer.remove();viewer.appendChild(pvc);
   viewer.onclick=e=>{if(e.target===viewer)viewer.remove();};
   document.body.appendChild(viewer);
 };
 
-// ── WATCH READ STATUS ────────────────────────
-// Update centang saat partner menandai pesan sebagai terbaca
-function watchReadStatus(){
-  if(!currentUser||!otherUser)return;
-  // onSnapshot sudah cover ini via 'modified' event di startChat
-  // Tapi perlu update UI centang secara live
-}
-
-// ── REACTIONS ── (addReaction sudah didefinisi di atas dengan versi terbaru; ini hanya redirect lama)
-window.showReactionPicker=(msgId,bubble,dateId)=>{openEmojiPicker(msgId,dateId);};
+// ── REACTIONS ── (addReaction sudah didefinisi di atas dengan versi terbaru)
 function updateReactionsUI(row,reactions){const div=row.querySelector('.msg-reactions');if(!div)return;const groups={};Object.values(reactions).forEach(r=>{groups[r.emoji]=(groups[r.emoji]||0)+1;});div.innerHTML="";Object.entries(groups).forEach(([emoji,count])=>{const s=document.createElement('span');s.className='msg-reaction';s.textContent=emoji+(count>1?' '+count:'');div.appendChild(s);});}
 // THEMES
 let _systemThemeMedia=null;
@@ -2725,7 +2703,13 @@ window.processWaPaste=()=>{
   }
   const defTitle='Chat WhatsApp'+(first?(' '+fmtShort(first)+((last&&fmtShort(first)!==fmtShort(last))?(' - '+fmtShort(last)):'')):'');
   el('wa-title-input').value=defTitle;
-  el('wa-save-btn').disabled=true;el('wa-save-btn').style.opacity='0.5';
+  // Kalau nama pengirim tidak terdeteksi, tidak ada tombol partisipan untuk
+  // memilih & meng-enable Save — jadi tombol harus tetap aktif dari awal,
+  // sebab saveWaImport() sendiri sudah mengizinkan lanjut tanpa _waSelectedMe
+  // ketika parsed.participants kosong.
+  const needsParticipantChoice=parsed.participants.length>0;
+  el('wa-save-btn').disabled=needsParticipantChoice;
+  el('wa-save-btn').style.opacity=needsParticipantChoice?'0.5':'1';
   el('wa-paste-step1').classList.add('hidden');
   el('wa-paste-step2').classList.remove('hidden');
 };
@@ -3149,7 +3133,7 @@ async function renderAdminVoices(body){
   actions.innerHTML='<button class="media-action-btn sel" onclick="toggleSelectAll(\'voice-item\')">Pilih Semua</button><button class="media-action-btn danger" onclick="deleteSelectedMedia()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg> Hapus Dipilih</button>';
   body.appendChild(actions);
   const list=document.createElement('div');list.className='voice-list';
-  items.forEach((item,i)=>{const div=document.createElement('div');div.className='voice-admin-item';div.dataset.idx=i;div.dataset.url=item.content;div.dataset.path=item.storagePath||'';div.dataset.msgId=item.msgId;div.dataset.dateId=item.dateId;div.dataset.type='voice-item';const who=item.senderId===currentUser.id?currentUser.name:otherUser.name;div.innerHTML='<div style="font-size:24px">\u{1F399}\uFE0F</div><div class="voice-admin-meta"><h4>'+who+' \u2014 '+fmtDur(item.duration||0)+'</h4><p>'+item.dateId+'</p></div><div class="v-check"></div>';div.onclick=()=>toggleMediaSelect(div);list.appendChild(div);});
+  items.forEach((item,i)=>{const div=document.createElement('div');div.className='voice-admin-item';div.dataset.idx=i;div.dataset.url=item.content;div.dataset.path=item.storagePath||'';div.dataset.msgId=item.msgId;div.dataset.dateId=item.dateId;div.dataset.type='voice-item';const who=item.senderId===currentUser.id?currentUser.name:otherUser.name;div.innerHTML='<div style="font-size:24px">\u{1F399}\uFE0F</div><div class="voice-admin-meta"><h4></h4><p></p></div><div class="v-check"></div>';div.querySelector('h4').textContent=who+' \u2014 '+fmtDur(item.duration||0);div.querySelector('p').textContent=item.dateId;div.onclick=()=>toggleMediaSelect(div);list.appendChild(div);});
   body.appendChild(list);
 }
 function renderAdminStickers(body){
@@ -3286,7 +3270,10 @@ window.backupAllMediaToDrive=async()=>{
 function renderAdminAccount(body){
   body.innerHTML='';
   const pinCard=document.createElement('div');pinCard.className='drive-note';
-  pinCard.innerHTML='<b>\u{1F511} Reset PIN '+(otherUser?.name||'Partner')+'</b><br>Buat PIN acak baru untuk partner jika ia lupa PIN. PIN lama langsung tidak berlaku, dan hanya kamu (admin) yang bisa memicu ini.';
+  const pinCardTitle=document.createElement('b');pinCardTitle.textContent='\u{1F511} Reset PIN '+(otherUser?.name||'Partner');
+  pinCard.appendChild(pinCardTitle);
+  pinCard.appendChild(document.createElement('br'));
+  pinCard.appendChild(document.createTextNode('Buat PIN acak baru untuk partner jika ia lupa PIN. PIN lama langsung tidak berlaku, dan hanya kamu (admin) yang bisa memicu ini.'));
   body.appendChild(pinCard);
   const resetBtn=document.createElement('button');resetBtn.className='media-action-btn danger';resetBtn.style.marginBottom='10px';
   resetBtn.textContent='Reset PIN '+(otherUser?.name||'Partner');

@@ -426,9 +426,112 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   .print-msg p{font-size:14px;line-height:1.5}
   .print-msg img{max-width:220px;border-radius:8px;display:block;margin-top:4px}
 }
+/* ═══════════════════════════════════════════════════════════════════
+   LIQUID GLASS + LATAR LAUT (2026-10)
+   Tampilan frosted-glass ala iOS di seluruh "chrome" (header, input, sheet,
+   modal, panel, login, lock, toast) di atas latar laut beranimasi lembut.
+   PRINSIP PERFORMA (anti-lag):
+   - backdrop-filter HANYA pada elemen chrome yang jumlahnya sedikit & yang
+     di belakangnya hanya laut (statis/animasi ringan) — bukan area pesan yang
+     di-scroll. Gelembung pesan TIDAK pakai backdrop-filter (bisa ratusan →
+     lag); cukup isian frosted yang cukup pekat agar tetap terbaca.
+   - Elemen kecil yang berada DI ATAS panel yang sudah blur (tombol PIN, kartu
+     tema, item stiker, tombol action-sheet) hanya pakai isian transparan,
+     tanpa blur tambahan (percuma & boros).
+   - Animasi laut mati otomatis saat prefers-reduced-motion.
+   Warna laut diturunkan dari token tema (color-mix) → otomatis serasi untuk
+   ke-8 tema, dan jadi laut-dalam gelap di tema Malam.
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  --sea-sky:color-mix(in srgb,var(--accent2) 42%,#eef7ff);
+  --sea-mid:color-mix(in srgb,var(--accent) 46%,#73c0ea);
+  --sea-deep:color-mix(in srgb,var(--accent) 74%,#0a3a5f);
+  --sea-foam:rgba(255,255,255,0.5);
+  --glass-bg:rgba(255,255,255,0.42);
+  --glass-strong:rgba(255,255,255,0.64);
+  --glass-brd:rgba(255,255,255,0.6);
+  --glass-hi:rgba(255,255,255,0.75);
+  --glass-blur:blur(22px) saturate(170%);
+  --chat-scrim:linear-gradient(180deg,rgba(255,255,255,0.26),rgba(255,255,255,0.10));
+  --bubble-other-glass:rgba(255,255,255,0.86);
+}
+[data-theme="night"]{
+  --sea-sky:#0c1f33;--sea-mid:#0b2c49;--sea-deep:#05121f;--sea-foam:rgba(150,195,235,0.26);
+  --glass-bg:rgba(22,35,58,0.5);--glass-strong:rgba(26,42,68,0.68);
+  --glass-brd:rgba(130,170,220,0.26);--glass-hi:rgba(170,205,245,0.18);
+  --chat-scrim:linear-gradient(180deg,rgba(8,16,28,0.32),rgba(8,16,28,0.14));
+  --bubble-other-glass:rgba(31,44,68,0.84);
+}
+html{background:var(--sea-deep)}
+body{background:transparent!important}
+#sea-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
+  background:linear-gradient(180deg,var(--sea-sky) 0%,var(--sea-mid) 50%,var(--sea-deep) 100%)}
+/* cahaya matahari di permukaan air */
+#sea-bg::before{content:"";position:absolute;top:-16%;left:50%;width:150%;height:62%;transform:translateX(-50%);
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.5),rgba(255,255,255,0) 62%);opacity:0.7}
+#sea-bg .glow{position:absolute;border-radius:50%;filter:blur(72px);will-change:transform}
+#sea-bg .g1{width:56vw;height:56vw;left:-12vw;top:6%;background:var(--sea-foam);opacity:0.5;animation:seaFloatA 20s ease-in-out infinite alternate}
+#sea-bg .g2{width:48vw;height:48vw;right:-14vw;top:28%;background:color-mix(in srgb,var(--accent2) 62%,#ffffff);opacity:0.32;animation:seaFloatB 27s ease-in-out infinite alternate}
+#sea-bg .g3{width:64vw;height:64vw;left:16vw;bottom:-22vw;background:color-mix(in srgb,var(--accent) 52%,#2aa0e0);opacity:0.34;animation:seaFloatA 34s ease-in-out infinite alternate-reverse}
+/* kilau garis cahaya bergerak di kejauhan */
+#sea-bg .sea-shimmer{position:absolute;inset:0;background:repeating-linear-gradient(100deg,transparent 0 46px,rgba(255,255,255,0.05) 46px 48px);mix-blend-mode:overlay;opacity:0.5;animation:seaShimmer 24s linear infinite}
+@keyframes seaFloatA{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(6vw,-4vh,0) scale(1.12)}}
+@keyframes seaFloatB{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-7vw,5vh,0) scale(1.08)}}
+@keyframes seaShimmer{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+@media(prefers-reduced-motion:reduce){#sea-bg .glow,#sea-bg .sea-shimmer{animation:none}}
+
+/* ── Layar transparan agar laut terlihat ── */
+#screen-login{background:transparent!important}
+#screen-chat{background:var(--chat-scrim)!important}
+.messages-area{background:transparent}
+.login-bg{opacity:0.5} /* blob lama diredam, laut jadi latar utama */
+
+/* ── Chrome kaca (punya blur — sedikit & di atas laut statis) ── */
+.chat-header{background:var(--glass-bg)!important;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border-bottom:1px solid var(--glass-brd);box-shadow:inset 0 1px 0 var(--glass-hi),0 4px 22px rgba(0,0,0,0.07)}
+.input-bar{background:var(--glass-bg)!important;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border-top:1px solid var(--glass-brd);box-shadow:inset 0 1px 0 var(--glass-hi)}
+.story-bar{background:var(--glass-bg);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+  border-bottom:1px solid var(--glass-brd)}
+.date-banner span,.pinned-banner{background:var(--glass-bg)!important;-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);border:1px solid var(--glass-brd)}
+.pinned-banner{box-shadow:inset 0 1px 0 var(--glass-hi)}
+
+/* ── Sheet / modal / panel kaca (biasanya cuma 1 tampil sekaligus) ── */
+.bottom-sheet,.modal-card,.msg-action-sheet,.emoji-picker-sheet,.admin-panel{
+  background:var(--glass-strong)!important;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-brd);box-shadow:0 -8px 44px rgba(0,0,0,0.18),inset 0 1px 0 var(--glass-hi)}
+.admin-panel{border:none;box-shadow:none}
+.admin-header,.admin-tabs{background:transparent!important}
+.login-card{background:var(--glass-strong)!important;border:1px solid var(--glass-brd)!important;
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:0 12px 50px rgba(0,0,0,0.2),inset 0 1px 0 var(--glass-hi)}
+.toast{background:rgba(18,26,38,0.6)!important;-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);border:1px solid var(--glass-hi)}
+.upload-progress{background:var(--glass-strong)!important;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-brd)}
+
+/* ── Gelembung pesan: frosted TANPA blur (anti-lag) ── */
+.msg-row.other .msg-bubble{background:var(--bubble-other-glass)!important;border:1px solid var(--glass-brd);
+  box-shadow:0 2px 10px rgba(0,0,0,0.08),inset 0 1px 0 var(--glass-hi)}
+.msg-row.me .msg-bubble{box-shadow:0 3px 12px rgba(0,0,0,0.16),inset 0 1px 0 rgba(255,255,255,0.28)}
+#typing-indicator .typing-bubble,.typing-bubble{background:var(--bubble-other-glass)!important;border:1px solid var(--glass-brd)}
+
+/* ── Elemen di ATAS panel yang sudah blur: isian transparan saja (tanpa blur) ── */
+.input-wrap{background:var(--glass-strong)!important;border:1px solid var(--glass-brd)!important}
+.pin-key{background:var(--glass-strong)!important;border:1px solid var(--glass-brd)!important;color:var(--text-primary)}
+.pin-key:active{background:var(--glass-bg)!important}
+.theme-card,.sticker-item,.drive-note,.action-sheet-preview,.action-sheet-btn,.media-action-btn.sel,.modal-back{
+  background:var(--glass-bg)!important;border:1px solid var(--glass-brd)!important}
+.sticker-tab{background:var(--glass-bg);border:1px solid var(--glass-brd)}
+.sticker-tab.active{background:var(--accent);border-color:var(--accent)}
+.hdr-btn{border-radius:14px}
+.hdr-btn:hover{background:var(--glass-strong);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.send-btn{box-shadow:0 4px 14px rgba(0,0,0,0.22),inset 0 1px 0 rgba(255,255,255,0.35)}
+/* reaction-picker juga diberi kaca */
+.reaction-picker{background:var(--glass-strong)!important;-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);border:1px solid var(--glass-brd)}
 </style>
 </head>
 <body>
+<!-- LATAR LAUT (liquid glass) — di belakang semua layar, tidak menangkap sentuhan -->
+<div id="sea-bg" aria-hidden="true"><span class="glow g1"></span><span class="glow g2"></span><span class="glow g3"></span><span class="sea-shimmer"></span></div>
 <!-- LOGIN -->
 <div id="screen-login" class="screen active">
   <div class="login-bg"><div class="login-blob blob1"></div><div class="login-blob blob2"></div><div class="login-blob blob3"></div></div>

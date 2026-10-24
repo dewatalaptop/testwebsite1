@@ -641,6 +641,40 @@ body{background:transparent!important}
 .story-empty-text span{font-size:11px;color:var(--text-secondary);text-shadow:0 1px 2px rgba(0,0,0,0.12)}
 @keyframes ghostShimmer{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
 @media(prefers-reduced-motion:reduce){.story-ring::before,.story-add-icon{animation:none}.story-empty-ghosts span::after{animation:none}}
+
+/* ═══ KETERBACAAN TEKS (kontras tinggi di atas foto cerah/ramai) ═══
+   Masalah: abu-biru --text-secondary & gradien judul yang melewati putih hampir
+   tak terlihat di atas kaca terang / karang. Perbaikan: warna teks gelap berkontras
+   tinggi di tema terang, terang di tema Malam; teks kecil yang langsung di atas
+   foto (nama pengirim, jam, pill tanggal) diberi "pil" kaca pekat sebagai alas. */
+:root{--status-text:#2a4a63;--status-online:#0b7a3b;--chip-bg:rgba(255,255,255,0.80);--chip-fg:#26384a}
+[data-theme="night"]{--status-text:#b9d2e8;--status-online:#5ee0a0;--chip-bg:rgba(10,18,32,0.72);--chip-fg:#d5e4f3}
+.header-status{color:var(--status-text);text-shadow:none}
+/* Judul: gradien hanya warna pekat (tanpa putih) -> selalu kontras */
+#header-room-title{background-image:linear-gradient(90deg,#0a4f8f,#1578c4,#0d7f8c,#1578c4,#0a4f8f)}
+[data-theme="night"] #header-room-title{background-image:linear-gradient(90deg,#8fc7ff,#c6e4ff,#ffffff,#c6e4ff,#8fc7ff)}
+/* Nama pengirim & jam: pil kaca pekat di atas foto */
+.msg-name,.msg-time{background:var(--chip-bg);color:var(--chip-fg);text-shadow:none;
+  padding:1px 8px;border-radius:10px;width:fit-content;font-weight:700}
+.msg-name{margin-bottom:3px}
+.msg-time{margin-top:3px}
+.date-banner span{color:var(--chip-fg)!important;font-weight:700}
+.story-empty-text span{color:var(--text-primary);opacity:.78;text-shadow:none}
+.story-name{color:var(--text-primary)}
+/* Alas kaca header & bar input lebih pekat -> teks/ikon di atasnya tidak tergantung
+   isi foto di belakangnya (karang gelap vs air terang). */
+:root{--chrome-glass:rgba(255,255,255,0.80);--ctl-fg:#2f5576}
+[data-theme="night"]{--chrome-glass:rgba(14,24,40,0.80);--ctl-fg:#b8d2ea}
+.chat-header{background:linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0) 58%),var(--chrome-glass)!important}
+.input-bar{background:var(--chrome-glass)!important}
+.input-btn{color:var(--ctl-fg)}
+.msg-input::placeholder{color:var(--ctl-fg);opacity:1}
+/* Story bar: alas kaca lebih pekat + teks gelap penuh (sebelumnya subjudul ~2.9:1) */
+.story-bar{background:linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0)),var(--chrome-glass)!important}
+.story-empty-text span{opacity:1;color:var(--text-primary);font-weight:600}
+.story-empty-text b{color:var(--text-primary)}
+.date-banner span{background:var(--chip-bg)!important}
+#header-room-title{background-image:linear-gradient(90deg,#072f5a,#0a4580,#085a68,#0a4580,#072f5a)}
 </style>
 </head>
 <body>
@@ -1128,15 +1162,15 @@ function stopPresence(){
 function renderOnlineStatus(){
   const statusEl=document.querySelector('.header-status');
   if(!statusEl)return;
-  if(!_partnerLastActive||!_partnerLastActive.toMillis){statusEl.textContent='Status tidak diketahui';statusEl.style.color='var(--text-secondary)';return;}
+  if(!_partnerLastActive||!_partnerLastActive.toMillis){statusEl.textContent='Status tidak diketahui';statusEl.style.color='var(--status-text)';return;}
   const diffSec=(Date.now()-_partnerLastActive.toMillis())/1000;
-  if(diffSec<45){statusEl.textContent='● Online';statusEl.style.color='#4caf50';return;}
+  if(diffSec<45){statusEl.textContent='● Online';statusEl.style.color='var(--status-online)';return;}
   const mins=Math.floor(diffSec/60);
   let label;
   if(mins<60)label='Terakhir dilihat '+mins+' menit lalu';
   else if(mins<1440)label='Terakhir dilihat '+Math.floor(mins/60)+' jam lalu';
   else label='Terakhir dilihat '+Math.floor(mins/1440)+' hari lalu';
-  statusEl.textContent=label;statusEl.style.color='var(--text-secondary)';
+  statusEl.textContent=label;statusEl.style.color='var(--status-text)';
 }
 // CHAT
 const msgCol=()=>collection(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages');

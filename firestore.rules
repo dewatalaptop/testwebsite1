@@ -65,12 +65,40 @@ service cloud.firestore {
             && request.resource.data.keys().hasOnly([
                  'senderId','senderName','type','content','timestamp',
                  'reactions','replyTo','replyPreview','duration',
-                 'storagePath','mimeType','isGif'
+                 'storagePath','mimeType','isGif',
+                 // Thumbnail foto/video (dibuat otomatis di klien) — tanpa dua
+                 // field ini, SEMUA foto/video gagal terkirim (permission-denied).
+                 'thumbUrl','thumbPath'
                ]);
         // Hanya field ini yang boleh berubah lewat update (edit/reaksi/read)
         allow update: if request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['content','edited','editedAt','reactions','readBy']);
         allow delete: if isValidUser(resource.data.senderId);
+      }
+    }
+
+    // Impor riwayat WhatsApp (tempel teks ekspor WA). Tanpa blok ini, fitur
+    // "Impor WhatsApp" selalu gagal (permission-denied) karena jatuh ke
+    // catch-all deny di bawah. Dokumen induk menyimpan judul/metadata, lalu
+    // isi pesannya di subkoleksi messages/ (ditulis per-batch).
+    match /rooms/{roomId}/waImports/{importId} {
+      allow get, list: if true;
+      allow create, update: if isValidUser(request.resource.data.createdBy)
+          && request.resource.data.keys().hasOnly([
+               'title','createdAt','createdBy','meName','participants',
+               'messageCount','firstDate','lastDate'
+             ]);
+      allow delete: if true; // dihapus dari daftar oleh salah satu pasangan
+
+      match /messages/{waMsgId} {
+        allow get, list: if true;
+        allow create: if request.resource.data.keys().hasOnly([
+               'seq','sender','content','type','mediaKind','caption','timestamp'
+             ])
+            && request.resource.data.content is string
+            && request.resource.data.content.size() <= 20000;
+        allow update: if false;
+        allow delete: if true;
       }
     }
 

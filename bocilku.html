@@ -312,9 +312,11 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
 .msg-edited{font-size:9px;color:var(--text-secondary);margin-left:4px;font-style:italic}
 /* ── PROFILE VIEWER ── */
 .profile-viewer{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.2s ease}
-.profile-viewer-img{width:220px;height:220px;border-radius:50%;object-fit:cover;border:3px solid white;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
-.profile-viewer-emoji{font-size:100px;line-height:1}
-.profile-viewer-name{color:white;font-size:20px;font-weight:800;margin-top:16px;font-family:var(--font-main)}
+.profile-viewer-img{width:min(86vw,440px);height:min(86vw,440px);border-radius:50%;object-fit:cover;border:3px solid white;box-shadow:0 10px 50px rgba(0,0,0,0.55);animation:pvPop 0.22s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pvPop{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
+.profile-viewer-emoji{font-size:min(44vw,180px);line-height:1}
+.profile-viewer-name{color:white;font-size:22px;font-weight:800;margin-top:20px;font-family:var(--font-main)}
+.profile-viewer-hint{color:rgba(255,255,255,0.55);font-size:12px;margin-top:6px;font-family:var(--font-main)}
 .profile-viewer-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:white;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
 /* ── MSG ACTION SHEET (tap bubble) ── */
 .msg-action-sheet{position:fixed;bottom:0;left:0;right:0;z-index:600;background:var(--surface);border-radius:24px 24px 0 0;padding:12px 16px 36px;box-shadow:0 -8px 40px rgba(0,0,0,0.2);animation:sheetSlide 0.28s cubic-bezier(.4,0,.2,1)}
@@ -714,7 +716,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   </div>
   <div id="story-caption" class="story-caption hidden"></div>
   <div class="story-footer">
-    <input id="story-reply-input" class="story-reply-input" placeholder="Balas story..." onkeydown="if(event.key==='Enter')sendStoryReply()"/>
+    <input id="story-reply-input" class="story-reply-input" placeholder="Balas story..." onfocus="storyPause()" onblur="storyResume()" onkeydown="if(event.key==='Enter')sendStoryReply()"/>
     <button class="story-reply-btn" onclick="sendStoryReply()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
@@ -774,6 +776,15 @@ import{getStorage,ref as sRef,uploadBytes,getDownloadURL,deleteObject}from"https
 const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
 const storage=getStorage(fbApp);
+// ── Keamanan XSS ─────────────────────────────────────
+// Nilai dari Firestore (photoURL partner, URL media pesan) bisa ditulis oleh
+// siapa pun yang punya firebaseConfig publik ini — app TIDAK memakai Firebase
+// Auth, jadi rules tidak bisa membuktikan pengirimnya. Maka: jangan pernah
+// memasukkan nilai itu mentah ke innerHTML. esc() aman untuk konteks atribut;
+// safeUrl() menolak skema selain http(s)/data:image/blob (mis. pemutus atribut
+// atau "javascript:") dengan mengembalikan string kosong.
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function safeUrl(u){u=String(u==null?'':u);return /^(https?:|data:image\/|blob:)/i.test(u.trim())?u:'';}
 // ── SHA-256 helper ──────────────────────────────────
 async function sha256(str){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
@@ -1762,10 +1773,14 @@ function renderStoryBar(){
 function openStoryViewer(index){
   storyIndex=index;
   el('story-viewer').classList.remove('hidden');
-  const seen=JSON.parse(localStorage.getItem('cc-seen-stories')||'[]');
-  if(storyItems[index]&&!seen.includes(storyItems[index].id)){seen.push(storyItems[index].id);localStorage.setItem('cc-seen-stories',JSON.stringify(seen));}
-  if(storyItems[index])markStorySeen(storyItems[index]);
-  renderStorySlide();
+  renderStorySlide(); // renderStorySlide yang menandai "dilihat" untuk slide ini
+}
+// Tandai satu story sebagai sudah dilihat (localStorage utk ring + Firestore utk
+// jam "Dilihat pukul.." yang dilihat partner). Dipanggil untuk SETIAP slide.
+function markStoryViewed(s){
+  if(!s)return;
+  try{const seen=JSON.parse(localStorage.getItem('cc-seen-stories')||'[]');if(!seen.includes(s.id)){seen.push(s.id);localStorage.setItem('cc-seen-stories',JSON.stringify(seen));}}catch(_e){}
+  markStorySeen(s);
 }
 // Catat "dilihat pukul..." di Firestore — hanya untuk story milik partner, bukan story sendiri
 async function markStorySeen(s){
@@ -1775,6 +1790,7 @@ async function markStorySeen(s){
 function renderStorySlide(){
   if(!storyItems[storyIndex]){closeStoryViewer();return;}
   const s=storyItems[storyIndex];
+  markStoryViewed(s); // catat "dilihat" untuk setiap slide, termasuk hasil navigasi
   const cfg=APP_CONFIG[s.authorId]||{};
   const ph=profilePhotos[s.authorId];
   el('story-header-name').textContent=cfg.name||'Partner';
@@ -1798,6 +1814,8 @@ function renderStorySlide(){
     mediaEl.src=s.mediaUrl;mediaEl.autoplay=true;mediaEl.playsInline=true;mediaEl.controls=false;
     mediaEl.style.cssText='max-width:100%;max-height:100%;object-fit:contain';
     mediaEl.onended=()=>storyNavNext();
+    // Video yang gagal dimuat jangan bikin viewer macet — lanjut ke slide berikut.
+    mediaEl.onerror=()=>{showToast('Video story gagal dimuat');storyNavNext();};
   }else{
     mediaEl=document.createElement('img');mediaEl.src=s.mediaUrl;
     mediaEl.style.cssText='max-width:100%;max-height:100%;object-fit:contain';
@@ -1846,6 +1864,23 @@ function startStoryTimer(){
 window.storyNavNext=()=>{clearTimeout(storyTimer);if(storyIndex<storyItems.length-1){storyIndex++;renderStorySlide();}else{closeStoryViewer();}};
 window.storyNavPrev=()=>{clearTimeout(storyTimer);if(storyIndex>0){storyIndex--;renderStorySlide();}};
 window.closeStoryViewer=()=>{clearTimeout(storyTimer);el('story-viewer').classList.add('hidden');loadStories();};
+// Jeda story saat user mulai mengetik balasan supaya tidak keburu tertutup/
+// berpindah sendiri; lanjutkan lagi saat selesai mengetik.
+window.storyPause=()=>{clearTimeout(storyTimer);const v=el('story-content').querySelector('video');if(v){try{v.pause();}catch(_){}}};
+window.storyResume=()=>{
+  if(el('story-viewer').classList.contains('hidden'))return;
+  const s=storyItems[storyIndex];if(!s)return;
+  const v=el('story-content').querySelector('video');
+  if(s.mediaType==='video'&&v){try{v.play();}catch(_){}}else{startStoryTimer();}
+};
+// Kontrol keyboard saat story viewer terbuka (abaikan saat sedang mengetik balasan).
+document.addEventListener('keydown',e=>{
+  const sv=el('story-viewer');if(!sv||sv.classList.contains('hidden'))return;
+  if(document.activeElement&&document.activeElement.id==='story-reply-input'){if(e.key==='Escape')document.activeElement.blur();return;}
+  if(e.key==='Escape')closeStoryViewer();
+  else if(e.key==='ArrowRight')storyNavNext();
+  else if(e.key==='ArrowLeft')storyNavPrev();
+});
 window.deleteCurrentStory=async()=>{
   const s=storyItems[storyIndex];if(!s||s.authorId!==currentUser?.id)return;
   if(!confirm('Hapus story ini?'))return;
@@ -2246,8 +2281,13 @@ window.openProfileViewer=uid=>{
   }
   const pvName=document.createElement('div');pvName.className='profile-viewer-name';pvName.textContent=cfg.name||'Pengguna';
   viewer.appendChild(pvName);
-  const pvc=document.createElement('button');pvc.className='profile-viewer-close';pvc.textContent='✕';pvc.onclick=()=>viewer.remove();viewer.appendChild(pvc);
-  viewer.onclick=e=>{if(e.target===viewer)viewer.remove();};
+  const pvHint=document.createElement('div');pvHint.className='profile-viewer-hint';pvHint.textContent='Ketuk di luar foto untuk menutup';
+  viewer.appendChild(pvHint);
+  const onKey=e=>{if(e.key==='Escape')close();};
+  const close=()=>{viewer.remove();document.removeEventListener('keydown',onKey);};
+  const pvc=document.createElement('button');pvc.className='profile-viewer-close';pvc.textContent='✕';pvc.onclick=close;viewer.appendChild(pvc);
+  viewer.onclick=e=>{if(e.target===viewer)close();};
+  document.addEventListener('keydown',onKey);
   document.body.appendChild(viewer);
 };
 
@@ -2529,8 +2569,8 @@ window.exportHistoryToPdf=async()=>{
       const row=document.createElement('div');row.className='print-msg';
       let contentHtml='';
       if(m.type==='text')contentHtml='<p>'+escapeHtml(m.content||'')+'</p>';
-      else if(m.type==='photo')contentHtml='<img src="'+m.content+'">';
-      else if(m.type==='sticker')contentHtml='<img src="'+m.content+'" style="width:80px;height:80px">';
+      else if(m.type==='photo')contentHtml='<img src="'+esc(safeUrl(m.content))+'">';
+      else if(m.type==='sticker')contentHtml='<img src="'+esc(safeUrl(m.content))+'" style="width:80px;height:80px">';
       else if(m.type==='voice')contentHtml='<p><em>[Pesan suara — '+fmtDur(m.duration||0)+']</em></p>';
       else if(m.type==='video')contentHtml='<p><em>[Video]</em></p>';
       row.innerHTML='<div class="print-msg-head"><b>'+escapeHtml(who)+'</b><span>'+time+'</span></div>'+contentHtml;
@@ -2891,7 +2931,11 @@ function renderTypingAvatar(){
     ?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
     :'<span>'+otherUser.avatar+'</span>';
 }
-function renderHeaderAvatars(){if(!currentUser||!otherUser)return;const wMe=el('hdr-wrap-me'),wOther=el('hdr-wrap-other');if(wMe){wMe.innerHTML='';const ph=profilePhotos[currentUser.id];if(ph){wMe.innerHTML='<img src="'+ph+'">';}else{wMe.innerHTML='<span>'+currentUser.avatar+'</span>';}}if(wOther){wOther.innerHTML='';const ph=profilePhotos[otherUser.id];if(ph){wOther.innerHTML='<img src="'+ph+'">';}else{wOther.innerHTML='<span>'+otherUser.avatar+'</span>';}}}
+function renderHeaderAvatars(){if(!currentUser||!otherUser)return;const wMe=el('hdr-wrap-me'),wOther=el('hdr-wrap-other');if(wMe){wMe.innerHTML='';const ph=profilePhotos[currentUser.id];if(ph){wMe.innerHTML='<img src="'+ph+'">';}else{wMe.innerHTML='<span>'+currentUser.avatar+'</span>';}}if(wOther){wOther.innerHTML='';const ph=profilePhotos[otherUser.id];if(ph){wOther.innerHTML='<img src="'+esc(safeUrl(ph))+'">';}else{wOther.innerHTML='<span>'+esc(otherUser.avatar)+'</span>';}
+    // Ketuk avatar partner di header = lihat foto profilnya dalam tampilan besar.
+    wOther.style.cursor='pointer';wOther.title='Lihat foto '+(otherUser.name||'partner');
+    wOther.onclick=e=>{e.stopPropagation();if(otherUser)openProfileViewer(otherUser.id);};
+  }}
 function renderLoginAvatars(){['user1','user2'].forEach((uid,i)=>{const wrap=el('login-av'+(i+1));if(!wrap)return;const photo=profilePhotos[uid];if(photo){wrap.style.cssText='font-size:0;width:60px;height:60px;border-radius:50%;overflow:hidden;margin:0 auto 4px;border:2.5px solid #2186d4;';wrap.innerHTML='<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">';}else{wrap.style.cssText='font-size:42px;';wrap.textContent=APP_CONFIG[uid]?.avatar||'\u{1F464}';}});}
 window.openMyProfile=()=>{if(currentUser)openProfileModal(currentUser.id);};
 window.openProfileModal=()=>{
@@ -2980,15 +3024,18 @@ window.saveProfileChanges=async()=>{
 };
 window.uploadProfilePhoto=async event=>{const file=event.target.files[0];event.target.value="";if(!file||!profileModalTarget)return;
   const targetUid=profileModalTarget; // capture sebelum modal mungkin ditutup
-  const prog=showProgress('Upload foto profil...');try{const imgBlob=await compressImage(file,300,0.70);const path='profiles/'+targetUid+'.jpg';await uploadBytes(sRef(storage,path),imgBlob);const url=await getDownloadURL(sRef(storage,path));profilePhotos[targetUid]=url;saveProfiles();await setDoc(doc(db,'profiles',targetUid),{photoURL:url,updatedAt:serverTimestamp()},{merge:true});renderLoginAvatars();renderHeaderAvatars();closeProfileModal();showToast('Foto profil diperbarui \u2713');}catch(e){showToast('Gagal upload foto profil');}finally{prog.remove();}};
+  const prog=showProgress('Upload foto profil...');try{const imgBlob=await compressImage(file,720,0.85);const path='profiles/'+targetUid+'.jpg';await uploadBytes(sRef(storage,path),imgBlob);const url=await getDownloadURL(sRef(storage,path));profilePhotos[targetUid]=url;saveProfiles();await setDoc(doc(db,'profiles',targetUid),{photoURL:url,updatedAt:serverTimestamp()},{merge:true});renderLoginAvatars();renderHeaderAvatars();closeProfileModal();showToast('Foto profil diperbarui \u2713');}catch(e){showToast('Gagal upload foto profil');}finally{prog.remove();}};
 function loadPartnerProfile(){
   if(!otherUser)return;
   if(unsubPartnerProfile)unsubPartnerProfile();
   unsubPartnerProfile=onSnapshot(doc(db,'profiles',otherUser.id),snap=>{
     if(!snap.exists())return;
     let changed=false;
-    if(snap.data().photoURL&&snap.data().photoURL!==profilePhotos[otherUser.id]){
-      profilePhotos[otherUser.id]=snap.data().photoURL;saveProfiles();changed=true;
+    // photoURL partner ditampilkan di banyak tempat via innerHTML — saring di
+    // titik masuk ini supaya payload XSS tak pernah tersimpan ke profilePhotos.
+    const pPhoto=safeUrl(snap.data().photoURL);
+    if(pPhoto&&pPhoto!==profilePhotos[otherUser.id]){
+      profilePhotos[otherUser.id]=pPhoto;saveProfiles();changed=true;
     }
     if(snap.data().name&&snap.data().name!==APP_CONFIG[otherUser.id]?.name){
       APP_CONFIG[otherUser.id].name=snap.data().name;saveCfg();
@@ -3088,7 +3135,7 @@ async function renderAdminPhotos(body){
     div.dataset.idx=i;div.dataset.url=item.content;div.dataset.path=item.storagePath||'';div.dataset.thumbPath=item.thumbPath||'';div.dataset.msgId=item.msgId;div.dataset.dateId=item.dateId;div.dataset.type='photo-item';
     // Grid pakai thumbnail 320px (kalau ada) — bukan foto ukuran penuh — jauh lebih ringan
     // di-load & di-decode untuk ratusan item sekaligus. Lightbox tetap pakai foto penuh.
-    div.innerHTML='<img src="'+(item.thumbUrl||item.content)+'" loading="lazy"><div class="media-check"></div>';
+    div.innerHTML='<img src="'+esc(safeUrl(item.thumbUrl||item.content))+'" loading="lazy"><div class="media-check"></div>';
     const imgEl=div.querySelector('img');imgEl.onload=()=>imgEl.classList.add('loaded');
     imgEl.onclick=()=>openLightbox(item.content);
     div.querySelector('.media-check').onclick=e=>{e.stopPropagation();toggleMediaSelect(div);};
@@ -3111,12 +3158,12 @@ async function renderAdminVideos(body){
     if(item.thumbUrl){
       // Poster JPEG ringan alih-alih <video preload=metadata> — grid tidak perlu buka
       // koneksi/stream video hanya untuk menampilkan pratinjaunya.
-      div.innerHTML='<img src="'+item.thumbUrl+'" loading="lazy">'+playBadge+'<div class="media-check"></div>';
+      div.innerHTML='<img src="'+esc(safeUrl(item.thumbUrl))+'" loading="lazy">'+playBadge+'<div class="media-check"></div>';
       const imgEl=div.querySelector('img');imgEl.onload=()=>imgEl.classList.add('loaded');
       imgEl.onclick=e=>{e.stopPropagation();window.open(item.content,'_blank');};
     }else{
       // Fallback untuk video lama yang dikirim sebelum fitur thumbnail ada
-      div.innerHTML='<video src="'+item.content+'" muted preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>'+playBadge+'<div class="media-check"></div>';
+      div.innerHTML='<video src="'+esc(safeUrl(item.content))+'" muted preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>'+playBadge+'<div class="media-check"></div>';
       div.querySelector('video').onclick=e=>{e.stopPropagation();window.open(item.content,'_blank');};
     }
     div.querySelector('.media-check').onclick=e=>{e.stopPropagation();toggleMediaSelect(div);};

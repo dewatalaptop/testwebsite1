@@ -443,9 +443,13 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
    ke-8 tema, dan jadi laut-dalam gelap di tema Malam.
    ═══════════════════════════════════════════════════════════════════ */
 :root{
-  --sea-sky:color-mix(in srgb,var(--accent2) 42%,#eef7ff);
-  --sea-mid:color-mix(in srgb,var(--accent) 46%,#73c0ea);
-  --sea-deep:color-mix(in srgb,var(--accent) 74%,#0a3a5f);
+  /* Fallback STATIS (tanpa color-mix) — dipakai apa adanya oleh browser HP lama
+     yang belum mendukung color-mix() (mis. Chrome <111 / Samsung Internet lama /
+     iOS <16.2). Tanpa ini lautnya kosong di HP tsb. Versi color-mix (lebih serasi
+     per-tema) ada di blok @supports di bawah. */
+  --sea-sky:#d8efff;
+  --sea-mid:#4aa8e0;
+  --sea-deep:#0a3a5f;
   --sea-foam:rgba(255,255,255,0.5);
   --glass-bg:rgba(255,255,255,0.42);
   --glass-strong:rgba(255,255,255,0.64);
@@ -462,6 +466,18 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
   --chat-scrim:linear-gradient(180deg,rgba(8,16,28,0.32),rgba(8,16,28,0.14));
   --bubble-other-glass:rgba(31,44,68,0.84);
 }
+/* Peningkatan progresif: hanya di browser yang mendukung color-mix, warna laut
+   diturunkan dari token tema agar serasi di ke-8 tema. Browser lama tetap pakai
+   fallback statis di atas (tetap tampil indah). */
+@supports (background:color-mix(in srgb,red,blue)){
+  :root{
+    --sea-sky:color-mix(in srgb,var(--accent2) 42%,#eef7ff);
+    --sea-mid:color-mix(in srgb,var(--accent) 46%,#73c0ea);
+    --sea-deep:color-mix(in srgb,var(--accent) 74%,#0a3a5f);
+  }
+  #sea-bg .g2{background:color-mix(in srgb,var(--accent2) 62%,#ffffff)}
+  #sea-bg .g3{background:color-mix(in srgb,var(--accent) 52%,#2aa0e0)}
+}
 html{background:var(--sea-deep)}
 body{background:transparent!important}
 #sea-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
@@ -471,8 +487,8 @@ body{background:transparent!important}
   background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,0.5),rgba(255,255,255,0) 62%);opacity:0.7}
 #sea-bg .glow{position:absolute;border-radius:50%;filter:blur(72px);will-change:transform}
 #sea-bg .g1{width:56vw;height:56vw;left:-12vw;top:6%;background:var(--sea-foam);opacity:0.5;animation:seaFloatA 20s ease-in-out infinite alternate}
-#sea-bg .g2{width:48vw;height:48vw;right:-14vw;top:28%;background:color-mix(in srgb,var(--accent2) 62%,#ffffff);opacity:0.32;animation:seaFloatB 27s ease-in-out infinite alternate}
-#sea-bg .g3{width:64vw;height:64vw;left:16vw;bottom:-22vw;background:color-mix(in srgb,var(--accent) 52%,#2aa0e0);opacity:0.34;animation:seaFloatA 34s ease-in-out infinite alternate-reverse}
+#sea-bg .g2{width:48vw;height:48vw;right:-14vw;top:28%;background:#bfe4fb;opacity:0.32;animation:seaFloatB 27s ease-in-out infinite alternate}
+#sea-bg .g3{width:64vw;height:64vw;left:16vw;bottom:-22vw;background:#2aa0e0;opacity:0.34;animation:seaFloatA 34s ease-in-out infinite alternate-reverse}
 /* kilau garis cahaya bergerak di kejauhan */
 #sea-bg .sea-shimmer{position:absolute;inset:0;background:repeating-linear-gradient(100deg,transparent 0 46px,rgba(255,255,255,0.05) 46px 48px);mix-blend-mode:overlay;opacity:0.5;animation:seaShimmer 24s linear infinite}
 @keyframes seaFloatA{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(6vw,-4vh,0) scale(1.12)}}

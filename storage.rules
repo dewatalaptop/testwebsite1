@@ -50,6 +50,14 @@ service firebase.storage {
       allow delete: if true;
     }
 
+    // Background chat kustom (diupload admin). Dikompres di klien; batas longgar.
+    match /backgrounds/{roomId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 12 * 1024 * 1024
+          && request.resource.contentType.matches('image/.*');
+      allow delete: if true;
+    }
+
     match /stories/{uid}/{fileName} {
       allow read: if true;
       allow write: if request.resource.size < 150 * 1024 * 1024

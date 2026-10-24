@@ -43,7 +43,8 @@ service cloud.firestore {
     // Dokumen room itu sendiri — dipakai untuk pesan yang disematkan (pin)
     match /rooms/{roomId} {
       allow get: if true;
-      allow write: if request.resource.data.keys().hasOnly(['pinnedMessage']);
+      // pinnedMessage = pesan disematkan; chatBackground = latar chat kustom (admin).
+      allow write: if request.resource.data.keys().hasOnly(['pinnedMessage','chatBackground']);
     }
 
     match /rooms/{roomId}/dates/{dateId} {

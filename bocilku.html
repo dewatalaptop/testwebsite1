@@ -12,6 +12,10 @@ try{
   var _eff=_t;
   if(_t==='auto')_eff=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'night':'default';
   if(_eff&&_eff!=='default')document.documentElement.setAttribute('data-theme',_eff);
+  // Background chat kustom tersimpan — terapkan lebih awal agar tidak berkedip
+  // ke foto bawaan dulu sebelum Firestore merespons.
+  var _bg=localStorage.getItem('cc-chat-bg');
+  if(_bg)document.documentElement.style.setProperty('--chat-bg-url',"url('"+_bg.replace(/'/g,"%27")+"')");
 }catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -462,6 +466,10 @@ html,body{height:100%;overflow:hidden;font-family:var(--font-main);background:va
      input) supaya ikon/teks chrome jelas, lebih terang di tengah supaya foto
      tetap terlihat indah. */
   --sea-overlay:linear-gradient(180deg,rgba(4,30,48,0.30) 0%,rgba(4,30,48,0.06) 24%,rgba(4,30,48,0.05) 70%,rgba(6,30,50,0.36) 100%);
+  /* Gambar latar chat. Default foto bawaan; admin bisa menggantinya (diset via
+     JS -> document.documentElement.style --chat-bg-url, disimpan di Firestore
+     rooms doc + cache localStorage). Selalu di-'cover' agar fit layar apa pun. */
+  --chat-bg-url:url('assets/sea-chat-bg.jpg');
 }
 [data-theme="night"]{
   --sea-sky:#0c1f33;--sea-mid:#0b2c49;--sea-deep:#05121f;--sea-foam:rgba(150,195,235,0.26);
@@ -494,7 +502,7 @@ body{background:transparent!important}
      (tidak dihitung ulang tiap frame) -> tanpa lag. */
   background:
     var(--sea-overlay),
-    url('assets/sea-chat-bg.jpg') center center / cover no-repeat,
+    var(--chat-bg-url) center center / cover no-repeat,
     linear-gradient(180deg,var(--sea-sky) 0%,var(--sea-mid) 50%,var(--sea-deep) 100%);}
 /* Lapisan dekoratif lama (gradien beranimasi) dimatikan — foto jadi bintangnya,
    sekaligus menghapus semua animasi latar (lebih hemat & tenang). */
@@ -620,7 +628,19 @@ body{background:transparent!important}
 .story-name{color:var(--text-primary);font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.14)}
 @keyframes storyRingSpin{to{transform:rotate(360deg)}}
 @keyframes storyAddPulse{0%,100%{box-shadow:0 2px 7px rgba(0,0,0,0.3),0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 2px 7px rgba(0,0,0,0.3),0 0 0 4px rgba(255,255,255,0.2)}}
-@media(prefers-reduced-motion:reduce){.story-ring::before,.story-add-icon{animation:none}}
+/* Empty-state story: ghost ring berkilau + ajakan, agar bar tidak terlihat kosong */
+.story-empty{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:2px 6px 2px 2px;cursor:pointer}
+.story-empty-ghosts{display:flex;gap:9px;flex-shrink:0}
+.story-empty-ghosts span{width:44px;height:44px;border-radius:50%;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(255,255,255,0.22),rgba(255,255,255,0.06));border:2px dashed var(--glass-brd)}
+.story-empty-ghosts span::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 32%,rgba(255,255,255,0.4) 50%,transparent 68%);animation:ghostShimmer 2.4s linear infinite}
+.story-empty-ghosts span:nth-child(2)::after{animation-delay:.5s}
+.story-empty-ghosts span:nth-child(3)::after{animation-delay:1s}
+.story-empty-text{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.story-empty-text b{font-size:12.5px;font-weight:800;color:var(--text-primary);text-shadow:0 1px 2px rgba(0,0,0,0.14)}
+.story-empty-text span{font-size:11px;color:var(--text-secondary);text-shadow:0 1px 2px rgba(0,0,0,0.12)}
+@keyframes ghostShimmer{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+@media(prefers-reduced-motion:reduce){.story-ring::before,.story-add-icon{animation:none}.story-empty-ghosts span::after{animation:none}}
 </style>
 </head>
 <body>
@@ -848,6 +868,7 @@ body{background:transparent!important}
 </div>
 <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="uploadProfilePhoto(event)"/>
 <input type="file" id="story-file-input" accept="image/*,video/*" style="display:none" onchange="handleStoryFileSelected(event)"/>
+<input type="file" id="chat-bg-file-input" accept="image/*" style="display:none" onchange="uploadChatBackground(event)"/>
 <!-- STORY CAPTION MODAL -->
 <div class="full-modal hidden" id="story-caption-modal" onclick="storyCaptionModalOutside(event)">
   <div class="full-modal-card" style="max-width:320px">
@@ -1120,14 +1141,72 @@ function renderOnlineStatus(){
 // CHAT
 const msgCol=()=>collection(db,'rooms',APP_CONFIG.roomId,'dates',todayDateStr,'messages');
 // ── PESAN DISEMATKAN (pin) — satu slot pin per room, disimpan di dokumen rooms/{roomId} ──
-let pinnedMsgUnsub=null,_currentPinned=null;
+let pinnedMsgUnsub=null,_currentPinned=null,_currentChatBg=null;
 function watchPinnedMessage(){
   if(pinnedMsgUnsub)pinnedMsgUnsub();
   pinnedMsgUnsub=onSnapshot(doc(db,'rooms',APP_CONFIG.roomId),snap=>{
     _currentPinned=snap.data()?.pinnedMessage||null;
     renderPinnedBanner(_currentPinned);
+    // Background chat kustom (diset admin) — dipakai bersama kedua pengguna.
+    _currentChatBg=snap.data()?.chatBackground||null;
+    applyChatBackground(_currentChatBg?.url||null);
   },err=>console.warn('watchPinnedMessage:',err));
 }
+// Terapkan gambar latar chat. url null = kembali ke foto bawaan. Di-cache di
+// localStorage agar langsung tampil saat buka app (sebelum Firestore merespons),
+// mencegah kedipan foto bawaan sesaat.
+function applyChatBackground(url){
+  try{
+    if(url){
+      document.documentElement.style.setProperty('--chat-bg-url',"url('"+url.replace(/'/g,"%27")+"')");
+      localStorage.setItem('cc-chat-bg',url);
+    }else{
+      document.documentElement.style.removeProperty('--chat-bg-url');
+      localStorage.removeItem('cc-chat-bg');
+    }
+  }catch(e){}
+}
+// ── ADMIN: GANTI BACKGROUND CHAT ──
+// Admin upload gambar apa pun -> dikompres (maks 1600px) -> Firebase Storage ->
+// URL disimpan di rooms/{roomId}.chatBackground -> otomatis tampil di kedua
+// perangkat lewat watchPinnedMessage. Selalu 'cover' jadi fit layar apa pun.
+window.uploadChatBackground=async event=>{
+  const file=event.target.files[0];event.target.value="";
+  if(!file||!currentUser?.isAdmin)return;
+  if(!file.type.startsWith('image/')){showToast('File harus berupa gambar');return;}
+  if(file.size>25*1024*1024){showToast('Gambar terlalu besar (maks 25MB)');return;}
+  const prog=showProgress('Menyiapkan background...');
+  try{
+    let up=file;
+    try{up=await compressImage(file,1600,0.72);}catch(e){up=file;}
+    prog.setText('Mengunggah...');
+    const stamp=Date.now();
+    const path='backgrounds/'+APP_CONFIG.roomId+'/'+stamp+'.jpg';
+    await uploadBytes(sRef(storage,path),up);
+    const url=await getDownloadURL(sRef(storage,path));
+    const oldPath=_currentChatBg?.storagePath||null;
+    await setDoc(doc(db,'rooms',APP_CONFIG.roomId),{chatBackground:{url,storagePath:path,setBy:currentUser.id}},{merge:true});
+    applyChatBackground(url);
+    if(oldPath&&oldPath!==path)await deleteObject(sRef(storage,oldPath)).catch(()=>{});
+    const prev=el('admin-bg-preview');if(prev)prev.style.backgroundImage="url('"+url+"')";
+    showToast('Background chat diganti ✓');
+  }catch(e){console.error('uploadChatBackground:',e);showToast('Gagal ganti background: '+(e?.code||e?.message||'error'));}
+  finally{prog.remove();}
+};
+window.resetChatBackground=async()=>{
+  if(!currentUser?.isAdmin)return;
+  if(!confirm('Kembalikan background ke foto bawaan?'))return;
+  const prog=showProgress('Mengembalikan background...');
+  try{
+    const oldPath=_currentChatBg?.storagePath||null;
+    await setDoc(doc(db,'rooms',APP_CONFIG.roomId),{chatBackground:null},{merge:true});
+    applyChatBackground(null);
+    if(oldPath)await deleteObject(sRef(storage,oldPath)).catch(()=>{});
+    const prev=el('admin-bg-preview');if(prev)prev.style.backgroundImage='var(--chat-bg-url)';
+    showToast('Background dikembalikan ke default');
+  }catch(e){showToast('Gagal mengembalikan background');}
+  finally{prog.remove();}
+};
 function renderPinnedBanner(pin){
   const bar=el('pinned-banner');if(!bar)return;
   if(!pin){bar.classList.add('hidden');bar.innerHTML='';return;}
@@ -1955,6 +2034,17 @@ function renderStoryBar(){
   addItem.innerHTML='<div class="story-ring add" style="position:relative"><div class="story-av">'+(photo?'<img src="'+photo+'">':(currentUser.avatar||'\u2601\uFE0F'))+'</div><div class="story-add-icon">+</div></div><span class="story-name">Story</span>';
   addItem.onclick=()=>document.getElementById('story-file-input').click();
   bar.appendChild(addItem);
+  // Saat belum ada cerita, tampilkan empty-state dekoratif (ghost ring berkilau +
+  // ajakan) supaya bar tidak terlihat kosong/polos.
+  if(!storyItems.length){
+    const hint=document.createElement('div');
+    hint.className='story-empty';
+    hint.innerHTML='<div class="story-empty-ghosts"><span></span><span></span><span></span></div>'
+      +'<div class="story-empty-text"><b>Belum ada cerita</b><span>Ketuk "Story" untuk berbagi momen ✨</span></div>';
+    hint.onclick=()=>document.getElementById('story-file-input').click();
+    bar.appendChild(hint);
+    return;
+  }
   const seen=JSON.parse(localStorage.getItem('cc-seen-stories')||'[]');
   storyItems.forEach(s=>{
     const isSeen=seen.includes(s.id);
@@ -3513,6 +3603,23 @@ window.backupAllMediaToDrive=async()=>{
 };
 function renderAdminAccount(body){
   body.innerHTML='';
+  // ── Background Chat (admin bisa ganti dengan gambar apa pun) ──
+  const bgTitle=document.createElement('div');bgTitle.className='admin-section-title';bgTitle.textContent='\u{1F5BC}️ Background Chat';body.appendChild(bgTitle);
+  const bgNote=document.createElement('div');bgNote.className='drive-note';
+  bgNote.textContent='Upload gambar apa pun sebagai latar ruang chat. Gambar otomatis disesuaikan agar memenuhi layar (cover), tanpa gepeng. Berlaku untuk kalian berdua.';
+  body.appendChild(bgNote);
+  const bgPrev=document.createElement('div');bgPrev.id='admin-bg-preview';
+  bgPrev.style.cssText='height:130px;border-radius:14px;margin-bottom:10px;background-image:var(--chat-bg-url);background-size:cover;background-position:center;border:1px solid var(--border);box-shadow:inset 0 2px 10px rgba(0,0,0,0.15)';
+  body.appendChild(bgPrev);
+  const bgUpBtn=document.createElement('button');bgUpBtn.className='media-action-btn drive';bgUpBtn.style.cssText='margin-right:8px;margin-bottom:10px';
+  bgUpBtn.textContent='\u{1F4E4} Upload Background';
+  bgUpBtn.onclick=()=>document.getElementById('chat-bg-file-input').click();
+  body.appendChild(bgUpBtn);
+  const bgResetBtn=document.createElement('button');bgResetBtn.className='media-action-btn sel';bgResetBtn.style.marginBottom='20px';
+  bgResetBtn.textContent='Kembalikan ke Default';
+  bgResetBtn.onclick=resetChatBackground;
+  body.appendChild(bgResetBtn);
+
   const pinCard=document.createElement('div');pinCard.className='drive-note';
   const pinCardTitle=document.createElement('b');pinCardTitle.textContent='\u{1F511} Reset PIN '+(otherUser?.name||'Partner');
   pinCard.appendChild(pinCardTitle);

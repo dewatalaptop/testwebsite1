@@ -675,6 +675,100 @@ body{background:transparent!important}
 .story-empty-text b{color:var(--text-primary)}
 .date-banner span{background:var(--chip-bg)!important}
 #header-room-title{background-image:linear-gradient(90deg,#072f5a,#0a4580,#085a68,#0a4580,#072f5a)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UI v2 — lapisan penyempurnaan (ditaruh paling akhir agar menang kaskade)
+   Prinsip anti-lag: HANYA transform/opacity yang dianimasikan; tidak ada
+   backdrop-filter baru di elemen yang ikut di-scroll; animasi tak-berujung
+   yang memicu repaint (sheen judul, denyut box-shadow) dimatikan; tiap
+   baris pesan diberi `contain` agar perubahan satu pesan tidak me-reflow
+   ratusan lainnya.
+   ═══════════════════════════════════════════════════════════════════ */
+:root{--ease-spring:cubic-bezier(.34,1.56,.64,1);--ease-out:cubic-bezier(.22,1,.36,1)}
+button{-webkit-tap-highlight-color:transparent}
+.messages-area{overscroll-behavior:contain}
+
+/* ── Performa: matikan animasi yang repaint tiap frame ── */
+#header-room-title{animation:none!important;background-size:100% auto!important}
+.story-add-icon{animation:none!important}
+.story-empty-ghosts span::after{animation-iteration-count:3}
+.hdr-btn{will-change:auto!important}
+.msg-row{contain:layout style}
+
+/* ── Header: muat di layar 360px, aksi sekunder masuk menu "⋯" ── */
+.chat-header{gap:8px}
+.header-left{min-width:0;flex:1}
+.header-info{min-width:0}
+.header-info h2,#header-room-title{white-space:nowrap}
+.header-status{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+.header-right{position:relative;flex-shrink:0;gap:8px;align-items:center}
+.hdr-btn{width:38px;height:38px}
+.hdr-more{color:var(--ctl-fg)!important}
+.hdr-menu{position:absolute;top:calc(100% + 12px);right:0;min-width:210px;padding:6px;border-radius:20px;z-index:40;
+  background:var(--surface);
+  border:1px solid var(--glass-brd);box-shadow:0 18px 44px rgba(0,0,0,.28),inset 0 1px 0 var(--glass-hi);
+  display:flex;flex-direction:column;gap:2px;
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-8px) scale(.94);transform-origin:top right;
+  transition:opacity .16s ease,transform .22s var(--ease-spring),visibility 0s linear .22s}
+.hdr-menu.open{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity .16s ease,transform .22s var(--ease-spring)}
+.hdr-menu .hdr-btn{width:100%;height:46px;justify-content:flex-start;align-items:center;gap:13px;padding:0 12px;border-radius:14px;
+  background:transparent!important;border:none!important;box-shadow:none!important;transform:none!important}
+.hdr-menu .hdr-btn::after{content:attr(title);font:700 14px/1 var(--font-main,inherit);color:var(--text-primary)}
+.hdr-menu .hdr-btn:hover,.hdr-menu .hdr-btn:focus-visible{background:var(--glass-bg)!important}
+.hdr-menu .hdr-btn:active{background:var(--glass-strong)!important}
+.hdr-btn:focus-visible,.input-btn:focus-visible,.scroll-fab:focus-visible,.send-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* ── Bar cerita: lebih ringkas agar area chat lebih luas ── */
+.story-bar{padding:8px 14px 6px!important;gap:12px!important}
+.story-ring{width:48px!important;height:48px!important}
+.story-empty-ghosts span{width:36px;height:36px}
+.story-empty-text b{font-size:12px}
+.story-empty-text span{font-size:10.5px}
+
+/* ── Gelembung: lebih lapang, kilau lembut statis ── */
+.messages-inner{gap:6px!important;padding:6px 12px 10px!important}
+.msg-bubble{border-radius:20px;letter-spacing:.005em}
+.msg-row.me .msg-bubble{border-bottom-right-radius:6px;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0) 55%),var(--bubble-me)}
+.msg-row.other .msg-bubble{border-bottom-left-radius:6px}
+.msg-row.me+.msg-row.me,.msg-row.other+.msg-row.other{margin-top:-3px}
+.msg-bubble:active{transform:scale(.975)}
+.msg-reaction{box-shadow:0 1px 4px rgba(0,0,0,.12)}
+
+/* ── Bar input: kapsul melayang ── */
+.input-bar{margin:4px 10px max(10px,env(safe-area-inset-bottom))!important;padding:6px 8px!important;gap:4px!important;align-items:center!important;
+  border-radius:30px;border:1px solid var(--glass-brd)!important;
+  box-shadow:0 12px 32px rgba(0,0,0,.20),inset 0 1px 0 var(--glass-hi)}
+.input-wrap{border-radius:22px!important;padding:8px 14px!important;transition:box-shadow .2s ease,border-color .2s ease}
+.input-wrap:focus-within{box-shadow:0 0 0 3px rgba(33,134,212,.22)}
+.send-btn{background-image:linear-gradient(135deg,var(--accent2),var(--accent));transition:transform .18s var(--ease-spring),box-shadow .2s!important;
+  box-shadow:0 6px 16px rgba(33,134,212,.42),inset 0 1px 0 rgba(255,255,255,.4)!important}
+.send-btn:active{transform:scale(.88)!important}
+
+/* ── Tombol "ke pesan terbaru" ── */
+.scroll-fab{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));width:42px;height:42px;border-radius:50%;
+  border:1px solid var(--glass-brd);background:var(--chrome-glass);color:var(--ctl-fg);cursor:pointer;z-index:30;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(0,0,0,.26),inset 0 1px 0 var(--glass-hi);
+  opacity:0;visibility:hidden;transform:translateY(12px) scale(.8);pointer-events:none;transition:opacity .2s ease,transform .26s var(--ease-spring),visibility 0s linear .26s}
+.scroll-fab.show{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition:opacity .2s ease,transform .26s var(--ease-spring)}
+.scroll-fab:active{transform:scale(.9)}
+.scroll-fab svg{width:20px;height:20px}
+
+/* Layar sangat sempit: ruang ketik tidak boleh terjepit tombol */
+@media(max-width:340px){.input-bar{margin-left:6px!important;margin-right:6px!important;padding:5px 6px!important;gap:0!important}.input-bar .input-btn{padding:6px}.input-bar .input-btn svg{width:19px;height:19px}.send-btn,.record-btn{width:36px;height:36px}}
+
+/* ── Login: masuk halus + keterbacaan ── */
+.login-card{animation:cardIn .7s var(--ease-spring) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(28px) scale(.94)}to{opacity:1;transform:none}}
+.login-subtitle{color:#3f5b75!important;font-weight:600}
+.user-btn{transition:transform .2s var(--ease-spring),box-shadow .2s,border-color .2s!important}
+.user-btn:active{transform:scale(.95)!important}
+.pin-section{animation:slideUp .35s var(--ease-out)}
+
+@media(prefers-reduced-motion:reduce){
+  .login-card,.msg-row,.pin-section{animation:none!important}
+  .hdr-menu,.scroll-fab{transition:none!important}
+}
 </style>
 </head>
 <body>
@@ -733,6 +827,10 @@ body{background:transparent!important}
       <button class="hdr-btn" onclick="openMyProfile()" title="Profil & Pengaturan">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </button>
+      <button class="hdr-btn hdr-more" id="btn-more" type="button" aria-label="Menu lainnya" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+      </button>
+      <div class="hdr-menu" id="hdr-menu" role="menu">
       <button class="hdr-btn" id="btn-admin" onclick="openAdminEntry()" title="Admin" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       </button>
@@ -748,12 +846,14 @@ body{background:transparent!important}
       <button class="hdr-btn" onclick="logout()" title="Keluar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
       </button>
+      </div>
     </div>
   </header>
   <!-- STORY BAR -->
   <div class="story-bar" id="story-bar"></div>
   <div id="pinned-banner" class="pinned-banner hidden"></div>
   <div class="date-banner"><span id="date-banner-text">Hari ini</span></div>
+  <button class="scroll-fab" id="scroll-fab" type="button" aria-label="Ke pesan terbaru"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
   <div class="messages-area" id="messages-area">
     <div class="messages-inner" id="messages-inner"></div>
     <div id="typing-indicator" class="typing-indicator hidden">
@@ -3747,6 +3847,46 @@ function init(){
   }
 }
 init();
+</script>
+<script>
+/* UI v2 — murni DOM, tidak menyentuh logika chat/Firebase. Dibungkus try agar tak pernah memutus aplikasi. */
+(function(){
+  try{
+    var menu=document.getElementById('hdr-menu'),more=document.getElementById('btn-more');
+    function setMenu(open){
+      if(!menu||!more)return;
+      menu.classList.toggle('open',open);
+      more.setAttribute('aria-expanded',open?'true':'false');
+    }
+    if(menu&&more){
+      more.addEventListener('click',function(e){e.stopPropagation();setMenu(!menu.classList.contains('open'));});
+      // klik item menu → tutup (handler onclick bawaan item tetap jalan)
+      menu.addEventListener('click',function(){setMenu(false);});
+      Array.prototype.forEach.call(menu.querySelectorAll('.hdr-btn'),function(b){b.setAttribute('role','menuitem');});
+      // fokus keluar lewat Tab → tutup
+      menu.addEventListener('focusout',function(e){if(menu.classList.contains('open')&&e.relatedTarget&&!menu.contains(e.relatedTarget)&&e.relatedTarget!==more)setMenu(false);});
+      // fase capture: tetap menutup walau elemen lain (mis. gelembung pesan) menghentikan propagasi klik
+      document.addEventListener('pointerdown',function(e){if(menu.classList.contains('open')&&!menu.contains(e.target)&&!more.contains(e.target))setMenu(false);},true);
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&menu.classList.contains('open')){setMenu(false);more.focus();}});
+    }
+    // Tombol "ke pesan terbaru": muncul bila pembaca menggulir jauh dari bawah
+    var area=document.getElementById('messages-area'),fab=document.getElementById('scroll-fab');
+    if(area&&fab){
+      var ticking=false;
+      function update(){
+        ticking=false;
+        var far=area.scrollHeight-area.scrollTop-area.clientHeight>260;
+        fab.classList.toggle('show',far);
+      }
+      area.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(update);}},{passive:true});
+      // posisi FAB mengikuti tinggi bar input (input multi-baris tidak menabrak)
+      var bar=document.querySelector('.input-bar');
+      function place(){if(!bar)return;var t=bar.getBoundingClientRect().top;if(t>0)fab.style.bottom=Math.round(window.innerHeight-t+12)+'px';}
+      if(bar){if(window.ResizeObserver)new ResizeObserver(place).observe(bar);window.addEventListener('resize',place);place();}
+      fab.addEventListener('click',function(){area.scrollTo({top:area.scrollHeight,behavior:'smooth'});});
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
